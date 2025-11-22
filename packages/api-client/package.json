@@ -1,0 +1,46 @@
+{
+    "name": "@megisholavonat/api-client",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "build": "tsc -p tsconfig.build.json",
+        "codegen": "pnpm clean && openapi-ts",
+        "clean": "node scripts/clean.js",
+        "generate": "pnpm codegen && pnpm build"
+    },
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "require": "./dist/index.js",
+            "import": "./dist/index.js"
+        },
+        "./zod": {
+            "types": "./dist/zod.gen.d.ts",
+            "require": "./dist/zod.gen.js",
+            "import": "./dist/zod.gen.js"
+        },
+        "./react-query": {
+            "types": "./dist/@tanstack/react-query.gen.d.ts",
+            "require": "./dist/@tanstack/react-query.gen.js",
+            "import": "./dist/@tanstack/react-query.gen.js"
+        },
+        "./client": {
+            "types": "./dist/client.gen.d.ts",
+            "require": "./dist/client.gen.js",
+            "import": "./dist/client.gen.js"
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "dependencies": {
+        "@tanstack/react-query": "^5.90.6",
+        "axios": "^1.13.2",
+        "zod": "^4.1.12"
+    },
+    "devDependencies": {
+        "@hey-api/openapi-ts": "0.86.12",
+        "@types/node": "^20",
+        "typescript": "^5.9.3"
+    }
+}

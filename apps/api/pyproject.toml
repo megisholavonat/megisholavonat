@@ -1,0 +1,56 @@
+[project]
+name = "api"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi[standard]>=0.121.3",
+    "httpx-socks>=0.10.1",
+    "polyline>=2.0.3",
+    "pydantic-settings>=2.12.0",
+    "pytz>=2025.2",
+    "redis>=7.1.0",
+    "shapely>=2.1.2",
+    "types-pytz>=2025.2.0.20251108",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.18.2",
+    "ruff>=0.14.6",
+    "types-pytz>=2025.2.0.20251108",
+    "types-shapely>=2.1.0.20250917",
+]
+
+[tool.ruff]
+line-length = 88 # PEP 8 compatible (like Black)
+target-version = "py313" # Minimum Python version to target
+exclude = [
+    "migrations/*",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # Pyflakes
+    "I",  # isort (import sorting)
+    "UP", # pyupgrade
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "A",  # flake8-builtins
+    "PT", # flake8-pytest-style
+    "SIM", # flake8-simplify
+    "TID", # flake8-tidy-imports
+    "RUF", # Ruff-specific rules
+]
+ignore = [
+    "B008",  # Allow function calls in argument defaults (FastAPI Depends pattern)
+]
+
+[tool.mypy]
+python_version = "3.13"
+warn_return_any = true
+disallow_incomplete_defs = true
+plugins = ['pydantic.mypy']

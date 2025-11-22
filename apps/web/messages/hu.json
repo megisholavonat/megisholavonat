@@ -1,0 +1,125 @@
+{
+    "Home": {
+        "loading_map": "Térkép betöltése...",
+        "contact_us": "Kapcsolat",
+        "app_title": "Mégis hol a vonat?",
+        "app_description": "Vonatkövető alkalmazás, pontos adatokkal és hasznos információkkal."
+    },
+    "SearchComponent": {
+        "search_placeholder": "Szám, típus, állomás, UIC kód...",
+        "search_button": "Vonat keresése",
+        "sort_by": "Rendezés",
+        "sort_by_options": {
+            "number": "Vonatszám",
+            "delay": "Késés",
+            "speed": "Sebesség"
+        },
+        "sort_ascending": "növekvő",
+        "sort_descending": "csökkenő",
+        "no_search_results": "Nincs találat a keresésre",
+        "no_trains_available": "Nincs elérhető vonat"
+    },
+    "SettingsComponent": {
+        "settings_button": "Beállítások",
+        "dialog_title": "Beállítások",
+        "dialog_description": "Itt találod az egyéni MHaV beállításaidat. Ezek csak ide, erre az eszközre vannak elmentve.",
+        "tab_settings": "Beállítások",
+        "tab_changelog": "Változások",
+        "language_label": "Nyelv",
+        "language_description": "Váltás magyar és angol nyelv között",
+        "theme_label": "Téma",
+        "theme_description": "Preferált színtéma beállítása",
+        "theme_light": "Világos",
+        "theme_dark": "Sötét",
+        "theme_system": "Rendszer",
+        "tooltip_label": "Gyors járattípus megjelenítése a térképen",
+        "tooltip_description": "A járat típusa és esetleges neve megjelenítése, ha a vonatok fölé húzod az egeret",
+        "station_names_label": "Állomásnevek megjelenítése",
+        "station_names_description": "Az állomásnevek megjelenítése a térképen",
+        "station_names_opacity_label": "Állomásnevek átlátszósága",
+        "station_names_opacity_description": "Az állomásnevek átlátszóságának beállítása",
+        "vehicle_types_title": "Megjelenített járművek",
+        "trains_label": "Vonat",
+        "trains_description": "MÁV vonatok megjelenítése",
+        "tramtrains_label": "TramTrain",
+        "tramtrains_description": "Szeged - Hódmezővásárhely vonalon közlekedő TramTrain járatok megjelenítése",
+        "hev_label": "HÉV",
+        "hev_description": "HÉV járatok megjelenítése",
+        "idk_where_the_trains_are": "Felhívjuk kedves felhasználóink figyelmét, hogy azokat a járműveket, amelyeket maga az EMMA sem jelöl, mi sem tudjuk megjeleníteni. Ha mégis eltérést tapasztalnak, kérjük, jelezzék nekünk emailben.",
+        "changelog_not_available": "A változások nem elérhetők",
+        "hobby_project_notice": "Ez egy hobbi projekt, amelyen szabadidőnkben dolgozunk. Kérjük, ne várjanak azonnali javításokat vagy frissítéseket, ha valami elromlik.",
+        "map_settings_title": "Térkép beállítások",
+        "base_map_label": "Alaptérkép",
+        "railway_overlay_label": "Vasútvonalak megjelenítése"
+    },
+    "TrainPanel": {
+        "uic_code": "UIC kód",
+        "speed": "Sebesség",
+        "delay": "Késés",
+        "delay_note": "Ez az általunk számított, pontosabb adat. A menetrendi adatok közvetlenül az EMMA adatain alapulnak (esetenként pontatlanok lehetnek).",
+        "last_updated": "Utolsó frissítés",
+        "timetable": {
+            "station": "Állomás",
+            "arrival": "Érkezés",
+            "departure": "Indulás",
+            "platform": "Vágány"
+        },
+        "alerts": "{count} figyelmeztetés",
+        "county_hover": "{county}",
+        "delay_minutes": "{delay} perc",
+        "data_discrepancy_warning": "Ezen a vonaton a MÁV által közölt késési adatok nem egyeznek a vonat valós, GPS-alapú pozíciójával.",
+        "algorithm_note": "Ez az általunk fejlesztett algoritmus alapján működik. Még dolgozunk a tökéletesítésén, és időnként tévedhet.",
+        "route_data_warning": "Úgy tűnik, hogy ez a jármű rossz útvonaladatokat tartalmaz."
+    },
+    "DelayLegend": {
+        "title": "Késés színkódok",
+        "note": "A színek a térképre és a menetrendre is vonatkoznak",
+        "aria_label": "Késés jelmagyarázat",
+        "labels": {
+            "on_time": "Időben",
+            "small_delay": "Kisebb késés",
+            "medium_delay": "Közepes késés",
+            "large_delay": "Nagy késés",
+            "no_data": "Nincs adat"
+        },
+        "ranges": {
+            "on_time": "< 5 perc",
+            "small_delay": "5-14 perc",
+            "medium_delay": "15-59 perc",
+            "large_delay": "≥ 60 perc",
+            "no_data": "Inaktív"
+        }
+    },
+    "DragModal": {
+        "down": "Le",
+        "up": "Fel",
+        "close": "Bezárás"
+    },
+    "ZoomButtons": {
+        "zoom_in": "Nagyítás",
+        "zoom_out": "Kicsinyítés"
+    },
+    "UserLocation": {
+        "center_map": "Középre állítás",
+        "get_location": "Helyzet lekérése",
+        "location_error": "Helyzet nem elérhető"
+    },
+    "LanguageSwitcher": {
+        "switch_to": "Váltás {language} nyelvre"
+    },
+    "ComputerBadge": {
+        "text": "Ez a funkció csak a számítógépen érhető el"
+    },
+    "MobileBadge": {
+        "text": "Ez a funkció csak a mobil eszközön érhető el"
+    },
+    "NewFeature": {
+        "text": "Új funkció"
+    },
+    "NoDataDialog": {
+        "title": "Nincsenek elérhető adatok",
+        "description": "Már hosszabb ideje nem érkeznek adatok az EMMA-tól. Kérjük, próbálja újra később.",
+        "stale_data_title": "Elavult adatok megjelenítve",
+        "stale_data_description": "Az EMMA jelenleg nem válaszol. {minutes} perce frissült utoljára az adat."
+    }
+}
