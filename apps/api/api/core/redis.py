@@ -5,6 +5,7 @@ from typing import Annotated
 
 import redis.asyncio as redis
 from fastapi import Depends
+from taskiq import TaskiqDepends
 
 from api.core.config import settings
 
@@ -32,3 +33,4 @@ def add_key(key: str) -> str:
 
 
 RedisDep = Annotated[redis.Redis, Depends(get_redis)]
+RedisTaskiqDep = Annotated[redis.Redis, TaskiqDepends(get_redis)]
