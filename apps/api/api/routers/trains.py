@@ -5,13 +5,14 @@ import time
 from datetime import UTC, datetime
 from typing import Annotated
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
 from api.core.config import settings
 from api.core.logging_config import get_logger
 from api.core.redis import RedisDep, add_key
 from api.schemas.trains import APIResponse
 from api.services.train_service import TrainService
+from api.tasks.data import revalidate_data
 
 logger = get_logger(__name__)
 
@@ -22,14 +23,8 @@ def get_train_service(redis: RedisDep) -> TrainService:
     return TrainService(redis)
 
 
-# Background task wrapper
-async def run_revalidation(service: TrainService) -> None:
-    await service.revalidate_cache()
-
-
 @router.get("")
 async def get_trains(
-    background_tasks: BackgroundTasks,
     service: Annotated[TrainService, Depends(get_train_service)],
     redis: RedisDep,
 ) -> APIResponse:
@@ -51,7 +46,7 @@ async def get_trains(
         # If data is too old (>15 minutes), hide all data
         if cached_data and data_age_ms > settings.MAX_STALE_DATA_AGE:
             logger.info("Data stale (>MAX), triggering bg revalidation")
-            background_tasks.add_task(run_revalidation, service)
+            await revalidate_data.kiq()
             return APIResponse(
                 timestamp=datetime.fromtimestamp(
                     cached_data["timestamp"] / 1000, tz=UTC
@@ -65,7 +60,7 @@ async def get_trains(
         if cached_data:
             if data_age_ms > settings.REVALIDATE_DURATION * 1000:
                 logger.info("Data stale (>REVALIDATE), triggering bg revalidation")
-                background_tasks.add_task(run_revalidation, service)
+                await revalidate_data.kiq()
 
             logger.info(f"Serving cached data (Time: {(time.time() - req_start):.4f}s)")
             return APIResponse(
