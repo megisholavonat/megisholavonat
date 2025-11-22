@@ -1,0 +1,126 @@
+{
+    "Home": {
+        "loading_map": "Loading map...",
+        "contact_us": "Contact us",
+        "app_title": "Where is the train?",
+        "app_description": "Train tracking application with accurate data and useful information."
+    },
+    "SearchComponent": {
+        "search_placeholder": "Number, type, station, UIC code...",
+        "sort_by": "Sort by",
+        "sort_by_options": {
+            "number": "Train number",
+            "delay": "Delay",
+            "speed": "Speed"
+        },
+        "search_button": "Search trains",
+        "sort_ascending": "ascending",
+        "sort_descending": "descending",
+        "no_search_results": "No search results",
+        "no_trains_available": "No trains available"
+    },
+    "SettingsComponent": {
+        "settings_button": "Settings",
+        "dialog_title": "Settings",
+        "dialog_description": "Here you can customize your MHaV experience. These are only saved locally, for this device.",
+        "tab_settings": "Settings",
+        "tab_changelog": "Changelog",
+        "language_label": "Language",
+        "language_description": "Switch between Hungarian and English",
+        "theme_label": "Theme",
+        "theme_description": "Preferred color theme",
+        "theme_light": "Light",
+        "theme_dark": "Dark",
+        "theme_system": "System",
+        "tooltip_label": "Show tooltips on map",
+        "tooltip_description": "Display the train type and potential name when hovering over trains",
+        "station_names_label": "Show station names",
+        "station_names_description": "Display station names on the map",
+        "station_names_opacity_label": "Station names opacity",
+        "station_names_opacity_description": "Adjust the transparency of station names",
+        "vehicle_types_title": "Displayed vehicles",
+        "trains_label": "Train",
+        "trains_description": "Show MÁV trains on the map",
+        "tramtrains_label": "TramTrain",
+        "tramtrains_description": "Show TramTrains on the map",
+        "hev_label": "HÉV",
+        "hev_description": "Show suburban railway (HÉV) on the map",
+        "idk_where_the_trains_are": "Dear users! We cannot display those vehicles that are not marked by EMMA itself. If you do notice any discrepancies, please let us know by email.",
+        "changelog_not_available": "Changelog not available",
+        "hobby_project_notice": "This is a hobby project that we work on in our free time. Please don't expect immediate fixes or updates if something breaks.",
+        "map_settings_title": "Map settings",
+        "base_map_label": "Base map",
+        "railway_overlay_label": "Show railway lines"
+    },
+    "TrainPanel": {
+        "uic_code": "UIC code",
+        "speed": "Speed",
+        "delay": "Delay",
+        "delay_note": "This is the more accurate delay calculated by us. The timetable data is directly based on the EMMA data (sometimes inaccurate).",
+        "last_updated": "Last updated",
+        "timetable": {
+            "station": "Station",
+            "arrival": "Arrival",
+            "departure": "Departure",
+            "platform": "Platform"
+        },
+        "alerts": "{count, plural, =1 {# warning} other {# warnings}}",
+        "county_hover": "{county} county",
+        "delay_minutes": "{delay, plural, =1 {# minute} other {# minutes}}",
+        "data_discrepancy_warning": "On this train, the delay data reported by MÁV does not match the train's actual GPS-based position.",
+        "algorithm_note": "This works based on our developed algorithm. We are still working on perfecting it and it may occasionally be wrong.",
+        "route_data_warning": "This vehicle appears to have bad route data."
+    },
+    "DelayLegend": {
+        "title": "Delay legend",
+        "note": "The colors are shown on the map and timetable",
+        "aria_label": "Delay legend",
+        "labels": {
+            "on_time": "On time",
+            "small_delay": "Small delay",
+            "medium_delay": "Medium delay",
+            "large_delay": "Large delay",
+            "no_data": "No data"
+        },
+        "ranges": {
+            "on_time": "< 5 minutes",
+            "small_delay": "5-14 minutes",
+            "medium_delay": "15-59 minutes",
+            "large_delay": "≥ 60 minutes",
+            "no_data": "Inactive"
+        }
+    },
+    "DragModal": {
+        "down": "Down",
+        "up": "Up",
+        "close": "Close"
+    },
+    "ZoomButtons": {
+        "zoom_in": "Zoom in",
+        "zoom_out": "Zoom out"
+    },
+    "UserLocation": {
+        "center_map": "Center map",
+        "get_location": "Get location",
+        "location_error": "Location unavailable"
+    },
+    "LanguageSwitcher": {
+        "switch_to": "Switch to {language}"
+    },
+    "ComputerBadge": {
+        "text": "This feature is only available on computers"
+    },
+    "MobileBadge": {
+        "text": "This feature is only available on mobile devices"
+    },
+    "NewFeature": {
+        "text": "New feature"
+    },
+    "NoDataDialog": {
+        "title": "No data available",
+        "description": "We're not receiving any data at the moment. Please try again later.",
+        "stale_data_title": "Showing outdated data",
+        "stale_data_description": "The external API is not responding. Showing data that is {minutes, plural, =1 {# minute} other {# minutes}} old.",
+        "close_button": "OK"
+    }
+}

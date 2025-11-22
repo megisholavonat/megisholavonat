@@ -1,0 +1,516 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "FastAPI",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/redis": {
+      "get": {
+        "tags": [
+          "redis"
+        ],
+        "summary": "Get Redis Status",
+        "description": "Get Redis connection status and test operations",
+        "operationId": "getRedisStatus",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Getredisstatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trains": {
+      "get": {
+        "tags": [
+          "trains"
+        ],
+        "summary": "Get Trains",
+        "description": "Get trains information",
+        "operationId": "getTrains",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "summary": "Home",
+        "operationId": "home",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "APIResponse": {
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp"
+          },
+          "noDataReceived": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nodatareceived",
+            "default": false
+          },
+          "dataAgeMinutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dataageminutes"
+          },
+          "locations": {
+            "items": {
+              "$ref": "#/components/schemas/VehiclePositionWithDelay"
+            },
+            "type": "array",
+            "title": "Locations"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "timestamp",
+          "locations"
+        ],
+        "title": "APIResponse",
+        "description": "Main API response"
+      },
+      "Alert": {
+        "properties": {
+          "alertDescriptionText": {
+            "type": "string",
+            "title": "Alertdescriptiontext"
+          },
+          "alertUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alerturl"
+          },
+          "effectiveStartDate": {
+            "type": "integer",
+            "title": "Effectivestartdate"
+          },
+          "effectiveEndDate": {
+            "type": "integer",
+            "title": "Effectiveenddate"
+          }
+        },
+        "type": "object",
+        "required": [
+          "alertDescriptionText",
+          "effectiveStartDate",
+          "effectiveEndDate"
+        ],
+        "title": "Alert",
+        "description": "Alert information"
+      },
+      "InfoService": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "fromStopIndex": {
+            "type": "integer",
+            "title": "Fromstopindex"
+          },
+          "tillStopIndex": {
+            "type": "integer",
+            "title": "Tillstopindex"
+          },
+          "fontCharSet": {
+            "type": "string",
+            "title": "Fontcharset"
+          },
+          "fontCode": {
+            "type": "integer",
+            "title": "Fontcode"
+          },
+          "displayable": {
+            "type": "boolean",
+            "title": "Displayable"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "fromStopIndex",
+          "tillStopIndex",
+          "fontCharSet",
+          "fontCode",
+          "displayable"
+        ],
+        "title": "InfoService",
+        "description": "Information service details"
+      },
+      "ProcessedStop": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "originalCoords": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Originalcoords"
+          },
+          "distanceAlongRoute": {
+            "type": "number",
+            "title": "Distancealongroute"
+          },
+          "stopTimeInfo": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StopTimeWithCounty"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "originalCoords",
+          "distanceAlongRoute"
+        ],
+        "title": "ProcessedStop",
+        "description": "Processed stop with distance information"
+      },
+      "Route": {
+        "properties": {
+          "textColor": {
+            "type": "string",
+            "title": "Textcolor"
+          },
+          "shortName": {
+            "type": "string",
+            "title": "Shortname"
+          },
+          "longName": {
+            "type": "string",
+            "title": "Longname"
+          }
+        },
+        "type": "object",
+        "required": [
+          "textColor",
+          "shortName",
+          "longName"
+        ],
+        "title": "Route",
+        "description": "Route information"
+      },
+      "StopTimeWithCounty": {
+        "properties": {
+          "scheduledArrival": {
+            "type": "integer",
+            "title": "Scheduledarrival"
+          },
+          "realtimeArrival": {
+            "type": "integer",
+            "title": "Realtimearrival"
+          },
+          "scheduledDeparture": {
+            "type": "integer",
+            "title": "Scheduleddeparture"
+          },
+          "realtimeDeparture": {
+            "type": "integer",
+            "title": "Realtimedeparture"
+          },
+          "stop": {
+            "$ref": "#/components/schemas/StopWithCounty"
+          }
+        },
+        "type": "object",
+        "required": [
+          "scheduledArrival",
+          "realtimeArrival",
+          "scheduledDeparture",
+          "realtimeDeparture",
+          "stop"
+        ],
+        "title": "StopTimeWithCounty",
+        "description": "Stop time information with county data"
+      },
+      "StopWithCounty": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "lat": {
+            "type": "number",
+            "title": "Lat"
+          },
+          "lon": {
+            "type": "number",
+            "title": "Lon"
+          },
+          "platformCode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Platformcode"
+          },
+          "county": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "County"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "lat",
+          "lon"
+        ],
+        "title": "StopWithCounty",
+        "description": "Stop information with county data"
+      },
+      "Trip": {
+        "properties": {
+          "serviceDate": {
+            "type": "string",
+            "title": "Servicedate"
+          },
+          "tripShortName": {
+            "type": "string",
+            "title": "Tripshortname"
+          },
+          "route": {
+            "$ref": "#/components/schemas/Route"
+          },
+          "tripGeometry": {
+            "$ref": "#/components/schemas/TripGeometry"
+          },
+          "stoptimes": {
+            "items": {
+              "$ref": "#/components/schemas/StopTimeWithCounty"
+            },
+            "type": "array",
+            "title": "Stoptimes"
+          },
+          "wheelchairAccessible": {
+            "type": "string",
+            "title": "Wheelchairaccessible"
+          },
+          "bikesAllowed": {
+            "type": "string",
+            "title": "Bikesallowed"
+          },
+          "infoServices": {
+            "items": {
+              "$ref": "#/components/schemas/InfoService"
+            },
+            "type": "array",
+            "title": "Infoservices"
+          },
+          "alerts": {
+            "items": {
+              "$ref": "#/components/schemas/Alert"
+            },
+            "type": "array",
+            "title": "Alerts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "serviceDate",
+          "tripShortName",
+          "route",
+          "tripGeometry",
+          "stoptimes",
+          "wheelchairAccessible",
+          "bikesAllowed",
+          "infoServices",
+          "alerts"
+        ],
+        "title": "Trip",
+        "description": "Trip information"
+      },
+      "TripGeometry": {
+        "properties": {
+          "points": {
+            "type": "string",
+            "title": "Points"
+          }
+        },
+        "type": "object",
+        "required": [
+          "points"
+        ],
+        "title": "TripGeometry",
+        "description": "Trip geometry polyline"
+      },
+      "VehiclePositionWithDelay": {
+        "properties": {
+          "vehicleId": {
+            "type": "string",
+            "title": "Vehicleid"
+          },
+          "lat": {
+            "type": "number",
+            "title": "Lat"
+          },
+          "lon": {
+            "type": "number",
+            "title": "Lon"
+          },
+          "heading": {
+            "type": "number",
+            "title": "Heading"
+          },
+          "speed": {
+            "type": "number",
+            "title": "Speed"
+          },
+          "lastUpdated": {
+            "type": "integer",
+            "title": "Lastupdated"
+          },
+          "trip": {
+            "$ref": "#/components/schemas/Trip"
+          },
+          "delay": {
+            "type": "integer",
+            "title": "Delay"
+          },
+          "trainPosition": {
+            "type": "number",
+            "title": "Trainposition"
+          },
+          "totalRouteDistance": {
+            "type": "number",
+            "title": "Totalroutedistance"
+          },
+          "processedStops": {
+            "items": {
+              "$ref": "#/components/schemas/ProcessedStop"
+            },
+            "type": "array",
+            "title": "Processedstops"
+          },
+          "vehicleProgress": {
+            "$ref": "#/components/schemas/VehicleProgress"
+          }
+        },
+        "type": "object",
+        "required": [
+          "vehicleId",
+          "lat",
+          "lon",
+          "heading",
+          "speed",
+          "lastUpdated",
+          "trip",
+          "delay",
+          "trainPosition",
+          "totalRouteDistance",
+          "processedStops",
+          "vehicleProgress"
+        ],
+        "title": "VehiclePositionWithDelay",
+        "description": "Complete vehicle position with delay and processing data"
+      },
+      "VehicleProgress": {
+        "properties": {
+          "lastStop": {
+            "type": "string",
+            "title": "Laststop"
+          },
+          "nextStop": {
+            "type": "string",
+            "title": "Nextstop"
+          },
+          "progress": {
+            "type": "number",
+            "title": "Progress"
+          }
+        },
+        "type": "object",
+        "required": [
+          "lastStop",
+          "nextStop",
+          "progress"
+        ],
+        "title": "VehicleProgress",
+        "description": "Vehicle progress between stops"
+      }
+    }
+  }
+}

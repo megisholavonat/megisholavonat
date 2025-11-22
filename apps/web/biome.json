@@ -1,0 +1,23 @@
+{
+    "$schema": "https://biomejs.dev/schemas/2.3.7/schema.json",
+    "extends": "//",
+    "files": {
+        "ignoreUnknown": false,
+        "includes": ["**", "!node_modules", "!.next", "!dist", "!build"]
+    },
+    "linter": {
+        "enabled": true,
+        "rules": {
+            "recommended": true
+        },
+        "domains": {
+            "next": "recommended",
+            "react": "recommended"
+        }
+    },
+    "css": {
+        "parser": {
+            "tailwindDirectives": true
+        }
+    }
+}

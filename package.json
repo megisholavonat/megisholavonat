@@ -1,0 +1,20 @@
+{
+    "name": "mhonorepo",
+    "private": true,
+    "scripts": {
+        "dev": "turbo dev",
+        "generate:schema": "pnpm --filter api run generate-openapi",
+        "generate:client": "pnpm --filter api-client run generate",
+        "generate:api": "pnpm generate:schema && pnpm generate:client"
+    },
+    "devDependencies": {
+        "@biomejs/biome": "2.3.7",
+        "turbo": "^2.6.1"
+    },
+    "packageManager": "pnpm@10.18.3",
+    "pnpm": {
+        "overrides": {
+            "lightningcss": "1.30.1"
+        }
+    }
+}
