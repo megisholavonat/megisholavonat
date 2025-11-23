@@ -89,6 +89,16 @@ export type InfoService = {
 };
 
 /**
+ * PosthogKey
+ */
+export type PosthogKey = {
+    /**
+     * Key
+     */
+    key: string | null;
+};
+
+/**
  * ProcessedStop
  *
  * Processed stop with distance information
@@ -361,13 +371,9 @@ export type GetPosthogKeyData = {
 
 export type GetPosthogKeyResponses = {
     /**
-     * Response Getposthogkey
-     *
      * Successful Response
      */
-    200: {
-        [key: string]: string;
-    };
+    200: PosthogKey;
 };
 
 export type GetPosthogKeyResponse = GetPosthogKeyResponses[keyof GetPosthogKeyResponses];
