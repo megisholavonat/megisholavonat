@@ -11,3 +11,6 @@ wheels/
 
 # Prevent Taskiq from infinitely refreshing
 .turbo/
+
+.env*
+!.env.example

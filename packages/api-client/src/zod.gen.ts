@@ -32,6 +32,16 @@ export const zInfoService = z.object({
 });
 
 /**
+ * PosthogKey
+ */
+export const zPosthogKey = z.object({
+    key: z.union([
+        z.string(),
+        z.null()
+    ])
+});
+
+/**
  * Route
  *
  * Route information
@@ -205,8 +215,6 @@ export const zGetPosthogKeyData = z.object({
 });
 
 /**
- * Response Getposthogkey
- *
  * Successful Response
  */
-export const zGetPosthogKeyResponse = z.record(z.string(), z.string());
+export const zGetPosthogKeyResponse = zPosthogKey;

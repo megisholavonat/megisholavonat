@@ -83,11 +83,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "type": "object",
-                  "title": "Response Getposthogkey"
+                  "$ref": "#/components/schemas/PosthogKey"
                 }
               }
             }
@@ -227,6 +223,26 @@
         ],
         "title": "InfoService",
         "description": "Information service details"
+      },
+      "PosthogKey": {
+        "properties": {
+          "key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key"
+        ],
+        "title": "PosthogKey"
       },
       "ProcessedStop": {
         "properties": {

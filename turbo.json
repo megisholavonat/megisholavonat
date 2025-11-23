@@ -4,15 +4,11 @@
     "tasks": {
         "build": {
             "env": ["SKIP_*"],
-            "dependsOn": [
-                "^build"
-            ],
-            "outputs": [
-                "dist/**",
-                ".next/**"
-            ]
+            "dependsOn": ["^build"],
+            "outputs": ["dist/**", ".next/**"]
         },
         "dev": {
+            "dependsOn": ["^build"],
             "persistent": true,
             "cache": false
         }

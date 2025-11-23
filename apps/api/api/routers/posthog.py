@@ -1,18 +1,18 @@
 """Posthog"""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
+from pydantic import BaseModel
 
 from api.core.config import settings
 
 router = APIRouter(prefix="/posthog", tags=["posthog"])
 
 
+class PosthogKey(BaseModel):
+    key: str | None
+
+
 @router.get("")
-async def get_posthog_key() -> dict[str, str]:
+async def get_posthog_key() -> PosthogKey:
     """Get Posthog key"""
-    try:
-        return {
-            "key": settings.POSTHOG_KEY,
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Posthog error: {e!s}") from e
+    return PosthogKey(key=settings.POSTHOG_KEY)
