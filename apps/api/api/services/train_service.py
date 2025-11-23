@@ -162,102 +162,81 @@ class TrainService:
 
         return locations_processed
 
-    async def revalidate_cache(self) -> list[dict[str, Any]] | None:
+    async def refresh_data(self) -> None:
         """
-        Acquires a lock, fetches new data, and updates Redis.
+        Fetches new data, and updates Redis.
         """
         start_time = time.time()
-        logger.info("Starting revalidate_cache...")
+        logger.info("Starting refresh_data...")
 
-        lock_key = add_key("train-positions-revalidating")
-
-        # Try to acquire lock
-        lock_acquired = await self.redis.set(
-            lock_key, "1", ex=settings.REVALIDATE_LOCK_DURATION, nx=True
-        )
-        logger.info(
-            f"Lock acquired: {lock_acquired} (Time: {(time.time() - start_time):.4f}s)"
-        )
-
-        if not lock_acquired:
-            logger.info("Revalidation already in progress, skipping")
-            return None
+        now = int(time.time() * 1000)
 
         try:
-            now = int(time.time() * 1000)
-
-            try:
-                step_start = time.time()
-                data = await self.fetch_graphql_data()
-                logger.info(
-                    f"GraphQL data fetched (Time: {(time.time() - step_start):.4f}s)"
-                )
-
-                # Extract locations array
-                locations_raw = data.get("data", {}).get("vehiclePositions", [])
-                # Fallback if flattened
-                if not locations_raw and "vehiclePositions" in data:
-                    locations_raw = data["vehiclePositions"]
-
-                vehicle_count = len(locations_raw)
-                proxy_status = "✅" if settings.SOCKS5_PROXY_ENABLE else "❌"
-
-                logger.info(
-                    f"Request sent to GraphQL endpoint | "
-                    f"Proxy: {proxy_status} | Vehicle Count: {vehicle_count}"
-                )
-
-            except Exception as e:
-                logger.error(f"Failed to fetch train positions: {e}")
-                raise e
-
             step_start = time.time()
-            # Deduplicate by vehicleId
-            locations = self.dedupe_by_vehicle_id(locations_raw)
+            data = await self.fetch_graphql_data()
             logger.info(
-                f"Deduplicated locations: {len(locations_raw)} -> {len(locations)} "
-                f"(Time: {(time.time() - step_start):.4f}s)"
+                f"GraphQL data fetched (Time: {(time.time() - step_start):.4f}s)"
             )
 
-            no_data_received = len(locations_raw) == 0
+            # Extract locations array
+            locations_raw = data.get("data", {}).get("vehiclePositions", [])
+            # Fallback if flattened
+            if not locations_raw and "vehiclePositions" in data:
+                locations_raw = data["vehiclePositions"]
 
-            if no_data_received:
-                logger.warning(
-                    "External endpoint returned no data, keeping existing cache"
-                )
-                return None
-
-            step_start = time.time()
-            # Add county information to locations
-            locations_with_counties = self.add_counties_to_locations(locations)
-            logger.info(f"Added counties (Time: {(time.time() - step_start):.4f}s)")
-
-            step_start = time.time()
-            # Process delays and filter stale data
-            locations_processed = self.process_locations(locations_with_counties)
+            vehicle_count = len(locations_raw)
+            proxy_status = "✅" if settings.SOCKS5_PROXY_ENABLE else "❌"
 
             logger.info(
-                f"Processed delays & filtered: {len(locations_with_counties)} -> "
-                f"{len(locations_processed)} (Time: {(time.time() - step_start):.4f}s)"
+                f"Request sent to GraphQL endpoint | "
+                f"Proxy: {proxy_status} | Vehicle Count: {vehicle_count}"
             )
 
-            step_start = time.time()
-            # Update cache
-            cache_data = {
-                "timestamp": now,
-                "noDataReceived": False,
-                "locations": locations_processed,
-            }
+        except Exception as e:
+            logger.error(f"Failed to fetch train positions: {e}")
+            raise e
 
-            await self.redis.set(
-                add_key("train-positions"),
-                json.dumps(cache_data),
-                ex=settings.CACHE_DURATION,
-            )
-            logger.info(f"Cache updated (Time: {(time.time() - step_start):.4f}s)")
+        step_start = time.time()
+        # Deduplicate by vehicleId
+        locations = self.dedupe_by_vehicle_id(locations_raw)
+        logger.info(
+            f"Deduplicated locations: {len(locations_raw)} -> {len(locations)} "
+            f"(Time: {(time.time() - step_start):.4f}s)"
+        )
 
-            logger.info(f"Total revalidation time: {(time.time() - start_time):.4f}s")
-            return locations_processed
+        no_data_received = len(locations_raw) == 0
 
-        finally:
-            await self.redis.delete(lock_key)
+        if no_data_received:
+            logger.warning("External endpoint returned no data, keeping existing cache")
+            return
+
+        step_start = time.time()
+        # Add county information to locations
+        locations_with_counties = self.add_counties_to_locations(locations)
+        logger.info(f"Added counties (Time: {(time.time() - step_start):.4f}s)")
+
+        step_start = time.time()
+        # Process delays and filter stale data
+        locations_processed = self.process_locations(locations_with_counties)
+
+        logger.info(
+            f"Processed delays & filtered: {len(locations_with_counties)} -> "
+            f"{len(locations_processed)} (Time: {(time.time() - step_start):.4f}s)"
+        )
+
+        step_start = time.time()
+        # Update cache
+        cache_data = {
+            "timestamp": now,
+            "noDataReceived": False,
+            "locations": locations_processed,
+        }
+
+        await self.redis.set(
+            add_key("train-positions"),
+            json.dumps(cache_data),
+            ex=settings.CACHE_DURATION,
+        )
+        logger.info(f"Cache updated (Time: {(time.time() - step_start):.4f}s)")
+
+        logger.info(f"Total revalidation time: {(time.time() - start_time):.4f}s")
