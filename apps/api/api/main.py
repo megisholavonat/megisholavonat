@@ -2,12 +2,11 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.routing import APIRoute
+from fastapi.routing import APIRoute, APIRouter
 
 from api.core.config import settings
 from api.core.logging_config import get_logger, setup_logging
-from api.routers import redis_test, trains
+from api.routers import redis_test, root, trains
 
 # Initialize logging
 setup_logging()
@@ -50,31 +49,19 @@ def create_app() -> FastAPI:
         FastAPI: Configured FastAPI application instance
     """
     app = FastAPI(
-        lifespan=lifespan, generate_unique_id_function=custom_generate_unique_id
+        lifespan=lifespan,
+        root_path="/api",
+        generate_unique_id_function=custom_generate_unique_id,
     )
 
-    # Configure CORS
-    allowed_origins = [
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ]
-
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=allowed_origins,
-        allow_credentials=True,
-        allow_methods=["GET"],
-        allow_headers=["*"],
-    )
+    v1_router = APIRouter(prefix="/v1")
 
     # Include routers
-    app.include_router(redis_test.router)
-    app.include_router(trains.router)
+    v1_router.include_router(redis_test.router)
+    v1_router.include_router(trains.router)
 
-    # Root endpoint
-    @app.get("/")
-    def home():
-        return {"message": "mháv"}
+    app.include_router(root.router)
+    app.include_router(v1_router)
 
     return app
 
