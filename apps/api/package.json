@@ -3,7 +3,7 @@
     "version": "0.1.0",
     "private": true,
     "scripts": {
-        "dev": "concurrently -n FastAPI,Taskiq -c blue,green \"pnpm dev:fastapi\" \"pnpm dev:taskiq\"",
+        "dev": "set PYTHONUTF8=1&& concurrently -n FastAPI,Taskiq -c blue,green \"pnpm dev:fastapi\" \"pnpm dev:taskiq\"",
         "dev:fastapi": "uv run fastapi dev -e api.main:create_app --host 0.0.0.0",
         "dev:taskiq": "uv run taskiq worker api.core.taskiq_broker:broker --reload --fs-discover --tasks-pattern \"api/tasks/**/*.py\"",
         "lint": "uv run ruff check . && uv run mypy .",

@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetRedisStatusData, GetRedisStatusResponses, GetTrainsData, GetTrainsResponses, RootData, RootResponses } from './types.gen';
+import type { GetPosthogKeyData, GetPosthogKeyResponses, GetRedisStatusData, GetRedisStatusResponses, GetTrainsData, GetTrainsResponses, RootData, RootResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -51,6 +51,19 @@ export const getTrains = <ThrowOnError extends boolean = false>(options?: Option
     return (options?.client ?? client).get<GetTrainsResponses, unknown, ThrowOnError>({
         responseType: 'json',
         url: '/v1/trains',
+        ...options
+    });
+};
+
+/**
+ * Get Posthog Key
+ *
+ * Get Posthog key
+ */
+export const getPosthogKey = <ThrowOnError extends boolean = false>(options?: Options<GetPosthogKeyData, ThrowOnError>) => {
+    return (options?.client ?? client).get<GetPosthogKeyResponses, unknown, ThrowOnError>({
+        responseType: 'json',
+        url: '/v1/posthog',
         ...options
     });
 };

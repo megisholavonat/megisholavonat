@@ -351,3 +351,23 @@ export type GetTrainsResponses = {
 };
 
 export type GetTrainsResponse = GetTrainsResponses[keyof GetTrainsResponses];
+
+export type GetPosthogKeyData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/posthog';
+};
+
+export type GetPosthogKeyResponses = {
+    /**
+     * Response Getposthogkey
+     *
+     * Successful Response
+     */
+    200: {
+        [key: string]: string;
+    };
+};
+
+export type GetPosthogKeyResponse = GetPosthogKeyResponses[keyof GetPosthogKeyResponses];

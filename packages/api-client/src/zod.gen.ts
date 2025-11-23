@@ -197,3 +197,16 @@ export const zGetTrainsData = z.object({
  * Successful Response
  */
 export const zGetTrainsResponse = zApiResponse;
+
+export const zGetPosthogKeyData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * Response Getposthogkey
+ *
+ * Successful Response
+ */
+export const zGetPosthogKeyResponse = z.record(z.string(), z.string());
