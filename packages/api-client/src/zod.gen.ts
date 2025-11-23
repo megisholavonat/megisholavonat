@@ -168,6 +168,12 @@ export const zApiResponse = z.object({
     ]))
 });
 
+export const zRootData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
 export const zGetRedisStatusData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
@@ -191,9 +197,3 @@ export const zGetTrainsData = z.object({
  * Successful Response
  */
 export const zGetTrainsResponse = zApiResponse;
-
-export const zHomeData = z.object({
-    body: z.optional(z.never()),
-    path: z.optional(z.never()),
-    query: z.optional(z.never())
-});

@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetRedisStatusData, GetRedisStatusResponses, GetTrainsData, GetTrainsResponses, HomeData, HomeResponses } from './types.gen';
+import type { GetRedisStatusData, GetRedisStatusResponses, GetTrainsData, GetTrainsResponses, RootData, RootResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -19,6 +19,17 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 };
 
 /**
+ * Root
+ */
+export const root = <ThrowOnError extends boolean = false>(options?: Options<RootData, ThrowOnError>) => {
+    return (options?.client ?? client).get<RootResponses, unknown, ThrowOnError>({
+        responseType: 'json',
+        url: '/',
+        ...options
+    });
+};
+
+/**
  * Get Redis Status
  *
  * Get Redis connection status and test operations
@@ -26,7 +37,7 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 export const getRedisStatus = <ThrowOnError extends boolean = false>(options?: Options<GetRedisStatusData, ThrowOnError>) => {
     return (options?.client ?? client).get<GetRedisStatusResponses, unknown, ThrowOnError>({
         responseType: 'json',
-        url: '/redis',
+        url: '/v1/redis',
         ...options
     });
 };
@@ -39,18 +50,7 @@ export const getRedisStatus = <ThrowOnError extends boolean = false>(options?: O
 export const getTrains = <ThrowOnError extends boolean = false>(options?: Options<GetTrainsData, ThrowOnError>) => {
     return (options?.client ?? client).get<GetTrainsResponses, unknown, ThrowOnError>({
         responseType: 'json',
-        url: '/trains',
-        ...options
-    });
-};
-
-/**
- * Home
- */
-export const home = <ThrowOnError extends boolean = false>(options?: Options<HomeData, ThrowOnError>) => {
-    return (options?.client ?? client).get<HomeResponses, unknown, ThrowOnError>({
-        responseType: 'json',
-        url: '/',
+        url: '/v1/trains',
         ...options
     });
 };

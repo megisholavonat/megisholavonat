@@ -3,8 +3,8 @@
 import { queryOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { getRedisStatus, getTrains, home, type Options } from '../sdk.gen';
-import type { GetRedisStatusData, GetTrainsData, HomeData } from '../types.gen';
+import { getRedisStatus, getTrains, type Options, root } from '../sdk.gen';
+import type { GetRedisStatusData, GetTrainsData, RootData } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseURL' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -39,6 +39,26 @@ const createQueryKey = <TOptions extends Options>(id: string, options?: TOptions
     return [
         params
     ];
+};
+
+export const rootQueryKey = (options?: Options<RootData>) => createQueryKey('root', options);
+
+/**
+ * Root
+ */
+export const rootOptions = (options?: Options<RootData>) => {
+    return queryOptions({
+        queryFn: async ({ queryKey, signal }) => {
+            const { data } = await root({
+                ...options,
+                ...queryKey[0],
+                signal,
+                throwOnError: true
+            });
+            return data;
+        },
+        queryKey: rootQueryKey(options)
+    });
 };
 
 export const getRedisStatusQueryKey = (options?: Options<GetRedisStatusData>) => createQueryKey('getRedisStatus', options);
@@ -82,25 +102,5 @@ export const getTrainsOptions = (options?: Options<GetTrainsData>) => {
             return data;
         },
         queryKey: getTrainsQueryKey(options)
-    });
-};
-
-export const homeQueryKey = (options?: Options<HomeData>) => createQueryKey('home', options);
-
-/**
- * Home
- */
-export const homeOptions = (options?: Options<HomeData>) => {
-    return queryOptions({
-        queryFn: async ({ queryKey, signal }) => {
-            const { data } = await home({
-                ...options,
-                ...queryKey[0],
-                signal,
-                throwOnError: true
-            });
-            return data;
-        },
-        queryKey: homeQueryKey(options)
     });
 };

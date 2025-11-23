@@ -5,7 +5,23 @@
     "version": "0.1.0"
   },
   "paths": {
-    "/redis": {
+    "/": {
+      "get": {
+        "summary": "Root",
+        "operationId": "root",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/redis": {
       "get": {
         "tags": [
           "redis"
@@ -31,7 +47,7 @@
         }
       }
     },
-    "/trains": {
+    "/v1/trains": {
       "get": {
         "tags": [
           "trains"
@@ -47,22 +63,6 @@
                 "schema": {
                   "$ref": "#/components/schemas/APIResponse"
                 }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/": {
-      "get": {
-        "summary": "Home",
-        "operationId": "home",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
               }
             }
           }
