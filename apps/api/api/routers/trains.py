@@ -3,15 +3,13 @@
 import json
 import time
 from datetime import UTC, datetime
-from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 
 from api.core.config import settings
 from api.core.logging_config import get_logger
 from api.core.redis import RedisDep, add_key
 from api.schemas.trains import APIResponse
-from api.services.train_service import TrainService
 from api.tasks.data import revalidate_data
 
 logger = get_logger(__name__)
@@ -19,13 +17,8 @@ logger = get_logger(__name__)
 router = APIRouter(prefix="/trains", tags=["trains"])
 
 
-def get_train_service(redis: RedisDep) -> TrainService:
-    return TrainService(redis)
-
-
 @router.get("")
 async def get_trains(
-    service: Annotated[TrainService, Depends(get_train_service)],
     redis: RedisDep,
 ) -> APIResponse:
     """Get trains information"""
@@ -74,10 +67,11 @@ async def get_trains(
 
         # No cached data, try to fetch fresh
         logger.info("No cache, fetching fresh data...")
-        locations_processed = await service.revalidate_cache()
+        task = await revalidate_data.kiq()
+        result = await task.wait_result()
 
         # If revalidation failed or returned nothing/skipped
-        if locations_processed is None:
+        if result.return_value is None:
             logger.info("Revalidation skipped/failed, checking retry cache")
             # Check cache again
             retry_cache_str = await redis.get(add_key("train-positions"))
@@ -119,7 +113,7 @@ async def get_trains(
             timestamp=datetime.fromtimestamp(now / 1000, tz=UTC).isoformat(),
             noDataReceived=False,
             dataAgeMinutes=0,
-            locations=locations_processed,
+            locations=result.return_value,
         )
 
     except Exception as e:
