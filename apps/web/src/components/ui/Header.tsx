@@ -1,16 +1,16 @@
 "use client";
 
+import type { ApiResponse } from "@megisholavonat/api-client";
 import { motion } from "motion/react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { LuMail } from "react-icons/lu";
-import type { APIResponse } from "@/app/api/trains/route";
 import SearchComponent from "@/components/information/SearchComponent";
 import SettingsComponent from "@/components/settings/SettingsComponent";
 import { Z_LAYERS } from "@/util/constants";
 
 interface HeaderProps {
-    data: APIResponse | undefined;
+    data: ApiResponse | undefined;
     onSearchResultClick: (vehicleId: string) => void;
 }
 
