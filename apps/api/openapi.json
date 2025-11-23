@@ -68,6 +68,32 @@
           }
         }
       }
+    },
+    "/v1/posthog": {
+      "get": {
+        "tags": [
+          "posthog"
+        ],
+        "summary": "Get Posthog Key",
+        "description": "Get Posthog key",
+        "operationId": "getPosthogKey",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Getposthogkey"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {

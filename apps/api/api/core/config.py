@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     SOCKS5_PROXY_PASSWORD: str | None = None
     SOCKS5_PROXY_ENABLE: bool = False
     GRAPHQL_ENDPOINT: str = ""
+    POSTHOG_KEY: str = ""
 
     # Caching Constants
     CACHE_DURATION: int = 15 * 60  # 15 minutes

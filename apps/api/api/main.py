@@ -6,7 +6,7 @@ from fastapi.routing import APIRoute, APIRouter
 
 from api.core.config import settings
 from api.core.logging_config import get_logger, setup_logging
-from api.routers import redis_test, root, trains
+from api.routers import redis_test, root, trains, posthog
 
 # Initialize logging
 setup_logging()
@@ -59,6 +59,7 @@ def create_app() -> FastAPI:
     # Include routers
     v1_router.include_router(redis_test.router)
     v1_router.include_router(trains.router)
+    v1_router.include_router(posthog.router)
 
     app.include_router(root.router)
     app.include_router(v1_router)

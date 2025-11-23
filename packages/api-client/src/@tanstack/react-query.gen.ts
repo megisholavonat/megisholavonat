@@ -3,8 +3,8 @@
 import { queryOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { getRedisStatus, getTrains, type Options, root } from '../sdk.gen';
-import type { GetRedisStatusData, GetTrainsData, RootData } from '../types.gen';
+import { getPosthogKey, getRedisStatus, getTrains, type Options, root } from '../sdk.gen';
+import type { GetPosthogKeyData, GetRedisStatusData, GetTrainsData, RootData } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseURL' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -102,5 +102,27 @@ export const getTrainsOptions = (options?: Options<GetTrainsData>) => {
             return data;
         },
         queryKey: getTrainsQueryKey(options)
+    });
+};
+
+export const getPosthogKeyQueryKey = (options?: Options<GetPosthogKeyData>) => createQueryKey('getPosthogKey', options);
+
+/**
+ * Get Posthog Key
+ *
+ * Get Posthog key
+ */
+export const getPosthogKeyOptions = (options?: Options<GetPosthogKeyData>) => {
+    return queryOptions({
+        queryFn: async ({ queryKey, signal }) => {
+            const { data } = await getPosthogKey({
+                ...options,
+                ...queryKey[0],
+                signal,
+                throwOnError: true
+            });
+            return data;
+        },
+        queryKey: getPosthogKeyQueryKey(options)
     });
 };
