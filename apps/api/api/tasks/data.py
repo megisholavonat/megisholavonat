@@ -4,8 +4,6 @@ from api.services.train_service import TrainService
 
 
 @broker.task
-async def revalidate_data(
-    redis: RedisTaskiqDep = ...,  # type: ignore[assignment]
-):
+async def revalidate_data(redis: RedisTaskiqDep) -> None:
     train_service = TrainService(redis)
-    return await train_service.revalidate_cache()
+    await train_service.revalidate_cache()
