@@ -39,6 +39,7 @@ jobs:
           context: .
           file: ${{ matrix.file }}
           push: false
+          platforms: linux/amd64,linux/arm64
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.name }}
 
@@ -81,6 +82,7 @@ jobs:
           context: .
           file: ${{ matrix.file }}
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: |
             ghcr.io/${{ steps.vars.outputs.owner_lc }}/mhav-${{ matrix.name }}:${{ github.sha }}
           labels: |
