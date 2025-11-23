@@ -3,6 +3,7 @@
     "ui": "tui",
     "tasks": {
         "build": {
+            "env": ["SKIP_*"],
             "dependsOn": [
                 "^build"
             ],
