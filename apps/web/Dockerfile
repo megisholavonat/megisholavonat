@@ -28,6 +28,7 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV CI=true
+ENV SKIP_SERVER_ENV_VALIDATION=true
 
 # Copy installed dependencies and source code from pruned workspace
 COPY --from=installer /app .

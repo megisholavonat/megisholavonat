@@ -9,5 +9,7 @@ export const env = createEnv({
         POSTHOG_KEY: process.env.POSTHOG_KEY,
     },
     // Skip validation during build if needed
-    skipValidation: !!process.env.SKIP_ENV_VALIDATION,
+    skipValidation:
+        !!process.env.SKIP_ENV_VALIDATION ||
+        !!process.env.SKIP_SERVER_ENV_VALIDATION,
 });
