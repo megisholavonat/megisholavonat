@@ -10,6 +10,7 @@ RUN pnpm fetch
 # Prune to only include web and its dependencies
 FROM deps AS pruner
 RUN apk add --no-cache libc6-compat
+ENV CI=true
 COPY . .
 # Install only root dependencies to get turbo
 RUN pnpm install --frozen-lockfile --ignore-workspace --offline
