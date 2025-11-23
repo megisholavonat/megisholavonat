@@ -4,7 +4,6 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.routing import APIRoute, APIRouter
 
-from api.core.config import settings
 from api.core.logging_config import get_logger, setup_logging
 from api.core.taskiq_broker import broker
 from api.routers import posthog, redis_test, root, trains
@@ -24,20 +23,8 @@ def custom_generate_unique_id(route: APIRoute) -> str:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
-    await broker.startup()
-
     # Startup
-    if settings.DEBUG:
-        import redis.asyncio as redis
-
-        from api.core.redis import redis_pool
-
-        async with redis.Redis(connection_pool=redis_pool) as client:
-            try:
-                await client.flushdb()
-                logger.info("Redis cache cleared on startup")
-            except Exception as e:
-                logger.warning(f"Could not clear Redis cache: {e}")
+    await broker.startup()
 
     yield
 
