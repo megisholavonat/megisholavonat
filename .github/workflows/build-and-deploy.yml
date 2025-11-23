@@ -90,29 +90,27 @@ jobs:
             org.opencontainers.image.revision=${{ github.sha }}
           cache-from: type=gha,scope=${{ matrix.name }}
 
-  # update-gitops:
-  #   name: Update GitOps repository
-  #   needs: push
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout GitOps repository
-  #       uses: actions/checkout@v4
-  #       with:
-  #         repository: ${{ github.repository_owner }}/gitops
-  #         ssh-key: ${{ secrets.GITOPS_DEPLOY_KEY }}
-  #         ref: main
+  update-gitops:
+    name: Update GitOps repository
+    needs: push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout GitOps repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/gitops
+          ssh-key: ${{ secrets.GITOPS_DEPLOY_KEY }}
+          ref: main
 
-  #     - name: Update image tags
-  #       uses: mikefarah/yq@master
-  #       with:
-  #         cmd: yq -i '.image.tag = "${{ github.sha }}"' cluster/apps/mhav/values.yaml
+      - name: Update image tags
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq -i '.image.tag = "${{ github.sha }}"' cluster/apps/mhav/values.yaml
 
-  #     - name: Commit and push changes
-  #       run: |
-  #         git config user.name "github-actions[bot]"
-  #         git config user.email "github-actions[bot]@users.noreply.github.com"
-  #         git add cluster/apps/mhav/values.yaml
-  #         git commit -m "ci: update image tag"
-  #         git push
-
-
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add cluster/apps/mhav/values.yaml
+          git commit -m "ci: update image tag"
+          git push
