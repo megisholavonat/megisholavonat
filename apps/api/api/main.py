@@ -6,7 +6,8 @@ from fastapi.routing import APIRoute, APIRouter
 
 from api.core.config import settings
 from api.core.logging_config import get_logger, setup_logging
-from api.routers import redis_test, root, trains, posthog
+from api.core.taskiq_broker import broker
+from api.routers import posthog, redis_test, root, trains
 
 # Initialize logging
 setup_logging()
@@ -23,6 +24,8 @@ def custom_generate_unique_id(route: APIRoute) -> str:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
+    await broker.startup()
+
     # Startup
     if settings.DEBUG:
         import redis.asyncio as redis
@@ -39,6 +42,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     yield
 
     # Shutdown
+    await broker.shutdown()
 
 
 def create_app() -> FastAPI:
