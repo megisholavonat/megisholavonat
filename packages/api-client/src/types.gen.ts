@@ -302,11 +302,25 @@ export type VehicleProgress = {
     progress: number;
 };
 
+export type RootData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/';
+};
+
+export type RootResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
 export type GetRedisStatusData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/redis';
+    url: '/v1/redis';
 };
 
 export type GetRedisStatusResponses = {
@@ -326,7 +340,7 @@ export type GetTrainsData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/trains';
+    url: '/v1/trains';
 };
 
 export type GetTrainsResponses = {
@@ -337,17 +351,3 @@ export type GetTrainsResponses = {
 };
 
 export type GetTrainsResponse = GetTrainsResponses[keyof GetTrainsResponses];
-
-export type HomeData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/';
-};
-
-export type HomeResponses = {
-    /**
-     * Successful Response
-     */
-    200: unknown;
-};
