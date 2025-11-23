@@ -14,7 +14,6 @@ class Settings(BaseSettings):
 
     # Caching Constants
     CACHE_DURATION: int = 15 * 60  # 15 minutes
-    MAX_STALE_DATA_AGE: int = 15 * 60 * 1000  # 15 minutes in ms
 
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"

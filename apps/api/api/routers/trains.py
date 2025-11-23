@@ -6,7 +6,6 @@ from datetime import UTC, datetime
 
 from fastapi import APIRouter, HTTPException
 
-from api.core.config import settings
 from api.core.logging_config import get_logger
 from api.core.redis import RedisDep, add_key
 from api.schemas.trains import APIResponse
@@ -44,19 +43,6 @@ async def get_trains(
                 locations=[],
             )
 
-        # If data is too old (>15 minutes), do not send it
-        if data_age_ms > settings.MAX_STALE_DATA_AGE:
-            logger.info("Data stale (>MAX), no data will be served")
-            return APIResponse(
-                timestamp=datetime.fromtimestamp(
-                    cached_data["timestamp"] / 1000, tz=UTC
-                ).isoformat(),
-                noDataReceived=True,
-                dataAgeMinutes=data_age_minutes,
-                locations=[],
-            )
-
-        # Serve cached data if available
         logger.info(f"Serving cached data (Time: {(time.time() - req_start):.4f}s)")
         return APIResponse(
             timestamp=datetime.fromtimestamp(
