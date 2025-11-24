@@ -60,6 +60,7 @@ export function TrainMarkers({
                         position={[train.lat, train.lon]}
                         icon={markerIcon}
                         zIndexOffset={zIndex}
+                        alt={`${type} ${train?.trainNumber ?? train?.vehicleId}`}
                         eventHandlers={{
                             click: () => {
                                 onTrainClick(train.vehicleId);

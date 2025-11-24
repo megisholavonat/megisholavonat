@@ -340,10 +340,16 @@ export default function SettingsComponent() {
                                 {/* Language Switcher */}
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-0.5">
-                                        <p className="text-sm font-medium gap-x-3 flex items-center">
+                                        <p
+                                            id="language-label"
+                                            className="text-sm font-medium gap-x-3 flex items-center"
+                                        >
                                             {t("language_label")}
                                         </p>
-                                        <p className="text-sm text-muted-foreground">
+                                        <p
+                                            id="language-description"
+                                            className="text-sm text-muted-foreground"
+                                        >
                                             {t("language_description")}
                                         </p>
                                     </div>
@@ -364,6 +370,8 @@ export default function SettingsComponent() {
                                             onCheckedChange={
                                                 handleLanguageChange
                                             }
+                                            aria-labelledby="language-label"
+                                            aria-describedby="language-description"
                                         />
                                         <Image
                                             src="https://purecatamphetamine.github.io/country-flag-icons/3x2/GB.svg"
@@ -383,13 +391,19 @@ export default function SettingsComponent() {
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-0.5">
                                         <div className="flex items-center gap-x-3">
-                                            <p className="text-sm font-medium gap-x-3 flex items-center">
+                                            <p
+                                                id="theme-label"
+                                                className="text-sm font-medium gap-x-3 flex items-center"
+                                            >
                                                 {t("theme_label")}
                                             </p>
                                             <NewFeature />
                                         </div>
 
-                                        <p className="text-sm text-muted-foreground">
+                                        <p
+                                            id="theme-description"
+                                            className="text-sm text-muted-foreground"
+                                        >
                                             {t("theme_description")}
                                         </p>
                                     </div>
@@ -399,7 +413,10 @@ export default function SettingsComponent() {
                                             setTheme(value)
                                         }
                                     >
-                                        <SelectTrigger>
+                                        <SelectTrigger
+                                            aria-labelledby="theme-label"
+                                            aria-describedby="theme-description"
+                                        >
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent
@@ -423,11 +440,17 @@ export default function SettingsComponent() {
                                 {/* Tooltip Setting */}
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-0.5">
-                                        <p className="text-sm font-medium gap-x-3 flex items-center">
+                                        <p
+                                            id="tooltip-label"
+                                            className="text-sm font-medium gap-x-3 flex items-center"
+                                        >
                                             {t("tooltip_label")}
                                             <ComputerBadge />
                                         </p>
-                                        <p className="text-sm text-muted-foreground">
+                                        <p
+                                            id="tooltip-description"
+                                            className="text-sm text-muted-foreground"
+                                        >
                                             {t("tooltip_description")}
                                         </p>
                                     </div>
@@ -440,16 +463,24 @@ export default function SettingsComponent() {
                                                 checked,
                                             )
                                         }
+                                        aria-labelledby="tooltip-label"
+                                        aria-describedby="tooltip-description"
                                     />
                                 </div>
 
                                 {/* Station Names Setting */}
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-0.5">
-                                        <p className="text-sm font-medium">
+                                        <p
+                                            id="station-names-label"
+                                            className="text-sm font-medium"
+                                        >
                                             {t("station_names_label")}
                                         </p>
-                                        <p className="text-sm text-muted-foreground">
+                                        <p
+                                            id="station-names-description"
+                                            className="text-sm text-muted-foreground"
+                                        >
                                             {t("station_names_description")}
                                         </p>
                                     </div>
@@ -461,6 +492,8 @@ export default function SettingsComponent() {
                                                 checked,
                                             )
                                         }
+                                        aria-labelledby="station-names-label"
+                                        aria-describedby="station-names-description"
                                     />
                                 </div>
 
@@ -468,6 +501,7 @@ export default function SettingsComponent() {
                                 <div className="space-y-4">
                                     <div className="space-y-0.5">
                                         <p
+                                            id="station-opacity-label"
                                             className={`text-sm font-medium ${
                                                 !settings.showStationNames
                                                     ? "text-muted-foreground"
@@ -477,6 +511,7 @@ export default function SettingsComponent() {
                                             {t("station_names_opacity_label")}
                                         </p>
                                         <p
+                                            id="station-opacity-description"
                                             className={`text-sm text-muted-foreground ${
                                                 !settings.showStationNames
                                                     ? "opacity-50"
@@ -490,6 +525,7 @@ export default function SettingsComponent() {
                                     </div>
                                     <div className="flex items-center space-x-4">
                                         <span
+                                            id="station-opacity-value"
                                             className={`text-xs ${
                                                 !settings.showStationNames
                                                     ? "text-muted-foreground"
@@ -515,23 +551,32 @@ export default function SettingsComponent() {
                                                 !settings.showStationNames
                                             }
                                             className="flex-1"
+                                            aria-labelledby="station-opacity-label"
+                                            aria-describedby="station-opacity-description"
+                                            aria-valuetext={`${Math.round(sliderOpacity * 100)}%`}
                                         />
                                     </div>
                                 </div>
 
                                 {/* Vehicle Type Toggles */}
-                                <div className="space-y-4">
-                                    <h2 className="font-bold text-lg">
+                                <fieldset className="space-y-4 border-0 p-0 m-0">
+                                    <legend className="font-bold text-lg">
                                         {t("vehicle_types_title")}
-                                    </h2>
+                                    </legend>
 
                                     {/* Trains Toggle */}
                                     <div className="flex items-center justify-between">
                                         <div className="space-y-0.5">
-                                            <p className="text-sm font-medium">
+                                            <p
+                                                id="trains-label"
+                                                className="text-sm font-medium"
+                                            >
                                                 {t("trains_label")}
                                             </p>
-                                            <p className="text-sm text-muted-foreground">
+                                            <p
+                                                id="trains-description"
+                                                className="text-sm text-muted-foreground"
+                                            >
                                                 {t("trains_description")}
                                             </p>
                                         </div>
@@ -543,16 +588,24 @@ export default function SettingsComponent() {
                                                     checked,
                                                 )
                                             }
+                                            aria-labelledby="trains-label"
+                                            aria-describedby="trains-description"
                                         />
                                     </div>
 
                                     {/* Tram-Trains Toggle */}
                                     <div className="flex items-center justify-between">
                                         <div className="space-y-0.5">
-                                            <p className="text-sm font-medium">
+                                            <p
+                                                id="tramtrains-label"
+                                                className="text-sm font-medium"
+                                            >
                                                 {t("tramtrains_label")}
                                             </p>
-                                            <p className="text-sm text-muted-foreground">
+                                            <p
+                                                id="tramtrains-description"
+                                                className="text-sm text-muted-foreground"
+                                            >
                                                 {t("tramtrains_description")}
                                             </p>
                                         </div>
@@ -564,16 +617,24 @@ export default function SettingsComponent() {
                                                     checked,
                                                 )
                                             }
+                                            aria-labelledby="tramtrains-label"
+                                            aria-describedby="tramtrains-description"
                                         />
                                     </div>
 
                                     {/* HEV Toggle */}
                                     <div className="flex items-center justify-between">
                                         <div className="space-y-0.5">
-                                            <p className="text-sm font-medium">
+                                            <p
+                                                id="hev-label"
+                                                className="text-sm font-medium"
+                                            >
                                                 {t("hev_label")}
                                             </p>
-                                            <p className="text-sm text-muted-foreground">
+                                            <p
+                                                id="hev-description"
+                                                className="text-sm text-muted-foreground"
+                                            >
                                                 {t("hev_description")}
                                             </p>
                                         </div>
@@ -585,21 +646,26 @@ export default function SettingsComponent() {
                                                     checked,
                                                 )
                                             }
+                                            aria-labelledby="hev-label"
+                                            aria-describedby="hev-description"
                                         />
                                     </div>
-                                </div>
+                                </fieldset>
 
                                 {/* Map Settings */}
-                                <div className="space-y-4">
-                                    <h2 className="font-bold text-lg gap-x-3 flex">
+                                <fieldset className="space-y-4 border-0 p-0 m-0">
+                                    <legend className="font-bold text-lg gap-x-3 flex">
                                         {t("map_settings_title")}
                                         <NewFeature />
-                                    </h2>
+                                    </legend>
 
                                     {/* Base Map Selector */}
                                     <div className="space-y-2">
                                         <div className="space-y-0.5">
-                                            <p className="text-sm font-medium">
+                                            <p
+                                                id="base-map-label"
+                                                className="text-sm font-medium"
+                                            >
                                                 {t("base_map_label")}
                                             </p>
                                         </div>
@@ -612,7 +678,10 @@ export default function SettingsComponent() {
                                                 )
                                             }
                                         >
-                                            <SelectTrigger className="w-full">
+                                            <SelectTrigger
+                                                className="w-full"
+                                                aria-labelledby="base-map-label"
+                                            >
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent
@@ -640,7 +709,10 @@ export default function SettingsComponent() {
                                     {/* Railway Overlay Toggle */}
                                     <div className="flex items-center justify-between">
                                         <div className="space-y-0.5">
-                                            <p className="text-sm font-medium">
+                                            <p
+                                                id="railway-overlay-label"
+                                                className="text-sm font-medium"
+                                            >
                                                 {t("railway_overlay_label")}
                                             </p>
                                         </div>
@@ -654,9 +726,10 @@ export default function SettingsComponent() {
                                                     checked,
                                                 )
                                             }
+                                            aria-labelledby="railway-overlay-label"
                                         />
                                     </div>
-                                </div>
+                                </fieldset>
                             </TabsContent>
 
                             <TabsContent
