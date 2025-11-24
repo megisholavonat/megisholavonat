@@ -1,6 +1,9 @@
 "use client";
 
-import type { ApiResponse } from "@megisholavonat/api-client";
+import type {
+    ApiResponse,
+    StopTimeWithCounty,
+} from "@megisholavonat/api-client";
 import { AnimatePresence, motion } from "motion/react";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
@@ -32,11 +35,9 @@ function formatSpeed(speed: number): string {
     return `${Math.round(speed * 3.6)} km/h`;
 }
 
-type StopTime = ApiResponse["locations"][number]["trip"]["stoptimes"][number];
-
 type SortOption = "number" | "delay" | "speed";
 
-function getStationRoute(stoptimes: StopTime[]) {
+function getStationRoute(stoptimes: StopTimeWithCounty[]) {
     if (stoptimes.length === 0) return null;
 
     const firstStop = stoptimes[0]?.stop?.name;
