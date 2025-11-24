@@ -1,5 +1,6 @@
 import type { ApiResponse } from "@megisholavonat/api-client";
 import * as turf from "@turf/turf";
+import type { VehicleType } from "@/util/icon";
 import { decodePolyline } from "@/util/polyline";
 import { getSecondsSinceDay } from "@/util/time";
 
@@ -247,7 +248,7 @@ export function isFarFromRoute(
 
 export function vehicleType(
     vehiclePosition: ApiResponse["locations"][0],
-): string {
+): VehicleType {
     if (vehiclePosition.trip.route.longName.startsWith("H")) {
         return "hev";
     } else if (vehiclePosition.trip.route.longName === "1") {
