@@ -1,13 +1,11 @@
-import type { ApiResponse } from "@megisholavonat/api-client";
+import type { VehiclePositionWithDelay } from "@megisholavonat/api-client";
 import { useEffect } from "react";
 import { useMap } from "react-leaflet";
 import type { SearchSelection } from "@/app/[locale]/page";
 import { useIsMobile } from "@/hooks/useIsMobile";
 
-type Train = ApiResponse["locations"][number];
-
 interface MapControllerProps {
-    selectedTrain?: Train;
+    selectedTrain?: VehiclePositionWithDelay;
     searchSelection?: SearchSelection;
     isPanelOpen: boolean;
 }
