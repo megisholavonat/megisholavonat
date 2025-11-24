@@ -1,5 +1,6 @@
 import type { ApiResponse } from "@megisholavonat/api-client";
 import { AnimatePresence, motion } from "motion/react";
+import { useQueryState } from "nuqs";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { MapContainer } from "react-leaflet";
 import { DelayLegend } from "@/components/information/DelayLegend";
@@ -55,9 +56,8 @@ export default function MapComponent({
     onClearSearchSelection?: () => void;
     data: ApiResponse | undefined;
 }) {
-    const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(
-        null,
-    );
+    const [selectedVehicleId, setSelectedVehicleId] =
+        useQueryState("vehicleId");
     const [isPanelOpen, setIsPanelOpen] = useState(false);
     const [showNoDataDialog, setShowNoDataDialog] = useState(false);
 
@@ -77,12 +77,12 @@ export default function MapComponent({
             setSelectedVehicleId(searchSelection.vehicleId);
             setIsPanelOpen(true);
         }
-    }, [searchSelection]);
+    }, [searchSelection, setSelectedVehicleId]);
 
     const handleClosePanel = useCallback(() => {
         setIsPanelOpen(false);
         setSelectedVehicleId(null);
-    }, []);
+    }, [setSelectedVehicleId]);
 
     // Handle escape key to close panel
     useEffect(() => {

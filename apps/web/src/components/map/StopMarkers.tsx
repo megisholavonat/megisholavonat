@@ -1,15 +1,13 @@
 "use client";
 
-import type { ApiResponse } from "@megisholavonat/api-client";
+import type { VehiclePositionWithDelay } from "@megisholavonat/api-client";
 import { useTheme } from "next-themes";
 import { Marker } from "react-leaflet";
 import { Z_LAYERS } from "@/util/constants";
 import { createStopIcon } from "@/util/icon";
 
-type Train = ApiResponse["locations"][number];
-
 interface StopMarkersProps {
-    selectedTrain: Train;
+    selectedTrain: VehiclePositionWithDelay;
     showStationNames: boolean;
     stationNamesOpacity: number;
 }

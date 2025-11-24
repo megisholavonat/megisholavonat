@@ -1,4 +1,4 @@
-import type { ApiResponse } from "@megisholavonat/api-client";
+import type { VehiclePositionWithDelay } from "@megisholavonat/api-client";
 import * as turf from "@turf/turf";
 import { decodePolyline } from "@/util/polyline";
 import { getSecondsSinceDay } from "@/util/time";
@@ -6,7 +6,7 @@ import { getSecondsSinceDay } from "@/util/time";
 const STALENESS_THRESHOLD_MINUTES = 30; // Show as stale after 30 minutes
 const REMOVAL_THRESHOLD_MINUTES = 120; // Remove entirely after 2 hours
 
-export function isActive(vehiclePosition: ApiResponse["locations"][0]) {
+export function isActive(vehiclePosition: VehiclePositionWithDelay) {
     const { lat, lon, trip } = vehiclePosition;
     const stops = trip.stoptimes;
 
@@ -66,7 +66,7 @@ export function isActive(vehiclePosition: ApiResponse["locations"][0]) {
     return true;
 }
 
-export function isStale(vehiclePosition: ApiResponse["locations"][0]): boolean {
+export function isStale(vehiclePosition: VehiclePositionWithDelay): boolean {
     const now = Date.now() / 1000; // Current time in seconds
     const lastUpdated = vehiclePosition.lastUpdated;
     const minutesSinceUpdate = (now - lastUpdated) / 60;
@@ -75,7 +75,7 @@ export function isStale(vehiclePosition: ApiResponse["locations"][0]): boolean {
 }
 
 export function shouldRemove(
-    vehiclePosition: ApiResponse["locations"][0],
+    vehiclePosition: VehiclePositionWithDelay,
 ): boolean {
     const now = Date.now() / 1000; // Current time in seconds
     const lastUpdated = vehiclePosition.lastUpdated;
@@ -85,7 +85,7 @@ export function shouldRemove(
 }
 
 export function dataAppearsFalsified(
-    vehiclePosition: ApiResponse["locations"][0],
+    vehiclePosition: VehiclePositionWithDelay,
     isStale: boolean,
 ): boolean {
     if (isStale) return false;
@@ -167,7 +167,7 @@ export function dataAppearsFalsified(
 }
 
 export function isFarFromRoute(
-    vehiclePosition: ApiResponse["locations"][0],
+    vehiclePosition: VehiclePositionWithDelay,
 ): boolean {
     const { lat, lon, trip } = vehiclePosition;
 
@@ -245,9 +245,7 @@ export function isFarFromRoute(
     }
 }
 
-export function vehicleType(
-    vehiclePosition: ApiResponse["locations"][0],
-): string {
+export function vehicleType(vehiclePosition: VehiclePositionWithDelay): string {
     if (vehiclePosition.trip.route.longName.startsWith("H")) {
         return "hev";
     } else if (vehiclePosition.trip.route.longName === "1") {

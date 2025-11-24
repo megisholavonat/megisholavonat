@@ -1,11 +1,9 @@
-import type { ApiResponse } from "@megisholavonat/api-client";
+import type { VehiclePositionWithDelay } from "@megisholavonat/api-client";
 import { Tooltip as LeafletTooltip } from "react-leaflet";
 import MAVRouteIcon from "@/components/ui/MavRouteIcon";
 
-type Train = ApiResponse["locations"][number];
-
 interface TrainTooltipProps {
-    train: Train;
+    train: VehiclePositionWithDelay;
     showTooltip: boolean;
 }
 

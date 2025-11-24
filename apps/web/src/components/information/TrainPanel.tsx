@@ -1,4 +1,7 @@
-import type { ApiResponse, InfoService } from "@megisholavonat/api-client";
+import type {
+    InfoService,
+    VehiclePositionWithDelay,
+} from "@megisholavonat/api-client";
 import { formatDistanceToNow } from "date-fns";
 import { enGB, hu } from "date-fns/locale";
 import { AnimatePresence, motion } from "motion/react";
@@ -27,7 +30,7 @@ import {
 } from "@/util/vehicle";
 import MAVRouteIcon from "../ui/MavRouteIcon";
 
-type VehiclePosition = ApiResponse["locations"][0];
+type VehiclePosition = VehiclePositionWithDelay;
 
 interface TrainPanelProps {
     vehiclePosition: VehiclePosition;
