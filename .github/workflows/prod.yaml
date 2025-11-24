@@ -1,9 +1,9 @@
-name: Build and deploy all apps
+name: PROD - Build and deploy all apps
 
 on:
   push:
     branches:
-      - main
+      - prod
 
 permissions:
   contents: read
@@ -111,6 +111,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add cluster/apps/mhav/values.yaml
-          git commit -m "ci: update image tag"
-          git push
+          if [[ -n $(git status -s) ]]; then
+            git add cluster/apps/mhav/values.yaml
+            git commit -m "ci: update image tag to ${{ github.sha }}"
+            git push
+          else
+            echo "No changes detected. Image tag is already up to date."
+          fi
