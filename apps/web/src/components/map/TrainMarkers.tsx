@@ -1,6 +1,6 @@
 "use client";
 
-import type { ApiResponse } from "@megisholavonat/api-client";
+import type { VehiclePositionWithDelay } from "@megisholavonat/api-client";
 import { useTheme } from "next-themes";
 import { Marker } from "react-leaflet";
 import { useIsMobile } from "@/hooks/useIsMobile";
@@ -14,10 +14,8 @@ import {
 } from "@/util/vehicle";
 import { TrainTooltip } from "./TrainTooltip";
 
-type Train = ApiResponse["locations"][number];
-
 interface TrainMarkersProps {
-    trains: Train[];
+    trains: VehiclePositionWithDelay[];
     selectedVehicleId: string | null;
     onTrainClick: (vehicleId: string) => void;
     showTooltip: boolean;
