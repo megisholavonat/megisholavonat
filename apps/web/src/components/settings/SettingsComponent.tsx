@@ -559,7 +559,7 @@ export default function SettingsComponent() {
                                 </div>
 
                                 {/* Vehicle Type Toggles */}
-                                <fieldset className="space-y-4 border-0 p-0 m-0">
+                                <fieldset className="space-y-4 border-0 p-0">
                                     <legend className="font-bold text-lg">
                                         {t("vehicle_types_title")}
                                     </legend>
@@ -653,7 +653,7 @@ export default function SettingsComponent() {
                                 </fieldset>
 
                                 {/* Map Settings */}
-                                <fieldset className="space-y-4 border-0 p-0 m-0">
+                                <fieldset className="space-y-4 border-0 p-0">
                                     <legend className="font-bold text-lg gap-x-3 flex">
                                         {t("map_settings_title")}
                                         <NewFeature />

@@ -382,7 +382,7 @@ export default function SearchComponent({
                                                         result.vehicleId,
                                                     )
                                                 }
-                                                aria-label={`${t("select_train")} ${result.trip?.tripShortName ?? ""}${stationRoute ? `, ${stationRoute}` : ""}`}
+                                                aria-label={`${t("select_train")} ${result.trip.tripShortName}, ${stationRoute}`}
                                                 className={`w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-blue-900/30 transition-colors ${
                                                     isTrainStale
                                                         ? "opacity-60"
