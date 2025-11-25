@@ -287,6 +287,7 @@ export default function SearchComponent({
                                         ref={inputRef}
                                         type="text"
                                         placeholder={t("search_placeholder")}
+                                        aria-label={t("search_placeholder")}
                                         value={searchQuery}
                                         onChange={(e) =>
                                             setSearchQuery(e.target.value)
@@ -295,7 +296,10 @@ export default function SearchComponent({
                                     />
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-sm text-gray-700 dark:text-card-foreground">
+                                    <span
+                                        id="sort-by-label"
+                                        className="text-sm text-gray-700 dark:text-card-foreground"
+                                    >
                                         {t("sort_by")}
                                     </span>
                                     <Select
@@ -304,7 +308,10 @@ export default function SearchComponent({
                                             setSortBy(value)
                                         }
                                     >
-                                        <SelectTrigger className="w-full h-8">
+                                        <SelectTrigger
+                                            className="w-full h-8"
+                                            aria-labelledby="sort-by-label"
+                                        >
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent
@@ -376,6 +383,7 @@ export default function SearchComponent({
                                                         result.vehicleId,
                                                     )
                                                 }
+                                                aria-label={`${t("select_train")} ${result.trip.tripShortName}, ${stationRoute}`}
                                                 className={`w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-blue-900/30 transition-colors ${
                                                     isTrainStale
                                                         ? "opacity-60"

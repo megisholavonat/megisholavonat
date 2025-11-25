@@ -55,12 +55,6 @@ export default function MapPage() {
 
     return (
         <div className="h-screen w-screen relative bg-background">
-            <DynamicMap
-                searchSelection={searchSelection}
-                onClearSearchSelection={clearSearchSelection}
-                data={data}
-            />
-
             <Header
                 data={data}
                 onSearchResultClick={(vehicleId) => {
@@ -69,6 +63,12 @@ export default function MapPage() {
                         timestamp: Date.now(),
                     });
                 }}
+            />
+
+            <DynamicMap
+                searchSelection={searchSelection}
+                onClearSearchSelection={clearSearchSelection}
+                data={data}
             />
         </div>
     );

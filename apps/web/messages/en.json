@@ -17,7 +17,8 @@
         "sort_ascending": "ascending",
         "sort_descending": "descending",
         "no_search_results": "No search results",
-        "no_trains_available": "No trains available"
+        "no_trains_available": "No trains available",
+        "select_train": "Select train"
     },
     "SettingsComponent": {
         "settings_button": "Settings",
