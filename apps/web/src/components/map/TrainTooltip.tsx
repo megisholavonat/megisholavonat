@@ -1,18 +1,12 @@
-import type { ApiResponse } from "@megisholavonat/api-client";
-import { Tooltip as LeafletTooltip } from "react-leaflet";
+import type { TrainFeatureProperties } from "@megisholavonat/api-client";
 import MAVRouteIcon from "@/components/ui/MavRouteIcon";
 
-type Train = ApiResponse["locations"][number];
-
 interface TrainTooltipProps {
-    train: Train;
-    showTooltip: boolean;
+    featureProperties: TrainFeatureProperties;
 }
 
-export function TrainTooltip({ train, showTooltip }: TrainTooltipProps) {
-    if (!showTooltip) return null;
-
-    const tripName = train.trip.tripShortName;
+export function TrainTooltip({ featureProperties }: TrainTooltipProps) {
+    const tripName = featureProperties.tripShortName;
     const isCapital = (char: string) => {
         return (char >= "A" && char <= "Z") || "ÁÉÍÓÖŐÚÜŰ".includes(char);
     };
@@ -57,22 +51,15 @@ export function TrainTooltip({ train, showTooltip }: TrainTooltipProps) {
     ) : null;
 
     return (
-        <LeafletTooltip
-            direction="top"
-            offset={[0, -10]}
-            opacity={1}
-            className="custom-train-tooltip"
+        <div
+            className="text-base font-medium flex items-center gap-2 pt-1"
+            style={{
+                color: `#${featureProperties.routeTextColor}`,
+                fontFamily: "inherit",
+            }}
         >
-            <div
-                className="text-base font-medium flex items-center gap-2 pt-1"
-                style={{
-                    color: `#${train.trip.route.textColor}`,
-                    fontFamily: "inherit",
-                }}
-            >
-                <MAVRouteIcon routeShortName={train.trip.route.shortName} />
-                {tripNameDisplay}
-            </div>
-        </LeafletTooltip>
+            <MAVRouteIcon routeShortName={featureProperties.routeShortName} />
+            {tripNameDisplay}
+        </div>
     );
 }

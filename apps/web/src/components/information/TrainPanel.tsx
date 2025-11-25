@@ -1,4 +1,7 @@
-import type { InfoService } from "@megisholavonat/api-client";
+import type {
+    InfoService,
+    VehiclePositionWithDelay,
+} from "@megisholavonat/api-client";
 import { formatDistanceToNow } from "date-fns";
 import { enGB, hu } from "date-fns/locale";
 import { AnimatePresence, motion } from "motion/react";
@@ -26,11 +29,9 @@ import {
     isStale,
 } from "@/util/vehicle";
 import MAVRouteIcon from "../ui/MavRouteIcon";
-import { useQuery } from "@tanstack/react-query";
-import { getTrainDetailsOptions } from "@megisholavonat/api-client/react-query";
 
 interface TrainPanelProps {
-    vehicleId: string;
+    vehicle: VehiclePositionWithDelay;
     onClose?: () => void;
     showCloseButton?: boolean;
 }
@@ -167,46 +168,38 @@ function AlertBadge({
 }
 
 export function TrainPanel({
-    vehicleId,
+    vehicle,
     onClose,
     showCloseButton = false,
 }: TrainPanelProps) {
-    const { data: vehiclePosition } = useQuery(
-        getTrainDetailsOptions({ path: { vehicle_id: vehicleId } }),
-    );
-
     const [alertsOpen, setAlertsOpen] = useState(false);
     const t = useTranslations("TrainPanel");
     const isMobile = useIsMobile();
     const locale = useLocale();
 
-    if (!vehiclePosition) {
-        return null;
-    }
+    const trainIsStale = isStale(vehicle);
 
-    const trainIsStale = isStale(vehiclePosition);
-
-    const delayColor = getDelayColor(vehiclePosition.delay, true);
+    const delayColor = getDelayColor(vehicle.delay, true);
 
     // Calculate total number of stops
-    const totalStops = vehiclePosition.trip.stoptimes.length;
+    const totalStops = vehicle.trip.stoptimes.length;
 
     // Check if data appears to be falsified using utility function
-    const trainIsActive = isActive(vehiclePosition);
+    const trainIsActive = isActive(vehicle);
     const dataFalsified =
-        trainIsActive && dataAppearsFalsified(vehiclePosition, trainIsStale);
+        trainIsActive && dataAppearsFalsified(vehicle, trainIsStale);
 
     // Check if train is far from its designated route
-    const farFromRoute = isFarFromRoute(vehiclePosition);
+    const farFromRoute = isFarFromRoute(vehicle);
 
     // Separate services that apply to all stops vs specific stops
-    const allStopsServices = vehiclePosition.trip.infoServices.filter(
+    const allStopsServices = vehicle.trip.infoServices.filter(
         (service) =>
             service.fromStopIndex === 0 &&
             service.tillStopIndex === totalStops - 1,
     );
 
-    const specificStopServices = vehiclePosition.trip.infoServices.filter(
+    const specificStopServices = vehicle.trip.infoServices.filter(
         (service) =>
             !(
                 service.fromStopIndex === 0 &&
@@ -223,8 +216,7 @@ export function TrainPanel({
         );
     };
 
-    const hasAlerts =
-        vehiclePosition.trip.alerts && vehiclePosition.trip.alerts.length > 0;
+    const hasAlerts = vehicle.trip.alerts && vehicle.trip.alerts.length > 0;
 
     return (
         <div className={`flex flex-col ${isMobile ? "h-auto" : "h-full"}`}>
@@ -238,20 +230,18 @@ export function TrainPanel({
                     <div
                         className="bg-white dark:bg-gray-100 rounded-lg w-12 h-8 align-middle text-lg items-center justify-center flex"
                         style={{
-                            color: `#${vehiclePosition.trip.route.textColor}`,
+                            color: `#${vehicle.trip.route.textColor}`,
                         }}
                     >
                         <div className="pt-2 pb-1">
                             <MAVRouteIcon
-                                routeShortName={
-                                    vehiclePosition.trip.route.shortName
-                                }
+                                routeShortName={vehicle.trip.route.shortName}
                             />
                         </div>
                     </div>
 
                     <h2 className="text-xl font-bold text-center">
-                        {vehiclePosition.trip.tripShortName}
+                        {vehicle.trip.tripShortName}
                     </h2>
                     {showCloseButton && onClose && (
                         <button
@@ -267,21 +257,21 @@ export function TrainPanel({
                     <span className="flex items-center gap-1">
                         <span className="opacity-80">{t("uic_code")}:</span>
                         <span className="font-semibold text-white font-mono">
-                            {formatUICCode(vehiclePosition.vehicleId)}
+                            {formatUICCode(vehicle.vehicleId)}
                         </span>
                     </span>
                     <span className="flex items-center gap-1">
                         <span className="opacity-80">{t("speed")}:</span>
                         <span className="font-semibold text-white">
-                            {Math.round(vehiclePosition.speed * 3.6)} km/h
+                            {Math.round(vehicle.speed * 3.6)} km/h
                         </span>
                     </span>
-                    {isActive(vehiclePosition) && !trainIsStale && (
+                    {isActive(vehicle) && !trainIsStale && (
                         <span className="flex items-center gap-1">
                             <span className="opacity-80">{t("delay")}:</span>
                             <span className={`font-semibold ${delayColor}`}>
                                 {t("delay_minutes", {
-                                    delay: vehiclePosition.delay,
+                                    delay: vehicle.delay,
                                 })}
                             </span>
                             <TooltipPopover content={t("delay_note")}>
@@ -293,21 +283,21 @@ export function TrainPanel({
                         <span className="opacity-80">{t("last_updated")}:</span>
                         <span className="font-semibold text-white">
                             {trainIsStale && "⚠️ "}
-                            {formatTime(vehiclePosition.lastUpdated, locale)}
+                            {formatTime(vehicle.lastUpdated, locale)}
                         </span>
                     </span>
                 </div>
                 {/* Start and End Stations */}
-                {vehiclePosition.trip.stoptimes.length > 0 && (
+                {vehicle.trip.stoptimes.length > 0 && (
                     <div className="text-xs mt-2 opacity-80">
                         <span className="font-semibold">
-                            {vehiclePosition.trip.stoptimes[0].stop.name}
+                            {vehicle.trip.stoptimes[0].stop.name}
                         </span>
                         <FaArrowRight className="mx-2 inline w-3 h-3" />
                         <span className="font-semibold">
                             {
-                                vehiclePosition.trip.stoptimes[
-                                    vehiclePosition.trip.stoptimes.length - 1
+                                vehicle.trip.stoptimes[
+                                    vehicle.trip.stoptimes.length - 1
                                 ].stop.name
                             }
                         </span>
@@ -329,7 +319,7 @@ export function TrainPanel({
                         ))}
                         {hasAlerts && (
                             <AlertBadge
-                                alertCount={vehiclePosition.trip.alerts.length}
+                                alertCount={vehicle.trip.alerts.length}
                                 isExpanded={alertsOpen}
                                 onClick={() => setAlertsOpen(!alertsOpen)}
                             />
@@ -360,7 +350,7 @@ export function TrainPanel({
                                             delay: 0.1,
                                         }}
                                     >
-                                        {vehiclePosition.trip.alerts.map(
+                                        {vehicle.trip.alerts.map(
                                             (alert, index) => (
                                                 <motion.div
                                                     // biome-ignore lint/suspicious/noArrayIndexKey: We do not have a stable key
@@ -502,164 +492,145 @@ export function TrainPanel({
                         </tr>
                     </thead>
                     <tbody>
-                        {vehiclePosition.trip.stoptimes.map(
-                            (stoptime, index) => {
-                                const stopServices = getServicesForStop(index);
+                        {vehicle.trip.stoptimes.map((stoptime, index) => {
+                            const stopServices = getServicesForStop(index);
 
-                                // Find the processed stop data for this stop
-                                const processedStop =
-                                    vehiclePosition.processedStops?.find(
-                                        (ps) => ps.id === stoptime.stop.name,
-                                    );
+                            // Find the processed stop data for this stop
+                            const processedStop = vehicle.processedStops?.find(
+                                (ps) => ps.id === stoptime.stop.name,
+                            );
 
-                                // Determine if this stop has been passed
-                                const hasPassed = processedStop
-                                    ? vehiclePosition.trainPosition >
-                                      processedStop.distanceAlongRoute
-                                    : false;
+                            // Determine if this stop has been passed
+                            const hasPassed = processedStop
+                                ? vehicle.trainPosition >
+                                  processedStop.distanceAlongRoute
+                                : false;
 
-                                // Calculate if train is between this stop and the next
-                                const nextStop =
-                                    vehiclePosition.processedStops?.[index + 1];
-                                const isTrainBetweenStops =
-                                    processedStop &&
-                                    nextStop &&
-                                    vehiclePosition.trainPosition >=
-                                        processedStop.distanceAlongRoute &&
-                                    vehiclePosition.trainPosition <=
-                                        nextStop.distanceAlongRoute;
+                            // Calculate if train is between this stop and the next
+                            const nextStop =
+                                vehicle.processedStops?.[index + 1];
+                            const isTrainBetweenStops =
+                                processedStop &&
+                                nextStop &&
+                                vehicle.trainPosition >=
+                                    processedStop.distanceAlongRoute &&
+                                vehicle.trainPosition <=
+                                    nextStop.distanceAlongRoute;
 
-                                // Calculate train position percentage between this stop and next
-                                let trainPositionPercent = 0;
-                                if (
-                                    isTrainBetweenStops &&
-                                    processedStop &&
-                                    nextStop
-                                ) {
-                                    const segmentDistance =
-                                        nextStop.distanceAlongRoute -
-                                        processedStop.distanceAlongRoute;
-                                    const trainDistanceInSegment =
-                                        vehiclePosition.trainPosition -
-                                        processedStop.distanceAlongRoute;
-                                    trainPositionPercent = Math.min(
-                                        100,
-                                        Math.max(
-                                            0,
-                                            (trainDistanceInSegment /
-                                                segmentDistance) *
-                                                100,
-                                        ),
-                                    );
-                                }
+                            // Calculate train position percentage between this stop and next
+                            let trainPositionPercent = 0;
+                            if (
+                                isTrainBetweenStops &&
+                                processedStop &&
+                                nextStop
+                            ) {
+                                const segmentDistance =
+                                    nextStop.distanceAlongRoute -
+                                    processedStop.distanceAlongRoute;
+                                const trainDistanceInSegment =
+                                    vehicle.trainPosition -
+                                    processedStop.distanceAlongRoute;
+                                trainPositionPercent = Math.min(
+                                    100,
+                                    Math.max(
+                                        0,
+                                        (trainDistanceInSegment /
+                                            segmentDistance) *
+                                            100,
+                                    ),
+                                );
+                            }
 
-                                // Check if this is the last stop
-                                const isLastStop =
-                                    index ===
-                                    vehiclePosition.trip.stoptimes.length - 1;
+                            // Check if this is the last stop
+                            const isLastStop =
+                                index === vehicle.trip.stoptimes.length - 1;
 
-                                return (
-                                    <tr
-                                        key={stoptime.stop.name}
-                                        className="border-b border-gray-100 dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-accent/50 transition-colors duration-150"
+                            return (
+                                <tr
+                                    key={stoptime.stop.name}
+                                    className="border-b border-gray-100 dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-accent/50 transition-colors duration-150"
+                                >
+                                    {/* Progress Line Column */}
+                                    <td
+                                        className="w-8 border-r border-gray-100 dark:border-gray-700 bg-white dark:bg-card/95 p-0 relative"
+                                        style={{
+                                            width: "32px",
+                                            minWidth: "32px",
+                                        }}
                                     >
-                                        {/* Progress Line Column */}
-                                        <td
-                                            className="w-8 border-r border-gray-100 dark:border-gray-700 bg-white dark:bg-card/95 p-0 relative"
-                                            style={{
-                                                width: "32px",
-                                                minWidth: "32px",
-                                            }}
-                                        >
-                                            <div className="flex flex-col items-center h-full min-h-[60px] relative">
-                                                {/* Vertical line above stop */}
-                                                {index > 0 && (
-                                                    <div
-                                                        className={`absolute left-1/2 transform -translate-x-1/2 w-0.5 ${
-                                                            hasPassed
-                                                                ? "bg-blue-500 dark:bg-blue-400"
-                                                                : "bg-gray-300 dark:bg-gray-600"
-                                                        }`}
-                                                        style={{
-                                                            top: "0",
-                                                            height: "50%",
-                                                        }}
-                                                    />
-                                                )}
-
-                                                {/* Stop circle */}
+                                        <div className="flex flex-col items-center h-full min-h-[60px] relative">
+                                            {/* Vertical line above stop */}
+                                            {index > 0 && (
                                                 <div
-                                                    className={`relative z-10 w-3 h-3 rounded-full border-2 mt-6 ${
+                                                    className={`absolute left-1/2 transform -translate-x-1/2 w-0.5 ${
                                                         hasPassed
-                                                            ? "bg-blue-500 dark:bg-blue-400 border-blue-600 dark:border-blue-500"
-                                                            : "bg-white dark:bg-card border-gray-400 dark:border-muted-foreground"
+                                                            ? "bg-blue-500 dark:bg-blue-400"
+                                                            : "bg-gray-300 dark:bg-gray-600"
                                                     }`}
+                                                    style={{
+                                                        top: "0",
+                                                        height: "50%",
+                                                    }}
                                                 />
+                                            )}
 
-                                                {/* Train indicator between stops */}
-                                                {isTrainBetweenStops && (
-                                                    <div
-                                                        className="absolute z-20 left-1/2 transform -translate-x-1/2"
-                                                        style={{
-                                                            top: `calc(50% + ${trainPositionPercent}% * 0.4)`,
-                                                        }}
-                                                    >
-                                                        <div className="w-4 h-4 bg-green-500 dark:bg-green-400 rounded-full border-2 border-white dark:border-card shadow-lg flex items-center justify-center">
-                                                            <div className="w-1.5 h-1.5 bg-white dark:bg-card rounded-full"></div>
-                                                        </div>
+                                            {/* Stop circle */}
+                                            <div
+                                                className={`relative z-10 w-3 h-3 rounded-full border-2 mt-6 ${
+                                                    hasPassed
+                                                        ? "bg-blue-500 dark:bg-blue-400 border-blue-600 dark:border-blue-500"
+                                                        : "bg-white dark:bg-card border-gray-400 dark:border-muted-foreground"
+                                                }`}
+                                            />
+
+                                            {/* Train indicator between stops */}
+                                            {isTrainBetweenStops && (
+                                                <div
+                                                    className="absolute z-20 left-1/2 transform -translate-x-1/2"
+                                                    style={{
+                                                        top: `calc(50% + ${trainPositionPercent}% * 0.4)`,
+                                                    }}
+                                                >
+                                                    <div className="w-4 h-4 bg-green-500 dark:bg-green-400 rounded-full border-2 border-white dark:border-card shadow-lg flex items-center justify-center">
+                                                        <div className="w-1.5 h-1.5 bg-white dark:bg-card rounded-full"></div>
                                                     </div>
-                                                )}
+                                                </div>
+                                            )}
 
-                                                {/* Vertical line below stop (only if not last stop) */}
-                                                {!isLastStop && (
-                                                    <div
-                                                        className={`absolute left-1/2 transform -translate-x-1/2 w-0.5 ${
-                                                            hasPassed
-                                                                ? "bg-blue-500 dark:bg-blue-400"
-                                                                : "bg-gray-300 dark:bg-gray-600"
-                                                        }`}
-                                                        style={{
-                                                            top: "50%",
-                                                            height: "50%",
-                                                        }}
-                                                    />
-                                                )}
-                                            </div>
-                                        </td>
+                                            {/* Vertical line below stop (only if not last stop) */}
+                                            {!isLastStop && (
+                                                <div
+                                                    className={`absolute left-1/2 transform -translate-x-1/2 w-0.5 ${
+                                                        hasPassed
+                                                            ? "bg-blue-500 dark:bg-blue-400"
+                                                            : "bg-gray-300 dark:bg-gray-600"
+                                                    }`}
+                                                    style={{
+                                                        top: "50%",
+                                                        height: "50%",
+                                                    }}
+                                                />
+                                            )}
+                                        </div>
+                                    </td>
 
-                                        <td className="p-3 font-semibold text-gray-900 dark:text-card-foreground border-r border-gray-100 dark:border-gray-700 bg-white dark:bg-card/95">
-                                            <div className="flex items-center justify-between gap-1">
-                                                <div className="flex flex-col min-w-0 flex-1">
-                                                    <div className="flex items-center gap-1 min-w-0">
-                                                        {stoptime.stop
-                                                            .county ? (
-                                                            <TooltipPopover
-                                                                content={t(
-                                                                    "county_hover",
-                                                                    {
-                                                                        county: stoptime
-                                                                            .stop
-                                                                            .county,
-                                                                    },
-                                                                )}
-                                                            >
-                                                                <span
-                                                                    className={`cursor-help wrap-break-word ${
-                                                                        hasPassed
-                                                                            ? "text-gray-500 dark:text-muted-foreground"
-                                                                            : ""
-                                                                    }`}
-                                                                >
-                                                                    {
-                                                                        stoptime
-                                                                            .stop
-                                                                            .name
-                                                                    }
-                                                                </span>
-                                                            </TooltipPopover>
-                                                        ) : (
+                                    <td className="p-3 font-semibold text-gray-900 dark:text-card-foreground border-r border-gray-100 dark:border-gray-700 bg-white dark:bg-card/95">
+                                        <div className="flex items-center justify-between gap-1">
+                                            <div className="flex flex-col min-w-0 flex-1">
+                                                <div className="flex items-center gap-1 min-w-0">
+                                                    {stoptime.stop.county ? (
+                                                        <TooltipPopover
+                                                            content={t(
+                                                                "county_hover",
+                                                                {
+                                                                    county: stoptime
+                                                                        .stop
+                                                                        .county,
+                                                                },
+                                                            )}
+                                                        >
                                                             <span
-                                                                className={`wrap-break-word ${
+                                                                className={`cursor-help wrap-break-word ${
                                                                     hasPassed
                                                                         ? "text-gray-500 dark:text-muted-foreground"
                                                                         : ""
@@ -671,81 +642,87 @@ export function TrainPanel({
                                                                         .name
                                                                 }
                                                             </span>
-                                                        )}
-                                                    </div>
-                                                    {stopServices.length >
-                                                        0 && (
-                                                        <div className="flex flex-wrap gap-1 mt-1">
-                                                            {stopServices.map(
-                                                                (
-                                                                    service,
-                                                                    serviceIndex,
-                                                                ) => (
-                                                                    <ServiceBadge
-                                                                        key={
-                                                                            // biome-ignore lint/suspicious/noArrayIndexKey: We do not have a stable key
-                                                                            serviceIndex
-                                                                        }
-                                                                        service={
-                                                                            service
-                                                                        }
-                                                                        className={`text-black dark:text-card-foreground px-1 text-lg cursor-pointer bg-yellow-100 dark:bg-yellow-900/30 rounded border border-yellow-200 dark:border-yellow-200/50 ${mnr2007.className}`}
-                                                                    />
-                                                                ),
-                                                            )}
-                                                        </div>
+                                                        </TooltipPopover>
+                                                    ) : (
+                                                        <span
+                                                            className={`wrap-break-word ${
+                                                                hasPassed
+                                                                    ? "text-gray-500 dark:text-muted-foreground"
+                                                                    : ""
+                                                            }`}
+                                                        >
+                                                            {stoptime.stop.name}
+                                                        </span>
                                                     )}
                                                 </div>
-
-                                                {stoptime.stop.platformCode && (
-                                                    <TooltipPopover
-                                                        content={t(
-                                                            "timetable.platform",
+                                                {stopServices.length > 0 && (
+                                                    <div className="flex flex-wrap gap-1 mt-1">
+                                                        {stopServices.map(
+                                                            (
+                                                                service,
+                                                                serviceIndex,
+                                                            ) => (
+                                                                <ServiceBadge
+                                                                    key={
+                                                                        // biome-ignore lint/suspicious/noArrayIndexKey: We do not have a stable key
+                                                                        serviceIndex
+                                                                    }
+                                                                    service={
+                                                                        service
+                                                                    }
+                                                                    className={`text-black dark:text-card-foreground px-1 text-lg cursor-pointer bg-yellow-100 dark:bg-yellow-900/30 rounded border border-yellow-200 dark:border-yellow-200/50 ${mnr2007.className}`}
+                                                                />
+                                                            ),
                                                         )}
-                                                    >
-                                                        <div className="flex flex-row">
-                                                            <span className="inline-flex items-center justify-center min-w-[24px] h-5 px-1.5 bg-blue-600 dark:bg-blue-700 text-white text-xs font-semibold rounded border border-blue-700 dark:border-blue-800 shadow-sm">
-                                                                {
-                                                                    stoptime
-                                                                        .stop
-                                                                        .platformCode
-                                                                }
-                                                            </span>
-                                                        </div>
-                                                    </TooltipPopover>
+                                                    </div>
                                                 )}
                                             </div>
-                                        </td>
-                                        <td
-                                            className={`${
-                                                isMobile ? "p-2" : "p-3"
-                                            } border-r border-gray-100 dark:border-gray-700 bg-white dark:bg-card/95 whitespace-nowrap`}
-                                        >
-                                            <TimeDisplay
-                                                scheduled={
-                                                    stoptime.scheduledArrival
-                                                }
-                                                realtime={
-                                                    stoptime.realtimeArrival
-                                                }
-                                            />
-                                        </td>
-                                        <td
-                                            className={`${isMobile ? "p-2" : "p-3"} bg-white dark:bg-card/95 whitespace-nowrap`}
-                                        >
-                                            <TimeDisplay
-                                                scheduled={
-                                                    stoptime.scheduledDeparture
-                                                }
-                                                realtime={
-                                                    stoptime.realtimeDeparture
-                                                }
-                                            />
-                                        </td>
-                                    </tr>
-                                );
-                            },
-                        )}
+
+                                            {stoptime.stop.platformCode && (
+                                                <TooltipPopover
+                                                    content={t(
+                                                        "timetable.platform",
+                                                    )}
+                                                >
+                                                    <div className="flex flex-row">
+                                                        <span className="inline-flex items-center justify-center min-w-[24px] h-5 px-1.5 bg-blue-600 dark:bg-blue-700 text-white text-xs font-semibold rounded border border-blue-700 dark:border-blue-800 shadow-sm">
+                                                            {
+                                                                stoptime.stop
+                                                                    .platformCode
+                                                            }
+                                                        </span>
+                                                    </div>
+                                                </TooltipPopover>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td
+                                        className={`${
+                                            isMobile ? "p-2" : "p-3"
+                                        } border-r border-gray-100 dark:border-gray-700 bg-white dark:bg-card/95 whitespace-nowrap`}
+                                    >
+                                        <TimeDisplay
+                                            scheduled={
+                                                stoptime.scheduledArrival
+                                            }
+                                            realtime={stoptime.realtimeArrival}
+                                        />
+                                    </td>
+                                    <td
+                                        className={`${isMobile ? "p-2" : "p-3"} bg-white dark:bg-card/95 whitespace-nowrap`}
+                                    >
+                                        <TimeDisplay
+                                            scheduled={
+                                                stoptime.scheduledDeparture
+                                            }
+                                            realtime={
+                                                stoptime.realtimeDeparture
+                                            }
+                                        />
+                                    </td>
+                                </tr>
+                            );
+                        })}
                     </tbody>
                 </table>
             </div>

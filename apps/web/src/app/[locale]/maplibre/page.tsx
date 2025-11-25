@@ -7,13 +7,19 @@ import {
     Source,
 } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { useCallback, useMemo, useState } from "react";
-import { MapImage } from "@/components/map/MapImage";
+import {
+    getTrainDetailsOptions,
+    getTrainsOptions,
+} from "@megisholavonat/api-client/react-query";
 import { useQuery } from "@tanstack/react-query";
-import { getTrainsOptions } from "@megisholavonat/api-client/react-query";
-import { TrainPanel } from "@/components/information/TrainPanel";
 import { AnimatePresence, motion } from "motion/react";
+import { useCallback, useMemo, useState } from "react";
+import { TrainPanel } from "@/components/information/TrainPanel";
+import { MapImage } from "@/components/map/MapImage";
 import { Z_LAYERS } from "@/util/constants";
+import polyline from "@mapbox/polyline";
+import { TrainTooltip } from "@/components/map/TrainTooltip";
+import { TrainFeatureProperties } from "@megisholavonat/api-client";
 
 const SVG_TRIANGLE = `
 <svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
@@ -49,19 +55,44 @@ const desktopVariants = {
 };
 
 export default function MaplibrePage() {
-    const { data } = useQuery(getTrainsOptions());
+    const { data: trains } = useQuery(getTrainsOptions());
     const [cursor, setCursor] = useState<string | null>(null);
-    const [hoverInfo, setHoverInfo] = useState<any>(null);
+    const [hoverInfo, setHoverInfo] = useState<TrainFeatureProperties | null>(
+        null,
+    );
     const [selectedId, setSelectedId] = useState<string | null>(null);
 
-    console.log(data);
+    const { data: train } = useQuery({
+        ...getTrainDetailsOptions({ path: { vehicle_id: selectedId ?? "" } }),
+        enabled: !!selectedId,
+    });
+
+    const polylineGeojson = useMemo(() => {
+        if (!train?.trip.tripGeometry) return null;
+
+        return {
+            type: "Feature",
+            properties: {},
+            geometry: polyline.toGeoJSON(train.trip.tripGeometry.points),
+        };
+    }, [train]);
 
     const circleColor = useMemo(
         () => [
             "case",
-            ["==", ["get", "id"], selectedId || ""],
+            ["==", ["get", "vehicleId"], selectedId || ""],
             "#00bcd4", // Selected (Cyan)
-            ["step", ["get", "delay"], "#4caf50", 5, "#ff9800", 15, "#f44336"], // Default (Delay)
+            [
+                "step",
+                ["get", "delay"],
+                "#4AD94A",
+                5,
+                "#E4DE3A",
+                15,
+                "#DF9227",
+                60,
+                "#D9564A",
+            ], // Default (Delay)
         ],
         [selectedId],
     );
@@ -79,17 +110,16 @@ export default function MaplibrePage() {
     const onHover = useCallback(
         (e: MapMouseEvent) => {
             const feature = e.features?.[0];
-            if (feature && data) {
+            if (feature && trains) {
                 setCursor("pointer");
-                // Look up the full feature from the original data to get all properties
-                console.log(feature);
-                setHoverInfo(feature);
+
+                setHoverInfo(feature.properties as TrainFeatureProperties);
             } else {
                 setCursor(null);
                 setHoverInfo(null);
             }
         },
-        [data],
+        [trains],
     );
 
     const onClick = useCallback((e: MapMouseEvent) => {
@@ -105,7 +135,7 @@ export default function MaplibrePage() {
     return (
         <>
             <AnimatePresence>
-                {selectedId && (
+                {train && (
                     <motion.div
                         className="md:w-1/2 lg:w-1/3 rounded-l-3xl bg-white border-l border-gray-300 overflow-hidden flex-col fixed right-0 top-0 h-full shadow-2xl"
                         style={{ zIndex: Z_LAYERS.PANELS }}
@@ -115,7 +145,7 @@ export default function MaplibrePage() {
                         exit="exit"
                     >
                         <TrainPanel
-                            vehicleId={selectedId}
+                            vehicle={train}
                             onClose={() => setSelectedId(null)}
                             showCloseButton={true}
                         />
@@ -142,7 +172,7 @@ export default function MaplibrePage() {
                     id="vehicles-source"
                     type="geojson"
                     data={
-                        data ?? {
+                        trains ?? {
                             type: "FeatureCollection",
                             features: [],
                         }
@@ -175,19 +205,34 @@ export default function MaplibrePage() {
                         }}
                     />
                 </Source>
+                {polylineGeojson && (
+                    <Source
+                        id="polyline-source"
+                        type="geojson"
+                        data={polylineGeojson}
+                    >
+                        <Layer
+                            id="polyline-layer"
+                            type="line"
+                            paint={{ "line-color": "#0066ff", "line-width": 4 }}
+                            layout={{
+                                "line-cap": "round",
+                                "line-join": "round",
+                            }}
+                        />
+                    </Source>
+                )}
                 {hoverInfo && (
                     <Popup
-                        longitude={hoverInfo.geometry.coordinates[0]}
-                        latitude={hoverInfo.geometry.coordinates[1]}
+                        longitude={hoverInfo.lon}
+                        latitude={hoverInfo.lat}
                         offset={[0, -10]} // Offset to appear "above" the marker
                         closeButton={false}
                         closeOnClick={false}
                         anchor="bottom"
+                        className="vehicle-tooltip"
                     >
-                        <div className="text-black text-sm font-bold px-1">
-                            {hoverInfo.properties.vehicleId} (
-                            {hoverInfo.properties.delay} min)
-                        </div>
+                        <TrainTooltip featureProperties={hoverInfo} />
                     </Popup>
                 )}
             </MapLibreMap>

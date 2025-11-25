@@ -10,6 +10,7 @@
         "check": "biome check && tsc --noEmit"
     },
     "dependencies": {
+        "@mapbox/polyline": "^1.2.1",
         "@megisholavonat/api-client": "workspace:*",
         "@radix-ui/react-collapsible": "^1.1.12",
         "@radix-ui/react-dialog": "^1.1.15",
@@ -26,6 +27,7 @@
         "@tanstack/react-query-devtools": "^5.90.2",
         "@turf/turf": "^7.2.0",
         "@types/luxon": "^3.7.1",
+        "@types/mapbox__polyline": "^1.0.5",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "date-fns": "^4.1.0",
