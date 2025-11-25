@@ -29,11 +29,13 @@ import {
     isStale,
 } from "@/util/vehicle";
 import MAVRouteIcon from "../ui/MavRouteIcon";
+import { useQuery } from "@tanstack/react-query";
+import { getTrainDetailsOptions } from "@megisholavonat/api-client/react-query";
 
 type VehiclePosition = VehiclePositionWithDelay;
 
 interface TrainPanelProps {
-    vehiclePosition: VehiclePosition;
+    vehicleId: string;
     onClose?: () => void;
     showCloseButton?: boolean;
 }
@@ -170,16 +172,24 @@ function AlertBadge({
 }
 
 export function TrainPanel({
-    vehiclePosition,
+    vehicleId,
     onClose,
     showCloseButton = false,
 }: TrainPanelProps) {
-    const trainIsStale = isStale(vehiclePosition);
-    const [alertsOpen, setAlertsOpen] = useState(false);
-    const isMobile = useIsMobile();
+    const { data: vehiclePosition } = useQuery(
+        getTrainDetailsOptions({ path: { vehicle_id: vehicleId } }),
+    );
 
+    const [alertsOpen, setAlertsOpen] = useState(false);
     const t = useTranslations("TrainPanel");
+    const isMobile = useIsMobile();
     const locale = useLocale();
+
+    if (!vehiclePosition) {
+        return null;
+    }
+
+    const trainIsStale = isStale(vehiclePosition);
 
     const delayColor = getDelayColor(vehiclePosition.delay, true);
 
