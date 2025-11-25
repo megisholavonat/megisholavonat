@@ -17,7 +17,8 @@
         "sort_ascending": "növekvő",
         "sort_descending": "csökkenő",
         "no_search_results": "Nincs találat a keresésre",
-        "no_trains_available": "Nincs elérhető vonat"
+        "no_trains_available": "Nincs elérhető vonat",
+        "select_train": "Vonat kiválasztása"
     },
     "SettingsComponent": {
         "settings_button": "Beállítások",

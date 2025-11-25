@@ -46,6 +46,7 @@ export function StopMarkers({
                             isDarkTheme,
                         )}
                         zIndexOffset={Z_LAYERS.STOP_MARKERS}
+                        alt={stoptime.stop.name}
                     />
                 );
             })}
