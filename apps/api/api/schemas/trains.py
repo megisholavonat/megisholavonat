@@ -124,6 +124,8 @@ class TrainFeatureProperties(BaseModel):
     heading: float
     lastUpdated: str
     tripShortName: str
+    routeShortName: str
+    routeTextColor: str
     delay: int
 
 

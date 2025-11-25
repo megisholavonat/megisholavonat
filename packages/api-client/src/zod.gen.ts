@@ -100,6 +100,53 @@ export const zProcessedStop = z.object({
 });
 
 /**
+ * TrainFeatureProperties
+ *
+ * Properties for a train feature (lighter version)
+ */
+export const zTrainFeatureProperties = z.object({
+    vehicleId: z.string(),
+    lat: z.number(),
+    lon: z.number(),
+    heading: z.number(),
+    lastUpdated: z.string(),
+    tripShortName: z.string(),
+    routeShortName: z.string(),
+    routeTextColor: z.string(),
+    delay: z.int()
+});
+
+/**
+ * TrainFeature
+ *
+ * GeoJSON Feature for a train
+ */
+export const zTrainFeature = z.object({
+    type: z.optional(z.string()).default('Feature'),
+    geometry: z.record(z.string(), z.unknown()),
+    properties: zTrainFeatureProperties
+});
+
+/**
+ * TrainFeatureCollection
+ *
+ * GeoJSON FeatureCollection for trains
+ */
+export const zTrainFeatureCollection = z.object({
+    type: z.optional(z.string()).default('FeatureCollection'),
+    timestamp: z.string(),
+    noDataReceived: z.optional(z.union([
+        z.boolean(),
+        z.null()
+    ])),
+    dataAgeMinutes: z.optional(z.union([
+        z.int(),
+        z.null()
+    ])),
+    features: z.array(zTrainFeature)
+});
+
+/**
  * TripGeometry
  *
  * Trip geometry polyline
@@ -153,54 +200,6 @@ export const zVehicleProgress = z.object({
     lastStop: z.string(),
     nextStop: z.string(),
     progress: z.number()
-});
-
-/**
- * TrainFeatureProperties
- *
- * Properties for a train feature (lighter version)
- */
-export const zTrainFeatureProperties = z.object({
-    vehicleId: z.string(),
-    lat: z.number(),
-    lon: z.number(),
-    heading: z.number(),
-    speed: z.number(),
-    lastUpdated: z.int(),
-    tripShortName: z.string(),
-    delay: z.int(),
-    trainPosition: z.number(),
-    vehicleProgress: zVehicleProgress
-});
-
-/**
- * TrainFeature
- *
- * GeoJSON Feature for a train
- */
-export const zTrainFeature = z.object({
-    type: z.optional(z.string()).default('Feature'),
-    geometry: z.record(z.string(), z.unknown()),
-    properties: zTrainFeatureProperties
-});
-
-/**
- * TrainFeatureCollection
- *
- * GeoJSON FeatureCollection for trains
- */
-export const zTrainFeatureCollection = z.object({
-    type: z.optional(z.string()).default('FeatureCollection'),
-    timestamp: z.string(),
-    noDataReceived: z.optional(z.union([
-        z.boolean(),
-        z.null()
-    ])),
-    dataAgeMinutes: z.optional(z.union([
-        z.int(),
-        z.null()
-    ])),
-    features: z.array(zTrainFeature)
 });
 
 /**

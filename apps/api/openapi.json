@@ -476,28 +476,25 @@
             "type": "number",
             "title": "Heading"
           },
-          "speed": {
-            "type": "number",
-            "title": "Speed"
-          },
           "lastUpdated": {
-            "type": "integer",
+            "type": "string",
             "title": "Lastupdated"
           },
           "tripShortName": {
             "type": "string",
             "title": "Tripshortname"
           },
+          "routeShortName": {
+            "type": "string",
+            "title": "Routeshortname"
+          },
+          "routeTextColor": {
+            "type": "string",
+            "title": "Routetextcolor"
+          },
           "delay": {
             "type": "integer",
             "title": "Delay"
-          },
-          "trainPosition": {
-            "type": "number",
-            "title": "Trainposition"
-          },
-          "vehicleProgress": {
-            "$ref": "#/components/schemas/VehicleProgress"
           }
         },
         "type": "object",
@@ -506,12 +503,11 @@
           "lat",
           "lon",
           "heading",
-          "speed",
           "lastUpdated",
           "tripShortName",
-          "delay",
-          "trainPosition",
-          "vehicleProgress"
+          "routeShortName",
+          "routeTextColor",
+          "delay"
         ],
         "title": "TrainFeatureProperties",
         "description": "Properties for a train feature (lighter version)"

@@ -256,6 +256,12 @@ class TrainService:
                     "heading": loc.get("heading"),
                     "lastUpdated": str(loc.get("lastUpdated")),
                     "tripShortName": loc.get("trip", {}).get("tripShortName", ""),
+                    "routeShortName": loc.get("trip", {})
+                    .get("route", {})
+                    .get("shortName", ""),
+                    "routeTextColor": loc.get("trip", {})
+                    .get("route", {})
+                    .get("textColor", ""),
                     "delay": loc.get("delay"),
                 },
             }

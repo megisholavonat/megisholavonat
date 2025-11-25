@@ -244,26 +244,25 @@ export type TrainFeatureProperties = {
      */
     heading: number;
     /**
-     * Speed
-     */
-    speed: number;
-    /**
      * Lastupdated
      */
-    lastUpdated: number;
+    lastUpdated: string;
     /**
      * Tripshortname
      */
     tripShortName: string;
     /**
+     * Routeshortname
+     */
+    routeShortName: string;
+    /**
+     * Routetextcolor
+     */
+    routeTextColor: string;
+    /**
      * Delay
      */
     delay: number;
-    /**
-     * Trainposition
-     */
-    trainPosition: number;
-    vehicleProgress: VehicleProgress;
 };
 
 /**
