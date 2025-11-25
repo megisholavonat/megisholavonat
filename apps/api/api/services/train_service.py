@@ -197,7 +197,6 @@ class TrainService:
             raise e
 
         step_start = time.time()
-        # Deduplicate by vehicleId
         locations = self.dedupe_by_vehicle_id(locations_raw)
         logger.info(
             f"Deduplicated locations: {len(locations_raw)} -> {len(locations)} "
@@ -211,12 +210,10 @@ class TrainService:
             return
 
         step_start = time.time()
-        # Add county information to locations
         locations_with_counties = self.add_counties_to_locations(locations)
         logger.info(f"Added counties (Time: {(time.time() - step_start):.4f}s)")
 
         step_start = time.time()
-        # Process delays and filter stale data
         locations_processed = self.process_locations(locations_with_counties)
 
         logger.info(
@@ -225,18 +222,58 @@ class TrainService:
         )
 
         step_start = time.time()
-        # Update cache
-        cache_data = {
+
+        hash_key = add_key("train-positions-hash")
+
+        # Clear existing hash first to remove stale vehicles
+        await self.redis.delete(hash_key)
+
+        if locations_processed:
+            mapping = {
+                loc["vehicleId"]: json.dumps(loc)
+                for loc in locations_processed
+                if "vehicleId" in loc
+            }
+            if mapping:
+                await self.redis.hset(hash_key, mapping=mapping)
+                await self.redis.expire(hash_key, settings.CACHE_DURATION)
+
+        features = []
+        for loc in locations_processed:
+            if "vehicleId" not in loc:
+                continue
+
+            feature = {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [loc.get("lon", 0), loc.get("lat", 0)],
+                },
+                "properties": {
+                    "vehicleId": loc["vehicleId"],
+                    "lat": loc.get("lat"),
+                    "lon": loc.get("lon"),
+                    "heading": loc.get("heading"),
+                    "lastUpdated": str(loc.get("lastUpdated")),
+                    "tripShortName": loc.get("trip", {}).get("tripShortName", ""),
+                    "delay": loc.get("delay"),
+                },
+            }
+            features.append(feature)
+
+        feature_collection = {
+            "type": "FeatureCollection",
             "timestamp": now,
             "noDataReceived": False,
-            "locations": locations_processed,
+            "features": features,
         }
 
         await self.redis.set(
-            add_key("train-positions"),
-            json.dumps(cache_data),
+            add_key("train-positions-geojson"),
+            json.dumps(feature_collection),
             ex=settings.CACHE_DURATION,
         )
+
         logger.info(f"Cache updated (Time: {(time.time() - step_start):.4f}s)")
 
         logger.info(f"Total revalidation time: {(time.time() - start_time):.4f}s")

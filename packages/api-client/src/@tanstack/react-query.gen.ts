@@ -3,8 +3,8 @@
 import { queryOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { getPosthogKey, getRedisStatus, getTrains, type Options, root } from '../sdk.gen';
-import type { GetPosthogKeyData, GetRedisStatusData, GetTrainsData, RootData } from '../types.gen';
+import { getPosthogKey, getRedisStatus, getTrainDetails, getTrains, type Options, root } from '../sdk.gen';
+import type { GetPosthogKeyData, GetRedisStatusData, GetTrainDetailsData, GetTrainsData, RootData } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseURL' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -88,7 +88,7 @@ export const getTrainsQueryKey = (options?: Options<GetTrainsData>) => createQue
 /**
  * Get Trains
  *
- * Get trains information
+ * Get trains information as GeoJSON FeatureCollection
  */
 export const getTrainsOptions = (options?: Options<GetTrainsData>) => {
     return queryOptions({
@@ -102,6 +102,28 @@ export const getTrainsOptions = (options?: Options<GetTrainsData>) => {
             return data;
         },
         queryKey: getTrainsQueryKey(options)
+    });
+};
+
+export const getTrainDetailsQueryKey = (options: Options<GetTrainDetailsData>) => createQueryKey('getTrainDetails', options);
+
+/**
+ * Get Train Details
+ *
+ * Get specific train details
+ */
+export const getTrainDetailsOptions = (options: Options<GetTrainDetailsData>) => {
+    return queryOptions({
+        queryFn: async ({ queryKey, signal }) => {
+            const { data } = await getTrainDetails({
+                ...options,
+                ...queryKey[0],
+                signal,
+                throwOnError: true
+            });
+            return data;
+        },
+        queryKey: getTrainDetailsQueryKey(options)
     });
 };
 

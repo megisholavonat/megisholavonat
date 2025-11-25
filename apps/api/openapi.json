@@ -53,7 +53,7 @@
           "trains"
         ],
         "summary": "Get Trains",
-        "description": "Get trains information",
+        "description": "Get trains information as GeoJSON FeatureCollection",
         "operationId": "getTrains",
         "responses": {
           "200": {
@@ -61,7 +61,50 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/APIResponse"
+                  "$ref": "#/components/schemas/TrainFeatureCollection"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/trains/{vehicle_id}": {
+      "get": {
+        "tags": [
+          "trains"
+        ],
+        "summary": "Get Train Details",
+        "description": "Get specific train details",
+        "operationId": "getTrainDetails",
+        "parameters": [
+          {
+            "name": "vehicle_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Vehicle Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehiclePositionWithDelay"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -94,62 +137,6 @@
   },
   "components": {
     "schemas": {
-      "APIResponse": {
-        "properties": {
-          "timestamp": {
-            "type": "string",
-            "title": "Timestamp"
-          },
-          "noDataReceived": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Nodatareceived",
-            "default": false
-          },
-          "dataAgeMinutes": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Dataageminutes"
-          },
-          "locations": {
-            "items": {
-              "$ref": "#/components/schemas/VehiclePositionWithDelay"
-            },
-            "type": "array",
-            "title": "Locations"
-          },
-          "error": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Error"
-          }
-        },
-        "type": "object",
-        "required": [
-          "timestamp",
-          "locations"
-        ],
-        "title": "APIResponse",
-        "description": "Main API response"
-      },
       "Alert": {
         "properties": {
           "alertDescriptionText": {
@@ -184,6 +171,19 @@
         ],
         "title": "Alert",
         "description": "Alert information"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
       },
       "InfoService": {
         "properties": {
@@ -384,6 +384,138 @@
         "title": "StopWithCounty",
         "description": "Stop information with county data"
       },
+      "TrainFeature": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "title": "Type",
+            "default": "Feature"
+          },
+          "geometry": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Geometry"
+          },
+          "properties": {
+            "$ref": "#/components/schemas/TrainFeatureProperties"
+          }
+        },
+        "type": "object",
+        "required": [
+          "geometry",
+          "properties"
+        ],
+        "title": "TrainFeature",
+        "description": "GeoJSON Feature for a train"
+      },
+      "TrainFeatureCollection": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "title": "Type",
+            "default": "FeatureCollection"
+          },
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp"
+          },
+          "noDataReceived": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nodatareceived",
+            "default": false
+          },
+          "dataAgeMinutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dataageminutes"
+          },
+          "features": {
+            "items": {
+              "$ref": "#/components/schemas/TrainFeature"
+            },
+            "type": "array",
+            "title": "Features"
+          }
+        },
+        "type": "object",
+        "required": [
+          "timestamp",
+          "features"
+        ],
+        "title": "TrainFeatureCollection",
+        "description": "GeoJSON FeatureCollection for trains"
+      },
+      "TrainFeatureProperties": {
+        "properties": {
+          "vehicleId": {
+            "type": "string",
+            "title": "Vehicleid"
+          },
+          "lat": {
+            "type": "number",
+            "title": "Lat"
+          },
+          "lon": {
+            "type": "number",
+            "title": "Lon"
+          },
+          "heading": {
+            "type": "number",
+            "title": "Heading"
+          },
+          "speed": {
+            "type": "number",
+            "title": "Speed"
+          },
+          "lastUpdated": {
+            "type": "integer",
+            "title": "Lastupdated"
+          },
+          "tripShortName": {
+            "type": "string",
+            "title": "Tripshortname"
+          },
+          "delay": {
+            "type": "integer",
+            "title": "Delay"
+          },
+          "trainPosition": {
+            "type": "number",
+            "title": "Trainposition"
+          },
+          "vehicleProgress": {
+            "$ref": "#/components/schemas/VehicleProgress"
+          }
+        },
+        "type": "object",
+        "required": [
+          "vehicleId",
+          "lat",
+          "lon",
+          "heading",
+          "speed",
+          "lastUpdated",
+          "tripShortName",
+          "delay",
+          "trainPosition",
+          "vehicleProgress"
+        ],
+        "title": "TrainFeatureProperties",
+        "description": "Properties for a train feature (lighter version)"
+      },
       "Trip": {
         "properties": {
           "serviceDate": {
@@ -458,6 +590,39 @@
         ],
         "title": "TripGeometry",
         "description": "Trip geometry polyline"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
       },
       "VehiclePositionWithDelay": {
         "properties": {

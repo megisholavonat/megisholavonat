@@ -1,3 +1,5 @@
+from typing import Any
+
 from pydantic import BaseModel
 
 
@@ -111,3 +113,33 @@ class APIResponse(BaseModel):
     dataAgeMinutes: int | None = None
     locations: list[VehiclePositionWithDelay]
     error: str | None = None
+
+
+class TrainFeatureProperties(BaseModel):
+    """Properties for a train feature (lighter version)"""
+
+    vehicleId: str
+    lat: float
+    lon: float
+    heading: float
+    lastUpdated: str
+    tripShortName: str
+    delay: int
+
+
+class TrainFeature(BaseModel):
+    """GeoJSON Feature for a train"""
+
+    type: str = "Feature"
+    geometry: dict[str, Any]
+    properties: TrainFeatureProperties
+
+
+class TrainFeatureCollection(BaseModel):
+    """GeoJSON FeatureCollection for trains"""
+
+    type: str = "FeatureCollection"
+    timestamp: str
+    noDataReceived: bool | None = False
+    dataAgeMinutes: int | None = None
+    features: list[TrainFeature]
