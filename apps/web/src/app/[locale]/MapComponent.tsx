@@ -58,7 +58,6 @@ export default function MapComponent({
 }) {
     const [selectedVehicleId, setSelectedVehicleId] =
         useQueryState("vehicleId");
-    const [isPanelOpen, setIsPanelOpen] = useState(false);
     const [showNoDataDialog, setShowNoDataDialog] = useState(false);
 
     // Use settings hook
@@ -75,19 +74,17 @@ export default function MapComponent({
     useEffect(() => {
         if (searchSelection) {
             setSelectedVehicleId(searchSelection.vehicleId);
-            setIsPanelOpen(true);
         }
     }, [searchSelection, setSelectedVehicleId]);
 
     const handleClosePanel = useCallback(() => {
-        setIsPanelOpen(false);
         setSelectedVehicleId(null);
     }, [setSelectedVehicleId]);
 
     // Handle escape key to close panel
     useEffect(() => {
         const handleEscapeKey = (event: KeyboardEvent) => {
-            if (event.key === "Escape" && isPanelOpen) {
+            if (event.key === "Escape" && selectedVehicleId) {
                 handleClosePanel();
             }
         };
@@ -96,7 +93,7 @@ export default function MapComponent({
         return () => {
             document.removeEventListener("keydown", handleEscapeKey);
         };
-    }, [isPanelOpen, handleClosePanel]);
+    }, [selectedVehicleId, handleClosePanel]);
 
     // Memoize selected train to prevent unnecessary recalculations
     const selectedTrain = useMemo(
@@ -149,12 +146,11 @@ export default function MapComponent({
         onClearSearchSelection?.();
 
         if (selectedVehicleId === vehicleId) {
-            // Same train clicked - toggle panel
-            setIsPanelOpen(!isPanelOpen);
+            // Same train clicked - toggle selection
+            setSelectedVehicleId(null);
         } else {
             // Different train clicked - select new train and open panel
             setSelectedVehicleId(vehicleId);
-            setIsPanelOpen(true);
         }
     };
 
@@ -202,14 +198,14 @@ export default function MapComponent({
                     <MapController
                         selectedTrain={selectedTrain ?? undefined}
                         searchSelection={searchSelection ?? undefined}
-                        isPanelOpen={isPanelOpen}
+                        isPanelOpen={!!selectedVehicleId}
                     />
                 </MapContainer>
             </div>
 
             {/* Floating Delay Legend */}
             <AnimatePresence>
-                {!isPanelOpen && (
+                {!selectedVehicleId && (
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -232,7 +228,7 @@ export default function MapComponent({
             {/* Stops Table Panel - Desktop (Right Side) */}
             <div className="hidden md:block overflow-hidden">
                 <AnimatePresence>
-                    {isPanelOpen && selectedTrain && (
+                    {selectedTrain && (
                         <motion.div
                             className="md:w-1/2 lg:w-1/3 rounded-l-3xl bg-white border-l border-gray-300 overflow-hidden flex-col fixed right-0 top-0 h-full shadow-2xl"
                             style={{ zIndex: Z_LAYERS.PANELS }}
@@ -256,7 +252,10 @@ export default function MapComponent({
                 className="md:hidden fixed bottom-0 left-0 right-0"
                 style={{ zIndex: Z_LAYERS.PANELS }}
             >
-                <DragCloseDrawer open={isPanelOpen} setOpen={handleClosePanel}>
+                <DragCloseDrawer
+                    open={!!selectedVehicleId}
+                    setOpen={handleClosePanel}
+                >
                     {selectedTrain && (
                         <TrainPanel
                             vehiclePosition={selectedTrain}
