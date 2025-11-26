@@ -1,1 +1,1 @@
-# Mégis hol a vonat?
+# <img width="28" height="28" alt="favicon" src="https://github.com/user-attachments/assets/a195e843-0a36-4990-8280-0b3e426f3b08" /> Mégis hol a vonat? Web

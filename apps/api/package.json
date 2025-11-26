@@ -3,7 +3,7 @@
     "version": "0.1.0",
     "private": true,
     "scripts": {
-        "dev": "concurrently -n FastAPI,TaskiqWorker,TaskiqScheduler -c red,blue,green \"pnpm dev:fastapi\" \"pnpm dev:taskiq:worker\" \"pnpm dev:taskiq:scheduler\"",
+        "dev": "cross-env PYTHONUTF8=1 concurrently -n FastAPI,TaskiqWorker,TaskiqScheduler -c red,blue,green \"pnpm dev:fastapi\" \"pnpm dev:taskiq:worker\" \"pnpm dev:taskiq:scheduler\"",
         "dev:fastapi": "uv run fastapi dev -e api.main:create_app --host 0.0.0.0",
         "dev:taskiq:worker": "uv run taskiq worker api.core.taskiq_broker:broker --reload --fs-discover --tasks-pattern \"api/tasks/**/*.py\"",
         "dev:taskiq:scheduler": "uv run taskiq scheduler api.core.taskiq_broker:scheduler --fs-discover --tasks-pattern \"api/tasks/**/*.py\"",
@@ -14,6 +14,7 @@
     },
     "packageManager": "pnpm@10.18.3",
     "devDependencies": {
-        "concurrently": "^9.2.1"
+        "concurrently": "^9.2.1",
+        "cross-env": "^10.1.0"
     }
 }
