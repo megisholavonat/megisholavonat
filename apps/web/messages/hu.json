@@ -101,9 +101,7 @@
         "zoom_out": "Kicsinyítés"
     },
     "UserLocation": {
-        "center_map": "Középre állítás",
-        "get_location": "Helyzet lekérése",
-        "location_error": "Helyzet nem elérhető"
+        "locate": "Jelenlegi helyzet"
     },
     "LanguageSwitcher": {
         "switch_to": "Váltás {language} nyelvre"

@@ -101,6 +101,9 @@ importers:
       leaflet:
         specifier: ^1.9.4
         version: 1.9.4
+      leaflet.locatecontrol:
+        specifier: ^0.85.1
+        version: 0.85.1
       lucide-react:
         specifier: ^0.523.0
         version: 0.523.0(react@19.2.0)
@@ -2058,6 +2061,9 @@ packages:
   jsts@2.7.1:
     resolution: {integrity: sha512-x2wSZHEBK20CY+Wy+BPE7MrFQHW6sIsdaGUMEqmGAio+3gFzQaBYPwLRonUfQf9Ak8pBieqj9tUofX1+WtAEIg==}
     engines: {node: '>= 12'}
+
+  leaflet.locatecontrol@0.85.1:
+    resolution: {integrity: sha512-aB2qrwZO7Vs4EbWja6pyGy6Y1Mr2yeOqH3PN+Ocnjb4pgpiwYsX1AOI0mppVYzUTO2zwjafxVTOffiwEE32udA==}
 
   leaflet@1.9.4:
     resolution: {integrity: sha512-nxS1ynzJOmOlHp+iL3FyWqK89GtNL8U8rvlMOsQdTTssxZwCXh8N2NB3GDQOL+YR3XnWyZAxwQixURb+FA74PA==}
@@ -5304,6 +5310,8 @@ snapshots:
       argparse: 2.0.1
 
   jsts@2.7.1: {}
+
+  leaflet.locatecontrol@0.85.1: {}
 
   leaflet@1.9.4: {}
 

@@ -101,9 +101,7 @@
         "zoom_out": "Zoom out"
     },
     "UserLocation": {
-        "center_map": "Center map",
-        "get_location": "Get location",
-        "location_error": "Location unavailable"
+        "locate": "Current location"
     },
     "LanguageSwitcher": {
         "switch_to": "Switch to {language}"
