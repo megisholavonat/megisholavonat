@@ -56,7 +56,7 @@ This repository is a pnpm monorepo with:
 
    ```
    GRAPHQL_ENDPOINT=
-   REDIS_HOST=
+   REDIS_HOST= (optional if running Redis from the provided compose file)
    DEBUG=true (optional)
    ```
 
