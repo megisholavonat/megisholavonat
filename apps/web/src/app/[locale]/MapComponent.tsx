@@ -18,6 +18,8 @@ import { useMapSettings } from "@/hooks/useMapSettings";
 import { Z_LAYERS } from "@/util/constants";
 import { vehicleType } from "@/util/vehicle";
 import type { SearchSelection } from "./page";
+import "leaflet-doubletapdrag";
+import "leaflet-doubletapdragzoom";
 
 // Animation variants for desktop (slide from right)
 const desktopVariants = {
@@ -163,6 +165,9 @@ export default function MapComponent({
                     zoom={8}
                     scrollWheelZoom={true}
                     zoomControl={false}
+                    // @ts-expect-error - Plugin options not in Leaflet types
+                    doubleTapDragZoom="center"
+                    doubleTapDragZoomOptions={{ reverse: true }}
                     style={{ height: "100%", width: "100%" }}
                     className="bg-background"
                 >
