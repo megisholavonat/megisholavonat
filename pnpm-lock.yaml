@@ -101,6 +101,12 @@ importers:
       leaflet:
         specifier: ^1.9.4
         version: 1.9.4
+      leaflet-doubletapdrag:
+        specifier: ^0.1.2
+        version: 0.1.2(leaflet@1.9.4)
+      leaflet-doubletapdragzoom:
+        specifier: ^0.3.2
+        version: 0.3.2(leaflet@1.9.4)
       lucide-react:
         specifier: ^0.523.0
         version: 0.523.0(react@19.2.0)
@@ -2058,6 +2064,16 @@ packages:
   jsts@2.7.1:
     resolution: {integrity: sha512-x2wSZHEBK20CY+Wy+BPE7MrFQHW6sIsdaGUMEqmGAio+3gFzQaBYPwLRonUfQf9Ak8pBieqj9tUofX1+WtAEIg==}
     engines: {node: '>= 12'}
+
+  leaflet-doubletapdrag@0.1.2:
+    resolution: {integrity: sha512-YE7fyTrAAMxy+tX4VxqM14TuSvLPaiXzmYGCQnp3D1phmCg7AEe6KZqgQa/gJ8w5oocG1RTSNMQDlMIDAwmCWA==}
+    peerDependencies:
+      leaflet: ^1.0.0
+
+  leaflet-doubletapdragzoom@0.3.2:
+    resolution: {integrity: sha512-zwW9sWR2V8q0y5xFYvK8guKpHHZ9XDYAvVsyL78QmaCLkAeMpZwgV/yAMG9rRleF+k9zjVWQp/C5tu2OhkGnFw==}
+    peerDependencies:
+      leaflet: ^1.0.0
 
   leaflet@1.9.4:
     resolution: {integrity: sha512-nxS1ynzJOmOlHp+iL3FyWqK89GtNL8U8rvlMOsQdTTssxZwCXh8N2NB3GDQOL+YR3XnWyZAxwQixURb+FA74PA==}
@@ -5304,6 +5320,15 @@ snapshots:
       argparse: 2.0.1
 
   jsts@2.7.1: {}
+
+  leaflet-doubletapdrag@0.1.2(leaflet@1.9.4):
+    dependencies:
+      leaflet: 1.9.4
+
+  leaflet-doubletapdragzoom@0.3.2(leaflet@1.9.4):
+    dependencies:
+      leaflet: 1.9.4
+      leaflet-doubletapdrag: 0.1.2(leaflet@1.9.4)
 
   leaflet@1.9.4: {}
 
