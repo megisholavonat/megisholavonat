@@ -18,6 +18,7 @@ import { useMapSettings } from "@/hooks/useMapSettings";
 import { Z_LAYERS } from "@/util/constants";
 import { vehicleType } from "@/util/vehicle";
 import type { SearchSelection } from "./page";
+import { useTheme } from "next-themes";
 
 // Animation variants for desktop (slide from right)
 const desktopVariants = {
@@ -69,6 +70,8 @@ export default function MapComponent({
         baseMap,
         showRailwayOverlay,
     } = useMapSettings();
+
+    const { resolvedTheme } = useTheme()
 
     // handle updating search selection
     useEffect(() => {
@@ -169,6 +172,7 @@ export default function MapComponent({
                     <MapLayers
                         baseMap={baseMap}
                         showRailwayOverlay={showRailwayOverlay}
+                        theme={resolvedTheme}
                     />
 
                     <TrainPolyline selectedTrain={selectedTrain ?? null} />
