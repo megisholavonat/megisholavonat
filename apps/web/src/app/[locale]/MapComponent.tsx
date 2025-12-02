@@ -161,6 +161,7 @@ export default function MapComponent({
                 <MapContainer
                     center={[47.16, 19.5]}
                     zoom={8}
+                    minZoom={7}
                     scrollWheelZoom={true}
                     zoomControl={false}
                     style={{ height: "100%", width: "100%" }}

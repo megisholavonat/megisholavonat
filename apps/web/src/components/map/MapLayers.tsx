@@ -1,9 +1,10 @@
 "use client";
 
 import { useTheme } from "next-themes";
-import { useEffect } from "react";
-import { TileLayer, useMap } from "react-leaflet";
+import { useEffect, useRef } from "react";
+import { TileLayer, useMapEvents } from "react-leaflet";
 import { BASE_MAPS, type BaseMapKey, OVERLAYS } from "@/util/mapConfigs";
+import { LatLng, LatLngBounds } from "leaflet";
 
 interface MapLayersProps {
     baseMap: BaseMapKey;
@@ -13,12 +14,27 @@ interface MapLayersProps {
 export function MapLayers({ baseMap, showRailwayOverlay }: MapLayersProps) {
     const { resolvedTheme } = useTheme();
     const isDark = resolvedTheme === "dark";
-    const map = useMap();
+    
+    // bounce back to center when the view is outside of the bounds
+    const viewsMaxBounds = new LatLngBounds(
+        [50.6, 14.1],
+        [43.8, 25.0],
+    );
+    const center = useRef<LatLng>(null);
+    const map = useMapEvents({
+        moveend: () => {
+            if (!map.getBounds().intersects(viewsMaxBounds) && center.current) {
+                map.panTo(center.current);
+            }
+        },
+    });
 
     const mapConfig = BASE_MAPS[baseMap];
 
     // Martin said we have to make our own dark mode map
     useEffect(() => {
+        center.current = map.getCenter();
+
         const tilePane = map.getPane("tilePane");
 
         if (tilePane) {
