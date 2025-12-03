@@ -16,9 +16,9 @@ export function MapLayers({ baseMap, showRailwayOverlay }: MapLayersProps) {
     const isDark = resolvedTheme === "dark";
     
     // bounce back to center when the view is outside of the bounds
-    const viewsMaxBounds = new LatLngBounds(
-        [50.6, 14.1],
-        [43.8, 25.0],
+    const viewsMaxBounds = new LatLngBounds(  
+        [48.5833, 16.0833],
+        [45.8000, 22.9667],
     );
     const center = useRef<LatLng>(null);
     const map = useMapEvents({
