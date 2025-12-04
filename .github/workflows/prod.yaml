@@ -107,8 +107,8 @@ jobs:
         run: |
           docker buildx imagetools create -t \
             ghcr.io/${{ steps.vars.outputs.owner_lc }}/mhav-${{ matrix.name }}:${{ github.sha }} \
-            ghcr.io/${{ steps.vars.outputs.owner_lc }}/mhav-${{ matrix.name }}:${{ github.sha }}-linux-amd64 \
-            ghcr.io/${{ steps.vars.outputs.owner_lc }}/mhav-${{ matrix.name }}:${{ github.sha }}-linux-arm64
+            ghcr.io/${{ steps.vars.outputs.owner_lc }}/mhav-${{ matrix.name }}:${{ github.sha }}-amd64 \
+            ghcr.io/${{ steps.vars.outputs.owner_lc }}/mhav-${{ matrix.name }}:${{ github.sha }}-arm64
 
   update-gitops:
     name: Update GitOps repository
