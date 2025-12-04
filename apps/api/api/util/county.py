@@ -47,7 +47,7 @@ class CountyIndex:
         if self._loaded:
             return
 
-        file_path = "data/counties.geojson"
+        file_path = "api/data/counties.geojson"
         if not os.path.exists(file_path):
             logger.warning(f"{file_path} not found")
             self._loaded = True

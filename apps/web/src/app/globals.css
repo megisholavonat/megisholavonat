@@ -163,3 +163,8 @@
 .custom-train-tooltip::before {
     border-top-color: white !important;
 }
+
+/* Hide the default leaflet.locatecontrol button (we use a custom one) */
+.leaflet-control-locate {
+    display: none !important;
+}
