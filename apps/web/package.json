@@ -34,6 +34,7 @@
         "graphql-request": "^7.3.1",
         "html-react-parser": "^5.2.7",
         "leaflet": "^1.9.4",
+        "leaflet.locatecontrol": "^0.85.1",
         "lucide-react": "^0.523.0",
         "luxon": "^3.7.2",
         "motion": "^12.23.24",
