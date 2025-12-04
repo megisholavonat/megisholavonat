@@ -1,3 +1,26 @@
+### 04/12/2025
+
+#### Added
+
+- Double-tap zoom with up-down movement
+
+#### Fixed
+
+- Live location
+
+### 24/11/2025
+
+#### Added
+
+- Vehicle selection is retained after page refresh
+
+### 22/11/2025
+
+#### Added
+
+- Data processing optimization
+- [Open source](https://github.com/megisholavonat/megisholavonat)
+
 ### 17/11/2025
 
 #### Added
