@@ -34,6 +34,7 @@ This repository is a pnpm monorepo with:
 - [Python 3.13](https://www.python.org/)
 - [uv](https://docs.astral.sh/uv/)
 - Docker (or native Redis)
+- [biome](https://biomejs.dev/) VS Code extension
 
 ### Step-by-step setup
 
