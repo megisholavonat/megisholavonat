@@ -15,16 +15,28 @@ concurrency:
 
 jobs:
   build:
-    name: Build images
-    runs-on: ubuntu-latest
+    name: Build ${{ matrix.name }} (${{ matrix.platform }})
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: true
       matrix:
         include:
           - name: web
             file: apps/web/Dockerfile
+            platform: linux/amd64
+            runner: ubuntu-latest
+          - name: web
+            file: apps/web/Dockerfile
+            platform: linux/arm64
+            runner: ubuntu-24.04-arm
           - name: api
             file: apps/api/Dockerfile
+            platform: linux/amd64
+            runner: ubuntu-latest
+          - name: api
+            file: apps/api/Dockerfile
+            platform: linux/arm64
+            runner: ubuntu-24.04-arm
 
     steps:
       - name: Checkout repository
@@ -33,18 +45,38 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build ${{ matrix.name }} (cache only)
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Derive variables
+        id: vars
+        shell: bash
+        run: |
+          echo "owner_lc=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+          platform="${{ matrix.platform }}"
+          echo "platform_tag=${platform//\//-}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push ${{ matrix.name }} (${{ matrix.platform }})
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ${{ matrix.file }}
-          push: false
-          platforms: linux/amd64,linux/arm64
-          cache-from: type=gha,scope=${{ matrix.name }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
+          push: true
+          platforms: ${{ matrix.platform }}
+          tags: |
+            ghcr.io/${{ steps.vars.outputs.owner_lc }}/mhav-${{ matrix.name }}:${{ github.sha }}-${{ steps.vars.outputs.platform_tag }}
+          labels: |
+            org.opencontainers.image.source=${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.name }}-${{ steps.vars.outputs.platform_tag }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}-${{ steps.vars.outputs.platform_tag }}
 
-  push:
-    name: Push images
+  manifest:
+    name: Create multi-arch manifest (${{ matrix.name }})
     needs: build
     runs-on: ubuntu-latest
     strategy:
@@ -52,14 +84,9 @@ jobs:
       matrix:
         include:
           - name: web
-            file: apps/web/Dockerfile
           - name: api
-            file: apps/api/Dockerfile
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -76,23 +103,16 @@ jobs:
         run: |
           echo "owner_lc=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
 
-      - name: Build and push ${{ matrix.name }}
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ${{ matrix.file }}
-          push: true
-          platforms: linux/amd64,linux/arm64
-          tags: |
-            ghcr.io/${{ steps.vars.outputs.owner_lc }}/mhav-${{ matrix.name }}:${{ github.sha }}
-          labels: |
-            org.opencontainers.image.source=${{ github.repository }}
-            org.opencontainers.image.revision=${{ github.sha }}
-          cache-from: type=gha,scope=${{ matrix.name }}
+      - name: Create and push multi-arch manifest for ${{ matrix.name }}
+        run: |
+          docker buildx imagetools create -t \
+            ghcr.io/${{ steps.vars.outputs.owner_lc }}/mhav-${{ matrix.name }}:${{ github.sha }} \
+            ghcr.io/${{ steps.vars.outputs.owner_lc }}/mhav-${{ matrix.name }}:${{ github.sha }}-amd64 \
+            ghcr.io/${{ steps.vars.outputs.owner_lc }}/mhav-${{ matrix.name }}:${{ github.sha }}-arm64
 
   update-gitops:
     name: Update GitOps repository
-    needs: push
+    needs: manifest
     runs-on: ubuntu-latest
     steps:
       - name: Checkout GitOps repository
