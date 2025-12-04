@@ -1,10 +1,10 @@
 "use client";
 
+import { type LatLng, LatLngBounds } from "leaflet";
 import { useTheme } from "next-themes";
 import { useEffect, useRef } from "react";
 import { TileLayer, useMapEvents } from "react-leaflet";
 import { BASE_MAPS, type BaseMapKey, OVERLAYS } from "@/util/mapConfigs";
-import { LatLng, LatLngBounds } from "leaflet";
 
 interface MapLayersProps {
     baseMap: BaseMapKey;
@@ -14,11 +14,11 @@ interface MapLayersProps {
 export function MapLayers({ baseMap, showRailwayOverlay }: MapLayersProps) {
     const { resolvedTheme } = useTheme();
     const isDark = resolvedTheme === "dark";
-    
+
     // bounce back to center when the view is outside of the bounds
-    const viewsMaxBounds = new LatLngBounds(  
+    const viewsMaxBounds = new LatLngBounds(
         [48.5833, 16.0833],
-        [45.8000, 22.9667],
+        [45.8, 22.9667],
     );
     const center = useRef<LatLng>(null);
     const map = useMapEvents({
