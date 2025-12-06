@@ -163,6 +163,7 @@ export default function MapComponent({
                 <MapContainer
                     center={[47.16, 19.5]}
                     zoom={8}
+                    minZoom={7}
                     scrollWheelZoom={true}
                     zoomControl={false}
                     // @ts-expect-error - Plugin options not in Leaflet types

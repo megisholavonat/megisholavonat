@@ -48,7 +48,7 @@
         "hev_description": "HÉV járatok megjelenítése",
         "idk_where_the_trains_are": "Felhívjuk kedves felhasználóink figyelmét, hogy azokat a járműveket, amelyeket maga az EMMA sem jelöl, mi sem tudjuk megjeleníteni. Ha mégis eltérést tapasztalnak, kérjük, jelezzék nekünk emailben.",
         "changelog_not_available": "A változások nem elérhetők",
-        "hobby_project_notice": "Ez egy hobbi projekt, amelyen szabadidőnkben dolgozunk. Kérjük, ne várjanak azonnali javításokat vagy frissítéseket, ha valami elromlik.",
+        "open_source_notice": "Ez az alkalmazás nyílt forráskódú. Javaslatokat, hibajelentéseket, valamint nagyra értékelt fejlesztési segítséget a GitHub oldalunkon lehetséges leadni.",
         "map_settings_title": "Térkép beállítások",
         "base_map_label": "Alaptérkép",
         "railway_overlay_label": "Vasútvonalak megjelenítése"

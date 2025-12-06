@@ -6,7 +6,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FaCog } from "react-icons/fa";
-import { FaInfo, FaTriangleExclamation } from "react-icons/fa6";
+import { FaInfo } from "react-icons/fa6";
 import ChangelogComponent from "@/components/settings/ChangelogComponent";
 import ComputerBadge from "@/components/settings/ComputerBadge";
 import { InfoBox } from "@/components/settings/InfoBox";
@@ -20,6 +20,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
+import Footer from "@/components/ui/Footer";
 import NewFeature from "@/components/ui/NewFeature";
 import {
     Select,
@@ -320,14 +321,14 @@ export default function SettingsComponent() {
                                 value="settings"
                                 className="mt-6 space-y-6"
                             >
-                                <InfoBox
+                                {/* <InfoBox
                                     variant="warning"
                                     icon={FaTriangleExclamation}
                                 >
                                     <div className="font-bold tracking-wide">
                                         {t("idk_where_the_trains_are")}
                                     </div>
-                                </InfoBox>
+                                </InfoBox> */}
                                 <DialogHeader>
                                     <DialogTitle className="font-bold">
                                         {t("dialog_title")}
@@ -738,7 +739,7 @@ export default function SettingsComponent() {
                             >
                                 <InfoBox variant="info" icon={FaInfo}>
                                     <div className="font-bold tracking-wide">
-                                        {t("hobby_project_notice")}
+                                        {t("open_source_notice")}
                                     </div>
                                 </InfoBox>
                                 <ChangelogComponent
@@ -746,6 +747,9 @@ export default function SettingsComponent() {
                                 />
                             </TabsContent>
                         </Tabs>
+
+                        {/* Footer */}
+                        <Footer />
                     </DialogContent>
                 </DialogPortal>
             </Dialog>

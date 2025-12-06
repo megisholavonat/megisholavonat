@@ -48,7 +48,7 @@
         "hev_description": "Show suburban railway (HÉV) on the map",
         "idk_where_the_trains_are": "Dear users! We cannot display those vehicles that are not marked by EMMA itself. If you do notice any discrepancies, please let us know by email.",
         "changelog_not_available": "Changelog not available",
-        "hobby_project_notice": "This is a hobby project that we work on in our free time. Please don't expect immediate fixes or updates if something breaks.",
+        "open_source_notice": "This application is open source. You can submit suggestions, bug reports, and highly appreciated development help on our GitHub page.",
         "map_settings_title": "Map settings",
         "base_map_label": "Base map",
         "railway_overlay_label": "Show railway lines"
