@@ -1,3 +1,26 @@
+### 2025. 12. 04.
+
+#### Újdonságok
+
+- Dupla koppintásos zoom fel-le mozgatással
+
+#### Javítások
+
+- Élő helyzet megjelenítése
+
+### 2025. 11. 24.
+
+#### Újdonságok
+
+- Jármű kiválasztás megtartása az oldal frissítésekor
+
+### 2025. 11. 22.
+
+#### Újdonságok
+
+- Adatfeldolgozás optimalizálás
+- [Nyílt forráskód](https://github.com/megisholavonat/megisholavonat)
+
 ### 2025. 11. 17.
 
 #### Újdonságok
