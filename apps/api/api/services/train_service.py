@@ -64,7 +64,7 @@ class TrainService:
         self, locations: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
         """
-        Deduplicate EMMA results by vehicleId, keeping the most recently updated entry.
+        Deduplicate results by vehicleId, keeping the most recently updated entry.
         """
         latest_by_id: dict[str, dict[str, Any]] = {}
         for loc in locations:

@@ -46,7 +46,7 @@
         "tramtrains_description": "Show TramTrains on the map",
         "hev_label": "HÉV",
         "hev_description": "Show suburban railway (HÉV) on the map",
-        "idk_where_the_trains_are": "Dear users! We cannot display those vehicles that are not marked by EMMA itself. If you do notice any discrepancies, please let us know by email.",
+        "idk_where_the_trains_are": "Dear users! We cannot display those vehicles that are not marked by official sources. If you do notice any discrepancies, please let us know by email.",
         "changelog_not_available": "Changelog not available",
         "open_source_notice": "This application is open source. You can submit suggestions, bug reports, and highly appreciated development help on our GitHub page.",
         "map_settings_title": "Map settings",
@@ -57,7 +57,7 @@
         "uic_code": "UIC code",
         "speed": "Speed",
         "delay": "Delay",
-        "delay_note": "This is the more accurate delay calculated by us. The timetable data is directly based on the EMMA data (sometimes inaccurate).",
+        "delay_note": "This is the more accurate delay calculated by us. The timetable data is directly based on official sources (sometimes inaccurate).",
         "last_updated": "Last updated",
         "timetable": {
             "station": "Station",
