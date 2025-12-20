@@ -46,7 +46,7 @@
         "tramtrains_description": "Szeged - Hódmezővásárhely vonalon közlekedő TramTrain járatok megjelenítése",
         "hev_label": "HÉV",
         "hev_description": "HÉV járatok megjelenítése",
-        "idk_where_the_trains_are": "Felhívjuk kedves felhasználóink figyelmét, hogy azokat a járműveket, amelyeket maga az EMMA sem jelöl, mi sem tudjuk megjeleníteni. Ha mégis eltérést tapasztalnak, kérjük, jelezzék nekünk emailben.",
+        "idk_where_the_trains_are": "Felhívjuk kedves felhasználóink figyelmét, hogy azokat a járműveket, amelyeket hivatalos források sem jelölnek, mi sem tudjuk megjeleníteni. Ha mégis eltérést tapasztalnak, kérjük, jelezzék nekünk emailben.",
         "changelog_not_available": "A változások nem elérhetők",
         "open_source_notice": "Ez az alkalmazás nyílt forráskódú. Javaslatokat, hibajelentéseket, valamint nagyra értékelt fejlesztési segítséget a GitHub oldalunkon lehetséges leadni.",
         "map_settings_title": "Térkép beállítások",
@@ -57,7 +57,7 @@
         "uic_code": "UIC kód",
         "speed": "Sebesség",
         "delay": "Késés",
-        "delay_note": "Ez az általunk számított, pontosabb adat. A menetrendi adatok közvetlenül az EMMA adatain alapulnak (esetenként pontatlanok lehetnek).",
+        "delay_note": "Ez az általunk számított, pontosabb adat. A menetrendi adatok közvetlenül hivatalos források alapulnak (esetenként pontatlanok lehetnek).",
         "last_updated": "Utolsó frissítés",
         "timetable": {
             "station": "Állomás",
@@ -117,8 +117,8 @@
     },
     "NoDataDialog": {
         "title": "Nincsenek elérhető adatok",
-        "description": "Már hosszabb ideje nem érkeznek adatok az EMMA-tól. Kérjük, próbálja újra később.",
+        "description": "Már hosszabb ideje nem érkeznek adatok. Kérjük, próbálja újra később.",
         "stale_data_title": "Elavult adatok megjelenítve",
-        "stale_data_description": "Az EMMA jelenleg nem válaszol. {minutes} perce frissült utoljára az adat."
+        "stale_data_description": "{minutes} perce frissült utoljára az adat."
     }
 }

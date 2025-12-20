@@ -6,7 +6,7 @@
 
 ---
 
-A **Mégis hol a vonat?** valós időben, egy interaktív térképen mutatja a magyar vonatokat. Az alkalmazás az [EMMA](https://emma.mav.hu/) adatait használja, és egy könnyen használható felületen jeleníti meg azokat.
+A **Mégis hol a vonat?** valós időben, egy interaktív térképen mutatja a magyar vonatokat. Az alkalmazás hivatalos források adatait használja, és egy könnyen használható felületen jeleníti meg azokat.
 
 ### Főbb jellemzők
 

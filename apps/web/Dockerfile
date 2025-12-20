@@ -30,6 +30,7 @@ WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV CI=true
 ENV SKIP_SERVER_ENV_VALIDATION=true
+ENV NEXT_PUBLIC_TILE_CACHE_URL=https://tc.megisholavonat.info
 
 # Copy installed dependencies and source code from pruned workspace
 COPY --from=installer /app .
