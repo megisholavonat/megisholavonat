@@ -1,12 +1,14 @@
 import L from "leaflet";
 import { ORANGE_THRESHOLD, RED_THRESHOLD, YELLOW_THRESHOLD } from "./constants";
 
+export type VehicleType = "train" | "hev" | "tramtrain";
+
 export function createTrainIcon(
     heading: number,
     color: string = "#00FF00",
     selected: boolean = false,
     falsified: boolean = false,
-    vehicle_type: string = "hev",
+    vehicle_type: VehicleType = "hev",
     isDarkTheme: boolean = false,
 ) {
     const size = 30;
@@ -17,59 +19,38 @@ export function createTrainIcon(
 
     let circleElement = "";
     let arrowElement = "";
-    const circleColor = (() => {
-        if (isDarkTheme) {
-            // Dark mode
-            switch (vehicle_type) {
-                case "tramtrain":
-                    return "oklch(66.6% 0.179 58.318)";
-                case "hev":
-                    return "#005e3b";
-                default:
-                    return "#4b4e54";
-            }
-        }
 
-        // Light mode
-        switch (vehicle_type) {
-            case "tramtrain":
-                return "oklch(66.6% 0.179 58.318)";
-            case "hev":
-                return "#005e3b";
-            default:
-                return "#252525";
-        }
-    })();
+    const borderClass = `train-marker-border-${vehicle_type}`;
 
     if (vehicle_type === "tramtrain") {
         // For tramtrain
         circleElement = `
       <circle cx="36.5" cy="65.5" r="28" fill="${
           selected ? "#5FC2FF" : color
-      }" stroke="${circleColor}" stroke-width="10"/>
+      }" stroke="currentColor" stroke-width="10" class="${borderClass}"/>
     `;
         arrowElement = `
-      <path d="M66.4144 63.6873C67.3842 65.68 65.9331 68.0001 63.7169 68.0001H9.28245C7.06633 68.0001 5.61517 65.68 6.58494 63.6873L33.8022 10.54289C34.897 8.293294 38.1024 8.293286 39.1972 10.54289L66.4144 63.6873Z" fill="${circleColor}"/>
+      <path d="M66.4144 63.6873C67.3842 65.68 65.9331 68.0001 63.7169 68.0001H9.28245C7.06633 68.0001 5.61517 65.68 6.58494 63.6873L33.8022 10.54289C34.897 8.293294 38.1024 8.293286 39.1972 10.54289L66.4144 63.6873Z" fill="currentColor" class="${borderClass}"/>
     `;
     } else if (vehicle_type === "hev") {
         // For hev
         circleElement = `
       <circle cx="36.5" cy="65.5" r="26.5" fill="${
           selected ? "#5FC2FF" : color
-      }" stroke="${circleColor}" stroke-width="9"/>
+      }" stroke="currentColor" stroke-width="9" class="${borderClass}"/>
     `;
         arrowElement = `
-      <path d="M62.4144 60.6873C63.3842 62.68 61.9331 65.0001 59.7169 65.0001H13.28245C11.06633 65.0001 9.61517 62.68 10.58494 60.6873L33.8022 10.54289C34.897 8.293294 38.1024 8.293286 39.1972 10.54289L62.4144 60.6873Z" fill="${circleColor}"/>
+      <path d="M62.4144 60.6873C63.3842 62.68 61.9331 65.0001 59.7169 65.0001H13.28245C11.06633 65.0001 9.61517 62.68 10.58494 60.6873L33.8022 10.54289C34.897 8.293294 38.1024 8.293286 39.1972 10.54289L62.4144 60.6873Z" fill="currentColor" class="${borderClass}"/>
     `;
     } else {
         // Default train styling
         circleElement = `
       <circle cx="36.5" cy="65.5" r="32.5" fill="${
           selected ? "#5FC2FF" : color
-      }" stroke="${circleColor}" stroke-width="8"/>
+      }" stroke="currentColor" stroke-width="8" class="${borderClass}"/>
     `;
         arrowElement = `
-      <path d="M70.4144 66.6873C71.3842 68.68 69.9331 71.0001 67.7169 71.0001H5.28245C3.06633 71.0001 1.61517 68.68 2.58494 66.6873L33.8022 2.54289C34.897 0.293294 38.1024 0.293286 39.1972 2.54289L70.4144 66.6873Z" fill="${circleColor}"/>
+      <path d="M70.4144 66.6873C71.3842 68.68 69.9331 71.0001 67.7169 71.0001H5.28245C3.06633 71.0001 1.61517 68.68 2.58494 66.6873L33.8022 2.54289C34.897 0.293294 38.1024 0.293286 39.1972 2.54289L70.4144 66.6873Z" fill="currentColor" class="${borderClass}"/>
     `;
     }
 
@@ -83,8 +64,9 @@ export function createTrainIcon(
     </svg>
   `;
 
-    return new L.Icon({
-        iconUrl: `data:image/svg+xml;base64,${btoa(iconSvg)}`,
+    return new L.DivIcon({
+        html: iconSvg,
+        className: "train-marker",
         iconSize: [size, size],
         iconAnchor: [size / 2, size / 2],
         popupAnchor: [0, -size / 2],
