@@ -268,7 +268,8 @@ export function TrainPanel({
                     <span className="flex items-center gap-1">
                         <span className="opacity-80">{t("speed")}:</span>
                         <span className="font-semibold text-white">
-                            {Math.round(vehiclePosition.speed * 3.6)} km/h
+                            {Math.round((vehiclePosition.speed ?? 0) * 3.6)}{" "}
+                            km/h
                         </span>
                     </span>
                     {isActive(vehiclePosition) && !trainIsStale && (

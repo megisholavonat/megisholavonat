@@ -34,12 +34,15 @@
         "dist"
     ],
     "dependencies": {
-        "@tanstack/react-query": "^5.90.6",
         "axios": "^1.13.2",
         "zod": "^4.1.12"
     },
+    "peerDependencies": {
+        "@tanstack/react-query": ">=5.0.0"
+    },
     "devDependencies": {
         "@hey-api/openapi-ts": "0.86.12",
+        "@tanstack/react-query": "^5.96.1",
         "@types/node": "^20",
         "typescript": "^5.9.3"
     }
