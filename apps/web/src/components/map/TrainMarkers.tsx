@@ -44,7 +44,7 @@ export function TrainMarkers({
                 const type = vehicleType(train);
                 const color = getDelayColor(train.delay, active, stale);
                 const markerIcon = createTrainIcon(
-                    train.heading,
+                    train.heading ?? 0,
                     color,
                     isSelected,
                     isFalsified,

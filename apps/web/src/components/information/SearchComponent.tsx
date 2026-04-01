@@ -194,7 +194,7 @@ export default function SearchComponent({
                     comparison = a.delay - b.delay;
                     break;
                 case "speed":
-                    comparison = a.speed - b.speed;
+                    comparison = (a.speed ?? 0) - (b.speed ?? 0);
                     break;
                 default:
                     return 0;
@@ -219,7 +219,7 @@ export default function SearchComponent({
                     comparison = a.delay - b.delay;
                     break;
                 case "speed":
-                    comparison = a.speed - b.speed;
+                    comparison = (a.speed ?? 0) - (b.speed ?? 0);
                     break;
                 default:
                     return 0;
@@ -371,7 +371,8 @@ export default function SearchComponent({
                                         const stationRoute = getStationRoute(
                                             result.trip.stoptimes,
                                         );
-                                        const hasSpeed = result.speed > 0;
+                                        const hasSpeed =
+                                            (result.speed ?? 0) > 0;
                                         const isTrainStale = isStale(result);
 
                                         return (
@@ -475,7 +476,8 @@ export default function SearchComponent({
                                                                     <LuGauge className="w-3 h-3 dark:text-white" />
                                                                     <span>
                                                                         {formatSpeed(
-                                                                            result.speed,
+                                                                            result.speed ??
+                                                                                0,
                                                                         )}
                                                                     </span>
                                                                 </div>
