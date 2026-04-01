@@ -263,11 +263,11 @@ export type VehiclePositionWithDelay = {
     /**
      * Heading
      */
-    heading: number;
+    heading?: number | null;
     /**
      * Speed
      */
-    speed: number;
+    speed?: number | null;
     /**
      * Lastupdated
      */

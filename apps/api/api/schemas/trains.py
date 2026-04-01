@@ -92,8 +92,8 @@ class VehiclePositionWithDelay(BaseModel):
     vehicleId: str
     lat: float
     lon: float
-    heading: float
-    speed: float
+    heading: float | None = None
+    speed: float | None = None
     lastUpdated: int
     trip: Trip
     delay: int

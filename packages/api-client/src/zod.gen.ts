@@ -145,8 +145,14 @@ export const zVehiclePositionWithDelay = z.object({
     vehicleId: z.string(),
     lat: z.number(),
     lon: z.number(),
-    heading: z.number(),
-    speed: z.number(),
+    heading: z.optional(z.union([
+        z.number(),
+        z.null()
+    ])),
+    speed: z.optional(z.union([
+        z.number(),
+        z.null()
+    ])),
     lastUpdated: z.int(),
     trip: zTrip,
     delay: z.int(),

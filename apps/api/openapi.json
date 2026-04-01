@@ -474,11 +474,25 @@
             "title": "Lon"
           },
           "heading": {
-            "type": "number",
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Heading"
           },
           "speed": {
-            "type": "number",
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Speed"
           },
           "lastUpdated": {
@@ -516,8 +530,6 @@
           "vehicleId",
           "lat",
           "lon",
-          "heading",
-          "speed",
           "lastUpdated",
           "trip",
           "delay",
