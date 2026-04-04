@@ -49,6 +49,31 @@
     pointer-events: none;
 }
 
+.train-marker {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.train-marker svg {
+    shape-rendering: geometricPrecision;
+    width: 100%;
+    height: 100%;
+}
+
+.train-marker-border-train {
+    color: var(--train-marker-border-train);
+}
+
+.train-marker-border-hev {
+    color: var(--train-marker-border-hev);
+}
+
+.train-marker-border-tramtrain {
+    color: var(--train-marker-border-tramtrain);
+}
+
 :root {
     --radius: 0.625rem;
     --background: oklch(1 0 0);
@@ -82,6 +107,9 @@
     --sidebar-accent-foreground: oklch(0.205 0 0);
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.708 0 0);
+    --train-marker-border-train: oklch(0.145 0 0);
+    --train-marker-border-hev: oklch(0.38 0.14 163);
+    --train-marker-border-tramtrain: oklch(0.666 0.179 58.318);
 }
 
 .dark {
@@ -116,6 +144,9 @@
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.556 0 0);
+    --train-marker-border-train: oklch(0.95 0 0);
+    --train-marker-border-hev: oklch(0.92 0.08 163);
+    --train-marker-border-tramtrain: oklch(0.93 0.08 58.318);
 }
 
 @layer base {
