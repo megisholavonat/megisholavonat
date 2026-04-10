@@ -242,11 +242,11 @@ export type TrainFeatureProperties = {
     /**
      * Heading
      */
-    heading: number;
+    heading?: number | null;
     /**
-     * Lastupdated
+     * Speed
      */
-    lastUpdated: string;
+    speed?: number | null;
     /**
      * Tripshortname
      */

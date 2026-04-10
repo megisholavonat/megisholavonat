@@ -44,7 +44,6 @@ interface Settings {
     showTrains: boolean;
     showTramTrains: boolean;
     showHev: boolean;
-    baseMap: BaseMapKey;
     showRailwayOverlay: boolean;
 }
 
@@ -55,7 +54,6 @@ const defaultSettings: Settings = {
     showTrains: true,
     showTramTrains: true,
     showHev: true,
-    baseMap: "openstreetmap",
     showRailwayOverlay: true,
 };
 
@@ -90,12 +88,6 @@ export default function SettingsComponent() {
                     const settingKey = key as keyof Settings;
                     if (settingKey === "stationNamesOpacity") {
                         storedSettings[settingKey] = parseFloat(storedValue);
-                    } else if (settingKey === "baseMap") {
-                        // Validate that the stored base map is valid
-                        if (Object.keys(BASE_MAPS).includes(storedValue)) {
-                            storedSettings[settingKey] =
-                                storedValue as BaseMapKey;
-                        }
                     } else {
                         storedSettings[settingKey] = storedValue === "true";
                     }
@@ -249,7 +241,6 @@ export default function SettingsComponent() {
             );
         }
 
-        // If base map is changed, trigger a custom event for MapComponent
         if (key === "baseMap") {
             window.dispatchEvent(
                 new CustomEvent("baseMapChanged", { detail: value }),
@@ -659,54 +650,6 @@ export default function SettingsComponent() {
                                         {t("map_settings_title")}
                                         <NewFeature />
                                     </legend>
-
-                                    {/* Base Map Selector */}
-                                    <div className="space-y-2">
-                                        <div className="space-y-0.5">
-                                            <p
-                                                id="base-map-label"
-                                                className="text-sm font-medium"
-                                            >
-                                                {t("base_map_label")}
-                                            </p>
-                                        </div>
-                                        <Select
-                                            value={settings.baseMap}
-                                            onValueChange={(value) =>
-                                                updateSetting(
-                                                    "baseMap",
-                                                    value as BaseMapKey,
-                                                )
-                                            }
-                                        >
-                                            <SelectTrigger
-                                                className="w-full"
-                                                aria-labelledby="base-map-label"
-                                            >
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent
-                                                style={{
-                                                    zIndex: Z_LAYERS.DIALOG_SELECT,
-                                                }}
-                                            >
-                                                {Object.entries(BASE_MAPS).map(
-                                                    ([key]) => (
-                                                        <SelectItem
-                                                            key={key}
-                                                            value={key}
-                                                        >
-                                                            {
-                                                                BASE_MAPS[key]
-                                                                    .name
-                                                            }
-                                                        </SelectItem>
-                                                    ),
-                                                )}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
                                     {/* Railway Overlay Toggle */}
                                     <div className="flex items-center justify-between">
                                         <div className="space-y-0.5">

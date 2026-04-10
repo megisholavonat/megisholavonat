@@ -121,8 +121,8 @@ class TrainFeatureProperties(BaseModel):
     vehicleId: str
     lat: float
     lon: float
-    heading: float
-    lastUpdated: str
+    heading: float | None = None
+    speed: float | None = None
     tripShortName: str
     routeShortName: str
     routeTextColor: str

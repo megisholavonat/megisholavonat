@@ -473,12 +473,26 @@
             "title": "Lon"
           },
           "heading": {
-            "type": "number",
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Heading"
           },
-          "lastUpdated": {
-            "type": "string",
-            "title": "Lastupdated"
+          "speed": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Speed"
           },
           "tripShortName": {
             "type": "string",
@@ -502,8 +516,6 @@
           "vehicleId",
           "lat",
           "lon",
-          "heading",
-          "lastUpdated",
           "tripShortName",
           "routeShortName",
           "routeTextColor",

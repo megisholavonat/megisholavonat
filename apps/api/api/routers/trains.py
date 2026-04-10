@@ -28,6 +28,7 @@ async def get_trains(
     try:
         step_start = time.time()
         cached_data_string = await redis.get(add_key("train-positions-geojson"))
+
         cached_data = json.loads(cached_data_string) if cached_data_string else None
         logger.info(f"Redis get (Time: {(time.time() - step_start):.4f}s)")
 

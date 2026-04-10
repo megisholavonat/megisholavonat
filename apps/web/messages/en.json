@@ -101,7 +101,9 @@
         "zoom_out": "Zoom out"
     },
     "UserLocation": {
-        "locate": "Current location"
+        "locate": "Current location",
+        "get_location": "Get current location",
+        "location_error": "Could not determine your location. Please check your browser settings."
     },
     "LanguageSwitcher": {
         "switch_to": "Switch to {language}"

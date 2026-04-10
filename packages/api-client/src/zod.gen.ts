@@ -108,8 +108,14 @@ export const zTrainFeatureProperties = z.object({
     vehicleId: z.string(),
     lat: z.number(),
     lon: z.number(),
-    heading: z.number(),
-    lastUpdated: z.string(),
+    heading: z.optional(z.union([
+        z.number(),
+        z.null()
+    ])),
+    speed: z.optional(z.union([
+        z.number(),
+        z.null()
+    ])),
     tripShortName: z.string(),
     routeShortName: z.string(),
     routeTextColor: z.string(),
