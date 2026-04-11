@@ -70,7 +70,7 @@ export interface SearchSelection {
     timestamp: number;
 }
 
-export default function MapLibreComponent({
+export default function MapComponent({
     searchSelection,
     onClearSearchSelection,
 }: {
@@ -228,11 +228,11 @@ export default function MapLibreComponent({
     const railwayPaint = useMemo(() => {
         if (resolvedTheme === "dark") {
             return {
-                "raster-opacity": 0.2,
+                "raster-opacity": 0.6,
             };
         }
         return {
-            "raster-opacity": 0.6,
+            "raster-opacity": 0.8,
         };
     }, [resolvedTheme]);
 
