@@ -35,7 +35,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { Z_LAYERS } from "@/util/constants";
-import { BASE_MAPS, type BaseMapKey } from "@/util/mapConfigs";
 
 interface Settings {
     showTooltip: boolean;
@@ -183,7 +182,7 @@ export default function SettingsComponent() {
     // Save individual setting to localStorage
     const updateSetting = (
         key: keyof Settings,
-        value: boolean | number | BaseMapKey,
+        value: boolean | number,
     ) => {
         // Don't allow tooltip changes on mobile - it's always disabled
         if (key === "showTooltip" && isMobile) {
@@ -238,12 +237,6 @@ export default function SettingsComponent() {
                             key === "showHev" ? value : newSettings.showHev,
                     },
                 }),
-            );
-        }
-
-        if (key === "baseMap") {
-            window.dispatchEvent(
-                new CustomEvent("baseMapChanged", { detail: value }),
             );
         }
 

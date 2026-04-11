@@ -22,7 +22,7 @@ import { NoDataDialog } from "@/components/information/NoDataDialog";
 import { MapImage } from "@/components/map/MapImage";
 import { Z_LAYERS } from "@/util/constants";
 import { useMapSettings } from "@/hooks/useMapSettings";
-import { BASE_MAPS, OVERLAYS } from "@/util/mapConfigs";
+import { OVERLAYS } from "@/util/mapConfigs";
 import polyline from "@mapbox/polyline";
 import { TrainTooltip } from "@/components/map/TrainTooltip";
 import type { TrainFeatureProperties } from "@megisholavonat/api-client";

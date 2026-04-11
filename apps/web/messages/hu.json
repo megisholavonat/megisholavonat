@@ -50,7 +50,6 @@
         "changelog_not_available": "A változások nem elérhetők",
         "open_source_notice": "Ez az alkalmazás nyílt forráskódú. Javaslatokat, hibajelentéseket, valamint nagyra értékelt fejlesztési segítséget a GitHub oldalunkon lehetséges leadni.",
         "map_settings_title": "Térkép beállítások",
-        "base_map_label": "Alaptérkép",
         "railway_overlay_label": "Vasútvonalak megjelenítése"
     },
     "TrainPanel": {

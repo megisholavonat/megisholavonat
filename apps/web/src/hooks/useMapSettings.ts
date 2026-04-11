@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { BASE_MAPS, type BaseMapKey } from "@/util/mapConfigs";
 import { useIsMobile } from "./useIsMobile";
 
 interface VehicleTypeSettings {
@@ -18,7 +17,6 @@ export function useMapSettings() {
             showTramTrains: true,
             showHev: true,
         });
-    const [baseMap, setBaseMap] = useState<BaseMapKey>("openstreetmap");
     const [showRailwayOverlay, setShowRailwayOverlay] = useState(true);
     const isMobile = useIsMobile();
 
@@ -62,12 +60,6 @@ export function useMapSettings() {
                 storedTramTrains !== null ? storedTramTrains === "true" : true,
             showHev: storedHev !== null ? storedHev === "true" : true,
         });
-
-        // Load base map setting
-        const storedBaseMap = localStorage.getItem("mhav.settings.baseMap");
-        if (storedBaseMap && Object.keys(BASE_MAPS).includes(storedBaseMap)) {
-            setBaseMap(storedBaseMap as BaseMapKey);
-        }
 
         // Load railway overlay setting
         const storedRailwayOverlay = localStorage.getItem(
@@ -159,24 +151,6 @@ export function useMapSettings() {
         };
     }, []);
 
-    // Listen for base map setting changes
-    useEffect(() => {
-        const handleBaseMapChange = (event: CustomEvent<BaseMapKey>) => {
-            setBaseMap(event.detail);
-        };
-
-        window.addEventListener(
-            "baseMapChanged",
-            handleBaseMapChange as EventListener,
-        );
-        return () => {
-            window.removeEventListener(
-                "baseMapChanged",
-                handleBaseMapChange as EventListener,
-            );
-        };
-    }, []);
-
     // Listen for railway overlay setting changes
     useEffect(() => {
         const handleRailwayOverlayChange = (event: CustomEvent<boolean>) => {
@@ -200,7 +174,6 @@ export function useMapSettings() {
         showStationNames,
         stationNamesOpacity,
         vehicleTypeSettings,
-        baseMap,
         showRailwayOverlay,
     };
 }
