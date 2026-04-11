@@ -30,8 +30,6 @@ import {
 } from "@/util/vehicle";
 import MAVRouteIcon from "../ui/MavRouteIcon";
 
-type VehiclePosition = VehiclePositionWithDelay;
-
 interface TrainPanelProps {
     vehicle: VehiclePositionWithDelay;
     onClose?: () => void;

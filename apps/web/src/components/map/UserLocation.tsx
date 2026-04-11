@@ -1,14 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { useTranslations } from "next-intl";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { BsPinFill } from "react-icons/bs";
 import { FaLocationArrow } from "react-icons/fa6";
 import { MdLocationOff } from "react-icons/md";
-import { MapRef, Source, Layer } from "react-map-gl/maplibre";
-import { Z_LAYERS } from "@/util/constants";
+import { Layer, type MapRef, Source } from "react-map-gl/maplibre";
 import { useGeolocation } from "@/hooks/useGeolocation";
+import { Z_LAYERS } from "@/util/constants";
 
 const USER_LOCATION_SVG = `
 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -22,7 +22,7 @@ const USER_LOCATION_SVG = `
 </svg>
 `;
 
-function LocationButtonMapLibre({
+function LocationButton({
     mapRef,
     userLocation,
     hasPermission,
@@ -30,7 +30,7 @@ function LocationButtonMapLibre({
     hasError,
     onLocationRequest,
 }: {
-    mapRef: React.RefObject<MapRef>;
+    mapRef: React.RefObject<MapRef | null>;
     userLocation: { lat: number; lng: number } | null;
     hasPermission: boolean;
     isLoading: boolean;
@@ -154,7 +154,7 @@ function LocationButtonMapLibre({
                         hasError
                             ? t("location_error")
                             : hasPermission
-                              ? t("center_map")
+                              ? t("center_map_on_user")
                               : t("get_location")
                     }
                     whileHover={
@@ -202,10 +202,10 @@ function LocationButtonMapLibre({
     );
 }
 
-export function UserLocationMapLibre({
+export function UserLocation({
     mapRef,
 }: {
-    mapRef: React.RefObject<MapRef>;
+    mapRef: React.RefObject<MapRef | null>;
 }) {
     const {
         location: userLocation,
@@ -242,7 +242,7 @@ export function UserLocationMapLibre({
                 </Source>
             )}
 
-            <LocationButtonMapLibre
+            <LocationButton
                 mapRef={mapRef}
                 userLocation={userLocation}
                 hasPermission={hasPermission}

@@ -101,7 +101,9 @@
     },
     "UserLocation": {
         "locate": "Jelenlegi helyzet",
-        "get_location": "Helyzet lekérése"
+        "get_location": "Helyzet lekérése",
+        "location_error": "Nem sikerült meghatározni a helyzetét. Kérjük, ellenőrizd a böngésződ beállításait.",
+        "center_map_on_user": "Mozgatás a jelenlegi helyzetre"
     },
     "LanguageSwitcher": {
         "switch_to": "Váltás {language} nyelvre"

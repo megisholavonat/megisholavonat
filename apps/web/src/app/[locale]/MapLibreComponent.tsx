@@ -3,35 +3,34 @@ import {
     Layer,
     Map as MapLibreMap,
     type MapMouseEvent,
+    type MapRef,
     Popup,
     Source,
-    type MapRef,
 } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
+import polyline from "@mapbox/polyline";
+import type { TrainFeatureProperties } from "@megisholavonat/api-client";
 import {
     getTrainDetailsOptions,
     getTrainsOptions,
 } from "@megisholavonat/api-client/react-query";
 import { useQuery } from "@tanstack/react-query";
+import type { GeoJSON as GeoJsonType } from "geojson";
+import type { ExpressionSpecification } from "maplibre-gl";
 import { AnimatePresence, motion } from "motion/react";
-import { useCallback, useMemo, useState, useEffect, useRef } from "react";
-import { TrainPanel } from "@/components/information/TrainPanel";
-import { DragCloseDrawer } from "@/components/information/DragModal";
-import { DelayLegend } from "@/components/information/DelayLegend";
-import { NoDataDialog } from "@/components/information/NoDataDialog";
-import { MapImage } from "@/components/map/MapImage";
-import { Z_LAYERS } from "@/util/constants";
-import { useMapSettings } from "@/hooks/useMapSettings";
-import { OVERLAYS } from "@/util/mapConfigs";
-import polyline from "@mapbox/polyline";
-import { TrainTooltip } from "@/components/map/TrainTooltip";
-import type { TrainFeatureProperties } from "@megisholavonat/api-client";
-import {
-    UserLocationMapLibre,
-    USER_LOCATION_SVG,
-} from "@/components/map/UserLocationMapLibre";
-import { MapControllerMapLibre } from "@/components/map/MapControllerMapLibre";
 import { useTheme } from "next-themes";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { DelayLegend } from "@/components/information/DelayLegend";
+import { DragCloseDrawer } from "@/components/information/DragModal";
+import { NoDataDialog } from "@/components/information/NoDataDialog";
+import { TrainPanel } from "@/components/information/TrainPanel";
+import { MapController } from "@/components/map/MapController";
+import { MapImage } from "@/components/map/MapImage";
+import { TrainTooltip } from "@/components/map/TrainTooltip";
+import { USER_LOCATION_SVG, UserLocation } from "@/components/map/UserLocation";
+import { useMapSettings } from "@/hooks/useMapSettings";
+import { Z_LAYERS } from "@/util/constants";
+import { OVERLAYS } from "@/util/mapConfigs";
 
 const SVG_TRIANGLE = `
 <svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
@@ -94,17 +93,17 @@ export default function MapLibreComponent({
     const filteredTrains = useMemo(() => {
         if (!trains)
             return {
-                type: "FeatureCollection",
+                type: "FeatureCollection" as const,
                 features: [],
             };
 
         return {
-            type: "FeatureCollection",
+            type: "FeatureCollection" as const,
             features: trains.features.filter((feature) => {
-                const properties = feature.properties as TrainFeatureProperties;
-                // MapLibre uses TrainFeatureProperties, we need to determine type
-                // based on the route longName if available, otherwise we'd need it in properties.
-                // In the prototype, type is already in properties.
+                const properties =
+                    feature.properties as TrainFeatureProperties & {
+                        type?: string;
+                    };
                 const type = properties.type;
                 switch (type) {
                     case "train":
@@ -152,7 +151,7 @@ export default function MapLibreComponent({
         if (!train?.trip?.stoptimes) return null;
 
         return {
-            type: "FeatureCollection",
+            type: "FeatureCollection" as const,
             features: train.trip.stoptimes.map((stoptime) => {
                 const processedStop = train.processedStops?.find(
                     (ps) => ps.id === stoptime.stop.name,
@@ -162,13 +161,13 @@ export default function MapLibreComponent({
                     : false;
 
                 return {
-                    type: "Feature",
+                    type: "Feature" as const,
                     properties: {
                         name: stoptime.stop.name,
                         hasPassed,
                     },
                     geometry: {
-                        type: "Point",
+                        type: "Point" as const,
                         coordinates: [stoptime.stop.lon, stoptime.stop.lat],
                     },
                 };
@@ -180,41 +179,43 @@ export default function MapLibreComponent({
         if (!train?.trip.tripGeometry) return null;
 
         return {
-            type: "Feature",
+            type: "Feature" as const,
             properties: {},
             geometry: polyline.toGeoJSON(train.trip.tripGeometry.points),
         };
     }, [train]);
 
     const circleColor = useMemo(
-        () => [
-            "case",
-            ["==", ["get", "vehicleId"], selectedId || ""],
-            "#00bcd4", // Selected (Cyan)
+        (): ExpressionSpecification =>
             [
-                "step",
-                ["get", "delay"],
-                "#4AD94A",
-                5,
-                "#E4DE3A",
-                15,
-                "#DF9227",
-                60,
-                "#D9564A",
-            ], // Default (Delay)
-        ],
+                "case",
+                ["==", ["get", "vehicleId"], selectedId || ""],
+                "#00bcd4", // Selected (Cyan)
+                [
+                    "step",
+                    ["get", "delay"],
+                    "#4AD94A",
+                    5,
+                    "#E4DE3A",
+                    15,
+                    "#DF9227",
+                    60,
+                    "#D9564A",
+                ], // Default (Delay)
+            ] as ExpressionSpecification,
         [selectedId],
     );
 
     const typeColor = useMemo(
-        () => [
-            "case",
-            ["==", ["get", "type"], "tramtrain"],
-            "#f9a825",
-            ["==", ["get", "type"], "hev"],
-            "#005e3b",
-            "#252525",
-        ],
+        (): ExpressionSpecification =>
+            [
+                "case",
+                ["==", ["get", "type"], "tramtrain"],
+                "#f9a825",
+                ["==", ["get", "type"], "hev"],
+                "#005e3b",
+                "#252525",
+            ] as ExpressionSpecification,
         [],
     );
 
@@ -349,14 +350,14 @@ export default function MapLibreComponent({
                 style={{ zIndex: Z_LAYERS.MAP_CONTROLS }}
             >
                 <DelayLegend
-                    dataAgeMinutes={trains?.dataAgeMinutes}
+                    dataAgeMinutes={trains?.dataAgeMinutes ?? undefined}
                     hasTrains={!!trains?.features?.length}
                 />
             </div>
             <NoDataDialog
                 open={showNoDataDialog}
                 onOpenChange={setShowNoDataDialog}
-                dataAgeMinutes={trains?.dataAgeMinutes}
+                dataAgeMinutes={trains?.dataAgeMinutes ?? undefined}
             />
             <MapLibreMap
                 ref={mapRef}
@@ -380,8 +381,8 @@ export default function MapLibreComponent({
                     svg={USER_LOCATION_SVG}
                     sdf={true}
                 />
-                <UserLocationMapLibre mapRef={mapRef} />
-                <MapControllerMapLibre
+                <UserLocation mapRef={mapRef} />
+                <MapController
                     mapRef={mapRef}
                     selectedTrainId={selectedId}
                     trains={filteredTrains}
@@ -471,7 +472,7 @@ export default function MapLibreComponent({
                 <Source
                     id="vehicles-source"
                     type="geojson"
-                    data={filteredTrains}
+                    data={filteredTrains as unknown as GeoJsonType}
                 >
                     <Layer
                         id="marker-heading"

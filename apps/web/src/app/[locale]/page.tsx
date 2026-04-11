@@ -68,7 +68,6 @@ export default function MapPage() {
             <DynamicMap
                 searchSelection={searchSelection}
                 onClearSearchSelection={clearSearchSelection}
-                data={data}
             />
         </div>
     );

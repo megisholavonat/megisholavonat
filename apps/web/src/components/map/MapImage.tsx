@@ -20,7 +20,7 @@ export function MapImage({ id, svg, sdf = false }: MapImageProps) {
                 map.addImage(id, img, { sdf });
             }
         };
-        img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+        img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 
         return () => {
             try {

@@ -1,6 +1,6 @@
 "use client";
 
-import type { ApiResponse } from "@megisholavonat/api-client";
+import type { TrainFeatureCollection } from "@megisholavonat/api-client";
 import { motion } from "motion/react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
@@ -10,7 +10,7 @@ import SettingsComponent from "@/components/settings/SettingsComponent";
 import { Z_LAYERS } from "@/util/constants";
 
 interface HeaderProps {
-    data: ApiResponse | undefined;
+    data: TrainFeatureCollection | undefined;
     onSearchResultClick: (vehicleId: string) => void;
 }
 

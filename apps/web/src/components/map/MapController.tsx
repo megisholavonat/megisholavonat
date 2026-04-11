@@ -1,22 +1,23 @@
 "use client";
 
+import type { TrainFeature } from "@megisholavonat/api-client";
 import { useEffect } from "react";
-import { MapRef } from "react-map-gl/maplibre";
+import type { MapRef } from "react-map-gl/maplibre";
 import { useIsMobile } from "@/hooks/useIsMobile";
 
-interface MapControllerMapLibreProps {
-    mapRef: React.RefObject<MapRef>;
+interface MapControllerProps {
+    mapRef: React.RefObject<MapRef | null>;
     selectedTrainId?: string | null;
-    trains?: any; // Using any for now to avoid complex types, will refine
+    trains?: { features?: TrainFeature[] };
     isPanelOpen: boolean;
 }
 
-export function MapControllerMapLibre({
+export function MapController({
     mapRef,
     selectedTrainId,
     trains,
     isPanelOpen,
-}: MapControllerMapLibreProps) {
+}: MapControllerProps) {
     const isMobile = useIsMobile();
 
     useEffect(() => {
@@ -33,27 +34,22 @@ export function MapControllerMapLibre({
         const visibleMapHeight = mapHeight - dockHeight;
 
         const feature = trains.features?.find(
-            (f: any) => f.properties.vehicleId === selectedTrainId,
+            (f: TrainFeature) => f.properties.vehicleId === selectedTrainId,
         );
 
         if (!feature) return;
 
         const { lon, lat } = feature.properties;
-        const trainLatLng = [lon, lat];
-
-        // MapLibre doesn't have a direct latLngToContainerPoint like Leaflet in the same way
-        // We can use the map instance to project the coordinate
-        const point = map.project(trainLatLng);
+        const point = map.project([lon, lat] as [number, number]);
 
         if (point.y > visibleMapHeight * 0.8) {
             const targetY = visibleMapHeight * 0.4;
             const offsetY = point.y - targetY;
 
-            const centerPoint = [
+            const newCenter = map.unproject([
                 mapContainer.offsetWidth / 2,
                 mapContainer.offsetHeight / 2 + offsetY,
-            ];
-            const newCenter = map.unproject(centerPoint);
+            ] as [number, number]);
 
             map.easeTo({
                 center: newCenter,

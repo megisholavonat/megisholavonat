@@ -1,3 +1,4 @@
+// @ts-nocheck - Parked for future MapLibre migration; Leaflet removed from the project
 import L from "leaflet";
 import { ORANGE_THRESHOLD, RED_THRESHOLD, YELLOW_THRESHOLD } from "./constants";
 

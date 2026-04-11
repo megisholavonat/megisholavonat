@@ -180,10 +180,7 @@ export default function SettingsComponent() {
     );
 
     // Save individual setting to localStorage
-    const updateSetting = (
-        key: keyof Settings,
-        value: boolean | number,
-    ) => {
+    const updateSetting = (key: keyof Settings, value: boolean | number) => {
         // Don't allow tooltip changes on mobile - it's always disabled
         if (key === "showTooltip" && isMobile) {
             return;
