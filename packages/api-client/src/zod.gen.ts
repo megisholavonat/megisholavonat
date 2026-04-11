@@ -100,6 +100,59 @@ export const zProcessedStop = z.object({
 });
 
 /**
+ * TrainFeatureProperties
+ *
+ * Properties for a train feature (lighter version)
+ */
+export const zTrainFeatureProperties = z.object({
+    vehicleId: z.string(),
+    lat: z.number(),
+    lon: z.number(),
+    heading: z.optional(z.union([
+        z.number(),
+        z.null()
+    ])),
+    speed: z.optional(z.union([
+        z.number(),
+        z.null()
+    ])),
+    tripShortName: z.string(),
+    routeShortName: z.string(),
+    routeTextColor: z.string(),
+    delay: z.int()
+});
+
+/**
+ * TrainFeature
+ *
+ * GeoJSON Feature for a train
+ */
+export const zTrainFeature = z.object({
+    type: z.optional(z.string()).default('Feature'),
+    geometry: z.record(z.string(), z.unknown()),
+    properties: zTrainFeatureProperties
+});
+
+/**
+ * TrainFeatureCollection
+ *
+ * GeoJSON FeatureCollection for trains
+ */
+export const zTrainFeatureCollection = z.object({
+    type: z.optional(z.string()).default('FeatureCollection'),
+    timestamp: z.string(),
+    noDataReceived: z.optional(z.union([
+        z.boolean(),
+        z.null()
+    ])),
+    dataAgeMinutes: z.optional(z.union([
+        z.int(),
+        z.null()
+    ])),
+    features: z.array(zTrainFeature)
+});
+
+/**
  * TripGeometry
  *
  * Trip geometry polyline
@@ -123,6 +176,25 @@ export const zTrip = z.object({
     bikesAllowed: z.string(),
     infoServices: z.array(zInfoService),
     alerts: z.array(zAlert)
+});
+
+/**
+ * ValidationError
+ */
+export const zValidationError = z.object({
+    loc: z.array(z.union([
+        z.string(),
+        z.int()
+    ])),
+    msg: z.string(),
+    type: z.string()
+});
+
+/**
+ * HTTPValidationError
+ */
+export const zHttpValidationError = z.object({
+    detail: z.optional(z.array(zValidationError))
 });
 
 /**
@@ -162,28 +234,6 @@ export const zVehiclePositionWithDelay = z.object({
     vehicleProgress: zVehicleProgress
 });
 
-/**
- * APIResponse
- *
- * Main API response
- */
-export const zApiResponse = z.object({
-    timestamp: z.string(),
-    noDataReceived: z.optional(z.union([
-        z.boolean(),
-        z.null()
-    ])),
-    dataAgeMinutes: z.optional(z.union([
-        z.int(),
-        z.null()
-    ])),
-    locations: z.array(zVehiclePositionWithDelay),
-    error: z.optional(z.union([
-        z.string(),
-        z.null()
-    ]))
-});
-
 export const zRootData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
@@ -212,7 +262,20 @@ export const zGetTrainsData = z.object({
 /**
  * Successful Response
  */
-export const zGetTrainsResponse = zApiResponse;
+export const zGetTrainsResponse = zTrainFeatureCollection;
+
+export const zGetTrainDetailsData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        vehicle_id: z.string()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * Successful Response
+ */
+export const zGetTrainDetailsResponse = zVehiclePositionWithDelay;
 
 export const zGetPosthogKeyData = z.object({
     body: z.optional(z.never()),

@@ -5,34 +5,6 @@ export type ClientOptions = {
 };
 
 /**
- * APIResponse
- *
- * Main API response
- */
-export type ApiResponse = {
-    /**
-     * Timestamp
-     */
-    timestamp: string;
-    /**
-     * Nodatareceived
-     */
-    noDataReceived?: boolean | null;
-    /**
-     * Dataageminutes
-     */
-    dataAgeMinutes?: number | null;
-    /**
-     * Locations
-     */
-    locations: Array<VehiclePositionWithDelay>;
-    /**
-     * Error
-     */
-    error?: string | null;
-};
-
-/**
  * Alert
  *
  * Alert information
@@ -54,6 +26,16 @@ export type Alert = {
      * Effectiveenddate
      */
     effectiveEndDate: number;
+};
+
+/**
+ * HTTPValidationError
+ */
+export type HttpValidationError = {
+    /**
+     * Detail
+     */
+    detail?: Array<ValidationError>;
 };
 
 /**
@@ -193,6 +175,97 @@ export type StopWithCounty = {
 };
 
 /**
+ * TrainFeature
+ *
+ * GeoJSON Feature for a train
+ */
+export type TrainFeature = {
+    /**
+     * Type
+     */
+    type?: string;
+    /**
+     * Geometry
+     */
+    geometry: {
+        [key: string]: unknown;
+    };
+    properties: TrainFeatureProperties;
+};
+
+/**
+ * TrainFeatureCollection
+ *
+ * GeoJSON FeatureCollection for trains
+ */
+export type TrainFeatureCollection = {
+    /**
+     * Type
+     */
+    type?: string;
+    /**
+     * Timestamp
+     */
+    timestamp: string;
+    /**
+     * Nodatareceived
+     */
+    noDataReceived?: boolean | null;
+    /**
+     * Dataageminutes
+     */
+    dataAgeMinutes?: number | null;
+    /**
+     * Features
+     */
+    features: Array<TrainFeature>;
+};
+
+/**
+ * TrainFeatureProperties
+ *
+ * Properties for a train feature (lighter version)
+ */
+export type TrainFeatureProperties = {
+    /**
+     * Vehicleid
+     */
+    vehicleId: string;
+    /**
+     * Lat
+     */
+    lat: number;
+    /**
+     * Lon
+     */
+    lon: number;
+    /**
+     * Heading
+     */
+    heading?: number | null;
+    /**
+     * Speed
+     */
+    speed?: number | null;
+    /**
+     * Tripshortname
+     */
+    tripShortName: string;
+    /**
+     * Routeshortname
+     */
+    routeShortName: string;
+    /**
+     * Routetextcolor
+     */
+    routeTextColor: string;
+    /**
+     * Delay
+     */
+    delay: number;
+};
+
+/**
  * Trip
  *
  * Trip information
@@ -240,6 +313,24 @@ export type TripGeometry = {
      * Points
      */
     points: string;
+};
+
+/**
+ * ValidationError
+ */
+export type ValidationError = {
+    /**
+     * Location
+     */
+    loc: Array<string | number>;
+    /**
+     * Message
+     */
+    msg: string;
+    /**
+     * Error Type
+     */
+    type: string;
 };
 
 /**
@@ -357,10 +448,40 @@ export type GetTrainsResponses = {
     /**
      * Successful Response
      */
-    200: ApiResponse;
+    200: TrainFeatureCollection;
 };
 
 export type GetTrainsResponse = GetTrainsResponses[keyof GetTrainsResponses];
+
+export type GetTrainDetailsData = {
+    body?: never;
+    path: {
+        /**
+         * Vehicle Id
+         */
+        vehicle_id: string;
+    };
+    query?: never;
+    url: '/v1/trains/{vehicle_id}';
+};
+
+export type GetTrainDetailsErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetTrainDetailsError = GetTrainDetailsErrors[keyof GetTrainDetailsErrors];
+
+export type GetTrainDetailsResponses = {
+    /**
+     * Successful Response
+     */
+    200: VehiclePositionWithDelay;
+};
+
+export type GetTrainDetailsResponse = GetTrainDetailsResponses[keyof GetTrainDetailsResponses];
 
 export type GetPosthogKeyData = {
     body?: never;

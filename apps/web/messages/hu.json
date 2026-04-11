@@ -101,7 +101,8 @@
         "zoom_out": "Kicsinyítés"
     },
     "UserLocation": {
-        "locate": "Jelenlegi helyzet"
+        "locate": "Jelenlegi helyzet",
+        "get_location": "Helyzet lekérése"
     },
     "LanguageSwitcher": {
         "switch_to": "Váltás {language} nyelvre"

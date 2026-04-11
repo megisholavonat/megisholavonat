@@ -30,7 +30,7 @@ function MapLoading() {
     );
 }
 
-const DynamicMap = dynamic(() => import("./MapComponent"), {
+const DynamicMap = dynamic(() => import("./MapLibreComponent"), {
     ssr: false,
     loading: MapLoading,
 });
