@@ -242,15 +242,24 @@ export default function MapComponent({
         };
     }, [resolvedTheme]);
 
+    const lastHoveredIdRef = useRef<string | null>(null);
+
     const onHover = useCallback(
         (e: MapMouseEvent) => {
             if (!showTooltip) return;
             const feature = e.features?.[0];
             if (feature && trains) {
-                setCursor("pointer");
+                const newId = (feature.properties as TrainFeatureProperties)
+                    .vehicleId;
 
+                if (lastHoveredIdRef.current === newId) return;
+
+                lastHoveredIdRef.current = newId;
+                setCursor("pointer");
                 setHoverInfo(feature.properties as TrainFeatureProperties);
             } else {
+                if (lastHoveredIdRef.current === null) return;
+                lastHoveredIdRef.current = null;
                 setCursor(null);
                 setHoverInfo(null);
             }

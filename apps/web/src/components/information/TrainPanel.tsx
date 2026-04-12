@@ -6,7 +6,7 @@ import { formatDistanceToNow } from "date-fns";
 import { enGB, hu } from "date-fns/locale";
 import { AnimatePresence, motion } from "motion/react";
 import { useLocale, useTranslations } from "next-intl";
-import { useState } from "react";
+import { memo, useState } from "react";
 import {
     FaArrowRight,
     FaCircleInfo,
@@ -167,7 +167,7 @@ function AlertBadge({
     );
 }
 
-export function TrainPanel({
+export const TrainPanel = memo(function TrainPanel({
     vehicle,
     onClose,
     showCloseButton = false,
@@ -728,4 +728,4 @@ export function TrainPanel({
             </div>
         </div>
     );
-}
+});
