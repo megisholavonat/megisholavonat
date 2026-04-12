@@ -88,7 +88,9 @@
             "medium_delay": "15-59 perc",
             "large_delay": "≥ 60 perc",
             "no_data": "Inaktív"
-        }
+        },
+        "map_credits_title": "Térkép források",
+        "map_credits_base": "<maplibre>MapLibre</maplibre>, <ofm>OpenFreeMap</ofm>, <osm>OpenStreetMap</osm>, <orm>OpenRailwayMap</orm>."
     },
     "DragModal": {
         "down": "Le",

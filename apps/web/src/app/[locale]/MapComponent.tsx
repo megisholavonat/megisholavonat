@@ -374,6 +374,7 @@ export default function MapComponent({
                 }}
                 maxPitch={0}
                 dragRotate={false}
+                attributionControl={false}
                 style={{ width: "100vw", height: "100vh" }}
                 mapStyle={mapStyle}
                 interactiveLayerIds={[
