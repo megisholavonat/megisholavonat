@@ -28,6 +28,7 @@ import { MapController } from "@/components/map/MapController";
 import { MapImage } from "@/components/map/MapImage";
 import { TrainTooltip } from "@/components/map/TrainTooltip";
 import { UserLocation } from "@/components/map/UserLocation";
+import { ZoomButtons } from "@/components/map/ZoomButtons";
 import { useMapSettings } from "@/hooks/useMapSettings";
 import { LAYER_IDS, Z_LAYERS } from "@/util/constants";
 import { OVERLAYS } from "@/util/mapConfigs";
@@ -384,6 +385,7 @@ export default function MapComponent({
                 onMouseMove={onHover}
             >
                 <MapImage id="marker-triangle" svg={SVG_TRIANGLE} sdf={true} />
+                <ZoomButtons />
                 <UserLocation />
                 <MapController
                     mapRef={mapRef}
