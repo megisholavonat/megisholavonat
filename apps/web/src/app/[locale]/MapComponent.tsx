@@ -29,7 +29,7 @@ import { MapImage } from "@/components/map/MapImage";
 import { TrainTooltip } from "@/components/map/TrainTooltip";
 import { UserLocation } from "@/components/map/UserLocation";
 import { useMapSettings } from "@/hooks/useMapSettings";
-import { Z_LAYERS } from "@/util/constants";
+import { LAYER_IDS, Z_LAYERS } from "@/util/constants";
 import { OVERLAYS } from "@/util/mapConfigs";
 
 const SVG_TRIANGLE = `
@@ -370,7 +370,10 @@ export default function MapComponent({
                 dragRotate={false}
                 style={{ width: "100vw", height: "100vh" }}
                 mapStyle={mapStyle}
-                interactiveLayerIds={["marker-main", "marker-heading"]}
+                interactiveLayerIds={[
+                    LAYER_IDS.TRAIN_MAIN,
+                    LAYER_IDS.TRAIN_HEADING,
+                ]}
                 cursor={cursor ?? undefined}
                 onClick={onClick}
                 onMouseMove={onHover}
@@ -397,8 +400,9 @@ export default function MapComponent({
                         tileSize={256}
                     >
                         <Layer
-                            id="railway-layer"
+                            id={LAYER_IDS.RAILWAY}
                             type="raster"
+                            beforeId={LAYER_IDS.TRAIN_HEADING}
                             paint={railwayPaint}
                         />
                     </Source>
@@ -410,8 +414,9 @@ export default function MapComponent({
                         data={polylineGeojson}
                     >
                         <Layer
-                            id="polyline-layer"
+                            id={LAYER_IDS.ROUTE_LINE}
                             type="line"
+                            beforeId={LAYER_IDS.TRAIN_HEADING}
                             paint={{ "line-color": "#0066ff", "line-width": 4 }}
                             layout={{
                                 "line-cap": "round",
@@ -427,8 +432,9 @@ export default function MapComponent({
                         data={stopMarkersGeojson}
                     >
                         <Layer
-                            id="stops-layer"
+                            id={LAYER_IDS.STOP_CIRCLES}
                             type="circle"
+                            beforeId={LAYER_IDS.TRAIN_HEADING}
                             paint={{
                                 "circle-radius": 6,
                                 "circle-color": [
@@ -443,8 +449,9 @@ export default function MapComponent({
                         />
                         {showTooltip && (
                             <Layer
-                                id="stops-labels"
+                                id={LAYER_IDS.STOP_LABELS}
                                 type="symbol"
+                                beforeId={LAYER_IDS.TRAIN_HEADING}
                                 layout={{
                                     "text-field": ["get", "name"],
                                     "text-size": 14,
@@ -470,7 +477,7 @@ export default function MapComponent({
                     data={filteredTrains as unknown as GeoJsonType}
                 >
                     <Layer
-                        id="marker-heading"
+                        id={LAYER_IDS.TRAIN_HEADING}
                         type="symbol"
                         layout={{
                             "icon-image": "marker-triangle",
@@ -486,7 +493,7 @@ export default function MapComponent({
                         }}
                     />
                     <Layer
-                        id="marker-main"
+                        id={LAYER_IDS.TRAIN_MAIN}
                         type="circle"
                         paint={{
                             "circle-radius": 10,

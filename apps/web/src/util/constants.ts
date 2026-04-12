@@ -19,3 +19,12 @@ export const Z_LAYERS = {
     DIALOG_SELECT: 5100, // Select dropdowns inside dialogs
     TOOLTIPS: 6000, // Tooltips and popovers
 } as const;
+
+export const LAYER_IDS = {
+    RAILWAY: "railway-layer",
+    ROUTE_LINE: "polyline-layer",
+    STOP_CIRCLES: "stops-layer",
+    STOP_LABELS: "stops-labels",
+    TRAIN_HEADING: "marker-heading",
+    TRAIN_MAIN: "marker-main",
+} as const;
