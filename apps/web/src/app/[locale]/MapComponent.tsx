@@ -27,7 +27,7 @@ import { TrainPanel } from "@/components/information/TrainPanel";
 import { MapController } from "@/components/map/MapController";
 import { MapImage } from "@/components/map/MapImage";
 import { TrainTooltip } from "@/components/map/TrainTooltip";
-import { USER_LOCATION_SVG, UserLocation } from "@/components/map/UserLocation";
+import { UserLocation } from "@/components/map/UserLocation";
 import { useMapSettings } from "@/hooks/useMapSettings";
 import { Z_LAYERS } from "@/util/constants";
 import { OVERLAYS } from "@/util/mapConfigs";
@@ -376,12 +376,7 @@ export default function MapComponent({
                 onMouseMove={onHover}
             >
                 <MapImage id="marker-triangle" svg={SVG_TRIANGLE} sdf={true} />
-                <MapImage
-                    id="user-location-icon"
-                    svg={USER_LOCATION_SVG}
-                    sdf={true}
-                />
-                <UserLocation mapRef={mapRef} />
+                <UserLocation />
                 <MapController
                     mapRef={mapRef}
                     selectedTrainId={selectedId}
