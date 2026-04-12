@@ -264,7 +264,7 @@ export default function MapComponent({
                 "#00bcd4", // Selected (Cyan)
                 [
                     "step",
-                    ["get", "delay"],
+                    ["coalesce", ["get", "delay"], 0],
                     "#4AD94A",
                     5,
                     "#E4DE3A",
@@ -480,7 +480,7 @@ export default function MapComponent({
                         layout={{
                             "icon-image": "marker-triangle",
                             "icon-size": 0.7,
-                            "icon-rotate": ["get", "heading"],
+                            "icon-rotate": ["coalesce", ["get", "heading"], 0],
                             "icon-rotation-alignment": "map",
                             "icon-allow-overlap": true,
                             "icon-ignore-placement": true,
