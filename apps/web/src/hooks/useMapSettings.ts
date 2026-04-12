@@ -10,7 +10,7 @@ interface VehicleTypeSettings {
 export function useMapSettings() {
     const [showTooltip, setShowTooltip] = useState(true);
     const [showStationNames, setShowStationNames] = useState(true);
-    const [stationNamesOpacity, setStationNamesOpacity] = useState(0.9);
+    const [stationNamesOpacity, setStationNamesOpacity] = useState(1);
     const [vehicleTypeSettings, setVehicleTypeSettings] =
         useState<VehicleTypeSettings>({
             showTrains: true,
@@ -44,7 +44,7 @@ export function useMapSettings() {
         const stationNamesOpacitySetting =
             storedStationNamesOpacity !== null
                 ? parseFloat(storedStationNamesOpacity)
-                : 0.9;
+                : 1;
         setStationNamesOpacity(stationNamesOpacitySetting);
 
         // Load vehicle type settings

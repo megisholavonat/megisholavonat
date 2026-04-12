@@ -77,8 +77,13 @@ export default function MapComponent({
     searchSelection: SearchSelection | null;
     onClearSearchSelection?: () => void;
 }) {
-    const { showTooltip, vehicleTypeSettings, showRailwayOverlay } =
-        useMapSettings();
+    const {
+        showTooltip,
+        showStationNames,
+        stationNamesOpacity,
+        vehicleTypeSettings,
+        showRailwayOverlay,
+    } = useMapSettings();
     const { resolvedTheme } = useTheme();
     const mapRef = useRef<MapRef>(null);
     const { data: trains } = useQuery(getTrainsOptions());
@@ -386,6 +391,38 @@ export default function MapComponent({
                     trains={filteredTrains}
                     isPanelOpen={isPanelOpen}
                 />
+                <Source
+                    id="vehicles-source"
+                    type="geojson"
+                    data={filteredTrains as unknown as GeoJsonType}
+                >
+                    <Layer
+                        id={LAYER_IDS.TRAIN_HEADING}
+                        type="symbol"
+                        layout={{
+                            "icon-image": "marker-triangle",
+                            "icon-size": 0.7,
+                            "icon-rotate": ["get", "heading"],
+                            "icon-rotation-alignment": "map",
+                            "icon-allow-overlap": true,
+                            "icon-ignore-placement": true,
+                            "icon-offset": [0, -12], // Push it "forward" (Up)
+                        }}
+                        paint={{
+                            "icon-color": typeColor, // Matches the border color
+                        }}
+                    />
+                    <Layer
+                        id={LAYER_IDS.TRAIN_MAIN}
+                        type="circle"
+                        paint={{
+                            "circle-radius": 10,
+                            "circle-stroke-width": 3,
+                            "circle-color": circleColor,
+                            "circle-stroke-color": typeColor,
+                        }}
+                    />
+                </Source>
                 {showRailwayOverlay && (
                     <Source
                         id="railway-source"
@@ -447,7 +484,7 @@ export default function MapComponent({
                                 "circle-stroke-color": "#4b5563", // gray-600
                             }}
                         />
-                        {showTooltip && (
+                        {showStationNames && (
                             <Layer
                                 id={LAYER_IDS.STOP_LABELS}
                                 type="symbol"
@@ -457,52 +494,18 @@ export default function MapComponent({
                                     "text-size": 14,
                                     "text-offset": [0, 1.5],
                                     "text-anchor": "top",
-                                    "text-font": [
-                                        "Open Sans Bold",
-                                        "Arial Unicode MS Bold",
-                                    ],
+                                    "text-font": ["Noto Sans Bold"],
                                 }}
                                 paint={{
                                     "text-color": "#111827", // gray-900
                                     "text-halo-color": "#ffffff",
                                     "text-halo-width": 2,
+                                    "text-opacity": stationNamesOpacity,
                                 }}
                             />
                         )}
                     </Source>
                 )}
-                <Source
-                    id="vehicles-source"
-                    type="geojson"
-                    data={filteredTrains as unknown as GeoJsonType}
-                >
-                    <Layer
-                        id={LAYER_IDS.TRAIN_HEADING}
-                        type="symbol"
-                        layout={{
-                            "icon-image": "marker-triangle",
-                            "icon-size": 0.7,
-                            "icon-rotate": ["get", "heading"],
-                            "icon-rotation-alignment": "map",
-                            "icon-allow-overlap": true,
-                            "icon-ignore-placement": true,
-                            "icon-offset": [0, -12], // Push it "forward" (Up)
-                        }}
-                        paint={{
-                            "icon-color": typeColor, // Matches the border color
-                        }}
-                    />
-                    <Layer
-                        id={LAYER_IDS.TRAIN_MAIN}
-                        type="circle"
-                        paint={{
-                            "circle-radius": 10,
-                            "circle-stroke-width": 3,
-                            "circle-color": circleColor,
-                            "circle-stroke-color": typeColor,
-                        }}
-                    />
-                </Source>
                 {hoverInfo && (
                     <Popup
                         longitude={hoverInfo.lon}

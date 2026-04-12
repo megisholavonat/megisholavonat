@@ -49,7 +49,7 @@ interface Settings {
 const defaultSettings: Settings = {
     showTooltip: true,
     showStationNames: true,
-    stationNamesOpacity: 0.7,
+    stationNamesOpacity: 1,
     showTrains: true,
     showTramTrains: true,
     showHev: true,
