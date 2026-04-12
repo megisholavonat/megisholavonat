@@ -106,13 +106,18 @@ function LocationButton({
     );
 }
 
-export function UserLocation() {
+export function UserLocation({
+    disableInitialFly = false,
+}: {
+    disableInitialFly?: boolean;
+}) {
     const { current: mapRef } = useMap();
     const [hasLocation, setHasLocation] = useState(false);
     const [hasError, setHasError] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const ctrlRef = useRef<GeoCtrl | null>(null);
     const lastPositionRef = useRef<{ lng: number; lat: number } | null>(null);
+    const initialFlyHandledRef = useRef(false);
 
     useEffect(() => {
         const map = mapRef?.getMap();
@@ -126,6 +131,13 @@ export function UserLocation() {
         }) as GeoCtrl;
 
         ctrl.on("geolocate", (e: GeolocationPosition) => {
+            // GeolocateControl calls flyTo() just before firing this event.
+            // Calling map.stop() here cancels that animation before any frame
+            // renders, so the map stays on the selected train.
+            if (disableInitialFly && !initialFlyHandledRef.current) {
+                initialFlyHandledRef.current = true;
+                map.stop();
+            }
             lastPositionRef.current = {
                 lat: e.coords.latitude,
                 lng: e.coords.longitude,
@@ -164,7 +176,7 @@ export function UserLocation() {
             map.removeControl(ctrl);
             ctrlRef.current = null;
         };
-    }, [mapRef]);
+    }, [mapRef, disableInitialFly]);
 
     const handleActivate = useCallback(() => {
         const ctrl = ctrlRef.current;

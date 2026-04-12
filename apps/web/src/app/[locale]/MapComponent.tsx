@@ -92,9 +92,22 @@ export default function MapComponent({
     const [hoverInfo, setHoverInfo] = useState<TrainFeatureProperties | null>(
         null,
     );
-    const [selectedId, setSelectedId] = useState<string | null>(null);
-    const [isPanelOpen, setIsPanelOpen] = useState(false);
+
+    // Read the vehicleId from the URL once on mount (component is ssr:false so window is always available)
+    const [initialUrlVehicleId] = useState<string | null>(() =>
+        new URLSearchParams(window.location.search).get("vehicleId"),
+    );
+    const [selectedId, setSelectedId] = useState<string | null>(
+        initialUrlVehicleId,
+    );
+    const [isPanelOpen, setIsPanelOpen] = useState(!!initialUrlVehicleId);
     const [showNoDataDialog, setShowNoDataDialog] = useState(false);
+
+    const [mapLoaded, setMapLoaded] = useState(false);
+
+    // Refs for URL sync and initial fly-to
+    const isFirstUrlSyncRef = useRef(true);
+    const hasHandledInitialFlyRef = useRef(false);
 
     const filteredTrains = useMemo(() => {
         if (!trains)
@@ -152,6 +165,58 @@ export default function MapComponent({
             }
         }
     }, [searchSelection, filteredTrains]);
+
+    // Sync selectedId → URL (skip on the very first run so we don't clobber an existing URL param)
+    useEffect(() => {
+        if (isFirstUrlSyncRef.current) {
+            isFirstUrlSyncRef.current = false;
+            return;
+        }
+        const params = new URLSearchParams(window.location.search);
+        if (selectedId) {
+            params.set("vehicleId", selectedId);
+        } else {
+            params.delete("vehicleId");
+        }
+        const search = params.toString();
+        window.history.replaceState(
+            null,
+            "",
+            `${window.location.pathname}${search ? `?${search}` : ""}`,
+        );
+    }, [selectedId]);
+
+    // Fly to the vehicle that was in the URL on load; clear the selection if it no longer exists.
+    // Wait for BOTH trains data and the map to be ready — if trains load from cache before the
+    // map finishes initializing, mapRef.current is null and we must not misinterpret that as
+    // "train not found".
+    useEffect(() => {
+        if (
+            hasHandledInitialFlyRef.current ||
+            !initialUrlVehicleId ||
+            !trains ||
+            !mapLoaded
+        )
+            return;
+
+        const feature = filteredTrains.features.find(
+            (f) => f.properties.vehicleId === initialUrlVehicleId,
+        );
+
+        hasHandledInitialFlyRef.current = true;
+
+        if (feature) {
+            mapRef.current?.flyTo({
+                center: [feature.properties.lon, feature.properties.lat],
+                zoom: 14,
+                duration: 2000,
+            });
+        } else {
+            // Train is no longer available — clear selection and remove from URL
+            setSelectedId(null);
+            setIsPanelOpen(false);
+        }
+    }, [trains, filteredTrains, initialUrlVehicleId, mapLoaded]);
 
     const stopMarkersGeojson = useMemo(() => {
         if (!train?.trip?.stoptimes) return null;
@@ -381,6 +446,7 @@ export default function MapComponent({
                     latitude: 47.499,
                     zoom: 13,
                 }}
+                onLoad={() => setMapLoaded(true)}
                 maxPitch={0}
                 dragRotate={false}
                 attributionControl={false}
@@ -396,7 +462,7 @@ export default function MapComponent({
             >
                 <MapImage id="marker-triangle" svg={SVG_TRIANGLE} sdf={true} />
                 <ZoomButtons />
-                <UserLocation />
+                <UserLocation disableInitialFly={!!initialUrlVehicleId} />
                 <MapController
                     mapRef={mapRef}
                     selectedTrainId={selectedId}
