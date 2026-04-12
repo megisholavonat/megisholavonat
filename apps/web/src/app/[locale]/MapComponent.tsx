@@ -33,6 +33,18 @@ import { useMapSettings } from "@/hooks/useMapSettings";
 import { LAYER_IDS, Z_LAYERS } from "@/util/constants";
 import { OVERLAYS } from "@/util/mapConfigs";
 
+const BASEMAP_MISSING_ICON_PX = 16;
+
+function createTransparentBasemapIcon(): ImageData {
+    return new ImageData(
+        new Uint8ClampedArray(
+            BASEMAP_MISSING_ICON_PX * BASEMAP_MISSING_ICON_PX * 4,
+        ),
+        BASEMAP_MISSING_ICON_PX,
+        BASEMAP_MISSING_ICON_PX,
+    );
+}
+
 const SVG_TRIANGLE = `
 <svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
   <path d="M24 4 L32 20 L16 20 Z" fill="white" /> 
@@ -295,6 +307,23 @@ export default function MapComponent({
             ? "https://tiles.openfreemap.org/styles/dark"
             : "https://tiles.openfreemap.org/styles/liberty";
     }, [resolvedTheme]);
+
+    useEffect(() => {
+        if (!mapLoaded) return;
+        const map = mapRef.current?.getMap();
+        if (!map) return;
+
+        const onStyleImageMissing = (ev: { id: string }) => {
+            if (!map.hasImage(ev.id)) {
+                map.addImage(ev.id, createTransparentBasemapIcon());
+            }
+        };
+
+        map.on("styleimagemissing", onStyleImageMissing);
+        return () => {
+            map.off("styleimagemissing", onStyleImageMissing);
+        };
+    }, [mapLoaded]);
 
     const railwayPaint = useMemo(() => {
         if (resolvedTheme === "dark") {

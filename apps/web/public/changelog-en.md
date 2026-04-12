@@ -1,6 +1,6 @@
 ### 12/04/2025
 
-#### ÚjdonAddedságok
+#### Added
 
 - Leaflet -> MapLibre
 

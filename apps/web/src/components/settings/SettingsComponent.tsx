@@ -21,7 +21,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import Footer from "@/components/ui/Footer";
-import NewFeature from "@/components/ui/NewFeature";
+// import NewFeature from "@/components/ui/NewFeature";
 import {
     Select,
     SelectContent,
@@ -379,7 +379,6 @@ export default function SettingsComponent() {
                                             >
                                                 {t("theme_label")}
                                             </p>
-                                            <NewFeature />
                                         </div>
 
                                         <p
@@ -638,7 +637,6 @@ export default function SettingsComponent() {
                                 <fieldset className="space-y-4 border-0 p-0">
                                     <legend className="font-bold text-lg gap-x-3 flex">
                                         {t("map_settings_title")}
-                                        <NewFeature />
                                     </legend>
                                     {/* Railway Overlay Toggle */}
                                     <div className="flex items-center justify-between">
