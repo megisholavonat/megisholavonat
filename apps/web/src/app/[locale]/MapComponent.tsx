@@ -294,10 +294,10 @@ export default function MapComponent({
             [
                 "case",
                 ["==", ["get", "type"], "tramtrain"],
-                "#f9a825",
+                "#f9a825", // tramtrain orange
                 ["==", ["get", "type"], "hev"],
-                "#005e3b",
-                "#2f4550",
+                "#009860", // hev green
+                "#2f4550", // dark blue-ish
             ] as ExpressionSpecification,
         [],
     );
