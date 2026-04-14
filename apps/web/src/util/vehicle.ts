@@ -172,7 +172,7 @@ export function isFarFromRoute(
     const { lat, lon, trip } = vehiclePosition;
 
     // Check if we have a route geometry
-    if (!trip.tripGeometry || !trip.tripGeometry.points) {
+    if (!trip.tripGeometry?.points) {
         return false; // If no route geometry, can't determine if far from route
     }
 
