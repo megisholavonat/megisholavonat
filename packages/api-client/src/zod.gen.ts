@@ -187,7 +187,9 @@ export const zValidationError = z.object({
         z.int()
     ])),
     msg: z.string(),
-    type: z.string()
+    type: z.string(),
+    input: z.optional(z.unknown()),
+    ctx: z.optional(z.record(z.string(), z.unknown()))
 });
 
 /**
