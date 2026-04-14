@@ -47,6 +47,10 @@ export const zPosthogKey = z.object({
  * Route information
  */
 export const zRoute = z.object({
+    mode: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
     textColor: z.string(),
     shortName: z.string(),
     longName: z.string()
@@ -105,6 +109,11 @@ export const zProcessedStop = z.object({
  * Properties for a train feature (lighter version)
  */
 export const zTrainFeatureProperties = z.object({
+    type: z.enum([
+        'train',
+        'hev',
+        'tramtrain'
+    ]),
     vehicleId: z.string(),
     lat: z.number(),
     lon: z.number(),

@@ -29,6 +29,7 @@ POSITIONS_QUERY = """
         serviceDate
         tripShortName
         route {
+          mode
           textColor
           shortName
           longName

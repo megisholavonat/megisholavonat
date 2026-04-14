@@ -283,6 +283,17 @@
       },
       "Route": {
         "properties": {
+          "mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mode"
+          },
           "textColor": {
             "type": "string",
             "title": "Textcolor"
@@ -460,6 +471,15 @@
       },
       "TrainFeatureProperties": {
         "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "train",
+              "hev",
+              "tramtrain"
+            ],
+            "title": "Type"
+          },
           "vehicleId": {
             "type": "string",
             "title": "Vehicleid"
@@ -513,6 +533,7 @@
         },
         "type": "object",
         "required": [
+          "type",
           "vehicleId",
           "lat",
           "lon",

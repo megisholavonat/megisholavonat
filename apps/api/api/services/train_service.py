@@ -23,6 +23,16 @@ class TrainService:
     def __init__(self, redis: Redis):
         self.redis = redis
 
+    @staticmethod
+    def get_vehicle_type(location: dict[str, Any]) -> str:
+        route_mode = location.get("trip", {}).get("route", {}).get("mode")
+        mode_to_type = {
+            "RAIL": "train",
+            "SUBURBAN_RAILWAY": "hev",
+            "TRAMTRAIN": "tramtrain",
+        }
+        return mode_to_type.get(route_mode, "train")
+
     async def fetch_graphql_data(self) -> dict[str, Any]:
         """
         Fetches data from the GraphQL endpoint, optionally using a SOCKS5 proxy.
@@ -250,6 +260,7 @@ class TrainService:
                     "coordinates": [loc.get("lon", 0), loc.get("lat", 0)],
                 },
                 "properties": {
+                    "type": self.get_vehicle_type(loc),
                     "vehicleId": loc["vehicleId"],
                     "lat": loc.get("lat"),
                     "lon": loc.get("lon"),

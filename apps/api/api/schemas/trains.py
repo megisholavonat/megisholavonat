@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel
 
@@ -26,6 +26,7 @@ class StopTimeWithCounty(BaseModel):
 class Route(BaseModel):
     """Route information"""
 
+    mode: str | None = None
     textColor: str
     shortName: str
     longName: str
@@ -118,6 +119,7 @@ class APIResponse(BaseModel):
 class TrainFeatureProperties(BaseModel):
     """Properties for a train feature (lighter version)"""
 
+    type: Literal["train", "hev", "tramtrain"]
     vehicleId: str
     lat: float
     lon: float

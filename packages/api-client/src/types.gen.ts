@@ -108,6 +108,10 @@ export type ProcessedStop = {
  */
 export type Route = {
     /**
+     * Mode
+     */
+    mode?: string | null;
+    /**
      * Textcolor
      */
     textColor: string;
@@ -227,6 +231,10 @@ export type TrainFeatureCollection = {
  * Properties for a train feature (lighter version)
  */
 export type TrainFeatureProperties = {
+    /**
+     * Type
+     */
+    type: 'train' | 'hev' | 'tramtrain';
     /**
      * Vehicleid
      */
