@@ -129,7 +129,7 @@
 
 .vehicle-tooltip .maplibregl-popup-content {
     border-radius: 12px;
-    padding: 4px 8px;
+    padding: 2px 6px;
 }
 
 /* Hide the default leaflet.locatecontrol button (we use a custom one) */

@@ -42,17 +42,17 @@ export function TrainTooltip({ featureProperties }: TrainTooltipProps) {
     const tripNameDisplay = tripName ? (
         <>
             {extractedText && (
-                <span className="text-sm font-bold">{extractedText}</span>
+                <span className="text-xs font-bold">{extractedText}</span>
             )}
             {tripName.endsWith("TramTrain") && (
-                <span className="text-sm font-bold">TramTrain</span>
+                <span className="text-xs font-bold">TramTrain</span>
             )}
         </>
     ) : null;
 
     return (
         <div
-            className="text-base font-medium flex items-center gap-2 pt-1"
+            className="text-sm font-medium flex items-center gap-1 pt-0.5"
             style={{
                 color: `#${featureProperties.routeTextColor}`,
                 fontFamily: "inherit",

@@ -273,18 +273,18 @@ export default function MapComponent({
             [
                 "case",
                 ["==", ["get", "vehicleId"], selectedId || ""],
-                "#00bcd4", // Selected (Cyan)
+                "#00bcd4", // Selected blue
                 [
                     "step",
                     ["coalesce", ["get", "delay"], 0],
-                    "#4AD94A",
+                    "#4AD94A", // green
                     5,
-                    "#E4DE3A",
+                    "#E4DE3A", // yellow
                     15,
-                    "#DF9227",
+                    "#DF9227", // orange
                     60,
-                    "#D9564A",
-                ], // Default (Delay)
+                    "#D9564A", // red
+                ],
             ] as ExpressionSpecification,
         [selectedId],
     );
@@ -297,7 +297,7 @@ export default function MapComponent({
                 "#f9a825",
                 ["==", ["get", "type"], "hev"],
                 "#005e3b",
-                "#252525",
+                "#2f4550",
             ] as ExpressionSpecification,
         [],
     );
@@ -524,8 +524,8 @@ export default function MapComponent({
                         type="circle"
                         paint={{
                             "circle-radius": 8,
-                            "circle-stroke-width": 2.5,
                             "circle-color": circleColor,
+                            "circle-stroke-width": 2.5,
                             "circle-stroke-color": typeColor,
                         }}
                     />
