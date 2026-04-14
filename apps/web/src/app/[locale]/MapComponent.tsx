@@ -508,23 +508,23 @@ export default function MapComponent({
                         type="symbol"
                         layout={{
                             "icon-image": "marker-triangle",
-                            "icon-size": 0.7,
+                            "icon-size": 0.65,
                             "icon-rotate": ["coalesce", ["get", "heading"], 0],
                             "icon-rotation-alignment": "map",
                             "icon-allow-overlap": true,
                             "icon-ignore-placement": true,
-                            "icon-offset": [0, -12], // Push it "forward" (Up)
+                            "icon-offset": [0, -10], // Push out
                         }}
                         paint={{
-                            "icon-color": typeColor, // Matches the border color
+                            "icon-color": typeColor,
                         }}
                     />
                     <Layer
                         id={LAYER_IDS.TRAIN_MAIN}
                         type="circle"
                         paint={{
-                            "circle-radius": 10,
-                            "circle-stroke-width": 3,
+                            "circle-radius": 8,
+                            "circle-stroke-width": 2.5,
                             "circle-color": circleColor,
                             "circle-stroke-color": typeColor,
                         }}
