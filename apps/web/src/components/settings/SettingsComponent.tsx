@@ -340,7 +340,7 @@ export default function SettingsComponent() {
                                             src="https://purecatamphetamine.github.io/country-flag-icons/3x2/HU.svg"
                                             alt="Magyar"
                                             width={20}
-                                            height={20}
+                                            height={13}
                                             className={
                                                 locale === "hu"
                                                     ? ""
@@ -359,7 +359,7 @@ export default function SettingsComponent() {
                                             src="https://purecatamphetamine.github.io/country-flag-icons/3x2/GB.svg"
                                             alt="English"
                                             width={20}
-                                            height={20}
+                                            height={13}
                                             className={
                                                 locale === "en"
                                                     ? ""
