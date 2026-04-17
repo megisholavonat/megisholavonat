@@ -1,4 +1,5 @@
 import json
+import math
 import time
 from datetime import UTC, datetime
 from typing import Any
@@ -17,6 +18,20 @@ from api.util.preprocess import get_delay_and_position
 from api.util.vehicle import should_remove
 
 logger = get_logger(__name__)
+
+
+def route_length(route_coords: list[tuple[float, float]]) -> float:
+    """
+    Returns the total haversine length of the route in km.
+    """
+    total = 0.0
+    for (lat1, lon1), (lat2, lon2) in zip(route_coords[:-1], route_coords[1:]):
+        phi1, phi2 = math.radians(lat1), math.radians(lat2)
+        dphi = phi2 - phi1
+        dlam = math.radians(lon2 - lon1)
+        a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlam / 2) ** 2
+        total += 2 * 6371.0 * math.asin(min(1.0, math.sqrt(a)))
+    return total
 
 
 class TrainService:
@@ -164,6 +179,7 @@ class TrainService:
                     "totalRouteDistance": delay_data["totalRouteDistance"],
                     "processedStops": delay_data["processedStops"],
                     "vehicleProgress": delay_data["vehicleProgress"],
+                    "routeLengthKm": route_length(route_coords),
                 }
             )
 
@@ -253,6 +269,28 @@ class TrainService:
             if "vehicleId" not in loc:
                 continue
 
+            trip = loc.get("trip", {})
+
+            distance_to_next_stop_km: float | None = None
+            next_stop_id = loc.get("vehicleProgress", {}).get("nextStop")
+            processed_stops = loc.get("processedStops", [])
+            train_position = loc.get("trainPosition", 0.0)
+            total_route_distance = loc.get("totalRouteDistance", 0.0)
+            route_length_km = loc.get("routeLengthKm", 0.0)
+
+            if next_stop_id and processed_stops and total_route_distance > 0 and route_length_km > 0:
+                next_stop = next(
+                    (s for s in processed_stops if s.get("id") == next_stop_id),
+                    None,
+                )
+                if next_stop:
+                    shapely_dist = max(
+                        0.0, next_stop["distanceAlongRoute"] - train_position
+                    )
+                    distance_to_next_stop_km = round(
+                        shapely_dist / total_route_distance * route_length_km, 4
+                    )
+
             feature = {
                 "type": "Feature",
                 "geometry": {
@@ -265,15 +303,14 @@ class TrainService:
                     "lat": loc.get("lat"),
                     "lon": loc.get("lon"),
                     "heading": loc.get("heading"),
+                    "speed": loc.get("speed"),
                     "lastUpdated": str(loc.get("lastUpdated")),
-                    "tripShortName": loc.get("trip", {}).get("tripShortName", ""),
-                    "routeShortName": loc.get("trip", {})
-                    .get("route", {})
-                    .get("shortName", ""),
-                    "routeTextColor": loc.get("trip", {})
-                    .get("route", {})
-                    .get("textColor", ""),
+                    "tripShortName": trip.get("tripShortName", ""),
+                    "routeShortName": trip.get("route", {}).get("shortName", ""),
+                    "routeTextColor": trip.get("route", {}).get("textColor", ""),
                     "delay": loc.get("delay"),
+                    "routePolyline": trip.get("tripGeometry", {}).get("points"),
+                    "distanceToNextStop": distance_to_next_stop_km,
                 },
             }
             features.append(feature)

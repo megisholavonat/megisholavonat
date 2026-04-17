@@ -271,6 +271,14 @@ export type TrainFeatureProperties = {
      * Delay
      */
     delay: number;
+    /**
+     * Routepolyline
+     */
+    routePolyline?: string | null;
+    /**
+     * Distancetonextstop
+     */
+    distanceToNextStop?: number | null;
 };
 
 /**

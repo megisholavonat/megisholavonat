@@ -18,6 +18,7 @@ export function useMapSettings() {
             showHev: true,
         });
     const [showRailwayOverlay, setShowRailwayOverlay] = useState(true);
+    const [animateVehicles, setAnimateVehicles] = useState(true);
     const isMobile = useIsMobile();
 
     // Load settings from localStorage
@@ -70,6 +71,15 @@ export function useMapSettings() {
                 ? storedRailwayOverlay === "true"
                 : true;
         setShowRailwayOverlay(railwayOverlaySetting);
+
+        const storedAnimateVehicles = localStorage.getItem(
+            "mhav.settings.animateVehicles",
+        );
+        setAnimateVehicles(
+            storedAnimateVehicles !== null
+                ? storedAnimateVehicles === "true"
+                : true,
+        );
     }, [isMobile]);
 
     // Listen for tooltip setting changes
@@ -169,11 +179,30 @@ export function useMapSettings() {
         };
     }, []);
 
+    // Listen for animate vehicles setting changes
+    useEffect(() => {
+        const handleAnimateVehiclesChange = (event: CustomEvent<boolean>) => {
+            setAnimateVehicles(event.detail);
+        };
+
+        window.addEventListener(
+            "animateVehiclesChanged",
+            handleAnimateVehiclesChange as EventListener,
+        );
+        return () => {
+            window.removeEventListener(
+                "animateVehiclesChanged",
+                handleAnimateVehiclesChange as EventListener,
+            );
+        };
+    }, []);
+
     return {
         showTooltip,
         showStationNames,
         stationNamesOpacity,
         vehicleTypeSettings,
         showRailwayOverlay,
+        animateVehicles,
     };
 }

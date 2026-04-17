@@ -128,7 +128,15 @@ export const zTrainFeatureProperties = z.object({
     tripShortName: z.string(),
     routeShortName: z.string(),
     routeTextColor: z.string(),
-    delay: z.int()
+    delay: z.int(),
+    routePolyline: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    distanceToNextStop: z.optional(z.union([
+        z.number(),
+        z.null()
+    ]))
 });
 
 /**

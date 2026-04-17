@@ -529,6 +529,28 @@
           "delay": {
             "type": "integer",
             "title": "Delay"
+          },
+          "routePolyline": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Routepolyline"
+          },
+          "distanceToNextStop": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Distancetonextstop"
           }
         },
         "type": "object",

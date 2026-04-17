@@ -21,7 +21,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import Footer from "@/components/ui/Footer";
-// import NewFeature from "@/components/ui/NewFeature";
+import NewFeature from "@/components/ui/NewFeature";
 import {
     Select,
     SelectContent,
@@ -44,6 +44,7 @@ interface Settings {
     showTramTrains: boolean;
     showHev: boolean;
     showRailwayOverlay: boolean;
+    animateVehicles: boolean;
 }
 
 const defaultSettings: Settings = {
@@ -54,6 +55,7 @@ const defaultSettings: Settings = {
     showTramTrains: true,
     showHev: true,
     showRailwayOverlay: true,
+    animateVehicles: true,
 };
 
 export default function SettingsComponent() {
@@ -241,6 +243,12 @@ export default function SettingsComponent() {
         if (key === "showRailwayOverlay") {
             window.dispatchEvent(
                 new CustomEvent("railwayOverlayChanged", { detail: value }),
+            );
+        }
+
+        if (key === "animateVehicles") {
+            window.dispatchEvent(
+                new CustomEvent("animateVehiclesChanged", { detail: value }),
             );
         }
     };
@@ -659,6 +667,38 @@ export default function SettingsComponent() {
                                                 )
                                             }
                                             aria-labelledby="railway-overlay-label"
+                                        />
+                                    </div>
+
+                                    {/* Animate Vehicles Toggle */}
+                                    <div className="flex items-center justify-between">
+                                        <div className="space-y-0.5">
+                                            <p
+                                                id="animate-vehicles-label"
+                                                className="text-sm font-medium"
+                                            >
+                                                {t("animate_vehicles_label")}
+                                                <NewFeature />
+                                            </p>
+                                            <p
+                                                id="animate-vehicles-description"
+                                                className="text-sm text-muted-foreground"
+                                            >
+                                                {t(
+                                                    "animate_vehicles_description",
+                                                )}
+                                            </p>
+                                        </div>
+                                        <Switch
+                                            checked={settings.animateVehicles}
+                                            onCheckedChange={(checked) =>
+                                                updateSetting(
+                                                    "animateVehicles",
+                                                    checked,
+                                                )
+                                            }
+                                            aria-labelledby="animate-vehicles-label"
+                                            aria-describedby="animate-vehicles-description"
                                         />
                                     </div>
                                 </fieldset>

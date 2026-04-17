@@ -50,7 +50,9 @@
         "changelog_not_available": "Changelog not available",
         "open_source_notice": "This application is open source. You can submit suggestions, bug reports, and highly appreciated development help on our GitHub page.",
         "map_settings_title": "Map settings",
-        "railway_overlay_label": "Show railway lines"
+        "railway_overlay_label": "Show railway lines",
+        "animate_vehicles_label": "Animate vehicles",
+        "animate_vehicles_description": "Animate vehicle positions between updates"
     },
     "TrainPanel": {
         "uic_code": "UIC code",

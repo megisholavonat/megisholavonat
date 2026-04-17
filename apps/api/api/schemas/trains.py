@@ -129,6 +129,8 @@ class TrainFeatureProperties(BaseModel):
     routeShortName: str
     routeTextColor: str
     delay: int
+    routePolyline: str | None = None
+    distanceToNextStop: float | None = None
 
 
 class TrainFeature(BaseModel):

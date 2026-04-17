@@ -50,7 +50,9 @@
         "changelog_not_available": "A változások nem elérhetők",
         "open_source_notice": "Ez az alkalmazás nyílt forráskódú. Javaslatokat, hibajelentéseket, valamint nagyra értékelt fejlesztési segítséget a GitHub oldalunkon lehetséges leadni.",
         "map_settings_title": "Térkép beállítások",
-        "railway_overlay_label": "Vasútvonalak megjelenítése"
+        "railway_overlay_label": "Vasútvonalak megjelenítése",
+        "animate_vehicles_label": "Járművek animálása",
+        "animate_vehicles_description": "A járművek pozíciójának folyamatos animálása frissítések között"
     },
     "TrainPanel": {
         "uic_code": "UIC kód",
