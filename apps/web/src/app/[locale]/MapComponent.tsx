@@ -114,7 +114,6 @@ export default function MapComponent({
     const trackersRef = useRef<Map<string, VehicleState>>(new Map());
     const filteredTrainsRef = useRef<FeatureCollection | null>(null);
     const rafRef = useRef<number | null>(null);
-    /** Last vehicle under the pointer; used to sync tooltip position while the vehicle animates. */
     const lastHoveredIdRef = useRef<string | null>(null);
     const { data: trains } = useQuery(getTrainsOptions());
     const [cursor, setCursor] = useState<string | null>(null);
@@ -137,7 +136,6 @@ export default function MapComponent({
     // Refs for URL sync and initial fly-to
     const isFirstUrlSyncRef = useRef(true);
     const hasHandledInitialFlyRef = useRef(false);
-    /** Fly at most once per search bar pick; `filteredTrains` updates must not re-trigger fly. */
     const lastSearchFlyTimestampRef = useRef<number | null>(null);
 
     const filteredTrains = useMemo(() => {
@@ -207,7 +205,6 @@ export default function MapComponent({
         });
     }, [searchSelection, filteredTrains]);
 
-    // Sync selectedId → URL (skip on the very first run so we don't clobber an existing URL param)
     useEffect(() => {
         if (isFirstUrlSyncRef.current) {
             isFirstUrlSyncRef.current = false;
@@ -227,10 +224,7 @@ export default function MapComponent({
         );
     }, [selectedId]);
 
-    // Fly to the vehicle that was in the URL on load; clear the selection if it no longer exists.
-    // Wait for BOTH trains data and the map to be ready — if trains load from cache before the
-    // map finishes initializing, mapRef.current is null and we must not misinterpret that as
-    // "train not found".
+    // Fly to the vehicle that was in the URL on load
     useEffect(() => {
         if (
             hasHandledInitialFlyRef.current ||
@@ -659,6 +653,12 @@ export default function MapComponent({
                 cursor={cursor ?? undefined}
                 onClick={onClick}
                 onMouseMove={onHover}
+                maxBounds={[
+                    [5.5, 43], // Southwest
+                    [30, 52.5], // Northeast
+                ]}
+                minZoom={5}
+                maxZoom={19}
             >
                 <MapImage id="marker-triangle" svg={SVG_TRIANGLE} sdf={true} />
                 <ZoomButtons />
