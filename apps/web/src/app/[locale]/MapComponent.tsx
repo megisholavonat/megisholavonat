@@ -22,7 +22,6 @@ import type {
 } from "geojson";
 import type { ExpressionSpecification, GeoJSONSource } from "maplibre-gl";
 import { AnimatePresence, motion } from "motion/react";
-import { useTheme } from "next-themes";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DelayLegend } from "@/components/information/DelayLegend";
 import { DragCloseDrawer } from "@/components/information/DragModal";
@@ -33,6 +32,7 @@ import { MapImage } from "@/components/map/MapImage";
 import { TrainTooltip } from "@/components/map/TrainTooltip";
 import { UserLocation } from "@/components/map/UserLocation";
 import { ZoomButtons } from "@/components/map/ZoomButtons";
+import { useTheme } from "@/components/ui/ThemeProvider";
 import { useMapSettings } from "@/hooks/useMapSettings";
 import {
     createVehicleState,
@@ -475,7 +475,11 @@ export default function MapComponent({
 
         map.on("styleimagemissing", onStyleImageMissing);
         return () => {
-            map.off("styleimagemissing", onStyleImageMissing);
+            try {
+                map.off("styleimagemissing", onStyleImageMissing);
+            } catch {
+                /* Map may already be removed (e.g. locale change / unmount). */
+            }
         };
     }, [mapLoaded]);
 
