@@ -3,7 +3,6 @@
 import { motion } from "motion/react";
 import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
-import { useTheme } from "next-themes";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FaCog } from "react-icons/fa";
 import { FaInfo } from "react-icons/fa6";
@@ -31,11 +30,11 @@ import {
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
+import { useTheme } from "@/components/ui/ThemeProvider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { Z_LAYERS } from "@/util/constants";
-import { BASE_MAPS, type BaseMapKey } from "@/util/mapConfigs";
 
 interface Settings {
     showTooltip: boolean;
@@ -44,19 +43,19 @@ interface Settings {
     showTrains: boolean;
     showTramTrains: boolean;
     showHev: boolean;
-    baseMap: BaseMapKey;
     showRailwayOverlay: boolean;
+    animateVehicles: boolean;
 }
 
 const defaultSettings: Settings = {
     showTooltip: true,
     showStationNames: true,
-    stationNamesOpacity: 0.7,
+    stationNamesOpacity: 1,
     showTrains: true,
     showTramTrains: true,
     showHev: true,
-    baseMap: "openstreetmap",
     showRailwayOverlay: true,
+    animateVehicles: true,
 };
 
 export default function SettingsComponent() {
@@ -90,12 +89,6 @@ export default function SettingsComponent() {
                     const settingKey = key as keyof Settings;
                     if (settingKey === "stationNamesOpacity") {
                         storedSettings[settingKey] = parseFloat(storedValue);
-                    } else if (settingKey === "baseMap") {
-                        // Validate that the stored base map is valid
-                        if (Object.keys(BASE_MAPS).includes(storedValue)) {
-                            storedSettings[settingKey] =
-                                storedValue as BaseMapKey;
-                        }
                     } else {
                         storedSettings[settingKey] = storedValue === "true";
                     }
@@ -189,10 +182,7 @@ export default function SettingsComponent() {
     );
 
     // Save individual setting to localStorage
-    const updateSetting = (
-        key: keyof Settings,
-        value: boolean | number | BaseMapKey,
-    ) => {
+    const updateSetting = (key: keyof Settings, value: boolean | number) => {
         // Don't allow tooltip changes on mobile - it's always disabled
         if (key === "showTooltip" && isMobile) {
             return;
@@ -249,24 +239,25 @@ export default function SettingsComponent() {
             );
         }
 
-        // If base map is changed, trigger a custom event for MapComponent
-        if (key === "baseMap") {
-            window.dispatchEvent(
-                new CustomEvent("baseMapChanged", { detail: value }),
-            );
-        }
-
         // If railway overlay is changed, trigger a custom event for MapComponent
         if (key === "showRailwayOverlay") {
             window.dispatchEvent(
                 new CustomEvent("railwayOverlayChanged", { detail: value }),
             );
         }
+
+        if (key === "animateVehicles") {
+            window.dispatchEvent(
+                new CustomEvent("animateVehiclesChanged", { detail: value }),
+            );
+        }
     };
 
-    // Handle language change
+    // Handle language change (close dialog first so overlays unmount cleanly before navigation)
     const handleLanguageChange = (checked: boolean) => {
         const newLocale = checked ? "en" : "hu";
+        if (newLocale === locale) return;
+        setIsOpen(false);
         router.push(pathname, { locale: newLocale });
     };
 
@@ -359,7 +350,7 @@ export default function SettingsComponent() {
                                             src="https://purecatamphetamine.github.io/country-flag-icons/3x2/HU.svg"
                                             alt="Magyar"
                                             width={20}
-                                            height={20}
+                                            height={13}
                                             className={
                                                 locale === "hu"
                                                     ? ""
@@ -378,7 +369,7 @@ export default function SettingsComponent() {
                                             src="https://purecatamphetamine.github.io/country-flag-icons/3x2/GB.svg"
                                             alt="English"
                                             width={20}
-                                            height={20}
+                                            height={13}
                                             className={
                                                 locale === "en"
                                                     ? ""
@@ -398,7 +389,6 @@ export default function SettingsComponent() {
                                             >
                                                 {t("theme_label")}
                                             </p>
-                                            <NewFeature />
                                         </div>
 
                                         <p
@@ -657,56 +647,7 @@ export default function SettingsComponent() {
                                 <fieldset className="space-y-4 border-0 p-0">
                                     <legend className="font-bold text-lg gap-x-3 flex">
                                         {t("map_settings_title")}
-                                        <NewFeature />
                                     </legend>
-
-                                    {/* Base Map Selector */}
-                                    <div className="space-y-2">
-                                        <div className="space-y-0.5">
-                                            <p
-                                                id="base-map-label"
-                                                className="text-sm font-medium"
-                                            >
-                                                {t("base_map_label")}
-                                            </p>
-                                        </div>
-                                        <Select
-                                            value={settings.baseMap}
-                                            onValueChange={(value) =>
-                                                updateSetting(
-                                                    "baseMap",
-                                                    value as BaseMapKey,
-                                                )
-                                            }
-                                        >
-                                            <SelectTrigger
-                                                className="w-full"
-                                                aria-labelledby="base-map-label"
-                                            >
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent
-                                                style={{
-                                                    zIndex: Z_LAYERS.DIALOG_SELECT,
-                                                }}
-                                            >
-                                                {Object.entries(BASE_MAPS).map(
-                                                    ([key]) => (
-                                                        <SelectItem
-                                                            key={key}
-                                                            value={key}
-                                                        >
-                                                            {
-                                                                BASE_MAPS[key]
-                                                                    .name
-                                                            }
-                                                        </SelectItem>
-                                                    ),
-                                                )}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
                                     {/* Railway Overlay Toggle */}
                                     <div className="flex items-center justify-between">
                                         <div className="space-y-0.5">
@@ -728,6 +669,38 @@ export default function SettingsComponent() {
                                                 )
                                             }
                                             aria-labelledby="railway-overlay-label"
+                                        />
+                                    </div>
+
+                                    {/* Animate Vehicles Toggle */}
+                                    <div className="flex items-center justify-between">
+                                        <div className="space-y-0.5">
+                                            <p
+                                                id="animate-vehicles-label"
+                                                className="text-sm font-medium"
+                                            >
+                                                {t("animate_vehicles_label")}
+                                                <NewFeature />
+                                            </p>
+                                            <p
+                                                id="animate-vehicles-description"
+                                                className="text-sm text-muted-foreground"
+                                            >
+                                                {t(
+                                                    "animate_vehicles_description",
+                                                )}
+                                            </p>
+                                        </div>
+                                        <Switch
+                                            checked={settings.animateVehicles}
+                                            onCheckedChange={(checked) =>
+                                                updateSetting(
+                                                    "animateVehicles",
+                                                    checked,
+                                                )
+                                            }
+                                            aria-labelledby="animate-vehicles-label"
+                                            aria-describedby="animate-vehicles-description"
                                         />
                                     </div>
                                 </fieldset>

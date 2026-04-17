@@ -1,3 +1,5 @@
+from typing import Any, Literal
+
 from pydantic import BaseModel
 
 
@@ -24,6 +26,7 @@ class StopTimeWithCounty(BaseModel):
 class Route(BaseModel):
     """Route information"""
 
+    mode: str | None = None
     textColor: str
     shortName: str
     longName: str
@@ -111,3 +114,38 @@ class APIResponse(BaseModel):
     dataAgeMinutes: int | None = None
     locations: list[VehiclePositionWithDelay]
     error: str | None = None
+
+
+class TrainFeatureProperties(BaseModel):
+    """Properties for a train feature (lighter version)"""
+
+    type: Literal["train", "hev", "tramtrain"]
+    vehicleId: str
+    lat: float
+    lon: float
+    heading: float | None = None
+    speed: float | None = None
+    tripShortName: str
+    routeShortName: str
+    routeTextColor: str
+    delay: int
+    routePolyline: str | None = None
+    distanceToNextStop: float | None = None
+
+
+class TrainFeature(BaseModel):
+    """GeoJSON Feature for a train"""
+
+    type: str = "Feature"
+    geometry: dict[str, Any]
+    properties: TrainFeatureProperties
+
+
+class TrainFeatureCollection(BaseModel):
+    """GeoJSON FeatureCollection for trains"""
+
+    type: str = "FeatureCollection"
+    timestamp: str
+    noDataReceived: bool | None = False
+    dataAgeMinutes: int | None = None
+    features: list[TrainFeature]

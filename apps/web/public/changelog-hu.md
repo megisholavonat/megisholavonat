@@ -1,3 +1,9 @@
+### 2026. 04. 12.
+
+#### Újdonságok
+
+- Rendszerváltó frissítés (Leaflet -> MapLibre)
+
 ### 2025. 12. 04.
 
 #### Újdonságok

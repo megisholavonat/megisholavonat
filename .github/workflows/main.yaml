@@ -1,9 +1,9 @@
-name: PROD - Build and deploy all apps
+name: MAIN - Build and deploy all apps
 
 on:
   push:
     branches:
-      - prod
+      - main
 
 permissions:
   contents: read
@@ -127,16 +127,16 @@ jobs:
       - name: Update image tags
         uses: mikefarah/yq@master
         with:
-          cmd: yq -i '.image.tag = "${{ github.sha }}"' cluster/apps/mhav/values.yaml
+          cmd: yq -i '.image.tag = "${{ github.sha }}"' cluster/apps/mhav-dev/values.yaml
 
       - name: Commit and push changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           if [[ -n $(git status -s) ]]; then
-            git add cluster/apps/mhav/values.yaml
-            git commit -m "ci: update image tag to ${{ github.sha }}"
+            git add cluster/apps/mhav-dev/values.yaml
+            git commit -m "ci: update dev image tag to ${{ github.sha }}"
             git push
           else
-            echo "No changes detected. Image tag is already up to date."
+            echo "No changes detected. Dev image tag is already up to date."
           fi
