@@ -137,6 +137,8 @@ export default function MapComponent({
     // Refs for URL sync and initial fly-to
     const isFirstUrlSyncRef = useRef(true);
     const hasHandledInitialFlyRef = useRef(false);
+    /** Fly at most once per search bar pick; `filteredTrains` updates must not re-trigger fly. */
+    const lastSearchFlyTimestampRef = useRef<number | null>(null);
 
     const filteredTrains = useMemo(() => {
         if (!trains)
@@ -181,19 +183,28 @@ export default function MapComponent({
     }, [searchSelection]);
 
     useEffect(() => {
-        if (searchSelection && filteredTrains) {
-            const feature = filteredTrains.features.find(
-                (f) => f.properties.vehicleId === searchSelection.vehicleId,
-            );
-            if (feature && mapRef.current) {
-                const { lon, lat } = feature.properties;
-                mapRef.current.flyTo({
-                    center: [lon, lat],
-                    zoom: 14,
-                    duration: 2000,
-                });
-            }
+        if (!searchSelection) {
+            lastSearchFlyTimestampRef.current = null;
+            return;
         }
+        if (!filteredTrains) return;
+
+        const feature = filteredTrains.features.find(
+            (f) => f.properties.vehicleId === searchSelection.vehicleId,
+        );
+        if (!feature || !mapRef.current) return;
+
+        if (lastSearchFlyTimestampRef.current === searchSelection.timestamp) {
+            return;
+        }
+        lastSearchFlyTimestampRef.current = searchSelection.timestamp;
+
+        const { lon, lat } = feature.properties;
+        mapRef.current.flyTo({
+            center: [lon, lat],
+            zoom: 14,
+            duration: 2000,
+        });
     }, [searchSelection, filteredTrains]);
 
     // Sync selectedId → URL (skip on the very first run so we don't clobber an existing URL param)
@@ -529,6 +540,7 @@ export default function MapComponent({
                     setIsPanelOpen(true);
                 }
             } else {
+                onClearSearchSelection?.();
                 setSelectedId(null);
                 setIsPanelOpen(false);
             }
@@ -539,6 +551,7 @@ export default function MapComponent({
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === "Escape" && (selectedId || isPanelOpen)) {
+                onClearSearchSelection?.();
                 setSelectedId(null);
                 setIsPanelOpen(false);
             }
@@ -546,7 +559,7 @@ export default function MapComponent({
 
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [selectedId, isPanelOpen]);
+    }, [selectedId, isPanelOpen, onClearSearchSelection]);
 
     useEffect(() => {
         const hasTrains = (trains?.features?.length ?? 0) > 0;
@@ -582,6 +595,7 @@ export default function MapComponent({
                             <TrainPanel
                                 vehicle={train}
                                 onClose={() => {
+                                    onClearSearchSelection?.();
                                     setSelectedId(null);
                                     setIsPanelOpen(false);
                                 }}
@@ -596,7 +610,10 @@ export default function MapComponent({
                                 open={isPanelOpen}
                                 setOpen={(open) => {
                                     setIsPanelOpen(open);
-                                    if (!open) setSelectedId(null);
+                                    if (!open) {
+                                        onClearSearchSelection?.();
+                                        setSelectedId(null);
+                                    }
                                 }}
                             >
                                 <TrainPanel
