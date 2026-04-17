@@ -3,7 +3,6 @@
 import { motion } from "motion/react";
 import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
-import { useTheme } from "next-themes";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FaCog } from "react-icons/fa";
 import { FaInfo } from "react-icons/fa6";
@@ -31,6 +30,7 @@ import {
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
+import { useTheme } from "@/components/ui/ThemeProvider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { usePathname, useRouter } from "@/i18n/navigation";
@@ -253,9 +253,11 @@ export default function SettingsComponent() {
         }
     };
 
-    // Handle language change
+    // Handle language change (close dialog first so overlays unmount cleanly before navigation)
     const handleLanguageChange = (checked: boolean) => {
         const newLocale = checked ? "en" : "hu";
+        if (newLocale === locale) return;
+        setIsOpen(false);
         router.push(pathname, { locale: newLocale });
     };
 

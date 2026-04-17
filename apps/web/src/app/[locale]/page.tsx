@@ -4,7 +4,7 @@ import { getTrainsOptions } from "@megisholavonat/api-client/react-query";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
 import dynamic from "next/dynamic";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import Header from "@/components/ui/Header";
 
@@ -41,6 +41,7 @@ export interface SearchSelection {
 }
 
 export default function MapPage() {
+    const locale = useLocale();
     const [searchSelection, setSearchSelection] =
         useState<SearchSelection | null>(null);
 
@@ -66,6 +67,7 @@ export default function MapPage() {
             />
 
             <DynamicMap
+                key={locale}
                 searchSelection={searchSelection}
                 onClearSearchSelection={clearSearchSelection}
             />

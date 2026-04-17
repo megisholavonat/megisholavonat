@@ -173,7 +173,11 @@ export function UserLocation({
 
         return () => {
             cancelled = true;
-            map.removeControl(ctrl);
+            try {
+                map.removeControl(ctrl);
+            } catch {
+                /* Map may already be removed (navigation / remount). */
+            }
             ctrlRef.current = null;
         };
     }, [mapRef, disableInitialFly]);
