@@ -1,16 +1,12 @@
-import type { VehiclePositionWithDelay } from "@megisholavonat/api-client";
-import { Tooltip as LeafletTooltip } from "react-leaflet";
+import type { TrainFeatureProperties } from "@megisholavonat/api-client";
 import MAVRouteIcon from "@/components/ui/MavRouteIcon";
 
 interface TrainTooltipProps {
-    train: VehiclePositionWithDelay;
-    showTooltip: boolean;
+    featureProperties: TrainFeatureProperties;
 }
 
-export function TrainTooltip({ train, showTooltip }: TrainTooltipProps) {
-    if (!showTooltip) return null;
-
-    const tripName = train.trip.tripShortName;
+export function TrainTooltip({ featureProperties }: TrainTooltipProps) {
+    const tripName = featureProperties.tripShortName;
     const isCapital = (char: string) => {
         return (char >= "A" && char <= "Z") || "ÁÉÍÓÖŐÚÜŰ".includes(char);
     };
@@ -46,31 +42,24 @@ export function TrainTooltip({ train, showTooltip }: TrainTooltipProps) {
     const tripNameDisplay = tripName ? (
         <>
             {extractedText && (
-                <span className="text-sm font-bold">{extractedText}</span>
+                <span className="text-xs font-bold">{extractedText}</span>
             )}
             {tripName.endsWith("TramTrain") && (
-                <span className="text-sm font-bold">TramTrain</span>
+                <span className="text-xs font-bold">TramTrain</span>
             )}
         </>
     ) : null;
 
     return (
-        <LeafletTooltip
-            direction="top"
-            offset={[0, -10]}
-            opacity={1}
-            className="custom-train-tooltip"
+        <div
+            className="text-sm font-medium flex items-center gap-1 pt-0.5"
+            style={{
+                color: `#${featureProperties.routeTextColor}`,
+                fontFamily: "inherit",
+            }}
         >
-            <div
-                className="text-base font-medium flex items-center gap-2 pt-1"
-                style={{
-                    color: `#${train.trip.route.textColor}`,
-                    fontFamily: "inherit",
-                }}
-            >
-                <MAVRouteIcon routeShortName={train.trip.route.shortName} />
-                {tripNameDisplay}
-            </div>
-        </LeafletTooltip>
+            <MAVRouteIcon routeShortName={featureProperties.routeShortName} />
+            {tripNameDisplay}
+        </div>
     );
 }

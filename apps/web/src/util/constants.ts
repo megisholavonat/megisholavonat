@@ -1,3 +1,6 @@
+/** How often (ms) the vehicle position feed is polled. Matches the server's update cadence. */
+export const POLL_INTERVAL_MS = 60_000;
+
 export const RED_THRESHOLD = 60;
 export const ORANGE_THRESHOLD = 15;
 export const YELLOW_THRESHOLD = 5;
@@ -18,4 +21,13 @@ export const Z_LAYERS = {
     DIALOGS: 5000, // Settings dialog
     DIALOG_SELECT: 5100, // Select dropdowns inside dialogs
     TOOLTIPS: 6000, // Tooltips and popovers
+} as const;
+
+export const LAYER_IDS = {
+    RAILWAY: "railway-layer",
+    ROUTE_LINE: "polyline-layer",
+    STOP_CIRCLES: "stops-layer",
+    STOP_LABELS: "stops-labels",
+    TRAIN_HEADING: "marker-heading",
+    TRAIN_MAIN: "marker-main",
 } as const;

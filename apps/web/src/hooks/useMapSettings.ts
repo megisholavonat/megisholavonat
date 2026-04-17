@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { BASE_MAPS, type BaseMapKey } from "@/util/mapConfigs";
 import { useIsMobile } from "./useIsMobile";
 
 interface VehicleTypeSettings {
@@ -11,15 +10,15 @@ interface VehicleTypeSettings {
 export function useMapSettings() {
     const [showTooltip, setShowTooltip] = useState(true);
     const [showStationNames, setShowStationNames] = useState(true);
-    const [stationNamesOpacity, setStationNamesOpacity] = useState(0.9);
+    const [stationNamesOpacity, setStationNamesOpacity] = useState(1);
     const [vehicleTypeSettings, setVehicleTypeSettings] =
         useState<VehicleTypeSettings>({
             showTrains: true,
             showTramTrains: true,
             showHev: true,
         });
-    const [baseMap, setBaseMap] = useState<BaseMapKey>("openstreetmap");
     const [showRailwayOverlay, setShowRailwayOverlay] = useState(true);
+    const [animateVehicles, setAnimateVehicles] = useState(true);
     const isMobile = useIsMobile();
 
     // Load settings from localStorage
@@ -46,7 +45,7 @@ export function useMapSettings() {
         const stationNamesOpacitySetting =
             storedStationNamesOpacity !== null
                 ? parseFloat(storedStationNamesOpacity)
-                : 0.9;
+                : 1;
         setStationNamesOpacity(stationNamesOpacitySetting);
 
         // Load vehicle type settings
@@ -63,12 +62,6 @@ export function useMapSettings() {
             showHev: storedHev !== null ? storedHev === "true" : true,
         });
 
-        // Load base map setting
-        const storedBaseMap = localStorage.getItem("mhav.settings.baseMap");
-        if (storedBaseMap && Object.keys(BASE_MAPS).includes(storedBaseMap)) {
-            setBaseMap(storedBaseMap as BaseMapKey);
-        }
-
         // Load railway overlay setting
         const storedRailwayOverlay = localStorage.getItem(
             "mhav.settings.showRailwayOverlay",
@@ -78,6 +71,15 @@ export function useMapSettings() {
                 ? storedRailwayOverlay === "true"
                 : true;
         setShowRailwayOverlay(railwayOverlaySetting);
+
+        const storedAnimateVehicles = localStorage.getItem(
+            "mhav.settings.animateVehicles",
+        );
+        setAnimateVehicles(
+            storedAnimateVehicles !== null
+                ? storedAnimateVehicles === "true"
+                : true,
+        );
     }, [isMobile]);
 
     // Listen for tooltip setting changes
@@ -159,24 +161,6 @@ export function useMapSettings() {
         };
     }, []);
 
-    // Listen for base map setting changes
-    useEffect(() => {
-        const handleBaseMapChange = (event: CustomEvent<BaseMapKey>) => {
-            setBaseMap(event.detail);
-        };
-
-        window.addEventListener(
-            "baseMapChanged",
-            handleBaseMapChange as EventListener,
-        );
-        return () => {
-            window.removeEventListener(
-                "baseMapChanged",
-                handleBaseMapChange as EventListener,
-            );
-        };
-    }, []);
-
     // Listen for railway overlay setting changes
     useEffect(() => {
         const handleRailwayOverlayChange = (event: CustomEvent<boolean>) => {
@@ -195,12 +179,30 @@ export function useMapSettings() {
         };
     }, []);
 
+    // Listen for animate vehicles setting changes
+    useEffect(() => {
+        const handleAnimateVehiclesChange = (event: CustomEvent<boolean>) => {
+            setAnimateVehicles(event.detail);
+        };
+
+        window.addEventListener(
+            "animateVehiclesChanged",
+            handleAnimateVehiclesChange as EventListener,
+        );
+        return () => {
+            window.removeEventListener(
+                "animateVehiclesChanged",
+                handleAnimateVehiclesChange as EventListener,
+            );
+        };
+    }, []);
+
     return {
         showTooltip,
         showStationNames,
         stationNamesOpacity,
         vehicleTypeSettings,
-        baseMap,
         showRailwayOverlay,
+        animateVehicles,
     };
 }

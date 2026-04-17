@@ -8,10 +8,10 @@
         "generate:api": "pnpm generate:schema && pnpm generate:client"
     },
     "devDependencies": {
-        "@biomejs/biome": "2.3.7",
-        "turbo": "^2.9.3"
+        "@biomejs/biome": "2.4.11",
+        "turbo": "2.9.6"
     },
-    "packageManager": "pnpm@10.25.0",
+    "packageManager": "pnpm@10.33.0",
     "pnpm": {
         "overrides": {
             "lightningcss": "1.30.1"

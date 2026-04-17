@@ -9,7 +9,7 @@ export default function NewFeature() {
 
     return (
         <TooltipPopover content={t("text")}>
-            <Badge className=" dark:bg-blue-800 bg-blue-600 text-white">
+            <Badge className=" dark:bg-blue-800 bg-blue-600 text-white ml-2">
                 <span aria-hidden="true" className="scale-125">
                     🎉
                 </span>
