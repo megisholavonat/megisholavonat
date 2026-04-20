@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetPosthogKeyData, GetPosthogKeyResponses, GetRedisStatusData, GetRedisStatusResponses, GetTrainsData, GetTrainsResponses, RootData, RootResponses } from './types.gen';
+import type { GetPosthogKeyData, GetPosthogKeyResponses, GetRedisStatusData, GetRedisStatusResponses, GetTrainDetailsData, GetTrainDetailsErrors, GetTrainDetailsResponses, GetTrainsData, GetTrainsResponses, RootData, RootResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -45,12 +45,25 @@ export const getRedisStatus = <ThrowOnError extends boolean = false>(options?: O
 /**
  * Get Trains
  *
- * Get trains information
+ * Get trains information as GeoJSON FeatureCollection
  */
 export const getTrains = <ThrowOnError extends boolean = false>(options?: Options<GetTrainsData, ThrowOnError>) => {
     return (options?.client ?? client).get<GetTrainsResponses, unknown, ThrowOnError>({
         responseType: 'json',
         url: '/v1/trains',
+        ...options
+    });
+};
+
+/**
+ * Get Train Details
+ *
+ * Get specific train details
+ */
+export const getTrainDetails = <ThrowOnError extends boolean = false>(options: Options<GetTrainDetailsData, ThrowOnError>) => {
+    return (options.client ?? client).get<GetTrainDetailsResponses, GetTrainDetailsErrors, ThrowOnError>({
+        responseType: 'json',
+        url: '/v1/trains/{vehicle_id}',
         ...options
     });
 };

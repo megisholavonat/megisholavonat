@@ -50,8 +50,9 @@
         "changelog_not_available": "A változások nem elérhetők",
         "open_source_notice": "Ez az alkalmazás nyílt forráskódú. Javaslatokat, hibajelentéseket, valamint nagyra értékelt fejlesztési segítséget a GitHub oldalunkon lehetséges leadni.",
         "map_settings_title": "Térkép beállítások",
-        "base_map_label": "Alaptérkép",
-        "railway_overlay_label": "Vasútvonalak megjelenítése"
+        "railway_overlay_label": "Vasútvonalak megjelenítése",
+        "animate_vehicles_label": "Járművek animálása",
+        "animate_vehicles_description": "A járművek pozíciójának folyamatos animálása frissítések között"
     },
     "TrainPanel": {
         "uic_code": "UIC kód",
@@ -89,7 +90,9 @@
             "medium_delay": "15-59 perc",
             "large_delay": "≥ 60 perc",
             "no_data": "Inaktív"
-        }
+        },
+        "map_credits_title": "Térkép források",
+        "map_credits_base": "<maplibre>MapLibre</maplibre>, <ofm>OpenFreeMap</ofm>, <osm>OpenStreetMap</osm>, <orm>OpenRailwayMap</orm>."
     },
     "DragModal": {
         "down": "Le",
@@ -101,7 +104,10 @@
         "zoom_out": "Kicsinyítés"
     },
     "UserLocation": {
-        "locate": "Jelenlegi helyzet"
+        "locate": "Jelenlegi helyzet",
+        "get_location": "Helyzet lekérése",
+        "location_error": "Nem sikerült meghatározni a helyzetét. Kérjük, ellenőrizd a böngésződ beállításait.",
+        "center_map_on_user": "Mozgatás a jelenlegi helyzetre"
     },
     "LanguageSwitcher": {
         "switch_to": "Váltás {language} nyelvre"

@@ -5,7 +5,7 @@
     "scripts": {
         "dev": "cross-env PYTHONUTF8=1 concurrently -n FastAPI,TaskiqWorker,TaskiqScheduler -c red,blue,green \"pnpm dev:fastapi\" \"pnpm dev:taskiq:worker\" \"pnpm dev:taskiq:scheduler\"",
         "dev:fastapi": "uv run fastapi dev -e api.main:create_app --host 0.0.0.0",
-        "dev:taskiq:worker": "uv run taskiq worker api.core.taskiq_broker:broker --reload --fs-discover --tasks-pattern \"api/tasks/**/*.py\"",
+        "dev:taskiq:worker": "uv run taskiq worker api.core.taskiq_broker:broker --reload --reload-dir api --fs-discover --tasks-pattern \"api/tasks/**/*.py\"",
         "dev:taskiq:scheduler": "uv run taskiq scheduler api.core.taskiq_broker:scheduler --fs-discover --tasks-pattern \"api/tasks/**/*.py\"",
         "lint": "uv run ruff check . && uv run mypy .",
         "format": "uv run ruff format .",

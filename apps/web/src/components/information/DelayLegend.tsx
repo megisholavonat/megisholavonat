@@ -25,6 +25,9 @@ interface DelayLegendProps {
     hasTrains?: boolean;
 }
 
+const mapCreditLinkClass =
+    "text-blue-600 dark:text-blue-400 underline underline-offset-2 hover:text-blue-700 dark:hover:text-blue-300";
+
 export function DelayLegend({ dataAgeMinutes, hasTrains }: DelayLegendProps) {
     const t = useTranslations("DelayLegend");
     const tNoData = useTranslations("NoDataDialog");
@@ -173,10 +176,67 @@ export function DelayLegend({ dataAgeMinutes, hasTrains }: DelayLegendProps) {
                                             </motion.div>
                                         ))}
                                     </div>
-                                    <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                                    <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 space-y-3">
                                         <p className="text-xs text-gray-500 dark:text-gray-400">
                                             {t("note")}
                                         </p>
+                                        <div>
+                                            <p className="text-xs font-medium text-gray-600 dark:text-gray-300 mb-1.5">
+                                                {t("map_credits_title")}
+                                            </p>
+                                            <p className="text-[11px] leading-relaxed text-gray-500 dark:text-gray-400">
+                                                {t.rich("map_credits_base", {
+                                                    maplibre: (chunks) => (
+                                                        <a
+                                                            href="https://maplibre.org/"
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className={
+                                                                mapCreditLinkClass
+                                                            }
+                                                        >
+                                                            {chunks}
+                                                        </a>
+                                                    ),
+                                                    ofm: (chunks) => (
+                                                        <a
+                                                            href="https://openfreemap.org/"
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className={
+                                                                mapCreditLinkClass
+                                                            }
+                                                        >
+                                                            {chunks}
+                                                        </a>
+                                                    ),
+                                                    osm: (chunks) => (
+                                                        <a
+                                                            href="https://www.openstreetmap.org/"
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className={
+                                                                mapCreditLinkClass
+                                                            }
+                                                        >
+                                                            {chunks}
+                                                        </a>
+                                                    ),
+                                                    orm: (chunks) => (
+                                                        <a
+                                                            href="https://www.openrailwaymap.org/"
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className={
+                                                                mapCreditLinkClass
+                                                            }
+                                                        >
+                                                            {chunks}
+                                                        </a>
+                                                    ),
+                                                })}
+                                            </p>
+                                        </div>
                                     </div>
                                 </motion.div>
                             </CollapsibleContent>

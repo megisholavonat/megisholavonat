@@ -1,19 +1,13 @@
 "use client";
 
 import type {
-    ApiResponse,
-    StopTimeWithCounty,
+    TrainFeatureCollection,
+    TrainFeatureProperties,
 } from "@megisholavonat/api-client";
 import { AnimatePresence, motion } from "motion/react";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
-import {
-    LuChevronDown,
-    LuClock,
-    LuGauge,
-    LuMapPin,
-    LuSearch,
-} from "react-icons/lu";
+import { LuChevronDown, LuClock, LuGauge, LuSearch } from "react-icons/lu";
 import {
     Select,
     SelectContent,
@@ -22,12 +16,11 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Z_LAYERS } from "@/util/constants";
-import { isStale } from "@/util/vehicle";
 import MAVRouteIcon from "../ui/MavRouteIcon";
 import { getDelayColor } from "./TrainPanel";
 
 interface SearchComponentProps {
-    data: ApiResponse | undefined;
+    data: TrainFeatureCollection | undefined;
     onResultClick?: (vehicleId: string) => void;
 }
 
@@ -36,25 +29,6 @@ function formatSpeed(speed: number): string {
 }
 
 type SortOption = "number" | "delay" | "speed";
-
-function getStationRoute(stoptimes: StopTimeWithCounty[]) {
-    if (stoptimes.length === 0) return null;
-
-    const firstStop = stoptimes[0]?.stop?.name;
-    const lastStop = stoptimes[stoptimes.length - 1]?.stop?.name;
-
-    if (!firstStop || !lastStop) return null;
-
-    // Shorten station names if they're too long
-    const shortenName = (name: string) => {
-        if (name.length > 15) {
-            return `${name.substring(0, 12)}...`;
-        }
-        return name;
-    };
-
-    return `${shortenName(firstStop)} → ${shortenName(lastStop)}`;
-}
 
 export default function SearchComponent({
     data,
@@ -129,107 +103,66 @@ export default function SearchComponent({
 
     // Filter and sort results based on search query and sort option
     const filteredAndSortedResults = (() => {
-        const filtered =
-            data?.locations?.filter((result) => {
-                if (!searchQuery.trim()) return true;
+        const properties: TrainFeatureProperties[] =
+            data?.features?.map((f) => f.properties) ?? [];
 
-                const query = searchQuery.toLowerCase();
-                const tripName = result.trip.tripShortName.toLowerCase();
-                const routeName = result.trip.route.longName.toLowerCase();
+        const filtered = properties.filter((result) => {
+            if (!searchQuery.trim()) return true;
 
-                let vehicleIdMatches = false;
-                try {
-                    if (
-                        result.vehicleId &&
-                        typeof result.vehicleId === "string" &&
-                        result.vehicleId.length > 2
-                    ) {
-                        const vehicleId = result.vehicleId.slice(2);
-                        const sanitizedQuery = query
-                            .replaceAll(" ", "")
-                            .replaceAll("-", "");
-                        vehicleIdMatches = vehicleId.includes(sanitizedQuery);
-                    }
-                } catch (error) {
-                    console.warn(
-                        "Error processing vehicleId in search:",
-                        error,
-                    );
-                    vehicleIdMatches = false;
+            const query = searchQuery.toLowerCase();
+            const tripName = result.tripShortName.toLowerCase();
+            const routeName = result.routeShortName.toLowerCase();
+
+            let vehicleIdMatches = false;
+            try {
+                if (
+                    result.vehicleId &&
+                    typeof result.vehicleId === "string" &&
+                    result.vehicleId.length > 2
+                ) {
+                    const vehicleId = result.vehicleId.slice(2);
+                    const sanitizedQuery = query
+                        .replaceAll(" ", "")
+                        .replaceAll("-", "");
+                    vehicleIdMatches = vehicleId.includes(sanitizedQuery);
+                }
+            } catch (error) {
+                console.warn("Error processing vehicleId in search:", error);
+                vehicleIdMatches = false;
+            }
+
+            return (
+                tripName.includes(query) ||
+                routeName.includes(query) ||
+                vehicleIdMatches
+            );
+        });
+
+        return filtered.sort(
+            (a: TrainFeatureProperties, b: TrainFeatureProperties) => {
+                let comparison = 0;
+
+                switch (sortBy) {
+                    case "number":
+                        comparison = a.tripShortName.localeCompare(
+                            b.tripShortName,
+                            undefined,
+                            { numeric: true },
+                        );
+                        break;
+                    case "delay":
+                        comparison = a.delay - b.delay;
+                        break;
+                    case "speed":
+                        comparison = (a.speed ?? 0) - (b.speed ?? 0);
+                        break;
+                    default:
+                        return 0;
                 }
 
-                const fromStop =
-                    result.trip.stoptimes[0]?.stop?.name.toLowerCase();
-                const toStop =
-                    result.trip.stoptimes[
-                        result.trip.stoptimes.length - 1
-                    ]?.stop?.name.toLowerCase();
-
-                return (
-                    tripName.includes(query) ||
-                    routeName.includes(query) ||
-                    vehicleIdMatches ||
-                    fromStop?.includes(query) ||
-                    toStop?.includes(query)
-                );
-            }) || [];
-
-        // Separate stale and non-stale trains
-        const nonStaleTrains = filtered.filter((train) => !isStale(train));
-        const staleTrains = filtered.filter((train) => isStale(train));
-
-        // Sort non-stale trains
-        const sortedNonStale = nonStaleTrains.sort((a, b) => {
-            let comparison = 0;
-
-            switch (sortBy) {
-                case "number":
-                    comparison = a.trip.tripShortName.localeCompare(
-                        b.trip.tripShortName,
-                        undefined,
-                        { numeric: true },
-                    );
-                    break;
-                case "delay":
-                    comparison = a.delay - b.delay;
-                    break;
-                case "speed":
-                    comparison = (a.speed ?? 0) - (b.speed ?? 0);
-                    break;
-                default:
-                    return 0;
-            }
-
-            return sortDirection === "asc" ? comparison : -comparison;
-        });
-
-        // Sort stale trains (same logic but separate)
-        const sortedStale = staleTrains.sort((a, b) => {
-            let comparison = 0;
-
-            switch (sortBy) {
-                case "number":
-                    comparison = a.trip.tripShortName.localeCompare(
-                        b.trip.tripShortName,
-                        undefined,
-                        { numeric: true },
-                    );
-                    break;
-                case "delay":
-                    comparison = a.delay - b.delay;
-                    break;
-                case "speed":
-                    comparison = (a.speed ?? 0) - (b.speed ?? 0);
-                    break;
-                default:
-                    return 0;
-            }
-
-            return sortDirection === "asc" ? comparison : -comparison;
-        });
-
-        // Return non-stale trains first, then stale trains
-        return [...sortedNonStale, ...sortedStale];
+                return sortDirection === "asc" ? comparison : -comparison;
+            },
+        );
     })();
 
     return (
@@ -368,12 +301,8 @@ export default function SearchComponent({
                                         const delayColor = getDelayColor(
                                             result.delay,
                                         );
-                                        const stationRoute = getStationRoute(
-                                            result.trip.stoptimes,
-                                        );
                                         const hasSpeed =
                                             (result.speed ?? 0) > 0;
-                                        const isTrainStale = isStale(result);
 
                                         return (
                                             <button
@@ -384,67 +313,37 @@ export default function SearchComponent({
                                                         result.vehicleId,
                                                     )
                                                 }
-                                                aria-label={`${t("select_train")} ${result.trip.tripShortName}, ${stationRoute}`}
-                                                className={`w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-blue-900/30 transition-colors ${
-                                                    isTrainStale
-                                                        ? "opacity-60"
-                                                        : ""
-                                                }`}
+                                                aria-label={`${t("select_train")} ${result.tripShortName}`}
+                                                className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-blue-900/30 transition-colors"
                                             >
                                                 <div className="flex items-start gap-3">
                                                     <div
-                                                        className={`shrink-0 mt-0.5 ${
-                                                            isTrainStale
-                                                                ? "opacity-50"
-                                                                : ""
-                                                        }`}
+                                                        className="shrink-0 mt-0.5"
                                                         style={{
-                                                            color: isTrainStale
-                                                                ? "#9CA3AF"
-                                                                : `#${result.trip.route.textColor}`,
+                                                            color: `#${result.routeTextColor}`,
                                                         }}
                                                     >
                                                         <MAVRouteIcon
                                                             routeShortName={
-                                                                result.trip
-                                                                    .route
-                                                                    .shortName
+                                                                result.routeShortName
                                                             }
                                                         />
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         {/* First row: Train number */}
-
-                                                        <span
-                                                            className={`font-medium truncate ${
-                                                                isTrainStale
-                                                                    ? "text-gray-400 dark:text-gray-500"
-                                                                    : "text-gray-900 dark:text-white"
-                                                            }`}
-                                                        >
+                                                        <span className="font-medium truncate text-gray-900 dark:text-white">
                                                             {
-                                                                result.trip
-                                                                    .tripShortName
+                                                                result.tripShortName
                                                             }
                                                         </span>
 
-                                                        {/* Second row: Delay, Route, Speed */}
-                                                        <div
-                                                            className={`flex items-center gap-3 text-xs ${
-                                                                isTrainStale
-                                                                    ? "text-gray-400 dark:text-gray-500"
-                                                                    : "text-gray-600 dark:text-gray-300"
-                                                            }`}
-                                                        >
+                                                        {/* Second row: Delay, Speed */}
+                                                        <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-300">
                                                             {/* Delay */}
                                                             <div className="flex items-center gap-1">
                                                                 <LuClock className="w-3 h-3 dark:text-white" />
                                                                 <span
-                                                                    className={`font-medium ${
-                                                                        isTrainStale
-                                                                            ? "text-gray-400 dark:text-gray-500"
-                                                                            : delayColor
-                                                                    }`}
+                                                                    className={`font-medium ${delayColor}`}
                                                                 >
                                                                     {
                                                                         result.delay
@@ -452,23 +351,6 @@ export default function SearchComponent({
                                                                     p
                                                                 </span>
                                                             </div>
-
-                                                            {/* Route */}
-                                                            {stationRoute && (
-                                                                <div className="flex items-center gap-1 flex-1 min-w-0">
-                                                                    <LuMapPin className="w-3 h-3 shrink-0 dark:text-white" />
-                                                                    <span
-                                                                        className="truncate"
-                                                                        title={
-                                                                            stationRoute
-                                                                        }
-                                                                    >
-                                                                        {
-                                                                            stationRoute
-                                                                        }
-                                                                    </span>
-                                                                </div>
-                                                            )}
 
                                                             {/* Speed */}
                                                             {hasSpeed && (

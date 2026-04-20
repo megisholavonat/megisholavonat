@@ -1,3 +1,9 @@
+### 12/04/2025
+
+#### Added
+
+- Leaflet -> MapLibre
+
 ### 04/12/2025
 
 #### Added

@@ -47,7 +47,7 @@ export function LanguageSwitcher({ currentLocale }: LanguageSwitcherProps) {
                     src={`https://purecatamphetamine.github.io/country-flag-icons/3x2/${otherLanguage.flag}.svg`}
                     alt={otherLanguage.name}
                     width={20}
-                    height={20}
+                    height={13}
                 />
             </motion.div>
         </Link>

@@ -1,4 +1,5 @@
 import json
+import math
 import time
 from datetime import UTC, datetime
 from typing import Any
@@ -19,9 +20,33 @@ from api.util.vehicle import should_remove
 logger = get_logger(__name__)
 
 
+def route_length(route_coords: list[tuple[float, float]]) -> float:
+    """
+    Returns the total haversine length of the route in km.
+    """
+    total = 0.0
+    for (lat1, lon1), (lat2, lon2) in zip(route_coords[:-1], route_coords[1:]):
+        phi1, phi2 = math.radians(lat1), math.radians(lat2)
+        dphi = phi2 - phi1
+        dlam = math.radians(lon2 - lon1)
+        a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlam / 2) ** 2
+        total += 2 * 6371.0 * math.asin(min(1.0, math.sqrt(a)))
+    return total
+
+
 class TrainService:
     def __init__(self, redis: Redis):
         self.redis = redis
+
+    @staticmethod
+    def get_vehicle_type(location: dict[str, Any]) -> str:
+        route_mode = location.get("trip", {}).get("route", {}).get("mode")
+        mode_to_type = {
+            "RAIL": "train",
+            "SUBURBAN_RAILWAY": "hev",
+            "TRAMTRAIN": "tramtrain",
+        }
+        return mode_to_type.get(route_mode, "train")
 
     async def fetch_graphql_data(self) -> dict[str, Any]:
         """
@@ -154,6 +179,7 @@ class TrainService:
                     "totalRouteDistance": delay_data["totalRouteDistance"],
                     "processedStops": delay_data["processedStops"],
                     "vehicleProgress": delay_data["vehicleProgress"],
+                    "routeLengthKm": route_length(route_coords),
                 }
             )
 
@@ -197,7 +223,6 @@ class TrainService:
             raise e
 
         step_start = time.time()
-        # Deduplicate by vehicleId
         locations = self.dedupe_by_vehicle_id(locations_raw)
         logger.info(
             f"Deduplicated locations: {len(locations_raw)} -> {len(locations)} "
@@ -211,12 +236,10 @@ class TrainService:
             return
 
         step_start = time.time()
-        # Add county information to locations
         locations_with_counties = self.add_counties_to_locations(locations)
         logger.info(f"Added counties (Time: {(time.time() - step_start):.4f}s)")
 
         step_start = time.time()
-        # Process delays and filter stale data
         locations_processed = self.process_locations(locations_with_counties)
 
         logger.info(
@@ -225,18 +248,86 @@ class TrainService:
         )
 
         step_start = time.time()
-        # Update cache
-        cache_data = {
+
+        hash_key = add_key("train-positions-hash")
+
+        # Clear existing hash first to remove stale vehicles
+        await self.redis.delete(hash_key)
+
+        if locations_processed:
+            mapping = {
+                loc["vehicleId"]: json.dumps(loc)
+                for loc in locations_processed
+                if "vehicleId" in loc
+            }
+            if mapping:
+                await self.redis.hset(hash_key, mapping=mapping)
+                await self.redis.expire(hash_key, settings.CACHE_DURATION)
+
+        features = []
+        for loc in locations_processed:
+            if "vehicleId" not in loc:
+                continue
+
+            trip = loc.get("trip", {})
+
+            distance_to_next_stop_km: float | None = None
+            next_stop_id = loc.get("vehicleProgress", {}).get("nextStop")
+            processed_stops = loc.get("processedStops", [])
+            train_position = loc.get("trainPosition", 0.0)
+            total_route_distance = loc.get("totalRouteDistance", 0.0)
+            route_length_km = loc.get("routeLengthKm", 0.0)
+
+            if next_stop_id and processed_stops and total_route_distance > 0 and route_length_km > 0:
+                next_stop = next(
+                    (s for s in processed_stops if s.get("id") == next_stop_id),
+                    None,
+                )
+                if next_stop:
+                    shapely_dist = max(
+                        0.0, next_stop["distanceAlongRoute"] - train_position
+                    )
+                    distance_to_next_stop_km = round(
+                        shapely_dist / total_route_distance * route_length_km, 4
+                    )
+
+            feature = {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [loc.get("lon", 0), loc.get("lat", 0)],
+                },
+                "properties": {
+                    "type": self.get_vehicle_type(loc),
+                    "vehicleId": loc["vehicleId"],
+                    "lat": loc.get("lat"),
+                    "lon": loc.get("lon"),
+                    "heading": loc.get("heading"),
+                    "speed": loc.get("speed"),
+                    "lastUpdated": str(loc.get("lastUpdated")),
+                    "tripShortName": trip.get("tripShortName", ""),
+                    "routeShortName": trip.get("route", {}).get("shortName", ""),
+                    "routeTextColor": trip.get("route", {}).get("textColor", ""),
+                    "delay": loc.get("delay"),
+                    "routePolyline": trip.get("tripGeometry", {}).get("points"),
+                    "distanceToNextStop": distance_to_next_stop_km,
+                },
+            }
+            features.append(feature)
+
+        feature_collection = {
+            "type": "FeatureCollection",
             "timestamp": now,
             "noDataReceived": False,
-            "locations": locations_processed,
+            "features": features,
         }
 
         await self.redis.set(
-            add_key("train-positions"),
-            json.dumps(cache_data),
+            add_key("train-positions-geojson"),
+            json.dumps(feature_collection),
             ex=settings.CACHE_DURATION,
         )
+
         logger.info(f"Cache updated (Time: {(time.time() - step_start):.4f}s)")
 
         logger.info(f"Total revalidation time: {(time.time() - start_time):.4f}s")
