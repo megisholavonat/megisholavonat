@@ -92,3 +92,4 @@ This repository is a pnpm monorepo with:
 ### Extra commands
 
 - `pnpm generate:api` – Regenerate API client after backend changes
+
