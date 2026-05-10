@@ -366,7 +366,7 @@ export const TrainPanel = memo(function TrainPanel({
                         <span className="font-semibold text-white font-mono">
                             {formatUICCode(vehicle.vehicleId)}
                         </span>
-                        <TooltipPopover content={t(`vechicle_type.${vehicleTypeFromUICCode(vehicle.vehicleId)}`)}>
+                        <TooltipPopover content={t(`vehicle_type.${vehicleTypeFromUICCode(vehicle.vehicleId)}`)}>
                                 <FaCircleInfo className="w-3 h-3 text-white/60 dark:text-white/70 hover:text-white/80 dark:hover:text-white/90 cursor-help transition-colors" />
                         </TooltipPopover>
                     </span>

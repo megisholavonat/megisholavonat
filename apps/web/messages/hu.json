@@ -72,7 +72,7 @@
         "data_discrepancy_warning": "Ezen a vonaton a MÁV által közölt késési adatok nem egyeznek a vonat valós, GPS-alapú pozíciójával.",
         "algorithm_note": "Ez az általunk fejlesztett algoritmus alapján működik. Még dolgozunk a tökéletesítésén, és időnként tévedhet.",
         "route_data_warning": "Úgy tűnik, hogy ez a jármű rossz útvonaladatokat tartalmaz.",
-        "vechicle_type": {
+        "vehicle_type": {
             "v431": "Ganz V43 1xxx \"Szili\"",
             "v432": "Ganz V43 2xxx \"Papagáj szili\"",
             "v433": "Ganz V43 3xxx \"Cirmos szili\"",
