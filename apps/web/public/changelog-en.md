@@ -1,3 +1,9 @@
+### 14/05/2025
+
+#### Added
+
+- Show rolling stock info ([@bendimester23](https://github.com/Bendimester23))
+
 ### 12/04/2025
 
 #### Added
