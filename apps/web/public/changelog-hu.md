@@ -1,3 +1,9 @@
+### 2026. 05. 14.
+
+#### Újdonságok
+
+- Járműtípusok megjelenítése ([@bendimester23](https://github.com/Bendimester23))
+
 ### 2026. 04. 12.
 
 #### Újdonságok
