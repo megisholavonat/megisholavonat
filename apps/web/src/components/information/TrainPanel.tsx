@@ -63,7 +63,6 @@ function formatUICCode(vehicleId: string): string {
     return formatted;
 }
 
-
 function vehicleTypeFromUICCode(vehicleId: string): string {
     // Remove the prefix and get the numeric part
     const numericPart = vehicleId.split(":")[1] || vehicleId;
@@ -71,14 +70,14 @@ function vehicleTypeFromUICCode(vehicleId: string): string {
     // Ensure we have exactly 12 digits, pad with zeros if necessary
     const paddedNumber = numericPart.padStart(12, "0");
     const typeId = paddedNumber.slice(4, 8);
-    const serialNumber = Number.parseInt(paddedNumber.slice(8, 11));
+    const serialNumber = Number.parseInt(paddedNumber.slice(8, 11), 10);
     switch (typeId) {
         case "0480":
             return "traxx";
-        
+
         case "0470":
             return "taurus1";
-    
+
         case "0630":
             // TODO Differentiate 1xx and 0xx series(some 1xx units can go with 160km/h)
             return "v63";
@@ -103,14 +102,14 @@ function vehicleTypeFromUICCode(vehicleId: string): string {
             //There is also a green one
             if (serialNumber <= 60) return "flirt2_older";
             return "flirt2_new";
-        
+
         case "1435":
             // Softer seats, only at GySEV
             return "flirt3";
 
         case "1426":
             return "desiro";
-        
+
         case "0117":
             return "bzmot";
 
@@ -139,16 +138,16 @@ function vehicleTypeFromUICCode(vehicleId: string): string {
 
         case "0471":
             return "vectron2";
-            
+
         case "1406":
             return "citylink";
 
         case "0247":
             return "jenbacher";
-        
+
         case "0418":
             return "m41";
-        
+
         case "0478":
             return "m47";
 
@@ -167,7 +166,6 @@ function vehicleTypeFromUICCode(vehicleId: string): string {
             // TODO Use localization
             return "unknown";
     }
-    return paddedNumber.slice(4, 8);
 }
 
 export function getDelayColor(delay: number, darkBg: boolean = false): string {
@@ -366,8 +364,12 @@ export const TrainPanel = memo(function TrainPanel({
                         <span className="font-semibold text-white font-mono">
                             {formatUICCode(vehicle.vehicleId)}
                         </span>
-                        <TooltipPopover content={t(`vehicle_type.${vehicleTypeFromUICCode(vehicle.vehicleId)}`)}>
-                                <FaCircleInfo className="w-3 h-3 text-white/60 dark:text-white/70 hover:text-white/80 dark:hover:text-white/90 cursor-help transition-colors" />
+                        <TooltipPopover
+                            content={t(
+                                `vehicle_type.${vehicleTypeFromUICCode(vehicle.vehicleId)}`,
+                            )}
+                        >
+                            <FaCircleInfo className="w-3 h-3 text-white/60 dark:text-white/70 hover:text-white/80 dark:hover:text-white/90 cursor-help transition-colors" />
                         </TooltipPopover>
                     </span>
                     <span className="flex items-center gap-1">
@@ -668,7 +670,7 @@ export const TrainPanel = memo(function TrainPanel({
                                             minWidth: "32px",
                                         }}
                                     >
-                                        <div className="flex flex-col items-center h-full min-h-[60px] relative">
+                                        <div className="flex flex-col items-center h-full min-h-15 relative">
                                             {/* Vertical line above stop */}
                                             {index > 0 && (
                                                 <div
@@ -795,7 +797,7 @@ export const TrainPanel = memo(function TrainPanel({
                                                     )}
                                                 >
                                                     <div className="flex flex-row">
-                                                        <span className="inline-flex items-center justify-center min-w-[24px] h-5 px-1.5 bg-blue-600 dark:bg-blue-700 text-white text-xs font-semibold rounded border border-blue-700 dark:border-blue-800 shadow-sm">
+                                                        <span className="inline-flex items-center justify-center min-w-6 h-5 px-1.5 bg-blue-600 dark:bg-blue-700 text-white text-xs font-semibold rounded border border-blue-700 dark:border-blue-800 shadow-sm">
                                                             {
                                                                 stoptime.stop
                                                                     .platformCode
