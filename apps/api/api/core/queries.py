@@ -1,10 +1,10 @@
 POSITIONS_QUERY = """
   query Positions {
     vehiclePositions(
-      neLat: 48.6238540716
-      neLon: 22.710531447
-      swLat: 45.7594811061
-      swLon: 16.2022982113
+      neLat: 51.33061163769853
+      neLon: 25.0927734375
+      swLat: 44.96479793033104
+      swLon: 8.833007812500002
       modes: [RAIL, TRAMTRAIN, SUBURBAN_RAILWAY]
     ) {
       vehicleId
