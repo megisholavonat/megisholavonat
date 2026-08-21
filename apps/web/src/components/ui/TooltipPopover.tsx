@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
     Popover,
     PopoverContent,
@@ -10,7 +11,6 @@ import {
 } from "@/components/ui/tooltip";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { Z_LAYERS } from "@/util/constants";
-import { useEffect, useState } from "react";
 
 interface TooltipPopoverProps {
     children: React.ReactNode;
