@@ -16,6 +16,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Z_LAYERS } from "@/util/constants";
+import { matchesMavRoute } from "@/util/mavRoutes";
 import { normalizeSearchText } from "@/util/search";
 import MAVRouteIcon from "../ui/MavRouteIcon";
 import { getDelayColor } from "./TrainPanel";
@@ -113,6 +114,10 @@ export default function SearchComponent({
             const query = normalizeSearchText(searchQuery.trim());
             const tripName = normalizeSearchText(result.tripShortName ?? "");
             const routeName = normalizeSearchText(result.routeShortName ?? "");
+            const routeMatches = matchesMavRoute(
+                result.routeShortName,
+                searchQuery,
+            );
 
             let vehicleIdMatches = false;
             try {
@@ -137,6 +142,7 @@ export default function SearchComponent({
             return (
                 tripName.includes(query) ||
                 routeName.includes(query) ||
+                routeMatches ||
                 vehicleIdMatches
             );
         });
