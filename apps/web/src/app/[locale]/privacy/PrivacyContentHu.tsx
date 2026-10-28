@@ -17,8 +17,8 @@ export default function PrivacyContentHu() {
 
             <h2>Ki kezeli az adataidat?</h2>
             <p>
-                Az oldal üzemeltetője (adatkezelő): [ÜZEMELTETŐ NEVE].
-                Kapcsolat:{" "}
+                Az oldalt Reicher Martin és Gyóni Márk üzemelteti, közös
+                adatkezelőként. Kapcsolat:{" "}
                 <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
             </p>
             <p>
@@ -48,12 +48,12 @@ export default function PrivacyContentHu() {
                     pont): a szolgáltatás működtetése és védelme.
                 </li>
                 <li>
-                    <strong>Megőrzés:</strong> a szerver naplóit [NAPLÓK
-                    MEGŐRZÉSI IDEJE] után töröljük.
+                    <strong>Megőrzés:</strong> a szerver naplóit csak addig
+                    őrizzük, amíg az üzemeltetéshez és a biztonsághoz szükséges,
+                    utána automatikusan törlődnek.
                 </li>
                 <li>
-                    <strong>Adatfeldolgozó:</strong> [TÁRHELYSZOLGÁLTATÓ NEVE ÉS
-                    SZÉKHELYE].
+                    <strong>Adatfeldolgozó:</strong> EU-s tárhelyszolgáltató.
                 </li>
             </ul>
             <p>
@@ -225,9 +225,10 @@ export default function PrivacyContentHu() {
                     a) pont), amelyet bármikor visszavonhatsz.
                 </li>
                 <li>
-                    <strong>Megőrzés:</strong> a PostHognál [POSTHOG MEGŐRZÉSI
-                    IDEJE]; a böngésződben addig, amíg vissza nem vonod a
-                    hozzájárulást, vagy nem törlöd a böngésző adatait.
+                    <strong>Megőrzés:</strong> a PostHognál a projektünkben
+                    beállított megőrzési ideig, kérésre korábban is töröljük; a
+                    böngésződben addig, amíg vissza nem vonod a hozzájárulást,
+                    vagy nem törlöd a böngésző adatait.
                 </li>
             </ul>
             <p>

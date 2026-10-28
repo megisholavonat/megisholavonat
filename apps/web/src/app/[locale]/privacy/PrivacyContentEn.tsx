@@ -17,7 +17,8 @@ export default function PrivacyContentEn() {
 
             <h2>Who is responsible for your data?</h2>
             <p>
-                The site is run by (controller): [OPERATOR NAME]. Contact:{" "}
+                The site is run by Martin Reicher and Márk Gyóni as joint
+                controllers. Contact:{" "}
                 <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
             </p>
             <p>
@@ -46,12 +47,12 @@ export default function PrivacyContentEn() {
                     6(1)(f)): running and protecting the service.
                 </li>
                 <li>
-                    <strong>Retention:</strong> server logs are deleted after
-                    [LOG RETENTION PERIOD].
+                    <strong>Retention:</strong> server logs are kept only as
+                    long as needed for operation and security, then deleted
+                    automatically.
                 </li>
                 <li>
-                    <strong>Processor:</strong> [HOSTING PROVIDER NAME AND
-                    ADDRESS].
+                    <strong>Processor:</strong> a hosting provider in the EU.
                 </li>
             </ul>
             <p>
@@ -216,9 +217,10 @@ export default function PrivacyContentEn() {
                     6(1)(a)), which you can withdraw at any time.
                 </li>
                 <li>
-                    <strong>Retention:</strong> at PostHog, [POSTHOG RETENTION
-                    PERIOD]; in your browser, until you withdraw consent or
-                    clear your browser data.
+                    <strong>Retention:</strong> at PostHog, for the retention
+                    period set in our project, or earlier on request; in your
+                    browser, until you withdraw consent or clear your browser
+                    data.
                 </li>
             </ul>
             <p>
