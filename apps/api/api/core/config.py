@@ -4,6 +4,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     DEBUG: bool = False
     REDIS_HOST: str = "localhost"
+    REDIS_PORT: int = 6379
+    # Prefix for every Redis key and the task stream, so environments
+    # sharing one Redis (prod/dev) do not overwrite each other
+    REDIS_KEY: str = "mhav-local"
     SOCKS5_PROXY_HOST: str | None = None
     SOCKS5_PROXY_PORT: int | None = None
     SOCKS5_PROXY_USERNAME: str | None = None
