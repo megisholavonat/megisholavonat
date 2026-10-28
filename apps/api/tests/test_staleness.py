@@ -127,6 +127,20 @@ def test_overnight_train_with_next_day_service_date(now: str, active: bool) -> N
     assert is_active(v, _local(now)) is active
 
 
+@pytest.mark.parametrize(
+    ("now", "active"),
+    [
+        # 27:00 on the service clock is 03:00 CET, i.e. 04:00 CEST: the day
+        # starts at local noon minus 12h, not by wall-clock hours
+        ("2026-03-29T03:30:00", False),
+        ("2026-03-29T04:05:00", True),
+    ],
+)
+def test_waiting_at_origin_across_spring_dst_change(now: str, active: bool) -> None:
+    v = vehicle(lat=47.0, lon=19.005, departs=27 * 3600, service_date="2026-03-28")
+    assert is_active(v, _local(now)) is active
+
+
 def test_daytime_train_keeps_its_service_date() -> None:
     # Departs 10:00 on 08-14; still attached near its origin at 20:43, but
     # neither neighbouring date fits the schedule far better than the listed one
