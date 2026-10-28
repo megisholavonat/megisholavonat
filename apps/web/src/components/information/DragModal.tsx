@@ -186,7 +186,7 @@ export const DragCloseDrawer = ({
 
                         {/* Content */}
                         <div className="relative z-0 h-full overflow-hidden pt-4">
-                            <div className="h-full overflow-auto rounded-t-3xl">
+                            <div className="h-full overflow-auto rounded-t-3xl pb-[env(safe-area-inset-bottom)]">
                                 {children}
                             </div>
                         </div>

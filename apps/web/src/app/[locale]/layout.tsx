@@ -1,6 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "@/app/globals.css";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import Providers from "@/app/providers";
@@ -20,6 +20,12 @@ export const metadata: Metadata = {
     title: "Mégis hol a vonat?",
     description:
         "Magyar vonattérkép alkalmazás. Késési adatokkal és egyéb hasznos információkkal.",
+};
+
+export const viewport: Viewport = {
+    width: "device-width",
+    initialScale: 1,
+    viewportFit: "cover",
 };
 
 export default async function LocaleLayout({
