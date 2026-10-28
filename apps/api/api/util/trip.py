@@ -33,12 +33,26 @@ def scheduled_window(trip: dict[str, Any]) -> tuple[int, int] | None:
     return first, last
 
 
-def seconds_outside_window(trip: dict[str, Any], unix_time: float) -> float:
+def expected_window(trip: dict[str, Any]) -> tuple[int, int] | None:
     """
-    How far `unix_time` is outside the trip's scheduled window, in seconds:
-    0 while it should be running, inf if the schedule is unknown.
+    Like `scheduled_window`, but shifted by the realtime estimate when there is
+    one, so a late train still counts as running past its scheduled end.
     """
     window = scheduled_window(trip)
+    if window is None:
+        return None
+    stoptimes = trip["stoptimes"]
+    first = stoptimes[0].get("realtimeDeparture") or window[0]
+    last = stoptimes[-1].get("realtimeArrival") or window[1]
+    return min(first, window[0]), max(last, window[1])
+
+
+def seconds_outside_window(trip: dict[str, Any], unix_time: float) -> float:
+    """
+    How far `unix_time` is outside the trip's expected window, in seconds:
+    0 while it should be running, inf if the schedule is unknown.
+    """
+    window = expected_window(trip)
     if window is None or not trip.get("serviceDate"):
         return float("inf")
     now = seconds_into_service_day(trip, unix_time)
@@ -47,8 +61,8 @@ def seconds_outside_window(trip: dict[str, Any], unix_time: float) -> float:
 
 
 def is_in_service(trip: dict[str, Any], unix_time: float) -> bool:
-    """Whether `unix_time` falls within the trip's scheduled window (with margins)."""
-    window = scheduled_window(trip)
+    """Whether `unix_time` falls within the trip's expected window (with margins)."""
+    window = expected_window(trip)
     if window is None or not trip.get("serviceDate"):
         return False
     now = seconds_into_service_day(trip, unix_time)

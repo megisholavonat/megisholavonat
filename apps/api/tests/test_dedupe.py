@@ -68,3 +68,16 @@ def test_dedupe_keeps_trip_arriving_at_terminus() -> None:
     result = TrainService(None).dedupe_by_vehicle_id([next_trip, arriving])  # type: ignore[arg-type]
 
     assert [r["trip"]["gtfsId"] for r in result] == ["arriving"]
+
+
+def test_dedupe_keeps_late_trip_past_its_scheduled_end() -> None:
+    # Scheduled to arrive 10:00 but running 25 minutes late; the vehicle's
+    # next trip is scheduled to leave at 10:30
+    now = _unix("2026-08-14T10:20:00")
+    late = _loc("late", 9 * 3600, 10 * 3600, now)
+    late["trip"]["stoptimes"][-1]["realtimeArrival"] = 10 * 3600 + 25 * 60
+    next_trip = _loc("next", 10 * 3600 + 1800, 11 * 3600, now)
+
+    result = TrainService(None).dedupe_by_vehicle_id([next_trip, late])  # type: ignore[arg-type]
+
+    assert [r["trip"]["gtfsId"] for r in result] == ["late"]
