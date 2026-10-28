@@ -1,0 +1,735 @@
+{
+ "data": {
+  "alerts": [
+   {
+    "id": "QWxlcnQ6QktLOmJra2luZm8tMTUxMjc1",
+    "feed": "BKK",
+    "alertHeaderText": "runs on a diverted route, does not stop at Győri Ottmár tér towards Udvarhely utca",
+    "alertDescriptionText": "<ul><li>Bus <strong>99</strong> runs on a diverted route, does not stop at <i>Győri Ottmár tér</i> towards Mátyás király tér.</li><li>Bus <strong>194</strong> and <strong>194B</strong> runs on a diverted route, does not stop at <i>Győri Ottmár tér</i> towards Gloriett-lakótelep.</li><li>Night line <strong>994</strong> runs on a diverted route, does not stop at <i>Győri Ottmár tér</i> towards Gyál.</li></ul>",
+    "alertUrl": "https://bkk.hu/bkk-info#!t=bkkinfo&d=today&i=bkkinfo151275",
+    "effectiveStartDate": 1792983660,
+    "effectiveEndDate": 1793244600,
+    "entities": [
+     {
+      "__typename": "StopOnRoute",
+      "stop": {
+       "gtfsId": "BKK:F03924",
+       "name": "Budapest, Győri Ottmár tér",
+       "parentStation": null
+      },
+      "route": {
+       "gtfsId": "BKK:0990",
+       "mode": "BUS",
+       "shortName": "99",
+       "longName": null
+      }
+     },
+     {
+      "__typename": "StopOnRoute",
+      "stop": {
+       "gtfsId": "BKK:F03924",
+       "name": "Budapest, Győri Ottmár tér",
+       "parentStation": null
+      },
+      "route": {
+       "gtfsId": "BKK:1940",
+       "mode": "BUS",
+       "shortName": "194",
+       "longName": null
+      }
+     },
+     {
+      "__typename": "StopOnRoute",
+      "stop": {
+       "gtfsId": "BKK:F03924",
+       "name": "Budapest, Győri Ottmár tér",
+       "parentStation": null
+      },
+      "route": {
+       "gtfsId": "BKK:9940",
+       "mode": "BUS",
+       "shortName": "994",
+       "longName": null
+      }
+     },
+     {
+      "__typename": "StopOnRoute",
+      "stop": {
+       "gtfsId": "BKK:F03924",
+       "name": "Budapest, Győri Ottmár tér",
+       "parentStation": null
+      },
+      "route": {
+       "gtfsId": "BKK:1942",
+       "mode": "BUS",
+       "shortName": "194B",
+       "longName": null
+      }
+     }
+    ]
+   },
+   {
+    "id": "QWxlcnQ6QktLOmJra2luZm8tMTUxNDk2",
+    "feed": "BKK",
+    "alertHeaderText": "replacement bus service between Kelenföld vasútállomás M and Móricz Zsigmond körtér M",
+    "alertDescriptionText": "<ul><li>Tram <strong>19</strong> and <strong>49</strong> does not operate between <i>Kelenföld vasútállomás M</i> and <i>Móricz Zsigmond körtér M</i>, please use replacement bus service on the affected route. We recommend the use of bus <strong>7</strong>, metro <strong>M4</strong>.</li></ul>",
+    "alertUrl": "https://bkk.hu/bkk-info#!t=bkkinfo&d=today&i=bkkinfo151496",
+    "effectiveStartDate": 1793589360,
+    "effectiveEndDate": 1795821240,
+    "entities": [
+     {
+      "__typename": "StopOnRoute",
+      "stop": {
+       "gtfsId": "BKK:F02038",
+       "name": "Budapest, Szent Gellért-templom",
+       "parentStation": null
+      },
+      "route": {
+       "gtfsId": "BKK:3490",
+       "mode": "TRAM",
+       "shortName": "49",
+       "longName": null
+      }
+     },
+     {
+      "__typename": "StopOnRoute",
+      "stop": {
+       "gtfsId": "BKK:F02046",
+       "name": "Budapest, Karolina út",
+       "parentStation": null
+      },
+      "route": {
+       "gtfsId": "BKK:3190",
+       "mode": "TRAM",
+       "shortName": "19",
+       "longName": null
+      }
+     },
+     {
+      "__typename": "StopOnRoute",
+      "stop": {
+       "gtfsId": "BKK:007967",
+       "name": "Budapest, Kelenföld vasútállomás M",
+       "parentStation": null
+      },
+      "route": {
+       "gtfsId": "BKK:3190",
+       "mode": "TRAM",
+       "shortName": "19",
+       "longName": null
+      }
+     },
+     {
+      "__typename": "StopOnRoute",
+      "stop": {
+       "gtfsId": "BKK:F02047",
+       "name": "Budapest, Karolina út",
+       "parentStation": null
+      },
+      "route": {
+       "gtfsId": "BKK:3490",
+       "mode": "TRAM",
+       "shortName": "49",
+       "longName": null
+      }
+     }
+    ]
+   },
+   {
+    "id": "QWxlcnQ6QktLOmJra2luZm8tMTUwMzk2",
+    "feed": "BKK",
+    "alertHeaderText": "replacement bus service between Deák Ferenc tér and Déli pályaudvar",
+    "alertDescriptionText": "<ul><li>Metro <strong>M2</strong> does not operate between <i>Deák Ferenc tér</i> and <i>Déli pályaudvar</i>, please use replacement bus service on the affected route. We recommend the use of tram <strong>4-6</strong>, bus <strong>5</strong>, metro <strong>M4</strong>.</li></ul>",
+    "alertUrl": "https://bkk.hu/bkk-info#!t=bkkinfo&d=today&i=bkkinfo150396",
+    "effectiveStartDate": 1794603600,
+    "effectiveEndDate": 1794784320,
+    "entities": [
+     {
+      "__typename": "StopOnRoute",
+      "stop": {
+       "gtfsId": "BKK:F00961",
+       "name": "Budapest, Deák Ferenc tér",
+       "parentStation": {
+        "gtfsId": "BKK:CSF00954",
+        "name": "Budapest, Deák Ferenc tér"
+       }
+      },
+      "route": {
+       "gtfsId": "BKK:5200",
+       "mode": "SUBWAY",
+       "shortName": "M2",
+       "longName": null
+      }
+     },
+     {
+      "__typename": "StopOnRoute",
+      "stop": {
+       "gtfsId": "BKK:F00958",
+       "name": "Budapest, Kossuth Lajos tér",
+       "parentStation": {
+        "gtfsId": "BKK:CSF00958",
+        "name": "Budapest, Kossuth Lajos tér"
+       }
+      },
+      "route": {
+       "gtfsId": "BKK:5200",
+       "mode": "SUBWAY",
+       "shortName": "M2",
+       "longName": null
+      }
+     },
+     {
+      "__typename": "StopOnRoute",
+      "stop": {
+       "gtfsId": "BKK:F00959",
+       "name": "Budapest, Kossuth Lajos tér",
+       "parentStation": {
+        "gtfsId": "BKK:CSF00958",
+        "name": "Budapest, Kossuth Lajos tér"
+       }
+      },
+      "route": {
+       "gtfsId": "BKK:5200",
+       "mode": "SUBWAY",
+       "shortName": "M2",
+       "longName": null
+      }
+     },
+     {
+      "__typename": "StopOnRoute",
+      "stop": {
+       "gtfsId": "BKK:F00960",
+       "name": "Budapest, Deák Ferenc tér",
+       "parentStation": {
+        "gtfsId": "BKK:CSF00954",
+        "name": "Budapest, Deák Ferenc tér"
+       }
+      },
+      "route": {
+       "gtfsId": "BKK:5200",
+       "mode": "SUBWAY",
+       "shortName": "M2",
+       "longName": null
+      }
+     }
+    ]
+   },
+   {
+    "id": "QWxlcnQ6QktLOmJra2luZm8tMTE4Mjg4",
+    "feed": "BKK",
+    "alertHeaderText": "stop relocation",
+    "alertDescriptionText": "<p><em>The</em><em> Victor Hugo utca</em> <em>stop</em> of <strong>bus line </strong><strong>15</strong> to Gyöngyösi utca M has been relocated to Victor Hugo utca past Visegrádi utca due to construction works.</p>",
+    "alertUrl": "https://bkk.hu/bkk-info#!t=bkkinfo&d=today&i=bkkinfo118288",
+    "effectiveStartDate": 1740567600,
+    "effectiveEndDate": 1801069200,
+    "entities": [
+     {
+      "__typename": "Route",
+      "gtfsId": "BKK:0150",
+      "mode": "BUS",
+      "shortName": "15",
+      "longName": null
+     }
+    ]
+   },
+   {
+    "id": "QWxlcnQ6QktLOmJra2luZm8tMTQ5ODgw",
+    "feed": "BKK",
+    "alertHeaderText": "does not stop at Gödöllő, Szőlő utca 47. towards Deák Ferenc tér M",
+    "alertDescriptionText": "<ul><li>Night line <strong>992</strong> does not stop at <i>Gödöllő, Szőlő utca 47.</i> towards Deák Ferenc tér M.</li></ul>",
+    "alertUrl": "https://bkk.hu/bkk-info#!t=bkkinfo&d=today&i=bkkinfo149880",
+    "effectiveStartDate": 1790890200,
+    "effectiveEndDate": 1797305400,
+    "entities": [
+     {
+      "__typename": "Unknown"
+     }
+    ]
+   },
+   {
+    "id": "QWxlcnQ6QktLOmJra2luZm8tMTUwNDY3",
+    "feed": "BKK",
+    "alertHeaderText": "currently no barrier-free access is available to Göncz Árpád városközpont M stop towards Kelenföld vasútállomás M",
+    "alertDescriptionText": "<ul><li>Tram <strong>1</strong> currently no barrier-free access is available to <i>Göncz Árpád városközpont M</i> stop towards Kelenföld vasútállomás M.</li><li>Metro <strong>M3</strong> currently no barrier-free access is available to <i>Göncz Árpád városközpont</i> station towards Kőbánya-Kispest.</li><li>Tram <strong>1A</strong> currently no barrier-free access is available to <i>Göncz Árpád városközpont M</i> stop towards Népliget M.</li></ul>",
+    "alertUrl": "https://bkk.hu/bkk-info#!t=bkkinfo&d=today&i=bkkinfo150467",
+    "effectiveStartDate": 1791547980,
+    "effectiveEndDate": null,
+    "entities": [
+     {
+      "__typename": "StopOnRoute",
+      "stop": {
+       "gtfsId": "BKK:F02600",
+       "name": "Budapest, Göncz Árpád városközpont M",
+       "parentStation": null
+      },
+      "route": {
+       "gtfsId": "BKK:3010",
+       "mode": "TRAM",
+       "shortName": "1",
+       "longName": null
+      }
+     },
+     {
+      "__typename": "StopOnRoute",
+      "stop": {
+       "gtfsId": "BKK:F02600",
+       "name": "Budapest, Göncz Árpád városközpont M",
+       "parentStation": null
+      },
+      "route": {
+       "gtfsId": "BKK:3011",
+       "mode": "TRAM",
+       "shortName": "1A",
+       "longName": null
+      }
+     },
+     {
+      "__typename": "StopOnRoute",
+      "stop": {
+       "gtfsId": "BKK:F02638",
+       "name": "Budapest, Göncz Árpád városközpont",
+       "parentStation": {
+        "gtfsId": "BKK:CSF02637",
+        "name": "Budapest, Göncz Árpád városközpont"
+       }
+      },
+      "route": {
+       "gtfsId": "BKK:5300",
+       "mode": "SUBWAY",
+       "shortName": "M3",
+       "longName": null
+      }
+     }
+    ]
+   },
+   {
+    "id": "QWxlcnQ6QktLOmJra2luZm8tMTUxNTU0",
+    "feed": "BKK",
+    "alertHeaderText": "more frequent service",
+    "alertDescriptionText": "<p><strong>BKK services</strong> to the cemeteries will run more frequently than usual, with a higher capacity, and there will also be special services.</p>\n<p><strong>Tram 37A</strong> runs only in the early morning and evening, during the day you can take <strong>tram 37</strong> between <em>Új köztemető (Kozma utca)</em> and <em>Blaha Lujza tér M (Népszínház utca).</em></p>",
+    "alertUrl": "https://bkk.hu/bkk-info#!t=bkkinfo&d=today&i=bkkinfo151554",
+    "effectiveStartDate": 1793417280,
+    "effectiveEndDate": 1793574600,
+    "entities": [
+     {
+      "__typename": "Route",
+      "gtfsId": "BKK:3371",
+      "mode": "TRAM",
+      "shortName": "37A",
+      "longName": null
+     },
+     {
+      "__typename": "Route",
+      "gtfsId": "BKK:3370",
+      "mode": "TRAM",
+      "shortName": "37",
+      "longName": null
+     }
+    ]
+   },
+   {
+    "id": "QWxlcnQ6QktLOmJra2luZm8tMTQ5MDIy",
+    "feed": "BKK",
+    "alertHeaderText": "does not operate on the whole affected route",
+    "alertDescriptionText": "<ul><li>Tram <strong>4</strong> and <strong>6</strong> does not operate on the whole affected route. We recommend the use of tram <strong>4-6</strong>.</li></ul>",
+    "alertUrl": "https://bkk.hu/bkk-info#!t=bkkinfo&d=today&i=bkkinfo149022",
+    "effectiveStartDate": 1790560800,
+    "effectiveEndDate": 1795388340,
+    "entities": [
+     {
+      "__typename": "StopOnRoute",
+      "stop": {
+       "gtfsId": "BKK:F01081",
+       "name": "Budapest, Oktogon M",
+       "parentStation": null
+      },
+      "route": {
+       "gtfsId": "BKK:3040",
+       "mode": "TRAM",
+       "shortName": "4",
+       "longName": null
+      }
+     },
+     {
+      "__typename": "StopOnRoute",
+      "stop": {
+       "gtfsId": "BKK:F00926",
+       "name": "Budapest, Jászai Mari tér",
+       "parentStation": null
+      },
+      "route": {
+       "gtfsId": "BKK:3040",
+       "mode": "TRAM",
+       "shortName": "4",
+       "longName": null
+      }
+     },
+     {
+      "__typename": "StopOnRoute",
+      "stop": {
+       "gtfsId": "BKK:F02225",
+       "name": "Budapest, Petőfi híd, budai hídfő",
+       "parentStation": null
+      },
+      "route": {
+       "gtfsId": "BKK:3040",
+       "mode": "TRAM",
+       "shortName": "4",
+       "longName": null
+      }
+     },
+     {
+      "__typename": "StopOnRoute",
+      "stop": {
+       "gtfsId": "BKK:F01169",
+       "name": "Budapest, Blaha Lujza tér M",
+       "parentStation": null
+      },
+      "route": {
+       "gtfsId": "BKK:3060",
+       "mode": "TRAM",
+       "shortName": "6",
+       "longName": null
+      }
+     }
+    ]
+   },
+   {
+    "id": "QWxlcnQ6QktLOmJra2luZm8tMTUxNDEw",
+    "feed": "BKK",
+    "alertHeaderText": "temporary service",
+    "alertDescriptionText": "<p>Please note that due to the All Saints’ Day and All Souls’ Day, increased traffic is expected in the vicinity of cemeteries, thus to access the spots more easily, also the following dedicated lines are available:</p>\n<p><strong>Tram 28E</strong> is running between <em>Új köztemető (Kozma utca)</em> and <em>Keleti pályaudvar M.</em></p>\n<p><strong>Busline 8A</strong> is running between <em>Keleti pályaudvar M </em>and <em>Kelenföld vasútállomás M</em>.</p>\n<p><strong>Busline 36B</strong> is running between <em>Szentlőrinci úti lakótelep</em> and <em>Csepel, Szent Imre tér</em>.</p>\n<p><strong>Busline 68B</strong> is running between <em>Kőbánya-Kispest M</em> and <em>Új köztemető.</em></p>\n<p><strong>Busline 158B</strong> is running between <em>Savoya Park</em> and <em>Budafoki temető</em>.</p>\n<p><strong>Busline 218A </strong>is running between <em>Szentélek tér H</em> and <em>Óbudai autóbuszgarázs.</em></p>\n<p>On Saturday <strong>busline 135A </strong>is running between <em>Milleniumtelep H</em> and S<em>zentlőrinci úti lakótelep.</em></p>",
+    "alertUrl": "https://bkk.hu/bkk-info#!t=bkkinfo&d=today&i=bkkinfo151410",
+    "effectiveStartDate": 1793427060,
+    "effectiveEndDate": 1793560740,
+    "entities": [
+     {
+      "__typename": "Route",
+      "gtfsId": "BKK:1351",
+      "mode": "BUS",
+      "shortName": "135A",
+      "longName": null
+     },
+     {
+      "__typename": "Route",
+      "gtfsId": "BKK:0362",
+      "mode": "BUS",
+      "shortName": "36B",
+      "longName": null
+     },
+     {
+      "__typename": "Route",
+      "gtfsId": "BKK:2181",
+      "mode": "BUS",
+      "shortName": "218A",
+      "longName": null
+     },
+     {
+      "__typename": "Route",
+      "gtfsId": "BKK:0682",
+      "mode": "BUS",
+      "shortName": "68B",
+      "longName": null
+     }
+    ]
+   },
+   {
+    "id": "QWxlcnQ6aGtpcjpoa2lyXzhlNjE2NTg3LTBmOTUtNDg2Mi05Y2RjLTQwMGI2OTRmMGQwOA",
+    "feed": "hkir",
+    "alertHeaderText": "Telebus: this route operates only upon request!",
+    "alertDescriptionText": "<p>Some departures are on-demand only. You can indicate your travel request by calling the MÁVDIREKT phone number (+36-1-349-4949) or on the <a href=\"http://mavcsoport.hu/telebusz\" rel=\"noopener noreferrer\" target=\"_blank\" style=\"color: rgb(17, 85, 204);\">mavcsoport.hu/telebusz</a><span style=\"color: rgb(80, 0, 80);\">&nbsp;</span>website, at least 1 hour before the scheduled departure of the service.</p>",
+    "alertUrl": null,
+    "effectiveStartDate": 1738364400,
+    "effectiveEndDate": null,
+    "entities": [
+     {
+      "__typename": "Trip",
+      "gtfsId": "hkir:hkir_7292_162-2",
+      "tripShortName": "7292/162",
+      "route": {
+       "gtfsId": "hkir:hkir_V-R-200-7292",
+       "mode": "COACH",
+       "shortName": "7292",
+       "longName": "Mosonmagyaróvár - Levél - Hegyeshalom"
+      }
+     },
+     {
+      "__typename": "Trip",
+      "gtfsId": "hkir:hkir_7281_936-2",
+      "tripShortName": "7281/936",
+      "route": {
+       "gtfsId": "hkir:hkir_V-R-200-7281",
+       "mode": "COACH",
+       "shortName": "7281",
+       "longName": "Mosonmagyaróvár - Jánossomorja - Albertkázmérpuszta"
+      }
+     },
+     {
+      "__typename": "Trip",
+      "gtfsId": "hkir:hkir_7281_915-2",
+      "tripShortName": "7281/915",
+      "route": {
+       "gtfsId": "hkir:hkir_V-R-200-7281",
+       "mode": "COACH",
+       "shortName": "7281",
+       "longName": "Mosonmagyaróvár - Jánossomorja - Albertkázmérpuszta"
+      }
+     },
+     {
+      "__typename": "Route",
+      "gtfsId": "hkir:hkir_V-R-200-7515",
+      "mode": "COACH",
+      "shortName": "7515",
+      "longName": "Csór/Nádasladány - Várpalota"
+     }
+    ]
+   },
+   {
+    "id": "QWxlcnQ6VkJVU1o6YzZlNjk4ODAtNjIxNi00MDczLTgyMTYtOGQxOTQ4MGU2MDZk",
+    "feed": "VBUSZ",
+    "alertHeaderText": "Routes 8, 8Y and 28 will operate on a diversion",
+    "alertDescriptionText": "<p><strong>From 1 July (Wednesday)</strong>, due to road construction works on Óvári Ferenc Street and the resulting traffic management changes around Petőfi Theatre, buses travelling towards Egyetem Street will be diverted and will not serve the <em>Petőfi Színház</em> and <em>Megyeház tér</em> stops.</p><p><br></p><p>Passengers are advised to use the following alternative stop(s):</p><ul><li><em>Komakút tér / Pannon Egyetem</em></li></ul>",
+    "alertUrl": null,
+    "effectiveStartDate": 1782858623,
+    "effectiveEndDate": null,
+    "entities": [
+     {
+      "__typename": "StopOnRoute",
+      "stop": {
+       "gtfsId": "VBUSZ:SP1664",
+       "name": "Veszprém, Megyeház tér",
+       "parentStation": {
+        "gtfsId": "VBUSZ:SA875",
+        "name": "Veszprém, Megyeház tér"
+       }
+      },
+      "route": {
+       "gtfsId": "VBUSZ:8",
+       "mode": "BUS",
+       "shortName": "8",
+       "longName": "Haszkovó forduló ► Csererdő"
+      }
+     },
+     {
+      "__typename": "StopOnRoute",
+      "stop": {
+       "gtfsId": "VBUSZ:SP1664",
+       "name": "Veszprém, Megyeház tér",
+       "parentStation": {
+        "gtfsId": "VBUSZ:SA875",
+        "name": "Veszprém, Megyeház tér"
+       }
+      },
+      "route": {
+       "gtfsId": "VBUSZ:28",
+       "mode": "BUS",
+       "shortName": "28",
+       "longName": "Vámosi úti forduló ► Csererdő"
+      }
+     },
+     {
+      "__typename": "StopOnRoute",
+      "stop": {
+       "gtfsId": "VBUSZ:SP1670",
+       "name": "Veszprém, Petőfi Színház",
+       "parentStation": {
+        "gtfsId": "VBUSZ:SA901",
+        "name": "Veszprém, Petőfi Színház"
+       }
+      },
+      "route": {
+       "gtfsId": "VBUSZ:8Y",
+       "mode": "BUS",
+       "shortName": "8Y",
+       "longName": "Csererdő ► Haszkovó forduló"
+      }
+     },
+     {
+      "__typename": "StopOnRoute",
+      "stop": {
+       "gtfsId": "VBUSZ:SP1670",
+       "name": "Veszprém, Petőfi Színház",
+       "parentStation": {
+        "gtfsId": "VBUSZ:SA901",
+        "name": "Veszprém, Petőfi Színház"
+       }
+      },
+      "route": {
+       "gtfsId": "VBUSZ:8",
+       "mode": "BUS",
+       "shortName": "8",
+       "longName": "Haszkovó forduló ► Csererdő"
+      }
+     }
+    ]
+   },
+   {
+    "id": "QWxlcnQ6VkJVU1o6MTI1ZGQ2YTQtNTlhYS00NGM5LWJmMDctZjk2YTBlNmE0ZDli",
+    "feed": "VBUSZ",
+    "alertHeaderText": "Waiting for a connection",
+    "alertDescriptionText": "<p><strong>Route 47</strong> from <em>Veszprém vasútállomás</em> stop (scheduled <strong>departure</strong> <strong>00:28</strong>) will hold for the connecting train from Budapest due at 00:23. The connection is guaranteed for <strong>train delays of up to 20 minutes</strong>, and the bus may wait up to 15 minutes.</p>",
+    "alertUrl": null,
+    "effectiveStartDate": 1781094034,
+    "effectiveEndDate": 1798757940,
+    "entities": [
+     {
+      "__typename": "Unknown"
+     }
+    ]
+   },
+   {
+    "id": "QWxlcnQ6VkJVU1o6ZDhmMjk0MzAtYmNhNi00ZGY5LWE2ZTUtMGZmN2Q0ZmMwNjFj",
+    "feed": "VBUSZ",
+    "alertHeaderText": "Services are temporarily suspended",
+    "alertDescriptionText": "<p><strong>From 18 May (Monday) until the end of the year</strong>, buses will operate on a diverted route due to sewer reconstruction works and will not serve this stop</p>",
+    "alertUrl": null,
+    "effectiveStartDate": 1779055201,
+    "effectiveEndDate": 1795993200,
+    "entities": [
+     {
+      "__typename": "Stop",
+      "gtfsId": "VBUSZ:SP1821",
+      "name": "Veszprém, Kemecse utca",
+      "parentStation": {
+       "gtfsId": "VBUSZ:SA821",
+       "name": "Veszprém, Kemecse utca"
+      }
+     },
+     {
+      "__typename": "Stop",
+      "gtfsId": "VBUSZ:SP1820",
+      "name": "Veszprém, Kemecse utca",
+      "parentStation": {
+       "gtfsId": "VBUSZ:SA821",
+       "name": "Veszprém, Kemecse utca"
+      }
+     },
+     {
+      "__typename": "Stop",
+      "gtfsId": "VBUSZ:SP1809",
+      "name": "Veszprém, Dugovics Titusz utca",
+      "parentStation": {
+       "gtfsId": "VBUSZ:SA834",
+       "name": "Veszprém, Dugovics Titusz utca"
+      }
+     },
+     {
+      "__typename": "Stop",
+      "gtfsId": "VBUSZ:SP1819",
+      "name": "Veszprém, Egry József utca",
+      "parentStation": {
+       "gtfsId": "VBUSZ:SA835",
+       "name": "Veszprém, Egry József utca"
+      }
+     }
+    ]
+   },
+   {
+    "id": "QWxlcnQ6MTo5NjEwNzk0",
+    "feed": "1",
+    "alertHeaderText": "",
+    "alertDescriptionText": "Pálya állapota miatti késés",
+    "alertUrl": null,
+    "effectiveStartDate": 1793217556,
+    "effectiveEndDate": 1793222700,
+    "entities": [
+     {
+      "__typename": "Trip",
+      "gtfsId": "1:35052614",
+      "tripShortName": "528 HERNÁD - ZEMPLÉN InterCity",
+      "route": {
+       "gtfsId": "1:E35052585",
+       "mode": "RAIL",
+       "shortName": "<span class=\"MNR2007\">&#474;</span>",
+       "longName": "IC HERNÁD - ZEMPLÉN"
+      }
+     },
+     {
+      "__typename": "Trip",
+      "gtfsId": "1:35052243",
+      "tripShortName": "528 ZEMPLÉN InterCity",
+      "route": {
+       "gtfsId": "1:E35051182",
+       "mode": "RAIL",
+       "shortName": "<span class=\"MNR2007\">&#474;</span>",
+       "longName": "IC ZEMPLÉN"
+      }
+     }
+    ]
+   },
+   {
+    "id": "QWxlcnQ6MTozNzg3",
+    "feed": "1",
+    "alertHeaderText": "",
+    "alertDescriptionText": "Nem közlekedik.",
+    "alertUrl": null,
+    "effectiveStartDate": 1793142000,
+    "effectiveEndDate": 1793228340,
+    "entities": [
+     {
+      "__typename": "Trip",
+      "gtfsId": "1:36347432",
+      "tripShortName": "H4022 HÉV",
+      "route": {
+       "gtfsId": "1:V3922_109",
+       "mode": "SUBURBAN_RAILWAY",
+       "shortName": "<span class=\"MNR2007\">&#440;</span>",
+       "longName": "H5"
+      }
+     }
+    ]
+   },
+   {
+    "id": "QWxlcnQ6MTo5NjExMDcx",
+    "feed": "1",
+    "alertHeaderText": "",
+    "alertDescriptionText": "Pálya állapota miatti késés",
+    "alertUrl": null,
+    "effectiveStartDate": 1793222154,
+    "effectiveEndDate": 1793224440,
+    "entities": [
+     {
+      "__typename": "Trip",
+      "gtfsId": "1:28521057",
+      "tripShortName": "33101 TramTrain",
+      "route": {
+       "gtfsId": "1:V3005_403",
+       "mode": "TRAMTRAIN",
+       "shortName": "<span class=\"MNR2007\">&#449;</span>",
+       "longName": "1"
+      }
+     }
+    ]
+   },
+   {
+    "id": "QWxlcnQ6MToxMjAyMw",
+    "feed": "1",
+    "alertHeaderText": "",
+    "alertDescriptionText": "Baleset miatt az Ózd-Miskolc között közlekedő személyvonatoknál pótlóbuszos közlekedésre kell számítani, mert az Ózdról 18:01-kor Miskolc-Tiszai pályaudvarra induló személyvonat (5411) Sajókaza és Kazincbarcika között elütött egy embert.\n\nRészletek: mavinform.hu és a MÁV+ alkalmazásban.",
+    "alertUrl": null,
+    "effectiveStartDate": 1793210880,
+    "effectiveEndDate": 1793228340,
+    "entities": [
+     {
+      "__typename": "Unknown"
+     },
+     {
+      "__typename": "Unknown"
+     },
+     {
+      "__typename": "Unknown"
+     },
+     {
+      "__typename": "Stop",
+      "gtfsId": "1:005512880_3",
+      "name": "Ózd",
+      "parentStation": {
+       "gtfsId": "1:005512880",
+       "name": "Ózd"
+      }
+     }
+    ]
+   }
+  ]
+ }
+}

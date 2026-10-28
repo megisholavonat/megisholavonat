@@ -7,7 +7,8 @@ from fastapi.routing import APIRoute, APIRouter
 from api.core.db import engine
 from api.core.logging_config import get_logger, setup_logging
 from api.core.taskiq_broker import broker
-from api.routers import posthog, redis_test, root, trains
+from api.routers import alerts, posthog, redis_test, root, stations, trains
+from api.routers.errors import register_error_handlers
 
 # Initialize logging
 setup_logging()
@@ -53,6 +54,10 @@ def create_app() -> FastAPI:
     v1_router.include_router(redis_test.router)
     v1_router.include_router(trains.router)
     v1_router.include_router(posthog.router)
+    v1_router.include_router(stations.router)
+    v1_router.include_router(alerts.router)
+
+    register_error_handlers(app)
 
     app.include_router(root.router)
     app.include_router(v1_router)

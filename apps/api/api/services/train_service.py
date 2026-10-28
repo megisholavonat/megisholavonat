@@ -4,10 +4,10 @@ from datetime import UTC, datetime
 from typing import Any
 
 import httpx
-from httpx_socks import AsyncProxyTransport  # type: ignore[import-untyped]
 from redis.asyncio import Redis
 
 from api.core.config import settings
+from api.core.graphql import post_graphql
 from api.core.logging_config import get_logger
 from api.core.queries import POSITIONS_QUERY
 from api.core.redis import add_key
@@ -40,7 +40,7 @@ class TrainService:
 
     async def fetch_graphql_data(self) -> dict[str, Any]:
         """
-        Fetches data from the GraphQL endpoint, optionally using a SOCKS5 proxy.
+        Fetches data from the GraphQL endpoint (see api.core.graphql for the proxy).
         In replay mode (REPLAY_FILE set) the next recorded snapshot is served.
         """
         if settings.REPLAY_FILE:
@@ -48,38 +48,11 @@ class TrainService:
             self.reference_time = snapshot.get("fetched_at_unix")
             return {"data": {"vehiclePositions": snapshot.get("vehicles") or []}}
 
-        transport = None
-
-        if settings.SOCKS5_PROXY_ENABLE:
-            if not settings.SOCKS5_PROXY_HOST or not settings.SOCKS5_PROXY_PORT:
-                raise ValueError("Proxy is enabled but HOST or PORT is not set.")
-
-            proxy_url = "socks5://"
-            if settings.SOCKS5_PROXY_USERNAME and settings.SOCKS5_PROXY_PASSWORD:
-                username = settings.SOCKS5_PROXY_USERNAME
-                password = settings.SOCKS5_PROXY_PASSWORD
-                proxy_url += f"{username}:{password}@"
-
-            proxy_url += f"{settings.SOCKS5_PROXY_HOST}:{settings.SOCKS5_PROXY_PORT}"
-
-            transport = AsyncProxyTransport.from_url(proxy_url)
-
-        async with httpx.AsyncClient(transport=transport) as client:
-            if not settings.GRAPHQL_ENDPOINT:
-                raise ValueError("GRAPHQL_ENDPOINT is not set.")
-
-            try:
-                response = await client.post(
-                    settings.GRAPHQL_ENDPOINT,
-                    json={"query": POSITIONS_QUERY},
-                    timeout=30.0,
-                )
-                response.raise_for_status()
-                result: dict[str, Any] = response.json()
-                return result
-            except httpx.HTTPError as e:
-                logger.error(f"HTTP Error: {e}")
-                raise e
+        try:
+            return await post_graphql(POSITIONS_QUERY, timeout=30.0)
+        except httpx.HTTPError as e:
+            logger.error(f"HTTP Error: {e}")
+            raise e
 
     def dedupe_by_vehicle_id(
         self, locations: list[dict[str, Any]]

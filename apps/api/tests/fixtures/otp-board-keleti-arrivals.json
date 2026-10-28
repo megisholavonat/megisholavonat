@@ -1,0 +1,260 @@
+{
+ "data": {
+  "station": {
+   "gtfsId": "1:005510017",
+   "name": "Budapest-Keleti",
+   "lat": 47.500278,
+   "lon": 19.084167,
+   "stoptimesWithoutPatterns": [
+    {
+     "scheduledArrival": 80700,
+     "realtimeArrival": 80700,
+     "scheduledDeparture": 80700,
+     "realtimeDeparture": 80700,
+     "realtime": true,
+     "realtimeState": "MODIFIED",
+     "pickupType": "NONE",
+     "dropoffType": "SCHEDULED",
+     "headsign": "Budapest-Keleti",
+     "serviceDay": 1793142000,
+     "stop": {
+      "platformCode": "7"
+     },
+     "trip": {
+      "gtfsId": "1:32738648",
+      "tripShortName": "3181 személyvonat",
+      "tripHeadsign": "Budapest-Keleti",
+      "route": {
+       "shortName": "<span class=\"MNR2007\">&#366;</span>",
+       "longName": "S80",
+       "textColor": "00A0E3"
+      },
+      "departureStoptime": {
+       "scheduledDeparture": 78360,
+       "stop": {
+        "name": "Gödöllő"
+       }
+      }
+     }
+    },
+    {
+     "scheduledArrival": 79500,
+     "realtimeArrival": 80880,
+     "scheduledDeparture": 79500,
+     "realtimeDeparture": 80880,
+     "realtime": true,
+     "realtimeState": "MODIFIED",
+     "pickupType": "NONE",
+     "dropoffType": "SCHEDULED",
+     "headsign": "Budapest-Keleti",
+     "serviceDay": 1793142000,
+     "stop": {
+      "platformCode": "13"
+     },
+     "trip": {
+      "gtfsId": "1:32738748",
+      "tripShortName": "5501 AGRIA InterRégió",
+      "tripHeadsign": "Budapest-Keleti",
+      "route": {
+       "shortName": "<span class=\"MNR2007\">&#542;</span>",
+       "longName": "IR87",
+       "textColor": "29803C"
+      },
+      "departureStoptime": {
+       "scheduledDeparture": 72480,
+       "stop": {
+        "name": "Eger"
+       }
+      }
+     }
+    },
+    {
+     "scheduledArrival": 77700,
+     "realtimeArrival": 80940,
+     "scheduledDeparture": 77700,
+     "realtimeDeparture": 80940,
+     "realtime": true,
+     "realtimeState": "MODIFIED",
+     "pickupType": "NONE",
+     "dropoffType": "SCHEDULED",
+     "headsign": "Budapest-Keleti",
+     "serviceDay": 1793142000,
+     "stop": {
+      "platformCode": "11"
+     },
+     "trip": {
+      "gtfsId": "1:36226161",
+      "tripShortName": "165 railjet xpress",
+      "tripHeadsign": "Budapest-Keleti",
+      "route": {
+       "shortName": "<span class=\"MNR2007\">&#481;</span>",
+       "longName": "rjx 165",
+       "textColor": "274F96"
+      },
+      "departureStoptime": {
+       "scheduledDeparture": 36120,
+       "stop": {
+        "name": "Zürich HB"
+       }
+      }
+     }
+    },
+    {
+     "scheduledArrival": 81000,
+     "realtimeArrival": 81000,
+     "scheduledDeparture": 81000,
+     "realtimeDeparture": 81000,
+     "realtime": true,
+     "realtimeState": "MODIFIED",
+     "pickupType": "SCHEDULED",
+     "dropoffType": "NONE",
+     "headsign": "Gyöngyös",
+     "serviceDay": 1793142000,
+     "stop": {
+      "platformCode": "5"
+     },
+     "trip": {
+      "gtfsId": "1:35700391",
+      "tripShortName": "3078 MÁTRA InterRégió",
+      "tripHeadsign": "Gyöngyös",
+      "route": {
+       "shortName": "<span class=\"MNR2007\">&#541;</span>",
+       "longName": "IR85",
+       "textColor": "29803C"
+      },
+      "departureStoptime": {
+       "scheduledDeparture": 81000,
+       "stop": {
+        "name": "Budapest-Keleti"
+       }
+      }
+     }
+    },
+    {
+     "scheduledArrival": 81600,
+     "realtimeArrival": 81600,
+     "scheduledDeparture": 81600,
+     "realtimeDeparture": 81600,
+     "realtime": false,
+     "realtimeState": "SCHEDULED",
+     "pickupType": "SCHEDULED",
+     "dropoffType": "NONE",
+     "headsign": "Kyiv-Pas.",
+     "serviceDay": 1793142000,
+     "stop": {
+      "platformCode": "8"
+     },
+     "trip": {
+      "gtfsId": "1:35529023",
+      "tripShortName": "10 TRANSCARPATHIA gyorsvonat",
+      "tripHeadsign": "Kyiv-Pas.",
+      "route": {
+       "shortName": "<span class=\"MNR2007\">&#473;</span>",
+       "longName": "Gy TRANSCARPATHIA",
+       "textColor": "C82227"
+      },
+      "departureStoptime": {
+       "scheduledDeparture": 81600,
+       "stop": {
+        "name": "Budapest-Keleti"
+       }
+      }
+     }
+    },
+    {
+     "scheduledArrival": 81300,
+     "realtimeArrival": 81720,
+     "scheduledDeparture": 81300,
+     "realtimeDeparture": 81720,
+     "realtime": true,
+     "realtimeState": "MODIFIED",
+     "pickupType": "NONE",
+     "dropoffType": "SCHEDULED",
+     "headsign": "Budapest-Keleti",
+     "serviceDay": 1793142000,
+     "stop": {
+      "platformCode": "10"
+     },
+     "trip": {
+      "gtfsId": "1:35700400",
+      "tripShortName": "3041 MÁTRA InterRégió",
+      "tripHeadsign": "Budapest-Keleti",
+      "route": {
+       "shortName": "<span class=\"MNR2007\">&#541;</span>",
+       "longName": "IR85",
+       "textColor": "29803C"
+      },
+      "departureStoptime": {
+       "scheduledDeparture": 76080,
+       "stop": {
+        "name": "Gyöngyös"
+       }
+      }
+     }
+    },
+    {
+     "scheduledArrival": 81600,
+     "realtimeArrival": 81900,
+     "scheduledDeparture": 81600,
+     "realtimeDeparture": 81900,
+     "realtime": true,
+     "realtimeState": "MODIFIED",
+     "pickupType": "NONE",
+     "dropoffType": "SCHEDULED",
+     "headsign": "Budapest-Keleti",
+     "serviceDay": 1793142000,
+     "stop": {
+      "platformCode": "7"
+     },
+     "trip": {
+      "gtfsId": "1:35169704",
+      "tripShortName": "3471 személyvonat",
+      "tripHeadsign": "Budapest-Keleti",
+      "route": {
+       "shortName": "<span class=\"MNR2007\">&#362;</span>",
+       "longName": "S60",
+       "textColor": "00A0E3"
+      },
+      "departureStoptime": {
+       "scheduledDeparture": 78900,
+       "stop": {
+        "name": "Sülysáp"
+       }
+      }
+     }
+    },
+    {
+     "scheduledArrival": 81300,
+     "realtimeArrival": 81900,
+     "scheduledDeparture": 81300,
+     "realtimeDeparture": 81900,
+     "realtime": true,
+     "realtimeState": "MODIFIED",
+     "pickupType": "NONE",
+     "dropoffType": "SCHEDULED",
+     "headsign": "Budapest-Keleti",
+     "serviceDay": 1793142000,
+     "stop": {
+      "platformCode": "1"
+     },
+     "trip": {
+      "gtfsId": "1:36226757",
+      "tripShortName": "341 SEMMELWEIS IGNÁC EuroCity",
+      "tripHeadsign": "Budapest-Keleti",
+      "route": {
+       "shortName": "<span class=\"MNR2007\">&#467;</span>",
+       "longName": "EC BARTÓK BÉLA/CSÁRDÁS/LEHÁR FERENC/LISZT FERENC/SEMMELWEIS IGNÁC",
+       "textColor": "274F96"
+      },
+      "departureStoptime": {
+       "scheduledDeparture": 68400,
+       "stop": {
+        "name": "Wien Westbf"
+       }
+      }
+     }
+    }
+   ]
+  }
+ }
+}

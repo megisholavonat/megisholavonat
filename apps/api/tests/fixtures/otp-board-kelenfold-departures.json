@@ -1,0 +1,322 @@
+{
+ "data": {
+  "station": {
+   "gtfsId": "1:005501024",
+   "name": "Budapest-Kelenföld",
+   "lat": 47.464444,
+   "lon": 19.02,
+   "stoptimesWithoutPatterns": [
+    {
+     "scheduledArrival": 1560,
+     "realtimeArrival": 1560,
+     "scheduledDeparture": 1620,
+     "realtimeDeparture": 1620,
+     "realtime": false,
+     "realtimeState": "SCHEDULED",
+     "pickupType": "SCHEDULED",
+     "dropoffType": "SCHEDULED",
+     "headsign": "Székesfehérvár",
+     "serviceDay": 1793228400,
+     "stop": {
+      "platformCode": null
+     },
+     "trip": {
+      "gtfsId": "1:36017936",
+      "tripShortName": "4770 személyvonat",
+      "tripHeadsign": "Székesfehérvár",
+      "route": {
+       "shortName": "<span class=\"MNR2007\">&#401;</span>",
+       "longName": "G44",
+       "textColor": "B0CB1F"
+      },
+      "departureStoptime": {
+       "scheduledDeparture": 1200,
+       "stop": {
+        "name": "Budapest-Déli"
+       }
+      }
+     }
+    },
+    {
+     "scheduledArrival": 1860,
+     "realtimeArrival": 1860,
+     "scheduledDeparture": 1920,
+     "realtimeDeparture": 1920,
+     "realtime": false,
+     "realtimeState": "SCHEDULED",
+     "pickupType": "SCHEDULED",
+     "dropoffType": "SCHEDULED",
+     "headsign": "Komárom",
+     "serviceDay": 1793228400,
+     "stop": {
+      "platformCode": null
+     },
+     "trip": {
+      "gtfsId": "1:36017868",
+      "tripShortName": "4810 személyvonat",
+      "tripHeadsign": "Komárom",
+      "route": {
+       "shortName": "<span class=\"MNR2007\">&#335;</span>",
+       "longName": "S10",
+       "textColor": "00A0E3"
+      },
+      "departureStoptime": {
+       "scheduledDeparture": 1500,
+       "stop": {
+        "name": "Budapest-Déli"
+       }
+      }
+     }
+    },
+    {
+     "scheduledArrival": 3360,
+     "realtimeArrival": 3360,
+     "scheduledDeparture": 3420,
+     "realtimeDeparture": 3420,
+     "realtime": false,
+     "realtimeState": "SCHEDULED",
+     "pickupType": "SCHEDULED",
+     "dropoffType": "SCHEDULED",
+     "headsign": "Pusztaszabolcs",
+     "serviceDay": 1793228400,
+     "stop": {
+      "platformCode": null
+     },
+     "trip": {
+      "gtfsId": "1:35169717",
+      "tripShortName": "4110 személyvonat",
+      "tripHeadsign": "Pusztaszabolcs",
+      "route": {
+       "shortName": "<span class=\"MNR2007\">&#358;</span>",
+       "longName": "S40",
+       "textColor": "00A0E3"
+      },
+      "departureStoptime": {
+       "scheduledDeparture": 3000,
+       "stop": {
+        "name": "Budapest-Déli"
+       }
+      }
+     }
+    },
+    {
+     "scheduledArrival": 80160,
+     "realtimeArrival": 80820,
+     "scheduledDeparture": 80220,
+     "realtimeDeparture": 80880,
+     "realtime": true,
+     "realtimeState": "UPDATED",
+     "pickupType": "SCHEDULED",
+     "dropoffType": "SCHEDULED",
+     "headsign": "Budapest-Déli",
+     "serviceDay": 1793142000,
+     "stop": {
+      "platformCode": "2"
+     },
+     "trip": {
+      "gtfsId": "1:36242192",
+      "tripShortName": "201 AGRAM - TÓPART gyorsvonat",
+      "tripHeadsign": "Budapest-Déli",
+      "route": {
+       "shortName": "<span class=\"MNR2007\">&#473;</span>",
+       "longName": "Gy AGRAM - TÓPART",
+       "textColor": "C82227"
+      },
+      "departureStoptime": {
+       "scheduledDeparture": 66180,
+       "stop": {
+        "name": "Gyékényes"
+       }
+      }
+     }
+    },
+    {
+     "scheduledArrival": 80160,
+     "realtimeArrival": 80820,
+     "scheduledDeparture": 80220,
+     "realtimeDeparture": 80880,
+     "realtime": true,
+     "realtimeState": "MODIFIED",
+     "pickupType": "SCHEDULED",
+     "dropoffType": "SCHEDULED",
+     "headsign": "Budapest-Déli",
+     "serviceDay": 1793142000,
+     "stop": {
+      "platformCode": "2"
+     },
+     "trip": {
+      "gtfsId": "1:36231459",
+      "tripShortName": "201 AGRAM - TÓPART InterCity",
+      "tripHeadsign": "Budapest-Déli",
+      "route": {
+       "shortName": "<span class=\"MNR2007\">&#474;</span>",
+       "longName": "IC AGRAM - TÓPART",
+       "textColor": "274F96"
+      },
+      "departureStoptime": {
+       "scheduledDeparture": 59400,
+       "stop": {
+        "name": "Zagreb Glavni Kol."
+       }
+      }
+     }
+    },
+    {
+     "scheduledArrival": 80160,
+     "realtimeArrival": 80760,
+     "scheduledDeparture": 80280,
+     "realtimeDeparture": 80880,
+     "realtime": true,
+     "realtimeState": "MODIFIED",
+     "pickupType": "SCHEDULED",
+     "dropoffType": "SCHEDULED",
+     "headsign": "Budapest-Keleti",
+     "serviceDay": 1793142000,
+     "stop": {
+      "platformCode": "14"
+     },
+     "trip": {
+      "gtfsId": "1:36226757",
+      "tripShortName": "341 SEMMELWEIS IGNÁC EuroCity",
+      "tripHeadsign": "Budapest-Keleti",
+      "route": {
+       "shortName": "<span class=\"MNR2007\">&#467;</span>",
+       "longName": "EC BARTÓK BÉLA/CSÁRDÁS/LEHÁR FERENC/LISZT FERENC/SEMMELWEIS IGNÁC",
+       "textColor": "274F96"
+      },
+      "departureStoptime": {
+       "scheduledDeparture": 68400,
+       "stop": {
+        "name": "Wien Westbf"
+       }
+      }
+     }
+    },
+    {
+     "scheduledArrival": 81060,
+     "realtimeArrival": 81060,
+     "scheduledDeparture": 81120,
+     "realtimeDeparture": 81120,
+     "realtime": true,
+     "realtimeState": "MODIFIED",
+     "pickupType": "SCHEDULED",
+     "dropoffType": "SCHEDULED",
+     "headsign": "Budapest-Déli",
+     "serviceDay": 1793142000,
+     "stop": {
+      "platformCode": "2"
+     },
+     "trip": {
+      "gtfsId": "1:36018250",
+      "tripShortName": "4351 személyvonat",
+      "tripHeadsign": "Budapest-Déli",
+      "route": {
+       "shortName": "<span class=\"MNR2007\">&#358;</span>",
+       "longName": "S40",
+       "textColor": "00A0E3"
+      },
+      "departureStoptime": {
+       "scheduledDeparture": 79320,
+       "stop": {
+        "name": "Százhalombatta"
+       }
+      }
+     }
+    },
+    {
+     "scheduledArrival": 80760,
+     "realtimeArrival": 81060,
+     "scheduledDeparture": 80820,
+     "realtimeDeparture": 81120,
+     "realtime": true,
+     "realtimeState": "MODIFIED",
+     "pickupType": "SCHEDULED",
+     "dropoffType": "SCHEDULED",
+     "headsign": "Székesfehérvár",
+     "serviceDay": 1793142000,
+     "stop": {
+      "platformCode": "5"
+     },
+     "trip": {
+      "gtfsId": "1:36017958",
+      "tripShortName": "4758 személyvonat",
+      "tripHeadsign": "Székesfehérvár",
+      "route": {
+       "shortName": "<span class=\"MNR2007\">&#401;</span>",
+       "longName": "G44",
+       "textColor": "B0CB1F"
+      },
+      "departureStoptime": {
+       "scheduledDeparture": 80400,
+       "stop": {
+        "name": "Budapest-Déli"
+       }
+      }
+     }
+    },
+    {
+     "scheduledArrival": 81060,
+     "realtimeArrival": 81060,
+     "scheduledDeparture": 81120,
+     "realtimeDeparture": 81120,
+     "realtime": true,
+     "realtimeState": "MODIFIED",
+     "pickupType": "SCHEDULED",
+     "dropoffType": "SCHEDULED",
+     "headsign": "Győr",
+     "serviceDay": 1793142000,
+     "stop": {
+      "platformCode": "10"
+     },
+     "trip": {
+      "gtfsId": "1:36020180",
+      "tripShortName": "4958 személyvonat",
+      "tripHeadsign": "Győr",
+      "route": {
+       "shortName": "<span class=\"MNR2007\">&#335;</span>",
+       "longName": "S10",
+       "textColor": "00A0E3"
+      },
+      "departureStoptime": {
+       "scheduledDeparture": 80700,
+       "stop": {
+        "name": "Budapest-Déli"
+       }
+      }
+     }
+    },
+    {
+     "scheduledArrival": 81960,
+     "realtimeArrival": 81960,
+     "scheduledDeparture": 82020,
+     "realtimeDeparture": 82020,
+     "realtime": false,
+     "realtimeState": "SCHEDULED",
+     "pickupType": "SCHEDULED",
+     "dropoffType": "SCHEDULED",
+     "headsign": "Veszprém",
+     "serviceDay": 1793142000,
+     "stop": {
+      "platformCode": "4"
+     },
+     "trip": {
+      "gtfsId": "1:36016717",
+      "tripShortName": "9068 személyvonat",
+      "tripHeadsign": "Veszprém",
+      "route": {
+       "shortName": "<span class=\"MNR2007\">&#484;</span>",
+       "longName": "Sz 9068",
+       "textColor": "00A0E3"
+      },
+      "departureStoptime": {
+       "scheduledDeparture": 81600,
+       "stop": {
+        "name": "Budapest-Déli"
+       }
+      }
+     }
+    }
+   ]
+  }
+ }
+}

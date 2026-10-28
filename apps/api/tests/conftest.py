@@ -7,12 +7,12 @@ session so switching branches never leaves stale migrations behind; set
 `TEST_DATABASE_URL` to point somewhere else (that database is only created if
 missing, never dropped). Migrations run once per session.
 
-Upstream is never called: `REPLAY_FILE` points at the committed fixture, and
-Redis is replaced by fakeredis.
+Upstream is never called: `REPLAY_FILE` points at the committed fixture, the
+`otp` fixture mocks the GraphQL endpoint, and Redis is replaced by fakeredis.
 """
 
 import os
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Iterator
 from pathlib import Path
 
 import asyncpg  # type: ignore[import-untyped]
@@ -37,6 +37,7 @@ settings.REDIS_KEY = "mhav-test"
 
 import fakeredis  # noqa: E402
 import httpx  # noqa: E402
+import respx  # noqa: E402
 from alembic import command  # noqa: E402
 from alembic.config import Config  # noqa: E402
 from fastapi import FastAPI  # noqa: E402
@@ -50,6 +51,7 @@ from sqlalchemy.pool import NullPool  # noqa: E402
 from api.core.db import get_session  # noqa: E402
 from api.core.redis import get_redis  # noqa: E402
 from api.main import create_app  # noqa: E402
+from api.services import station_index  # noqa: E402
 from api.util import replay  # noqa: E402
 
 API_DIR = Path(__file__).parent.parent
@@ -125,6 +127,22 @@ def app(db_session: AsyncSession, redis: fakeredis.FakeAsyncRedis) -> FastAPI:
     app.dependency_overrides[get_session] = lambda: db_session
     app.dependency_overrides[get_redis] = lambda: redis
     return app
+
+
+@pytest.fixture(autouse=True)
+def _reset_station_index_memo() -> None:
+    station_index.clear_memo()
+
+
+@pytest.fixture
+def otp(monkeypatch: pytest.MonkeyPatch) -> Iterator[respx.MockRouter]:
+    """Mocked upstream GraphQL endpoint; no request leaves the process."""
+    from tests.upstream import ENDPOINT
+
+    monkeypatch.setattr(settings, "GRAPHQL_ENDPOINT", ENDPOINT)
+    monkeypatch.setattr(settings, "SOCKS5_PROXY_ENABLE", False)
+    with respx.mock(assert_all_mocked=True, assert_all_called=False) as mock:
+        yield mock
 
 
 @pytest.fixture

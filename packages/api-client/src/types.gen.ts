@@ -29,6 +29,126 @@ export type Alert = {
 };
 
 /**
+ * AlertRoute
+ *
+ * Route affected by an alert
+ */
+export type AlertRoute = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Mode
+     */
+    mode?: string | null;
+    /**
+     * Shortname
+     */
+    shortName?: string | null;
+    /**
+     * Longname
+     */
+    longName?: string | null;
+};
+
+/**
+ * AlertStation
+ *
+ * Station affected by an alert
+ */
+export type AlertStation = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Name
+     */
+    name: string;
+};
+
+/**
+ * AlertTrip
+ *
+ * Single train affected by an alert
+ */
+export type AlertTrip = {
+    /**
+     * Tripid
+     */
+    tripId: string;
+    /**
+     * Tripshortname
+     */
+    tripShortName?: string | null;
+};
+
+/**
+ * BoardEntry
+ *
+ * One train on a station's departure or arrival board
+ */
+export type BoardEntry = {
+    /**
+     * Tripid
+     */
+    tripId: string;
+    /**
+     * Tripshortname
+     */
+    tripShortName: string;
+    /**
+     * Routeshortname
+     */
+    routeShortName: string;
+    /**
+     * Routetextcolor
+     */
+    routeTextColor?: string | null;
+    /**
+     * Headsign
+     */
+    headsign?: string | null;
+    /**
+     * Servicedate
+     */
+    serviceDate: string;
+    /**
+     * Scheduledtime
+     */
+    scheduledTime: number;
+    /**
+     * Expectedtime
+     */
+    expectedTime: number;
+    /**
+     * Delayminutes
+     */
+    delayMinutes: number;
+    /**
+     * Delaysource
+     */
+    delaySource: 'gps' | 'otp';
+    /**
+     * Platform
+     */
+    platform?: string | null;
+    /**
+     * Realtime
+     */
+    realtime: boolean;
+    /**
+     * Canceled
+     */
+    canceled?: boolean;
+    /**
+     * Vehicleid
+     */
+    vehicleId?: string | null;
+};
+
+/**
  * HTTPValidationError
  */
 export type HttpValidationError = {
@@ -110,6 +230,50 @@ export type ProcessedStop = {
 };
 
 /**
+ * RailAlert
+ *
+ * An active rail disruption or service notice
+ */
+export type RailAlert = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Header
+     */
+    header?: string | null;
+    /**
+     * Description
+     */
+    description: string;
+    /**
+     * Url
+     */
+    url?: string | null;
+    /**
+     * Start
+     */
+    start?: number | null;
+    /**
+     * End
+     */
+    end?: number | null;
+    /**
+     * Affectedroutes
+     */
+    affectedRoutes: Array<AlertRoute>;
+    /**
+     * Affectedtrips
+     */
+    affectedTrips: Array<AlertTrip>;
+    /**
+     * Affectedstations
+     */
+    affectedStations: Array<AlertStation>;
+};
+
+/**
  * Route
  *
  * Route information
@@ -131,6 +295,51 @@ export type Route = {
      * Longname
      */
     longName: string;
+};
+
+/**
+ * Station
+ *
+ * A rail station, grouping all of its platforms
+ */
+export type Station = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Lat
+     */
+    lat: number;
+    /**
+     * Lon
+     */
+    lon: number;
+};
+
+/**
+ * StationBoard
+ *
+ * Departure or arrival board of a station, merged across platforms
+ */
+export type StationBoard = {
+    station: Station;
+    /**
+     * Kind
+     */
+    kind: 'departures' | 'arrivals';
+    /**
+     * Generatedat
+     */
+    generatedAt: number;
+    /**
+     * Entries
+     */
+    entries: Array<BoardEntry>;
 };
 
 /**
@@ -556,3 +765,115 @@ export type GetPosthogKeyResponses = {
 };
 
 export type GetPosthogKeyResponse = GetPosthogKeyResponses[keyof GetPosthogKeyResponses];
+
+export type SearchStationsData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Q
+         */
+        q: string;
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/v1/stations';
+};
+
+export type SearchStationsErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+    /**
+     * The upstream timetable service failed
+     */
+    502: unknown;
+};
+
+export type SearchStationsError = SearchStationsErrors[keyof SearchStationsErrors];
+
+export type SearchStationsResponses = {
+    /**
+     * Response Searchstations
+     *
+     * Successful Response
+     */
+    200: Array<Station>;
+};
+
+export type SearchStationsResponse = SearchStationsResponses[keyof SearchStationsResponses];
+
+export type GetStationBoardData = {
+    body?: never;
+    path: {
+        /**
+         * Stationid
+         */
+        stationId: string;
+    };
+    query?: {
+        /**
+         * Kind
+         */
+        kind?: 'departures' | 'arrivals';
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/v1/stations/{stationId}/departures';
+};
+
+export type GetStationBoardErrors = {
+    /**
+     * Unknown station
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+    /**
+     * The upstream timetable service failed
+     */
+    502: unknown;
+};
+
+export type GetStationBoardError = GetStationBoardErrors[keyof GetStationBoardErrors];
+
+export type GetStationBoardResponses = {
+    /**
+     * Successful Response
+     */
+    200: StationBoard;
+};
+
+export type GetStationBoardResponse = GetStationBoardResponses[keyof GetStationBoardResponses];
+
+export type GetAlertsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/alerts';
+};
+
+export type GetAlertsErrors = {
+    /**
+     * The upstream timetable service failed
+     */
+    502: unknown;
+};
+
+export type GetAlertsResponses = {
+    /**
+     * Response Getalerts
+     *
+     * Successful Response
+     */
+    200: Array<RailAlert>;
+};
+
+export type GetAlertsResponse = GetAlertsResponses[keyof GetAlertsResponses];

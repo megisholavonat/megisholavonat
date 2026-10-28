@@ -61,3 +61,131 @@ POSITIONS_QUERY = """
     }
   }
 """
+
+# Every station of every feed. Rail stations are filtered out of this when
+# building the search index.
+STATIONS_QUERY = """
+  query Stations {
+    stations {
+      gtfsId
+      name
+      lat
+      lon
+      vehicleMode
+    }
+  }
+"""
+
+# A station's board, merged across its platforms. `numberOfDepartures` is
+# applied per pattern, so asking for N per pattern guarantees that the first N
+# overall are included.
+STATION_BOARD_QUERY = """
+  query StationBoard(
+    $id: String!
+    $n: Int!
+    $range: Int!
+    $omitNonPickups: Boolean!
+  ) {
+    station(id: $id) {
+      gtfsId
+      name
+      lat
+      lon
+      stoptimesWithoutPatterns(
+        numberOfDepartures: $n
+        timeRange: $range
+        omitNonPickups: $omitNonPickups
+        omitCanceled: false
+      ) {
+        scheduledArrival
+        realtimeArrival
+        scheduledDeparture
+        realtimeDeparture
+        realtime
+        realtimeState
+        pickupType
+        dropoffType
+        headsign
+        serviceDay
+        stop {
+          platformCode
+        }
+        trip {
+          gtfsId
+          tripShortName
+          tripHeadsign
+          route {
+            shortName
+            longName
+            textColor
+          }
+          departureStoptime {
+            scheduledDeparture
+            stop {
+              name
+            }
+          }
+        }
+      }
+    }
+  }
+"""
+
+# Alerts of the given feeds. Feed "1" holds every railway (MÁV, GYSEV, HÉV
+# and foreign operators).
+ALERTS_QUERY = """
+  query Alerts($feeds: [String!]) {
+    alerts(feeds: $feeds) {
+      id
+      feed
+      alertHeaderText
+      alertDescriptionText
+      alertUrl
+      effectiveStartDate
+      effectiveEndDate
+      entities {
+        __typename
+        ... on Route {
+          gtfsId
+          mode
+          shortName
+          longName
+        }
+        ... on Trip {
+          gtfsId
+          tripShortName
+          route {
+            gtfsId
+            mode
+            shortName
+            longName
+          }
+        }
+        ... on Stop {
+          gtfsId
+          name
+          parentStation {
+            gtfsId
+            name
+          }
+        }
+        ... on StopOnRoute {
+          stop {
+            gtfsId
+            name
+            parentStation {
+              gtfsId
+              name
+            }
+          }
+          route {
+            gtfsId
+            mode
+            shortName
+            longName
+          }
+        }
+      }
+    }
+  }
+"""

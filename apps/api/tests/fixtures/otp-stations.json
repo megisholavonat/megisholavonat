@@ -1,0 +1,125 @@
+{
+ "data": {
+  "stations": [
+   {
+    "gtfsId": "1:004305348",
+    "name": "Győrvár",
+    "lat": 46.99,
+    "lon": 16.840556,
+    "vehicleMode": "RAIL"
+   },
+   {
+    "gtfsId": "1:005501263",
+    "name": "Győr-Gyárváros",
+    "lat": 47.684444,
+    "lon": 17.663889,
+    "vehicleMode": "RAIL"
+   },
+   {
+    "gtfsId": "1:005501255",
+    "name": "Győrszentiván",
+    "lat": 47.688611,
+    "lon": 17.745556,
+    "vehicleMode": "RAIL"
+   },
+   {
+    "gtfsId": "1:005501289",
+    "name": "Győr",
+    "lat": 47.681944,
+    "lon": 17.634722,
+    "vehicleMode": "RAIL"
+   },
+   {
+    "gtfsId": "BKK:056202",
+    "name": "Kelenföld vasútállomás",
+    "lat": 47.464403,
+    "lon": 19.020674,
+    "vehicleMode": null
+   },
+   {
+    "gtfsId": "1:005515529",
+    "name": "Győrtelek",
+    "lat": 47.936667,
+    "lon": 22.424722,
+    "vehicleMode": null
+   },
+   {
+    "gtfsId": "1:005515537",
+    "name": "Győrtelek alsó",
+    "lat": 47.921111,
+    "lon": 22.443333,
+    "vehicleMode": null
+   },
+   {
+    "gtfsId": "BKK:CS056215",
+    "name": "Budapest, Kelenföld vasútállomás",
+    "lat": 47.464167,
+    "lon": 19.019845,
+    "vehicleMode": "SUBWAY"
+   },
+   {
+    "gtfsId": "1:005510017",
+    "name": "Budapest-Keleti",
+    "lat": 47.500278,
+    "lon": 19.084167,
+    "vehicleMode": "RAIL"
+   },
+   {
+    "gtfsId": "hkir:hkir_550392",
+    "name": "Győr (Szitásdomb), Sárási út",
+    "lat": 47.720024,
+    "lon": 17.64538,
+    "vehicleMode": null
+   },
+   {
+    "gtfsId": "1:005504788",
+    "name": "Balatongyörök",
+    "lat": 46.751944,
+    "lon": 17.354444,
+    "vehicleMode": "RAIL"
+   },
+   {
+    "gtfsId": "hkir:hkir_549391",
+    "name": "Győr, Ipar utca, ETO Park",
+    "lat": 47.695055,
+    "lon": 17.660072,
+    "vehicleMode": null
+   },
+   {
+    "gtfsId": "1:003609142",
+    "name": "Szentendre H",
+    "lat": 47.661038,
+    "lon": 19.075607,
+    "vehicleMode": "SUBURBAN_RAILWAY"
+   },
+   {
+    "gtfsId": "1:v.005501289",
+    "name": "Győr/vá.",
+    "lat": 47.68205,
+    "lon": 17.633384,
+    "vehicleMode": "RAIL_REPLACEMENT_BUS"
+   },
+   {
+    "gtfsId": "1:008101003",
+    "name": "Wien Hbf",
+    "lat": 48.185,
+    "lon": 16.377222,
+    "vehicleMode": "RAIL"
+   },
+   {
+    "gtfsId": "1:v.005502055",
+    "name": "Győrszemere/vá.",
+    "lat": 47.566944,
+    "lon": 17.584722,
+    "vehicleMode": null
+   },
+   {
+    "gtfsId": "1:005501024",
+    "name": "Budapest-Kelenföld",
+    "lat": 47.464444,
+    "lon": 19.02,
+    "vehicleMode": "RAIL"
+   }
+  ]
+ }
+}
