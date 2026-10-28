@@ -58,6 +58,8 @@ This repository is a pnpm monorepo with:
    ```
    GRAPHQL_ENDPOINT=
    REDIS_HOST= (optional if running Redis from the provided compose file)
+   REDIS_PORT= (optional, defaults to 6379)
+   REDIS_KEY= (optional, prefix for all Redis keys, defaults to mhav-local)
    DEBUG=true (optional)
    ```
 
@@ -67,7 +69,8 @@ This repository is a pnpm monorepo with:
    docker compose up -d
    ```
 
-   This exposes Redis on `localhost:6379`.
+   This exposes Redis on `localhost:6379`. If that port is taken, set
+   `MHAV_REDIS_PORT=6380` in a root `.env` and `REDIS_PORT=6380` in `apps/api/.env`.
 
 7. **Run the dev servers**
 
