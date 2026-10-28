@@ -2,8 +2,10 @@
 Shared fixtures.
 
 Tests need a running Postgres. By default they use the `DATABASE_URL` server
-with the database name suffixed by `_test` (created on demand); set
-`TEST_DATABASE_URL` to point somewhere else. Migrations run once per session.
+with the database name suffixed by `_test`, recreated at the start of every
+session so switching branches never leaves stale migrations behind; set
+`TEST_DATABASE_URL` to point somewhere else (that database is only created if
+missing, never dropped). Migrations run once per session.
 
 Upstream is never called: `REPLAY_FILE` points at the committed fixture, and
 Redis is replaced by fakeredis.
@@ -59,6 +61,8 @@ async def _ensure_database() -> None:
         url.set(database="postgres").render_as_string(hide_password=False)
     )
     try:
+        if "TEST_DATABASE_URL" not in os.environ:
+            await conn.execute(f'DROP DATABASE IF EXISTS "{url.database}" WITH (FORCE)')
         exists = await conn.fetchval(
             "SELECT 1 FROM pg_database WHERE datname = $1", url.database
         )
