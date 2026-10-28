@@ -1,0 +1,232 @@
+{
+ "data": {
+  "plan": {
+   "itineraries": [
+    {
+     "legs": [
+      {
+       "mode": "RAIL",
+       "startTime": 1793258460000,
+       "endTime": 1793263020000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 125489.67,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-29",
+       "headsign": "Budapest-Kelenföld",
+       "from": {
+        "name": "Győr",
+        "lat": 47.681944,
+        "lon": 17.634722,
+        "stop": {
+         "platformCode": "3",
+         "stationUicPricingCode": "005501289"
+        }
+       },
+       "to": {
+        "name": "Budapest-Kelenföld",
+        "lat": 47.464444,
+        "lon": 19.02,
+        "stop": {
+         "platformCode": "14",
+         "stationUicPricingCode": "005501024"
+        }
+       },
+       "route": {
+        "shortName": "<span class=\"MNR2007\">&#474;</span>",
+        "longName": "IC SAVARIA",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:36226816",
+        "tripShortName": "927 SAVARIA InterCity",
+        "departureStoptime": {
+         "scheduledDeparture": 25800
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005501222_4"
+        },
+        {
+         "gtfsId": "1:005501164_4"
+        },
+        {
+         "gtfsId": "1:005501131_4"
+        }
+       ]
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793265120000,
+       "endTime": 1793273880000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 222077.8,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-29",
+       "headsign": "Pécs",
+       "from": {
+        "name": "Budapest-Kelenföld",
+        "lat": 47.464444,
+        "lon": 19.02,
+        "stop": {
+         "platformCode": "6",
+         "stationUicPricingCode": "005501024"
+        }
+       },
+       "to": {
+        "name": "Pécs",
+        "lat": 46.065833,
+        "lon": 18.223611,
+        "stop": {
+         "platformCode": "1",
+         "stationUicPricingCode": "005507294"
+        }
+       },
+       "route": {
+        "shortName": "<span class=\"MNR2007\">&#474;</span>",
+        "longName": "IC MECSEK",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:36016627",
+        "tripShortName": "812 MECSEK InterCity",
+        "departureStoptime": {
+         "scheduledDeparture": 36300
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005505926_5"
+        },
+        {
+         "gtfsId": "1:005506189_4"
+        },
+        {
+         "gtfsId": "1:005507260_2"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "RAIL",
+       "startTime": 1793265660000,
+       "endTime": 1793270220000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 125489.67,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-29",
+       "headsign": "Budapest-Kelenföld",
+       "from": {
+        "name": "Győr",
+        "lat": 47.681944,
+        "lon": 17.634722,
+        "stop": {
+         "platformCode": "3",
+         "stationUicPricingCode": "005501289"
+        }
+       },
+       "to": {
+        "name": "Budapest-Kelenföld",
+        "lat": 47.464444,
+        "lon": 19.02,
+        "stop": {
+         "platformCode": "14",
+         "stationUicPricingCode": "005501024"
+        }
+       },
+       "route": {
+        "shortName": "<span class=\"MNR2007\">&#474;</span>",
+        "longName": "IC SAVARIA",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:36226824",
+        "tripShortName": "937 SAVARIA InterCity",
+        "departureStoptime": {
+         "scheduledDeparture": 33000
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005501222_4"
+        },
+        {
+         "gtfsId": "1:005501164_4"
+        },
+        {
+         "gtfsId": "1:005501131_4"
+        }
+       ]
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793272320000,
+       "endTime": 1793281080000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 222077.8,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-29",
+       "headsign": "Pécs",
+       "from": {
+        "name": "Budapest-Kelenföld",
+        "lat": 47.464444,
+        "lon": 19.02,
+        "stop": {
+         "platformCode": "6",
+         "stationUicPricingCode": "005501024"
+        }
+       },
+       "to": {
+        "name": "Pécs",
+        "lat": 46.065833,
+        "lon": 18.223611,
+        "stop": {
+         "platformCode": "1",
+         "stationUicPricingCode": "005507294"
+        }
+       },
+       "route": {
+        "shortName": "<span class=\"MNR2007\">&#474;</span>",
+        "longName": "IC MECSEK",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:36016631",
+        "tripShortName": "804 MECSEK InterCity",
+        "departureStoptime": {
+         "scheduledDeparture": 43500
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005505926_5"
+        },
+        {
+         "gtfsId": "1:005506189_4"
+        },
+        {
+         "gtfsId": "1:005507260_2"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ }
+}
