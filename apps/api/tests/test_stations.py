@@ -5,7 +5,9 @@ import httpx
 import respx
 
 from api.core.redis import add_key
+from api.schemas.stations import BoardEntry
 from api.services.live_trips import build_live_trip_index, match_live_trip
+from api.services.station_board import merge_duplicate_trips
 from api.services.station_index import index_key, rail_stations_from_otp
 from tests.upstream import graphql_route, load_fixture, otp_responder
 
@@ -139,13 +141,11 @@ async def test_departures_merge_platforms_sorted_by_expected_time(
     # Tomorrow's early trains come after tonight's late ones
     assert [e["serviceDate"] for e in entries[-3:]] == ["2026-10-29"] * 3
 
-    # 341 and both 201s are all expected at 22:28; ties go by schedule
-    assert [e["tripId"] for e in entries[:3]] == [
-        "1:36231459",
-        "1:36242192",
-        "1:36226757",
-    ]
-    eurocity = entries[2]
+    # OTP lists train 201 twice (InterCity and gyorsvonat): one row remains,
+    # and it ties with 341 at 22:28, so schedule decides the order
+    assert [e["tripShortName"].split()[0] for e in entries[:2]] == ["201", "341"]
+    assert sum(e["tripShortName"].startswith("201 ") for e in entries) == 1
+    eurocity = entries[1]
     assert eurocity["tripShortName"] == "341 SEMMELWEIS IGNÁC EuroCity"
     assert eurocity["headsign"] == "Budapest-Keleti"
     assert eurocity["scheduledTime"] == 1793142000 + 80280
@@ -176,17 +176,14 @@ async def test_gps_delay_replaces_otp_delay_for_live_trains(
     assert intercity["vehicleId"] == "1:915506300507"
     assert intercity["expectedTime"] == intercity["scheduledTime"] + 9 * 60
 
-    # Same train number, different trip: not live, keeps the OTP delay
-    express = by_trip["1:36242192"]
-    assert express["tripShortName"] == "201 AGRAM - TÓPART gyorsvonat"
-    assert express["delaySource"] == "otp"
-    assert express["delayMinutes"] == 11
-    assert express["vehicleId"] is None
+    # The duplicate listing of train 201 is merged into the live one
+    assert "1:36242192" not in by_trip
 
     assert by_trip["1:36017958"]["delaySource"] == "otp"  # 4758, not live
 
     trips = [e["tripShortName"].split()[0] for e in response.json()["entries"]]
-    assert trips[:3] == ["341", "201", "201"]
+    assert trips[:2] == ["341", "201"]
+    assert trips.count("201") == 1
 
 
 async def test_gps_delay_never_moves_departures_earlier(
@@ -319,3 +316,44 @@ async def test_board_graphql_error_is_502(
 
     assert response.status_code == 502
     assert response.json() == {"detail": "Upstream timetable service returned an error"}
+
+
+def _entry(trip_id: str, name: str, scheduled: int, **kwargs: object) -> BoardEntry:
+    fields: dict[str, object] = {
+        "tripId": trip_id,
+        "tripShortName": name,
+        "routeShortName": "",
+        "routeTextColor": None,
+        "headsign": "Budapest-Déli",
+        "serviceDate": "2026-10-28",
+        "scheduledTime": scheduled,
+        "expectedTime": scheduled,
+        "delayMinutes": 0,
+        "delaySource": "otp",
+        "platform": "4",
+        "realtime": True,
+        "canceled": False,
+        "vehicleId": None,
+    }
+    fields.update(kwargs)
+    return BoardEntry.model_validate(fields)
+
+
+def test_duplicate_trips_of_one_train_are_merged() -> None:
+    intercity = _entry("1:a", "201 AGRAM - TÓPART InterCity", 1000)
+    fast = _entry(
+        "1:b", "201 AGRAM - TÓPART gyorsvonat", 1000, delaySource="gps", delayMinutes=7
+    )
+    other = _entry("1:c", "201 AGRAM - TÓPART InterCity", 5000)
+    different = _entry("1:d", "2010 személyvonat", 1000)
+
+    merged = merge_duplicate_trips([intercity, fast, other, different])
+
+    assert sorted(e.tripId for e in merged) == ["1:b", "1:c", "1:d"]
+
+
+def test_duplicate_merge_prefers_running_over_canceled() -> None:
+    canceled = _entry("1:a", "201 InterCity", 1000, canceled=True)
+    running = _entry("1:b", "201 gyorsvonat", 1000, realtime=False)
+
+    assert [e.tripId for e in merge_duplicate_trips([canceled, running])] == ["1:b"]

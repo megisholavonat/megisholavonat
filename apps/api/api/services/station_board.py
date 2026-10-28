@@ -103,6 +103,34 @@ def _board_entry(
     )
 
 
+def _train_number(trip_short_name: str) -> str:
+    return trip_short_name.split(" ", 1)[0]
+
+
+def merge_duplicate_trips(entries: list[BoardEntry]) -> list[BoardEntry]:
+    """
+    OTP sometimes lists one physical train as two trips (e.g. "201 ... InterCity"
+    and "201 ... gyorsvonat"). Keep one row per train number and scheduled time,
+    preferring the one matched to a live vehicle, then a running one, then
+    realtime data.
+    """
+
+    def rank(entry: BoardEntry) -> tuple[bool, bool, bool]:
+        return entry.delaySource == "gps", not entry.canceled, entry.realtime
+
+    best: dict[tuple[str, str, int], BoardEntry] = {}
+    for entry in entries:
+        key = (
+            entry.serviceDate,
+            _train_number(entry.tripShortName),
+            entry.scheduledTime,
+        )
+        existing = best.get(key)
+        if existing is None or rank(entry) > rank(existing):
+            best[key] = entry
+    return list(best.values())
+
+
 async def _fetch_station(
     station_id: str, kind: BoardKind, limit: int, time_range: int
 ) -> dict[str, Any]:
@@ -140,7 +168,9 @@ async def fetch_board(
         ]
 
     live_index = await load_live_trip_index(redis)
-    entries = [_board_entry(st, kind, live_index) for st in stoptimes]
+    entries = merge_duplicate_trips(
+        [_board_entry(st, kind, live_index) for st in stoptimes]
+    )
     entries.sort(key=lambda e: (e.expectedTime, e.scheduledTime, e.tripId))
 
     return StationBoard(
