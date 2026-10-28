@@ -286,6 +286,17 @@ RANKING_JOINS: dict[str, str] = {
         "AS g(glyph, line) ON g.glyph = route_short_name"
     ),
 }
+# Trains are ranked by how late they arrive: one sample per run, the delay at
+# its last recorded stop. That is the terminus when the recorder caught the
+# arrival; otherwise the last stop before it that was recorded.
+RANKING_SOURCES: dict[str, str] = {
+    "trains": f"""(
+        SELECT DISTINCT ON (service_date, trip_gtfs_id) *
+        FROM stop_delay_observations
+        WHERE {IN_WINDOW}
+        ORDER BY service_date, trip_gtfs_id, stop_sequence DESC
+    ) AS final_stops""",
+}
 RANKING_FILTERS: dict[str, str] = {
     "lines": f"AND (g.line IS NOT NULL OR {LINE_NAME} ~ :line_pattern)",
 }
@@ -320,7 +331,8 @@ async def rankings(
         text(
             f"""
             SELECT {key} AS id, {DELAY_AGGREGATES} {RANKING_EXTRAS[kind]}
-            FROM stop_delay_observations {RANKING_JOINS.get(kind, "")}
+            FROM {RANKING_SOURCES.get(kind, "stop_delay_observations")}
+                 {RANKING_JOINS.get(kind, "")}
             WHERE {IN_WINDOW} AND {key} <> '' {RANKING_FILTERS.get(kind, "")}
             GROUP BY 1
             HAVING count(*) >= :min_samples

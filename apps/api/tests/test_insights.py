@@ -361,6 +361,38 @@ async def test_rankings_by_line_and_train(
     ]
 
 
+async def test_train_rankings_use_the_arrival_of_each_run(
+    client: httpx.AsyncClient, db_session: AsyncSession
+) -> None:
+    rows = []
+    for i in range(5):
+        day, trip = MONDAY - timedelta(days=i), f"1:run{i}"
+        # Train 10 leaves on time but arrives 15 minutes late
+        rows += [
+            _obs(0, day=day, trip=trip, station=KELETI, seq=0),
+            _obs(0, day=day, trip=trip, station=SZOLNOK, seq=5),
+            _obs(900, day=day, trip=trip, station=DEBRECEN, seq=9),
+        ]
+        # Train 20 is late on the way but arrives on time
+        rows += [
+            _obs(900, day=day, trip=f"1:twenty{i}", train="20 X", station=KELETI),
+            _obs(
+                60, day=day, trip=f"1:twenty{i}", train="20 X", station=SZOLNOK, seq=3
+            ),
+        ]
+    await _seed(db_session, rows)
+
+    body = (await client.get("/v1/rankings?kind=trains&minSamples=5")).json()
+    stations = (await client.get("/v1/rankings?kind=stations&minSamples=5")).json()
+
+    assert [(e["id"], e["n"], e["onTimeShare"]) for e in body["entries"]] == [
+        ("20", 5, 1.0),
+        ("10", 5, 0.0),
+    ]
+    # Stations still count every passage
+    assert sum(e["n"] for e in stations["entries"]) == 25
+
+
 async def test_time_of_day(client: httpx.AsyncClient, db_session: AsyncSession) -> None:
     rows = [_obs(0, seq=i, scheduled_s=7 * 3600 + 60 * i) for i in range(3)]
     rows += [_obs(900, seq=10 + i, scheduled_s=17 * 3600) for i in range(2)]
