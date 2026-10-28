@@ -110,7 +110,11 @@ DAY_S = 24 * 3600
 
 
 def receipts_key() -> str:
-    """Sorted set of pending Expo tickets, `<ticket id>|<push token id>`."""
+    """
+    Sorted set of pending Expo tickets, `<ticket id>|<push token id>`.
+    Deliberately one global key rather than per device (`device_key`): it
+    holds only ticket and token ids, and entries are dropped within a day.
+    """
     return add_key("push:expo-receipts")
 
 

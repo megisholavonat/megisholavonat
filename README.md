@@ -184,6 +184,10 @@ Expo alerts are sent on the Android notification channel `alerts`; the app
 must create that channel (the mobile scaffold will), or Android 8+ does not
 show them.
 
+The Expo receipts key (`<REDIS_KEY>:push:expo-receipts`) is global, not
+per-device, on purpose: it holds only ticket and token ids, and entries are
+dropped within a day.
+
 ### Replaying recorded data
 
 To develop without calling upstream, set
