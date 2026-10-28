@@ -3,14 +3,13 @@ Read side of the delay history: typical delays per train and station,
 punctuality rankings, on-time share by hour and platform prediction.
 
 Everything is aggregated in SQL over stop_delay_observations, using our
-GPS-derived delay_s. Statistics cover a window of service dates that ends at
-the latest recorded service date (see `history_window`).
+GPS-derived delay_s. Statistics cover the last N service dates up to today
+(see `history_window`).
 """
 
 from datetime import date, datetime, timedelta
 from typing import Any
 
-import pytz
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -31,8 +30,7 @@ from api.schemas.insights import (
     TrainStationHistory,
 )
 from api.util.route_names import MAV_ROUTE_MAP, route_name
-
-BUDAPEST_TZ = pytz.timezone("Europe/Budapest")
+from api.util.time import BUDAPEST_TZ
 
 # Below this many passages a delay statistic is flagged as insufficient
 MIN_SAMPLES = 5
@@ -75,17 +73,14 @@ def _stats(row: Any) -> dict[str, Any]:
     }
 
 
-async def history_window(session: AsyncSession, days: int) -> HistoryWindow:
-    """
-    The last `days` service dates up to the latest one with recorded data
-    (today if there is none), so a gap in recording does not empty the window.
-    """
-    latest = (
-        await session.execute(
-            text("SELECT max(service_date) FROM stop_delay_observations")
-        )
-    ).scalar()
-    end: date = latest or datetime.now(BUDAPEST_TZ).date()
+def today() -> date:
+    """Today in Budapest (tests replace it to pin the window)."""
+    return datetime.now(BUDAPEST_TZ).date()
+
+
+def history_window(days: int) -> HistoryWindow:
+    """The last `days` service dates, up to and including today."""
+    end = today()
     return HistoryWindow(start=end - timedelta(days=days - 1), end=end, days=days)
 
 
@@ -133,7 +128,7 @@ TOP_PLATFORM = """
 async def train_station_history(
     session: AsyncSession, train_number: str, station: str, days: int
 ) -> TrainStationHistory:
-    window = await history_window(session, days)
+    window = history_window(days)
     params = {**_window_params(window), "train": train_number, "station": station}
     obs = f"""
         obs AS (
@@ -191,7 +186,7 @@ async def train_station_history(
 async def train_history(
     session: AsyncSession, train_number: str, days: int
 ) -> TrainHistory:
-    window = await history_window(session, days)
+    window = history_window(days)
     params = {
         **_window_params(window),
         "train": train_number,
@@ -303,7 +298,7 @@ async def rankings(
     limit: int,
     min_samples: int,
 ) -> Rankings:
-    window = await history_window(session, days)
+    window = history_window(days)
     key = RANKING_KEYS[kind]
     # best: most on time first, then the smallest median delay
     direction = "DESC" if order == "best" else "ASC"
@@ -359,7 +354,7 @@ async def rankings(
 async def time_of_day(
     session: AsyncSession, station: str | None, days: int
 ) -> TimeOfDayPunctuality:
-    window = await history_window(session, days)
+    window = history_window(days)
     station_filter = "AND station_id = :station" if station else ""
     result = await session.execute(
         text(
@@ -393,7 +388,7 @@ async def time_of_day(
 async def station_platforms(
     session: AsyncSession, station: str, train_number: str | None, days: int
 ) -> StationPlatforms:
-    window = await history_window(session, days)
+    window = history_window(days)
     train_filter = f"AND {TRAIN_NUMBER} = :train" if train_number else ""
     result = await session.execute(
         text(

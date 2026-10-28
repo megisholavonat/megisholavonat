@@ -8,13 +8,20 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.models.history import Stop, StopDelayObservation
+from api.services import insights
 from api.services.history import ensure_partition
 
+# "Today" for every test; observations are seeded relative to it
 MONDAY = date(2026, 9, 7)
 KELETI = "005510017"
 SZOLNOK = "005510009"
 DEBRECEN = "005510710"
 NAMES = {KELETI: "Budapest-Keleti", SZOLNOK: "Szolnok", DEBRECEN: "Debrecen"}
+
+
+@pytest.fixture(autouse=True)
+def _today_is_monday(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(insights, "today", lambda: MONDAY)
 
 
 def _obs(
@@ -164,17 +171,32 @@ async def test_train_number_is_the_first_token_only(
     assert body["medianDelayMin"] == 1.0
 
 
-async def test_window_counts_back_from_latest_recorded_day(
+async def test_window_counts_back_from_today(
     client: httpx.AsyncClient, db_session: AsyncSession
 ) -> None:
-    # Ten runs, one per day; a 3-day window keeps the last three
+    # Ten runs, one per day up to today; a 3-day window keeps the last three
     await _seed(db_session, _runs([0, 0, 0, 600, 600, 600, 600, 600, 600, 600]))
 
     body = (await client.get(f"/v1/history/trains/10/stations/{KELETI}?days=3")).json()
 
     assert body["n"] == 3
     assert body["medianDelayMin"] == 0.0
-    assert body["window"]["start"] == "2026-09-05"
+    assert body["window"] == {"start": "2026-09-05", "end": "2026-09-07", "days": 3}
+
+
+async def test_window_ignores_older_data_even_without_recent_data(
+    client: httpx.AsyncClient,
+    db_session: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Recording stopped a month before today: nothing is in the window
+    await _seed(db_session, _runs([60] * 5))
+    monkeypatch.setattr(insights, "today", lambda: MONDAY + timedelta(days=30))
+
+    body = (await client.get(f"/v1/history/trains/10/stations/{KELETI}")).json()
+
+    assert body["n"] == 0
+    assert body["insufficientData"] is True
 
 
 # --- Train route ---

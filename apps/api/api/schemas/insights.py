@@ -7,10 +7,7 @@ from pydantic import BaseModel
 
 
 class HistoryWindow(BaseModel):
-    """
-    Service dates the statistics cover. The window ends at the latest service
-    date with recorded data, so it does not drift into days without data.
-    """
+    """Service dates the statistics cover: the last `days` up to today"""
 
     start: date
     end: date
