@@ -4,6 +4,12 @@ import type {
     TrainFeatureCollection,
     TrainFeatureProperties,
 } from "@megisholavonat/api-client";
+import {
+    compareTrains,
+    matchesTrainQuery,
+    type SortDirection,
+    type TrainSortOption,
+} from "@megisholavonat/core/trainSearch";
 import { AnimatePresence, motion } from "motion/react";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
@@ -16,10 +22,8 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Z_LAYERS } from "@/util/constants";
-import { matchesMavRoute } from "@/util/mavRoutes";
-import { normalizeSearchText } from "@/util/search";
+import { getDelayColor } from "@/util/delayClasses";
 import MAVRouteIcon from "../ui/MavRouteIcon";
-import { getDelayColor } from "./TrainPanel";
 
 interface SearchComponentProps {
     data: TrainFeatureCollection | undefined;
@@ -30,8 +34,6 @@ function formatSpeed(speed: number): string {
     return `${Math.round(speed * 3.6)} km/h`;
 }
 
-type SortOption = "number" | "delay" | "speed";
-
 export default function SearchComponent({
     data,
     onResultClick,
@@ -40,8 +42,8 @@ export default function SearchComponent({
 
     const [isOpen, setIsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
-    const [sortBy, setSortBy] = useState<SortOption>("number");
-    const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+    const [sortBy, setSortBy] = useState<TrainSortOption>("number");
+    const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
     const searchRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -108,70 +110,11 @@ export default function SearchComponent({
         const properties: TrainFeatureProperties[] =
             data?.features?.map((f) => f.properties) ?? [];
 
-        const filtered = properties.filter((result) => {
-            if (!searchQuery.trim()) return true;
-
-            const query = normalizeSearchText(searchQuery.trim());
-            const tripName = normalizeSearchText(result.tripShortName ?? "");
-            const routeName = normalizeSearchText(result.routeShortName ?? "");
-            const routeMatches = matchesMavRoute(
-                result.routeShortName,
-                searchQuery,
-            );
-
-            let vehicleIdMatches = false;
-            try {
-                if (
-                    result.vehicleId &&
-                    typeof result.vehicleId === "string" &&
-                    result.vehicleId.length > 2
-                ) {
-                    const vehicleId = normalizeSearchText(
-                        result.vehicleId.slice(2),
-                    );
-                    const sanitizedQuery = query
-                        .replaceAll(" ", "")
-                        .replaceAll("-", "");
-                    vehicleIdMatches = vehicleId.includes(sanitizedQuery);
-                }
-            } catch (error) {
-                console.warn("Error processing vehicleId in search:", error);
-                vehicleIdMatches = false;
-            }
-
-            return (
-                tripName.includes(query) ||
-                routeName.includes(query) ||
-                routeMatches ||
-                vehicleIdMatches
-            );
-        });
-
-        return filtered.sort(
-            (a: TrainFeatureProperties, b: TrainFeatureProperties) => {
-                let comparison = 0;
-
-                switch (sortBy) {
-                    case "number":
-                        comparison = a.tripShortName.localeCompare(
-                            b.tripShortName,
-                            undefined,
-                            { numeric: true },
-                        );
-                        break;
-                    case "delay":
-                        comparison = a.delay - b.delay;
-                        break;
-                    case "speed":
-                        comparison = (a.speed ?? 0) - (b.speed ?? 0);
-                        break;
-                    default:
-                        return 0;
-                }
-
-                return sortDirection === "asc" ? comparison : -comparison;
-            },
+        const filtered = properties.filter((result) =>
+            matchesTrainQuery(result, searchQuery),
         );
+
+        return filtered.sort(compareTrains(sortBy, sortDirection));
     })();
 
     return (
@@ -246,9 +189,9 @@ export default function SearchComponent({
                                     </span>
                                     <Select
                                         value={sortBy}
-                                        onValueChange={(value: SortOption) =>
-                                            setSortBy(value)
-                                        }
+                                        onValueChange={(
+                                            value: TrainSortOption,
+                                        ) => setSortBy(value)}
                                     >
                                         <SelectTrigger
                                             className="w-full h-8"

@@ -1,3 +1,4 @@
+import { DELAY_COLORS } from "@megisholavonat/core/delay";
 import { AnimatePresence, motion } from "motion/react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
@@ -13,10 +14,10 @@ import {
 } from "@/components/ui/collapsible";
 
 const delayRanges = [
-    { label: "on_time", color: "#4AD94A" },
-    { label: "small_delay", color: "#E4DE3A" },
-    { label: "medium_delay", color: "#DF9227" },
-    { label: "large_delay", color: "#D9564A" },
+    { label: "on_time", color: DELAY_COLORS.onTime },
+    { label: "small_delay", color: DELAY_COLORS.slight },
+    { label: "medium_delay", color: DELAY_COLORS.moderate },
+    { label: "large_delay", color: DELAY_COLORS.severe },
     { label: "no_data", color: "#9CA3AF" },
 ];
 

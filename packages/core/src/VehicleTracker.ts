@@ -12,7 +12,7 @@ export type VehicleState = {
     distanceAlongRoute: number;
     speedKmh: number;
     nextStopKm: number | null;
-    lastTimestamp: DOMHighResTimeStamp | null;
+    lastTimestamp: number | null;
     coords: [number, number];
     bearing: number;
     initialized: boolean;
@@ -68,7 +68,7 @@ export function onPositionUpdate(
 
 export function tick(
     state: VehicleState,
-    timestamp: DOMHighResTimeStamp,
+    timestamp: number,
 ): { coords: [number, number]; bearing: number } {
     // Without a route there is nothing to interpolate — return as-is
     if (!state.initialized || !state.route) {

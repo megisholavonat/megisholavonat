@@ -14,6 +14,19 @@ import {
     getTrainDetailsOptions,
     getTrainsOptions,
 } from "@megisholavonat/api-client/react-query";
+import {
+    ORANGE_THRESHOLD,
+    RED_THRESHOLD,
+    YELLOW_THRESHOLD,
+} from "@megisholavonat/core/constants";
+import { DELAY_COLORS } from "@megisholavonat/core/delay";
+import {
+    createVehicleState,
+    onPositionUpdate,
+    setRoute,
+    tick,
+    type VehicleState,
+} from "@megisholavonat/core/VehicleTracker";
 import { useQuery } from "@tanstack/react-query";
 import type {
     FeatureCollection,
@@ -34,13 +47,6 @@ import { UserLocation } from "@/components/map/UserLocation";
 import { ZoomButtons } from "@/components/map/ZoomButtons";
 import { useTheme } from "@/components/ui/ThemeProvider";
 import { useMapSettings } from "@/hooks/useMapSettings";
-import {
-    createVehicleState,
-    onPositionUpdate,
-    setRoute,
-    tick,
-    type VehicleState,
-} from "@/lib/VehicleTracker";
 import { LAYER_IDS, Z_LAYERS } from "@/util/constants";
 import { OVERLAYS } from "@/util/mapConfigs";
 
@@ -431,13 +437,13 @@ export default function MapComponent({
                 [
                     "step",
                     ["coalesce", ["get", "delay"], 0],
-                    "#4AD94A", // green
-                    5,
-                    "#E4DE3A", // yellow
-                    15,
-                    "#DF9227", // orange
-                    60,
-                    "#D9564A", // red
+                    DELAY_COLORS.onTime,
+                    YELLOW_THRESHOLD,
+                    DELAY_COLORS.slight,
+                    ORANGE_THRESHOLD,
+                    DELAY_COLORS.moderate,
+                    RED_THRESHOLD,
+                    DELAY_COLORS.severe,
                 ],
             ] as ExpressionSpecification,
         [selectedId],

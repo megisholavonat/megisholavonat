@@ -11,6 +11,14 @@
             "dependsOn": ["^build"],
             "persistent": true,
             "cache": false
+        },
+        "check": {
+            "dependsOn": ["^build"],
+            "outputs": []
+        },
+        "test": {
+            "dependsOn": ["^build"],
+            "outputs": []
         }
     }
 }
