@@ -18,7 +18,7 @@ from api.util.vehicle import (
 )
 
 # 08:00 Budapest time on the service date
-NOW = BUDAPEST_TZ.localize(datetime(2026, 8, 14, 8, 0)).timestamp()
+NOW = datetime(2026, 8, 14, 8, 0, tzinfo=BUDAPEST_TZ).timestamp()
 EIGHT_AM = 8 * 3600
 
 # A straight east-west line of about 38 km
