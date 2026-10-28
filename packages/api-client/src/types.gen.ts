@@ -474,6 +474,108 @@ export type InfoService = {
 };
 
 /**
+ * Itinerary
+ *
+ * One way to get from A to B
+ */
+export type Itinerary = {
+    /**
+     * Scheduleddeparture
+     */
+    scheduledDeparture: number;
+    /**
+     * Expecteddeparture
+     */
+    expectedDeparture: number;
+    /**
+     * Scheduledarrival
+     */
+    scheduledArrival: number;
+    /**
+     * Expectedarrival
+     */
+    expectedArrival: number;
+    /**
+     * Durationminutes
+     */
+    durationMinutes: number;
+    /**
+     * Transfercount
+     */
+    transferCount: number;
+    /**
+     * Legs
+     */
+    legs: Array<({
+        type: 'walk';
+    } & WalkLeg) | ({
+        type: 'transit';
+    } & TransitLeg)>;
+    /**
+     * Transfers
+     */
+    transfers: Array<Transfer>;
+    /**
+     * Ticketurl
+     */
+    ticketUrl: string;
+};
+
+/**
+ * JourneyPlan
+ *
+ * Journeys between two rail stations
+ */
+export type JourneyPlan = {
+    fromStation: Station;
+    toStation: Station;
+    /**
+     * Time
+     */
+    time: number;
+    /**
+     * Arriveby
+     */
+    arriveBy: boolean;
+    /**
+     * Generatedat
+     */
+    generatedAt: number;
+    /**
+     * Itineraries
+     */
+    itineraries: Array<Itinerary>;
+};
+
+/**
+ * JourneyStop
+ *
+ * Where a leg starts or ends
+ */
+export type JourneyStop = {
+    /**
+     * Id
+     */
+    id?: string | null;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Lat
+     */
+    lat: number;
+    /**
+     * Lon
+     */
+    lon: number;
+    /**
+     * Platform
+     */
+    platform?: string | null;
+};
+
+/**
  * LiveActivityPushTokenCreate
  *
  * The ActivityKit push token of one followed trip's iOS Live Activity. It
@@ -1098,6 +1200,128 @@ export type TrainStationHistory = {
 };
 
 /**
+ * Transfer
+ *
+ * A change between two consecutive trains
+ */
+export type Transfer = {
+    /**
+     * Fromleg
+     */
+    fromLeg: number;
+    /**
+     * Toleg
+     */
+    toLeg: number;
+    /**
+     * Station
+     */
+    station: string;
+    /**
+     * Transferminutes
+     */
+    transferMinutes: number;
+    /**
+     * Expectedtransferminutes
+     */
+    expectedTransferMinutes: number;
+    /**
+     * Missrisk
+     */
+    missRisk?: number | null;
+};
+
+/**
+ * TransitLeg
+ *
+ * A ride on one train (or rail replacement bus)
+ */
+export type TransitLeg = {
+    /**
+     * Type
+     */
+    type?: 'transit';
+    /**
+     * Mode
+     */
+    mode: string;
+    /**
+     * Tripid
+     */
+    tripId: string;
+    /**
+     * Tripshortname
+     */
+    tripShortName: string;
+    /**
+     * Trainnumber
+     */
+    trainNumber: string;
+    /**
+     * Routeshortname
+     */
+    routeShortName: string;
+    /**
+     * Routelongname
+     */
+    routeLongName?: string | null;
+    /**
+     * Routetextcolor
+     */
+    routeTextColor?: string | null;
+    /**
+     * Headsign
+     */
+    headsign?: string | null;
+    /**
+     * Servicedate
+     */
+    serviceDate: string;
+    fromStop: JourneyStop;
+    toStop: JourneyStop;
+    /**
+     * Scheduleddeparture
+     */
+    scheduledDeparture: number;
+    /**
+     * Expecteddeparture
+     */
+    expectedDeparture: number;
+    /**
+     * Scheduledarrival
+     */
+    scheduledArrival: number;
+    /**
+     * Expectedarrival
+     */
+    expectedArrival: number;
+    /**
+     * Delayminutes
+     */
+    delayMinutes: number;
+    /**
+     * Delaysource
+     */
+    delaySource: 'gps' | 'otp';
+    /**
+     * Realtime
+     */
+    realtime: boolean;
+    /**
+     * Canceled
+     */
+    canceled?: boolean;
+    /**
+     * Intermediatestops
+     */
+    intermediateStops: number;
+    /**
+     * Vehicleid
+     */
+    vehicleId?: string | null;
+};
+
+/**
  * Trip
  *
  * Trip information
@@ -1355,6 +1579,32 @@ export type VehicleProgress = {
     progress: number;
 };
 
+/**
+ * WalkLeg
+ *
+ * A walk, e.g. between two stations of a town
+ */
+export type WalkLeg = {
+    /**
+     * Type
+     */
+    type?: 'walk';
+    fromStop: JourneyStop;
+    toStop: JourneyStop;
+    /**
+     * Departuretime
+     */
+    departureTime: number;
+    /**
+     * Arrivaltime
+     */
+    arrivalTime: number;
+    /**
+     * Distancemeters
+     */
+    distanceMeters: number;
+};
+
 export type RootData = {
     body?: never;
     path?: never;
@@ -1537,6 +1787,66 @@ export type GetStationBoardResponses = {
 };
 
 export type GetStationBoardResponse = GetStationBoardResponses[keyof GetStationBoardResponses];
+
+export type PlanJourneysData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * From
+         *
+         * UIC code of the departure station
+         */
+        from: string;
+        /**
+         * To
+         *
+         * UIC code of the destination station
+         */
+        to: string;
+        /**
+         * Time
+         *
+         * ISO time; local (Budapest) if no offset. Default: now
+         */
+        time?: string | null;
+        /**
+         * Arriveby
+         *
+         * Arrive by `time` instead of departing at it
+         */
+        arriveBy?: boolean;
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/v1/journeys';
+};
+
+export type PlanJourneysErrors = {
+    /**
+     * Unknown station
+     */
+    404: unknown;
+    /**
+     * Departure and destination are the same
+     */
+    422: unknown;
+    /**
+     * The upstream timetable service failed
+     */
+    502: unknown;
+};
+
+export type PlanJourneysResponses = {
+    /**
+     * Successful Response
+     */
+    200: JourneyPlan;
+};
+
+export type PlanJourneysResponse = PlanJourneysResponses[keyof PlanJourneysResponses];
 
 export type GetAlertsData = {
     body?: never;

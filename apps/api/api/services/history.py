@@ -26,6 +26,7 @@ from api.models.history import (
     Stop,
     StopDelayObservation,
 )
+from api.util.preprocess import haversine_m
 from api.util.stop import station_id
 from api.util.trip import (
     IN_SERVICE_BEFORE_S,
@@ -39,6 +40,13 @@ logger = get_logger(__name__)
 # stop before it counts as passed, so a long train standing at the platform
 # with its GPS ahead of the stop point is not recorded as departed.
 PASSED_MARGIN_DEG = 0.003
+# A train never gets past its terminus: it stops short of the stop point, and
+# the feed's last report before the vehicle vanishes or moves on to its next
+# trip typically puts it ~50 m before the stop. So on the final leg, being this
+# close to the terminus counts as arrived...
+TERMINUS_RADIUS_M = 150
+# ... and so does standing (speed 0 or unknown) this close to it
+TERMINUS_STANDING_RADIUS_M = 500
 # Positions further than this from the trip geometry belong to another trip
 # (vehicles are pre-assigned to their next trip) or are GPS noise.
 MAX_OFF_ROUTE_M = 500
@@ -68,11 +76,46 @@ def _otp_delay(realtime: int | None, scheduled: int | None) -> int | None:
     return realtime - scheduled
 
 
+def _reached_terminus(location: dict[str, Any], stoptimes: list[Any]) -> bool:
+    """
+    Whether a train on its final leg is at the terminus: within
+    TERMINUS_RADIUS_M of it (or TERMINUS_STANDING_RADIUS_M when standing), and
+    closer to it than to the previous stop, so a train still calling there is
+    not taken for arrived where the two are close together.
+    """
+    final_idx = len(stoptimes) - 1
+    progress = location.get("vehicleProgress") or {}
+    if final_idx < 1 or progress.get("nextStopIndex") != final_idx:
+        return False
+    lat, lon = location.get("lat"), location.get("lon")
+    final = stoptimes[final_idx].get("stop") or {}
+    previous = stoptimes[final_idx - 1].get("stop") or {}
+    if (
+        lat is None
+        or lon is None
+        or final.get("lat") is None
+        or final.get("lon") is None
+    ):
+        return False
+    distance = haversine_m(lat, lon, final["lat"], final["lon"])
+    if (
+        previous.get("lat") is not None
+        and previous.get("lon") is not None
+        and haversine_m(lat, lon, previous["lat"], previous["lon"]) <= distance
+    ):
+        return False
+    standing = not location.get("speed")
+    return distance <= TERMINUS_RADIUS_M or (
+        standing and distance <= TERMINUS_STANDING_RADIUS_M
+    )
+
+
 def passed_stop_index(location: dict[str, Any]) -> int | None:
     """
     Highest stoptime index the vehicle is past (-1 for none), or None when its
     progress is unknown. A stop only counts once the vehicle is
-    PASSED_MARGIN_DEG beyond it, or at the end of the route.
+    PASSED_MARGIN_DEG beyond it, or at the end of the route, or (for the
+    terminus) once the train has reached it, see `_reached_terminus`.
     """
     progress = location.get("vehicleProgress") or {}
     last_idx = progress.get("lastStopIndex")
@@ -85,6 +128,9 @@ def passed_stop_index(location: dict[str, Any]) -> int | None:
     )
     if last_stop is None:
         return None
+    stoptimes = (location.get("trip") or {}).get("stoptimes") or []
+    if _reached_terminus(location, stoptimes):
+        return len(stoptimes) - 1
     beyond = location.get("trainPosition", 0.0) - last_stop["distanceAlongRoute"]
     return int(last_idx if at_end or beyond >= PASSED_MARGIN_DEG else last_idx - 1)
 
@@ -129,13 +175,13 @@ def detect_passages(
     passed_upto = passed_stop_index(location)
     if passed_upto is None:
         return [], watermark
+    final_idx = len(stoptimes) - 1
 
     start = 0 if watermark is None else watermark + 1
     # Where the train is right now, in schedule time
     schedule_now = now_s - delay_s
     observed_at = datetime.fromtimestamp(last_updated, tz=UTC)
     route = trip.get("route") or {}
-    final_idx = len(stoptimes) - 1
 
     passages = []
     for i in range(start, passed_upto + 1):

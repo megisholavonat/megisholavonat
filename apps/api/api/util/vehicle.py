@@ -1,18 +1,19 @@
 import math
 import time
-from datetime import UTC, datetime
 from typing import Any
 
 import polyline  # type: ignore[import-untyped]
 from shapely.geometry import LineString, Point
 
-from api.util.time import get_seconds_since_day
+from api.util.trip import seconds_into_service_day
 
 REMOVAL_THRESHOLD_MINUTES = 120
 
 # The rules below are a port of packages/core/src/vehicle.ts (isStale,
 # isActive, isFarFromRoute). Keep both in sync: the map colours trains by the
-# server-computed flag, the train panel by the client-side functions.
+# server-computed flag, the train panel by the client-side functions. Both read
+# the clock through the service-date resolution in api/util/trip.py, ported
+# to packages/core/src/time.ts as `secondsIntoServiceDay`.
 
 # Show as stale after 30 minutes without an update
 STALENESS_THRESHOLD_MINUTES = 30
@@ -139,9 +140,8 @@ def is_active(vehicle_position: dict[str, Any], now: float | None = None) -> boo
 
     lat: float = vehicle_position.get("lat", 0.0)
     lon: float = vehicle_position.get("lon", 0.0)
-    current_time = get_seconds_since_day(
-        trip.get("serviceDate", ""), datetime.fromtimestamp(now, tz=UTC)
-    )
+    # The trip's `serviceDate` can be off by a day around midnight
+    current_time = seconds_into_service_day(trip, now)
 
     first_stop = stops[0]
     first = first_stop.get("stop") or {}

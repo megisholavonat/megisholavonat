@@ -1,0 +1,669 @@
+{
+ "data": {
+  "plan": {
+   "itineraries": [
+    {
+     "legs": [
+      {
+       "mode": "RAIL",
+       "startTime": 1793282700000,
+       "endTime": 1793287620000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 99557.16,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-29",
+       "headsign": "Bucureşti Nord",
+       "from": {
+        "name": "Budapest-Keleti",
+        "lat": 47.500278,
+        "lon": 19.084167,
+        "stop": {
+         "platformCode": "1",
+         "stationUicPricingCode": "005510017"
+        }
+       },
+       "to": {
+        "name": "Szolnok",
+        "lat": 47.179167,
+        "lon": 20.175833,
+        "stop": {
+         "platformCode": "10",
+         "stationUicPricingCode": "005513748"
+        }
+       },
+       "route": {
+        "shortName": "<span class=\"MNR2007\">&#474;</span>",
+        "longName": "IC MUNTENIA/TRAIANUS",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:36166503",
+        "tripShortName": "79 MUNTENIA InterCity",
+        "departureStoptime": {
+         "scheduledDeparture": 54300
+        }
+       },
+       "intermediateStops": []
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793288160000,
+       "endTime": 1793292900000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 120363.04,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-29",
+       "headsign": "Mátészalka",
+       "from": {
+        "name": "Szolnok",
+        "lat": 47.179167,
+        "lon": 20.175833,
+        "stop": {
+         "platformCode": "4",
+         "stationUicPricingCode": "005513748"
+        }
+       },
+       "to": {
+        "name": "Debrecen",
+        "lat": 47.520278,
+        "lon": 21.628611,
+        "stop": {
+         "platformCode": "8",
+         "stationUicPricingCode": "005513912"
+        }
+       },
+       "route": {
+        "shortName": "<span class=\"MNR2007\">&#474;</span>",
+        "longName": "IC NYÍRSÉG - KRASZNA",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:36448262",
+        "tripShortName": "638 NYÍRSÉG - KRASZNA InterCity",
+        "departureStoptime": {
+         "scheduledDeparture": 53700
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005513862_3"
+        },
+        {
+         "gtfsId": "1:005513888_3"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "RAIL",
+       "startTime": 1793282700000,
+       "endTime": 1793287620000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 99557.16,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-29",
+       "headsign": "Bucureşti Nord",
+       "from": {
+        "name": "Budapest-Keleti",
+        "lat": 47.500278,
+        "lon": 19.084167,
+        "stop": {
+         "platformCode": "1",
+         "stationUicPricingCode": "005510017"
+        }
+       },
+       "to": {
+        "name": "Szolnok",
+        "lat": 47.179167,
+        "lon": 20.175833,
+        "stop": {
+         "platformCode": "10",
+         "stationUicPricingCode": "005513748"
+        }
+       },
+       "route": {
+        "shortName": "<span class=\"MNR2007\">&#474;</span>",
+        "longName": "IC MUNTENIA/TRAIANUS",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:36166503",
+        "tripShortName": "79 MUNTENIA InterCity",
+        "departureStoptime": {
+         "scheduledDeparture": 54300
+        }
+       },
+       "intermediateStops": []
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793288160000,
+       "endTime": 1793292900000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 120351.13,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-29",
+       "headsign": "Záhony",
+       "from": {
+        "name": "Szolnok",
+        "lat": 47.179167,
+        "lon": 20.175833,
+        "stop": {
+         "platformCode": "4",
+         "stationUicPricingCode": "005513748"
+        }
+       },
+       "to": {
+        "name": "Debrecen",
+        "lat": 47.520278,
+        "lon": 21.628611,
+        "stop": {
+         "platformCode": "8",
+         "stationUicPricingCode": "005513912"
+        }
+       },
+       "route": {
+        "shortName": "<span class=\"MNR2007\">&#474;</span>",
+        "longName": "IC NYÍRSÉG/NYÍRSÉG - KRASZNA",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:35051263",
+        "tripShortName": "606 NYÍRSÉG - KRASZNA InterCity",
+        "departureStoptime": {
+         "scheduledDeparture": 53700
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005513862_3"
+        },
+        {
+         "gtfsId": "1:005513888_3"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "RAIL",
+       "startTime": 1793282700000,
+       "endTime": 1793287620000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 99557.16,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-29",
+       "headsign": "Lőkösháza",
+       "from": {
+        "name": "Budapest-Keleti",
+        "lat": 47.500278,
+        "lon": 19.084167,
+        "stop": {
+         "platformCode": "1",
+         "stationUicPricingCode": "005510017"
+        }
+       },
+       "to": {
+        "name": "Szolnok",
+        "lat": 47.179167,
+        "lon": 20.175833,
+        "stop": {
+         "platformCode": "10",
+         "stationUicPricingCode": "005513748"
+        }
+       },
+       "route": {
+        "shortName": "<span class=\"MNR2007\">&#473;</span>",
+        "longName": "Gy BÉKÉS/CLAUDIOPOLIS - FOGARAS/ISTER/KÖRÖS/MAROS/MUNTENIA/TRAIANUS/ZARÁND",
+        "textColor": "C82227"
+       },
+       "trip": {
+        "gtfsId": "1:36463704",
+        "tripShortName": "79 MUNTENIA gyorsvonat",
+        "departureStoptime": {
+         "scheduledDeparture": 54300
+        }
+       },
+       "intermediateStops": []
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793288160000,
+       "endTime": 1793292900000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 120363.04,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-29",
+       "headsign": "Mátészalka",
+       "from": {
+        "name": "Szolnok",
+        "lat": 47.179167,
+        "lon": 20.175833,
+        "stop": {
+         "platformCode": "4",
+         "stationUicPricingCode": "005513748"
+        }
+       },
+       "to": {
+        "name": "Debrecen",
+        "lat": 47.520278,
+        "lon": 21.628611,
+        "stop": {
+         "platformCode": "8",
+         "stationUicPricingCode": "005513912"
+        }
+       },
+       "route": {
+        "shortName": "<span class=\"MNR2007\">&#474;</span>",
+        "longName": "IC NYÍRSÉG - KRASZNA",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:36448262",
+        "tripShortName": "638 NYÍRSÉG - KRASZNA InterCity",
+        "departureStoptime": {
+         "scheduledDeparture": 53700
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005513862_3"
+        },
+        {
+         "gtfsId": "1:005513888_3"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "RAIL",
+       "startTime": 1793282700000,
+       "endTime": 1793287620000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 99557.16,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-29",
+       "headsign": "Lőkösháza",
+       "from": {
+        "name": "Budapest-Keleti",
+        "lat": 47.500278,
+        "lon": 19.084167,
+        "stop": {
+         "platformCode": "1",
+         "stationUicPricingCode": "005510017"
+        }
+       },
+       "to": {
+        "name": "Szolnok",
+        "lat": 47.179167,
+        "lon": 20.175833,
+        "stop": {
+         "platformCode": "10",
+         "stationUicPricingCode": "005513748"
+        }
+       },
+       "route": {
+        "shortName": "<span class=\"MNR2007\">&#473;</span>",
+        "longName": "Gy BÉKÉS/CLAUDIOPOLIS - FOGARAS/ISTER/KÖRÖS/MAROS/MUNTENIA/TRAIANUS/ZARÁND",
+        "textColor": "C82227"
+       },
+       "trip": {
+        "gtfsId": "1:36463704",
+        "tripShortName": "79 MUNTENIA gyorsvonat",
+        "departureStoptime": {
+         "scheduledDeparture": 54300
+        }
+       },
+       "intermediateStops": []
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793288160000,
+       "endTime": 1793292900000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 120351.13,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-29",
+       "headsign": "Záhony",
+       "from": {
+        "name": "Szolnok",
+        "lat": 47.179167,
+        "lon": 20.175833,
+        "stop": {
+         "platformCode": "4",
+         "stationUicPricingCode": "005513748"
+        }
+       },
+       "to": {
+        "name": "Debrecen",
+        "lat": 47.520278,
+        "lon": 21.628611,
+        "stop": {
+         "platformCode": "8",
+         "stationUicPricingCode": "005513912"
+        }
+       },
+       "route": {
+        "shortName": "<span class=\"MNR2007\">&#474;</span>",
+        "longName": "IC NYÍRSÉG/NYÍRSÉG - KRASZNA",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:35051263",
+        "tripShortName": "606 NYÍRSÉG - KRASZNA InterCity",
+        "departureStoptime": {
+         "scheduledDeparture": 53700
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005513862_3"
+        },
+        {
+         "gtfsId": "1:005513888_3"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "RAIL",
+       "startTime": 1793286300000,
+       "endTime": 1793291220000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 99557.16,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-29",
+       "headsign": "Lőkösháza",
+       "from": {
+        "name": "Budapest-Keleti",
+        "lat": 47.500278,
+        "lon": 19.084167,
+        "stop": {
+         "platformCode": "1",
+         "stationUicPricingCode": "005510017"
+        }
+       },
+       "to": {
+        "name": "Szolnok",
+        "lat": 47.179167,
+        "lon": 20.175833,
+        "stop": {
+         "platformCode": "10",
+         "stationUicPricingCode": "005513748"
+        }
+       },
+       "route": {
+        "shortName": "<span class=\"MNR2007\">&#474;</span>",
+        "longName": "IC BÉKÉS",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:36322597",
+        "tripShortName": "7406 BÉKÉS InterCity",
+        "departureStoptime": {
+         "scheduledDeparture": 57900
+        }
+       },
+       "intermediateStops": []
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793291760000,
+       "endTime": 1793296500000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 120351.13,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-29",
+       "headsign": "Budapest-Keleti",
+       "from": {
+        "name": "Szolnok",
+        "lat": 47.179167,
+        "lon": 20.175833,
+        "stop": {
+         "platformCode": "4",
+         "stationUicPricingCode": "005513748"
+        }
+       },
+       "to": {
+        "name": "Debrecen",
+        "lat": 47.520278,
+        "lon": 21.628611,
+        "stop": {
+         "platformCode": "8",
+         "stationUicPricingCode": "005513912"
+        }
+       },
+       "route": {
+        "shortName": "<span class=\"MNR2007\">&#474;</span>",
+        "longName": "IC TOKAJ",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:35052197",
+        "tripShortName": "658 TOKAJ InterCity",
+        "departureStoptime": {
+         "scheduledDeparture": 57300
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005513862_3"
+        },
+        {
+         "gtfsId": "1:005513888_3"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "RAIL",
+       "startTime": 1793286300000,
+       "endTime": 1793291220000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 99557.16,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-29",
+       "headsign": "Lőkösháza",
+       "from": {
+        "name": "Budapest-Keleti",
+        "lat": 47.500278,
+        "lon": 19.084167,
+        "stop": {
+         "platformCode": "1",
+         "stationUicPricingCode": "005510017"
+        }
+       },
+       "to": {
+        "name": "Szolnok",
+        "lat": 47.179167,
+        "lon": 20.175833,
+        "stop": {
+         "platformCode": "10",
+         "stationUicPricingCode": "005513748"
+        }
+       },
+       "route": {
+        "shortName": "<span class=\"MNR2007\">&#473;</span>",
+        "longName": "Gy BÉGA/BÉKÉS/CLAUDIOPOLIS - FOGARAS/ISTER/KOROS/MAROS/MUNTENIA/TRAIANUS",
+        "textColor": "C82227"
+       },
+       "trip": {
+        "gtfsId": "1:36322979",
+        "tripShortName": "7406 BÉKÉS gyorsvonat",
+        "departureStoptime": {
+         "scheduledDeparture": 57900
+        }
+       },
+       "intermediateStops": []
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793291760000,
+       "endTime": 1793296500000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 120351.13,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-29",
+       "headsign": "Budapest-Keleti",
+       "from": {
+        "name": "Szolnok",
+        "lat": 47.179167,
+        "lon": 20.175833,
+        "stop": {
+         "platformCode": "4",
+         "stationUicPricingCode": "005513748"
+        }
+       },
+       "to": {
+        "name": "Debrecen",
+        "lat": 47.520278,
+        "lon": 21.628611,
+        "stop": {
+         "platformCode": "8",
+         "stationUicPricingCode": "005513912"
+        }
+       },
+       "route": {
+        "shortName": "<span class=\"MNR2007\">&#474;</span>",
+        "longName": "IC TOKAJ",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:35052197",
+        "tripShortName": "658 TOKAJ InterCity",
+        "departureStoptime": {
+         "scheduledDeparture": 57300
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005513862_3"
+        },
+        {
+         "gtfsId": "1:005513888_3"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "RAIL",
+       "startTime": 1793284140000,
+       "endTime": 1793297280000,
+       "departureDelay": 240,
+       "arrivalDelay": 360,
+       "realTime": true,
+       "realtimeState": null,
+       "distance": 317286.15,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-29",
+       "headsign": "Budapest-Nyugati",
+       "from": {
+        "name": "Budapest-Keleti",
+        "lat": 47.500278,
+        "lon": 19.084167,
+        "stop": {
+         "platformCode": "1",
+         "stationUicPricingCode": "005510017"
+        }
+       },
+       "to": {
+        "name": "Debrecen",
+        "lat": 47.520278,
+        "lon": 21.628611,
+        "stop": {
+         "platformCode": "4",
+         "stationUicPricingCode": "005513912"
+        }
+       },
+       "route": {
+        "shortName": "<span class=\"MNR2007\">&#474;</span>",
+        "longName": "IC TOKAJ",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:35051274",
+        "tripShortName": "568 TOKAJ InterCity",
+        "departureStoptime": {
+         "scheduledDeparture": 55500
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005511205_4"
+        },
+        {
+         "gtfsId": "1:005511296_3"
+        },
+        {
+         "gtfsId": "1:005511387_9"
+        },
+        {
+         "gtfsId": "1:005511445_3"
+        },
+        {
+         "gtfsId": "1:005511478_3"
+        },
+        {
+         "gtfsId": "1:005514019_5"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ }
+}
