@@ -23,6 +23,7 @@ POSITIONS_QUERY = """
           realtimeDeparture
           stop {
             gtfsId
+            stationUicPricingCode
             name
             lat
             lon

@@ -7,6 +7,7 @@ class StopWithCounty(BaseModel):
     """Stop information with county data"""
 
     gtfsId: str | None = None
+    stationUicPricingCode: str | None = None
     name: str
     lat: float
     lon: float
