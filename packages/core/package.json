@@ -11,6 +11,7 @@
         "./polyline": "./src/polyline.ts",
         "./search": "./src/search.ts",
         "./time": "./src/time.ts",
+        "./uic": "./src/uic.ts",
         "./vehicle": "./src/vehicle.ts",
         "./VehicleTracker": "./src/VehicleTracker.ts"
     },
