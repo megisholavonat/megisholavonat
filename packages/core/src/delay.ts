@@ -22,3 +22,6 @@ export const DELAY_COLORS = {
     moderate: "#DF9227", // orange
     severe: "#D9564A", // red
 } as const satisfies Record<DelayLevel, string>;
+
+/** Map marker / legend colour for stale or inactive trains ("no data"). */
+export const NO_DATA_COLOR = "#9CA3AF"; // grey

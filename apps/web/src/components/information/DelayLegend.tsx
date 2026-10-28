@@ -1,4 +1,4 @@
-import { DELAY_COLORS } from "@megisholavonat/core/delay";
+import { DELAY_COLORS, NO_DATA_COLOR } from "@megisholavonat/core/delay";
 import { AnimatePresence, motion } from "motion/react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
@@ -18,7 +18,7 @@ const delayRanges = [
     { label: "small_delay", color: DELAY_COLORS.slight },
     { label: "medium_delay", color: DELAY_COLORS.moderate },
     { label: "large_delay", color: DELAY_COLORS.severe },
-    { label: "no_data", color: "#9CA3AF" },
+    { label: "no_data", color: NO_DATA_COLOR },
 ];
 
 interface DelayLegendProps {
