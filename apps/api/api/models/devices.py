@@ -25,6 +25,7 @@ from api.models.base import Base
 
 PLATFORMS = ("web", "ios", "android")
 FOLLOW_KINDS = ("trip", "commute")
+PUSH_TOKEN_TYPES = ("expo", "liveactivity")
 
 # "On time" means at most 5 minutes late, see ON_TIME_THRESHOLD_S
 DEFAULT_DELAY_THRESHOLD_MIN = 5
@@ -132,6 +133,52 @@ class NotificationState(Base):
     last_delay_min: Mapped[int | None] = mapped_column(Integer)
     last_platform: Mapped[str | None] = mapped_column(Text)
     last_notified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # The trip gtfsId the state is about; a commute resolving to another trip
+    # on the same service date starts over
+    trip_id: Mapped[str | None] = mapped_column(Text)
+    # The "train ahead is late" hint goes out at most once per service date
+    train_ahead_notified_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True)
+    )
+
+
+class PushToken(Base):
+    """
+    Where a device receives pushes: an Expo push token (iOS and Android), or
+    the ActivityKit push token of one followed trip's iOS Live Activity.
+    """
+
+    __tablename__ = "push_tokens"
+    __table_args__ = (
+        CheckConstraint("type IN ('expo', 'liveactivity')", name="type_valid"),
+        CheckConstraint(
+            "(type = 'liveactivity') = (follow_id IS NOT NULL)", name="follow_fields"
+        ),
+        # A token belongs to one device; registering it again moves it
+        UniqueConstraint("token"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    device_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("devices.id", ondelete="CASCADE"), index=True
+    )
+    type: Mapped[str] = mapped_column(Text)
+    token: Mapped[str] = mapped_column(Text)
+    # kind = liveactivity: the followed trip the Live Activity shows
+    follow_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("follows.id", ondelete="CASCADE"), index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+    last_success_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Consecutive failed deliveries; housekeeping drops tokens that keep failing
+    failure_count: Mapped[int] = mapped_column(Integer, server_default=text("0"))
+    last_failure_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_error: Mapped[str | None] = mapped_column(Text)
 
 
 def weekdays_to_mask(weekdays: list[int]) -> int:

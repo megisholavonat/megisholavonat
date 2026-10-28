@@ -110,6 +110,31 @@ def _reached_terminus(location: dict[str, Any], stoptimes: list[Any]) -> bool:
     )
 
 
+def passed_stop_index(location: dict[str, Any]) -> int | None:
+    """
+    Highest stoptime index the vehicle is past (-1 for none), or None when its
+    progress is unknown. A stop only counts once the vehicle is
+    PASSED_MARGIN_DEG beyond it, or at the end of the route, or (for the
+    terminus) once the train has reached it, see `_reached_terminus`.
+    """
+    progress = location.get("vehicleProgress") or {}
+    last_idx = progress.get("lastStopIndex")
+    if last_idx is None:
+        return None
+    at_end = progress.get("nextStopIndex") == last_idx and progress.get("progress") == 1
+    last_stop = next(
+        (s for s in location.get("processedStops", []) if s.get("index") == last_idx),
+        None,
+    )
+    if last_stop is None:
+        return None
+    stoptimes = (location.get("trip") or {}).get("stoptimes") or []
+    if _reached_terminus(location, stoptimes):
+        return len(stoptimes) - 1
+    beyond = location.get("trainPosition", 0.0) - last_stop["distanceAlongRoute"]
+    return int(last_idx if at_end or beyond >= PASSED_MARGIN_DEG else last_idx - 1)
+
+
 def detect_passages(
     location: dict[str, Any], watermark: int | None
 ) -> tuple[list[Passage], int | None]:
@@ -147,18 +172,10 @@ def detect_passages(
     if abs(delay_s) > MAX_ABS_DELAY_S:
         return [], watermark
 
-    at_end = progress.get("nextStopIndex") == last_idx and progress.get("progress") == 1
-    last_stop = next(
-        (s for s in location.get("processedStops", []) if s.get("index") == last_idx),
-        None,
-    )
-    if last_stop is None:
+    passed_upto = passed_stop_index(location)
+    if passed_upto is None:
         return [], watermark
-    beyond = location.get("trainPosition", 0.0) - last_stop["distanceAlongRoute"]
-    passed_upto = last_idx if at_end or beyond >= PASSED_MARGIN_DEG else last_idx - 1
     final_idx = len(stoptimes) - 1
-    if _reached_terminus(location, stoptimes):
-        passed_upto = final_idx
 
     start = 0 if watermark is None else watermark + 1
     # Where the train is right now, in schedule time

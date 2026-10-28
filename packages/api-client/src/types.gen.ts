@@ -337,6 +337,22 @@ export type DeviceInfo = {
 };
 
 /**
+ * ExpoPushTokenCreate
+ *
+ * An Expo push token (iOS or Android): alerts about every follow
+ */
+export type ExpoPushTokenCreate = {
+    /**
+     * Type
+     */
+    type: 'expo';
+    /**
+     * Token
+     */
+    token: string;
+};
+
+/**
  * FollowUpdate
  *
  * Partial update. Weekdays, stations and label only apply to commutes;
@@ -560,6 +576,29 @@ export type JourneyStop = {
 };
 
 /**
+ * LiveActivityPushTokenCreate
+ *
+ * The ActivityKit push token of one followed trip's iOS Live Activity. It
+ * receives `update` events while the train runs and `end` once it has passed
+ * the alighting station; alerts about that follow are shown on it instead of
+ * as a separate notification.
+ */
+export type LiveActivityPushTokenCreate = {
+    /**
+     * Type
+     */
+    type: 'liveactivity';
+    /**
+     * Token
+     */
+    token: string;
+    /**
+     * Followid
+     */
+    followId: string;
+};
+
+/**
  * PlatformPrediction
  */
 export type PlatformPrediction = {
@@ -630,6 +669,30 @@ export type ProcessedStop = {
      */
     distanceAlongRoute: number;
     stopTimeInfo?: StopTimeWithCounty | null;
+};
+
+/**
+ * PushToken
+ *
+ * A registered push token; the token itself is not echoed back
+ */
+export type PushToken = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Type
+     */
+    type: 'expo' | 'liveactivity';
+    /**
+     * Followid
+     */
+    followId: string | null;
+    /**
+     * Createdat
+     */
+    createdAt: string;
 };
 
 /**
@@ -1907,6 +1970,86 @@ export type RotateDeviceTokenResponses = {
 };
 
 export type RotateDeviceTokenResponse = RotateDeviceTokenResponses[keyof RotateDeviceTokenResponses];
+
+export type RegisterPushTokenData = {
+    /**
+     * Body
+     */
+    body: ({
+        type: 'expo';
+    } & ExpoPushTokenCreate) | ({
+        type: 'liveactivity';
+    } & LiveActivityPushTokenCreate);
+    path?: never;
+    query?: never;
+    url: '/v1/devices/me/push-tokens';
+};
+
+export type RegisterPushTokenErrors = {
+    /**
+     * Missing, malformed or invalid device token
+     */
+    401: unknown;
+    /**
+     * No such follow on this device
+     */
+    404: unknown;
+    /**
+     * The limit of 60 push tokens is reached
+     */
+    409: unknown;
+    /**
+     * Invalid token, or wrong platform for its type
+     */
+    422: unknown;
+};
+
+export type RegisterPushTokenResponses = {
+    /**
+     * Successful Response
+     */
+    201: PushToken;
+};
+
+export type RegisterPushTokenResponse = RegisterPushTokenResponses[keyof RegisterPushTokenResponses];
+
+export type DeletePushTokenData = {
+    body?: never;
+    path: {
+        /**
+         * Token Id
+         */
+        token_id: string;
+    };
+    query?: never;
+    url: '/v1/devices/me/push-tokens/{token_id}';
+};
+
+export type DeletePushTokenErrors = {
+    /**
+     * Missing, malformed or invalid device token
+     */
+    401: unknown;
+    /**
+     * No such push token
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeletePushTokenError = DeletePushTokenErrors[keyof DeletePushTokenErrors];
+
+export type DeletePushTokenResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeletePushTokenResponse = DeletePushTokenResponses[keyof DeletePushTokenResponses];
 
 export type ListFollowsData = {
     body?: never;

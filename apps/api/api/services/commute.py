@@ -137,8 +137,16 @@ def _departs_at(trip: ResolvedTrip) -> int:
 
 
 async def resolve_commute_trip(
-    redis: Redis, commute: Commute, day: date
+    redis: Redis,
+    commute: Commute,
+    day: date,
+    locations: Iterable[dict[str, Any]] | None = None,
 ) -> ResolvedTrip | None:
-    """Today's (or `day`'s) trip of a commute, if its train is live."""
-    raw = await redis.hvals(add_key("train-positions-hash"))  # type: ignore[misc]
-    return find_commute_trip((json.loads(v) for v in raw), commute, day)
+    """
+    Today's (or `day`'s) trip of a commute, if its train is live. Pass
+    `locations` already read from Redis to resolve many commutes at once.
+    """
+    if locations is None:
+        raw = await redis.hvals(add_key("train-positions-hash"))  # type: ignore[misc]
+        locations = (json.loads(v) for v in raw)
+    return find_commute_trip(locations, commute, day)
