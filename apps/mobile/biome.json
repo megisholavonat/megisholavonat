@@ -1,0 +1,8 @@
+{
+    "root": false,
+    "$schema": "https://biomejs.dev/schemas/2.4.11/schema.json",
+    "extends": "//",
+    "files": {
+        "includes": ["**", "!node_modules", "!expo-env.d.ts"]
+    }
+}
