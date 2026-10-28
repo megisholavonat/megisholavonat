@@ -42,6 +42,8 @@ def vehicle(
     lon: float = 19.25,
     last_updated: float = NOW - 60,
     departs: int = EIGHT_AM - 1800,
+    service_date: str = "2026-08-14",
+    duration: int = 3600,
 ) -> dict[str, Any]:
     return {
         "vehicleId": "v",
@@ -49,11 +51,11 @@ def vehicle(
         "lon": lon,
         "lastUpdated": int(last_updated),
         "trip": {
-            "serviceDate": "2026-08-14",
+            "serviceDate": service_date,
             "tripGeometry": {"points": POINTS},
             "stoptimes": [
                 stoptime(ORIGIN, departs),
-                stoptime(DESTINATION, departs + 3600),
+                stoptime(DESTINATION, departs + duration),
             ],
         },
     }
@@ -79,6 +81,58 @@ def test_waiting_at_origin_before_departure_is_inactive() -> None:
     assert is_stale_or_inactive(v, NOW)
     # Once departure time has passed it counts as running
     assert is_active(vehicle(lat=47.0, lon=19.005, departs=EIGHT_AM - 60), NOW)
+
+
+def _local(iso: str) -> float:
+    return datetime.fromisoformat(iso).replace(tzinfo=BUDAPEST_TZ).timestamp()
+
+
+@pytest.mark.parametrize(
+    ("now", "active"),
+    [
+        # Waiting for its 00:18 departure; read naively it was 24h past it
+        ("2026-08-15T00:10:00", False),
+        ("2026-08-15T00:20:00", True),
+        # Before midnight; read naively it was 23h past its departure
+        ("2026-08-14T23:50:00", False),
+    ],
+)
+def test_after_midnight_hev_with_previous_day_service_date(
+    now: str, active: bool
+) -> None:
+    # HÉV night trips after midnight carry the previous day's service date
+    # with stoptimes under 86400: 00:18 on 08-15 reads as 1080 on 08-14
+    v = vehicle(lat=47.0, lon=19.005, departs=18 * 60, service_date="2026-08-14")
+    assert is_active(v, _local(now)) is active
+
+
+@pytest.mark.parametrize(
+    ("now", "active"),
+    [
+        # Before its 22:40 departure the day before the listed date
+        ("2026-08-14T22:30:00", False),
+        # Departed but still near the origin; read naively it was 24h early
+        ("2026-08-14T22:45:00", True),
+    ],
+)
+def test_overnight_train_with_next_day_service_date(now: str, active: bool) -> None:
+    # An overnight train departing 22:40 on 08-14, listed under 08-15
+    v = vehicle(
+        lat=47.0,
+        lon=19.005,
+        departs=22 * 3600 + 40 * 60,
+        service_date="2026-08-15",
+        duration=8 * 3600,
+    )
+    assert is_active(v, _local(now)) is active
+
+
+def test_daytime_train_keeps_its_service_date() -> None:
+    # Departs 10:00 on 08-14; still attached near its origin at 20:43, but
+    # neither neighbouring date fits the schedule far better than the listed one
+    v = vehicle(lat=47.0, lon=19.005, departs=10 * 3600)
+    assert not is_active(v, NOW)
+    assert is_active(v, _local("2026-08-14T20:43:00"))
 
 
 def test_at_destination_is_inactive() -> None:
