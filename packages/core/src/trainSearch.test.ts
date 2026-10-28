@@ -14,6 +14,7 @@ function train(
         routeShortName: "",
         routeTextColor: "FFFFFF",
         delay: 0,
+        lastUpdated: 0,
         ...overrides,
     };
 }

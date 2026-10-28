@@ -4,6 +4,7 @@ import type {
     TrainFeatureCollection,
     TrainFeatureProperties,
 } from "@megisholavonat/api-client";
+import { NO_DATA_COLOR } from "@megisholavonat/core/delay";
 import {
     compareTrains,
     matchesTrainQuery,
@@ -250,9 +251,10 @@ export default function SearchComponent({
                             {filteredAndSortedResults.length > 0 ? (
                                 <div className="py-2">
                                     {filteredAndSortedResults.map((result) => {
-                                        const delayColor = getDelayColor(
-                                            result.delay,
-                                        );
+                                        // Stale / inactive trains are grey, as on the map
+                                        const delayColor = result.isStale
+                                            ? ""
+                                            : getDelayColor(result.delay);
                                         const hasSpeed =
                                             (result.speed ?? 0) > 0;
 
@@ -296,6 +298,13 @@ export default function SearchComponent({
                                                                 <LuClock className="w-3 h-3 dark:text-white" />
                                                                 <span
                                                                     className={`font-medium ${delayColor}`}
+                                                                    style={
+                                                                        result.isStale
+                                                                            ? {
+                                                                                  color: NO_DATA_COLOR,
+                                                                              }
+                                                                            : undefined
+                                                                    }
                                                                 >
                                                                     {t(
                                                                         "delay_short",

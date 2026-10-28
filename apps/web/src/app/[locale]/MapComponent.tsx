@@ -19,7 +19,7 @@ import {
     RED_THRESHOLD,
     YELLOW_THRESHOLD,
 } from "@megisholavonat/core/constants";
-import { DELAY_COLORS } from "@megisholavonat/core/delay";
+import { DELAY_COLORS, NO_DATA_COLOR } from "@megisholavonat/core/delay";
 import {
     createVehicleState,
     onPositionUpdate,
@@ -434,6 +434,8 @@ export default function MapComponent({
                 "case",
                 ["==", ["get", "vehicleId"], selectedId || ""],
                 "#00bcd4", // Selected blue
+                ["==", ["get", "isStale"], true],
+                NO_DATA_COLOR, // Stale or inactive
                 [
                     "step",
                     ["coalesce", ["get", "delay"], 0],

@@ -139,6 +139,12 @@ class TrainFeatureProperties(BaseModel):
     delay: int
     routePolyline: str | None = None
     distanceToNextStop: float | None = None
+    # Unix seconds of the last position update
+    lastUpdated: int
+    # No update for 30+ minutes, or not running its trip (off route, waiting at
+    # its origin, at its destination). See api.util.vehicle.is_stale_or_inactive.
+    # Defaults to False for features cached before the field existed.
+    isStale: bool = False
 
 
 class TrainFeature(BaseModel):

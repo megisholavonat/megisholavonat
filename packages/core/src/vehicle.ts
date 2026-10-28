@@ -3,6 +3,9 @@ import * as turf from "@turf/turf";
 import { decodePolyline } from "./polyline";
 import { getSecondsSinceDay } from "./time";
 
+// The API ports isStale / isActive / isFarFromRoute to flag stale trains in
+// the train list (apps/api/api/util/vehicle.py). Keep both in sync.
+
 const STALENESS_THRESHOLD_MINUTES = 30; // Show as stale after 30 minutes
 
 export function isActive(vehiclePosition: VehiclePositionWithDelay) {
@@ -76,6 +79,7 @@ export function isStale(vehiclePosition: VehiclePositionWithDelay): boolean {
 export function dataAppearsFalsified(
     vehiclePosition: VehiclePositionWithDelay,
     isStale: boolean,
+    now: Date = new Date(),
 ): boolean {
     if (isStale) return false;
     // Very small delays should not trigger falsified flags
@@ -108,12 +112,12 @@ export function dataAppearsFalsified(
         return true;
     }
 
-    // Case 2: Calculate scheduled delay vs our GPS-based delay
-    const currentTime = Math.floor(Date.now() / 1000);
-    const todayMidnight = new Date();
-    todayMidnight.setHours(0, 0, 0, 0);
-    const secondsSinceMidnight = Math.floor(
-        (currentTime * 1000 - todayMidnight.getTime()) / 1000,
+    // Case 2: Calculate scheduled delay vs our GPS-based delay.
+    // Stoptimes count from Budapest midnight of the service date, not from
+    // the device's local midnight.
+    const secondsSinceMidnight = getSecondsSinceDay(
+        vehiclePosition.trip.serviceDate,
+        now,
     );
 
     // Find current or next stop with real-time data
