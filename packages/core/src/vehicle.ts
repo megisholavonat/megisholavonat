@@ -1,5 +1,6 @@
 import type { VehiclePositionWithDelay } from "@megisholavonat/api-client";
 import * as turf from "@turf/turf";
+import { STALE_GREY_AFTER_S } from "./constants";
 import { decodePolyline } from "./polyline";
 import { getSecondsSinceDay, secondsIntoServiceDay } from "./time";
 
@@ -7,8 +8,6 @@ import { getSecondsSinceDay, secondsIntoServiceDay } from "./time";
 // the train list (apps/api/api/util/vehicle.py). Keep both in sync. Both
 // read the clock through the service-date resolution in ./time.ts
 // (`secondsIntoServiceDay`, ported from apps/api/api/util/trip.py).
-
-const STALENESS_THRESHOLD_MINUTES = 30; // Show as stale after 30 minutes
 
 export function isActive(
     vehiclePosition: VehiclePositionWithDelay,
@@ -74,12 +73,15 @@ export function isActive(
     return true;
 }
 
-export function isStale(vehiclePosition: VehiclePositionWithDelay): boolean {
-    const now = Date.now() / 1000; // Current time in seconds
-    const lastUpdated = vehiclePosition.lastUpdated;
-    const minutesSinceUpdate = (now - lastUpdated) / 60;
+/** Grey (stale) after STALE_GREY_AFTER_S without a position update. */
+export function isStale(
+    vehiclePosition: VehiclePositionWithDelay,
+    now: Date = new Date(),
+): boolean {
+    const secondsSinceUpdate =
+        now.getTime() / 1000 - vehiclePosition.lastUpdated;
 
-    return minutesSinceUpdate > STALENESS_THRESHOLD_MINUTES;
+    return secondsSinceUpdate > STALE_GREY_AFTER_S;
 }
 
 export function dataAppearsFalsified(
