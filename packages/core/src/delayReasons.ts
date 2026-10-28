@@ -37,7 +37,11 @@ export interface DelayReasonInfo {
 }
 
 export const DELAY_REASONS: Record<DelayReasonCode, DelayReasonInfo> = {
-    track: { hu: "Pálya állapota", en: "Track condition", icon: "construction" },
+    track: {
+        hu: "Pálya állapota",
+        en: "Track condition",
+        icon: "construction",
+    },
     technical: { hu: "Műszaki hiba", en: "Technical fault", icon: "wrench" },
     other_train: { hu: "Más vonat", en: "Other train", icon: "train-front" },
     dwell: { hu: "Hosszú állás", en: "Long dwell", icon: "timer" },
