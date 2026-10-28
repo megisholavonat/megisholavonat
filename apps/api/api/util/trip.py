@@ -1,4 +1,9 @@
-"""Helpers for a trip's scheduled time window."""
+"""
+Helpers for a trip's scheduled time window.
+
+`seconds_into_service_day` and the window helpers are ported to
+packages/core/src/time.ts (`secondsIntoServiceDay`); keep both in sync.
+"""
 
 from datetime import UTC, date, datetime, timedelta
 from typing import Any
