@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetAlertsData, GetAlertsErrors, GetAlertsResponses, GetPosthogKeyData, GetPosthogKeyResponses, GetRedisStatusData, GetRedisStatusResponses, GetStationBoardData, GetStationBoardErrors, GetStationBoardResponses, GetTrainDetailsData, GetTrainDetailsErrors, GetTrainDetailsResponses, GetTrainsData, GetTrainsResponses, RootData, RootResponses, SearchStationsData, SearchStationsErrors, SearchStationsResponses } from './types.gen';
+import type { CreateFollowData, CreateFollowErrors, CreateFollowResponses, DeleteDeviceData, DeleteDeviceErrors, DeleteDeviceResponses, DeleteFollowData, DeleteFollowErrors, DeleteFollowResponses, GetAlertsData, GetAlertsErrors, GetAlertsResponses, GetDeviceData, GetDeviceErrors, GetDeviceResponses, GetPosthogKeyData, GetPosthogKeyResponses, GetRedisStatusData, GetRedisStatusResponses, GetStationBoardData, GetStationBoardErrors, GetStationBoardResponses, GetTrainDetailsData, GetTrainDetailsErrors, GetTrainDetailsResponses, GetTrainsData, GetTrainsResponses, ListFollowsData, ListFollowsErrors, ListFollowsResponses, RegisterDeviceData, RegisterDeviceErrors, RegisterDeviceResponses, RootData, RootResponses, RotateDeviceTokenData, RotateDeviceTokenErrors, RotateDeviceTokenResponses, SearchStationsData, SearchStationsErrors, SearchStationsResponses, UpdateFollowData, UpdateFollowErrors, UpdateFollowResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -117,5 +117,162 @@ export const getAlerts = <ThrowOnError extends boolean = false>(options?: Option
         responseType: 'json',
         url: '/v1/alerts',
         ...options
+    });
+};
+
+/**
+ * Register Device
+ *
+ * Register an anonymous device. The token is returned only here and from
+ * rotate-token; store it securely.
+ */
+export const registerDevice = <ThrowOnError extends boolean = false>(options: Options<RegisterDeviceData, ThrowOnError>) => {
+    return (options.client ?? client).post<RegisterDeviceResponses, RegisterDeviceErrors, ThrowOnError>({
+        responseType: 'json',
+        url: '/v1/devices',
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            ...options.headers
+        }
+    });
+};
+
+/**
+ * Delete Device
+ *
+ * Delete this device and everything stored about it (follows included).
+ */
+export const deleteDevice = <ThrowOnError extends boolean = false>(options?: Options<DeleteDeviceData, ThrowOnError>) => {
+    return (options?.client ?? client).delete<DeleteDeviceResponses, DeleteDeviceErrors, ThrowOnError>({
+        security: [
+            {
+                scheme: 'bearer',
+                type: 'http'
+            }
+        ],
+        url: '/v1/devices/me',
+        ...options
+    });
+};
+
+/**
+ * Get Device
+ *
+ * The calling device
+ */
+export const getDevice = <ThrowOnError extends boolean = false>(options?: Options<GetDeviceData, ThrowOnError>) => {
+    return (options?.client ?? client).get<GetDeviceResponses, GetDeviceErrors, ThrowOnError>({
+        responseType: 'json',
+        security: [
+            {
+                scheme: 'bearer',
+                type: 'http'
+            }
+        ],
+        url: '/v1/devices/me',
+        ...options
+    });
+};
+
+/**
+ * Rotate Device Token
+ *
+ * Issue a new token; the current one stops working immediately.
+ */
+export const rotateDeviceToken = <ThrowOnError extends boolean = false>(options?: Options<RotateDeviceTokenData, ThrowOnError>) => {
+    return (options?.client ?? client).post<RotateDeviceTokenResponses, RotateDeviceTokenErrors, ThrowOnError>({
+        responseType: 'json',
+        security: [
+            {
+                scheme: 'bearer',
+                type: 'http'
+            }
+        ],
+        url: '/v1/devices/me/rotate-token',
+        ...options
+    });
+};
+
+/**
+ * List Follows
+ *
+ * Follows of the calling device, oldest first
+ */
+export const listFollows = <ThrowOnError extends boolean = false>(options?: Options<ListFollowsData, ThrowOnError>) => {
+    return (options?.client ?? client).get<ListFollowsResponses, ListFollowsErrors, ThrowOnError>({
+        responseType: 'json',
+        security: [
+            {
+                scheme: 'bearer',
+                type: 'http'
+            }
+        ],
+        url: '/v1/follows',
+        ...options
+    });
+};
+
+/**
+ * Create Follow
+ *
+ * Follow a single trip or a recurring commute
+ */
+export const createFollow = <ThrowOnError extends boolean = false>(options: Options<CreateFollowData, ThrowOnError>) => {
+    return (options.client ?? client).post<CreateFollowResponses, CreateFollowErrors, ThrowOnError>({
+        responseType: 'json',
+        security: [
+            {
+                scheme: 'bearer',
+                type: 'http'
+            }
+        ],
+        url: '/v1/follows',
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            ...options.headers
+        }
+    });
+};
+
+/**
+ * Delete Follow
+ *
+ * Stop following
+ */
+export const deleteFollow = <ThrowOnError extends boolean = false>(options: Options<DeleteFollowData, ThrowOnError>) => {
+    return (options.client ?? client).delete<DeleteFollowResponses, DeleteFollowErrors, ThrowOnError>({
+        security: [
+            {
+                scheme: 'bearer',
+                type: 'http'
+            }
+        ],
+        url: '/v1/follows/{follow_id}',
+        ...options
+    });
+};
+
+/**
+ * Update Follow
+ *
+ * Change alert preferences, or a commute's days, stations or label
+ */
+export const updateFollow = <ThrowOnError extends boolean = false>(options: Options<UpdateFollowData, ThrowOnError>) => {
+    return (options.client ?? client).patch<UpdateFollowResponses, UpdateFollowErrors, ThrowOnError>({
+        responseType: 'json',
+        security: [
+            {
+                scheme: 'bearer',
+                type: 'http'
+            }
+        ],
+        url: '/v1/follows/{follow_id}',
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            ...options.headers
+        }
     });
 };

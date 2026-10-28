@@ -149,6 +149,203 @@ export type BoardEntry = {
 };
 
 /**
+ * CommuteFollow
+ */
+export type CommuteFollow = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Tripshortname
+     */
+    tripShortName: string;
+    /**
+     * Alertsenabled
+     */
+    alertsEnabled: boolean;
+    /**
+     * Delaythresholdmin
+     */
+    delayThresholdMin: number;
+    /**
+     * Notifyplatformchange
+     */
+    notifyPlatformChange: boolean;
+    /**
+     * Createdat
+     */
+    createdAt: string;
+    /**
+     * Updatedat
+     */
+    updatedAt: string;
+    /**
+     * Kind
+     */
+    kind: 'commute';
+    /**
+     * Weekdays
+     */
+    weekdays: Array<number>;
+    /**
+     * Fromstationid
+     */
+    fromStationId: string;
+    /**
+     * Tostationid
+     */
+    toStationId: string | null;
+    /**
+     * Label
+     */
+    label: string | null;
+};
+
+/**
+ * CommuteFollowCreate
+ *
+ * Follow a train taken regularly. Train numbers are not unique within a day,
+ * so the boarding station is required to pick the right trip.
+ */
+export type CommuteFollowCreate = {
+    /**
+     * Alertsenabled
+     */
+    alertsEnabled?: boolean;
+    /**
+     * Delaythresholdmin
+     */
+    delayThresholdMin?: number;
+    /**
+     * Notifyplatformchange
+     */
+    notifyPlatformChange?: boolean;
+    /**
+     * Kind
+     */
+    kind: 'commute';
+    /**
+     * Tripshortname
+     */
+    tripShortName: string;
+    /**
+     * Weekdays
+     */
+    weekdays: Array<number>;
+    /**
+     * Fromstationid
+     */
+    fromStationId: string;
+    /**
+     * Tostationid
+     */
+    toStationId?: string | null;
+    /**
+     * Label
+     */
+    label?: string | null;
+};
+
+/**
+ * DeviceCreate
+ *
+ * Register an anonymous device
+ */
+export type DeviceCreate = {
+    /**
+     * Platform
+     */
+    platform: 'web' | 'ios' | 'android';
+    /**
+     * Locale
+     */
+    locale?: string | null;
+};
+
+/**
+ * DeviceCredentials
+ *
+ * Shown only once. Send `Authorization: Bearer <deviceId>.<token>` on every
+ * authenticated request.
+ */
+export type DeviceCredentials = {
+    /**
+     * Deviceid
+     */
+    deviceId: string;
+    /**
+     * Token
+     */
+    token: string;
+};
+
+/**
+ * DeviceInfo
+ *
+ * The calling device
+ */
+export type DeviceInfo = {
+    /**
+     * Deviceid
+     */
+    deviceId: string;
+    /**
+     * Platform
+     */
+    platform: 'web' | 'ios' | 'android';
+    /**
+     * Locale
+     */
+    locale: string | null;
+    /**
+     * Createdat
+     */
+    createdAt: string;
+    /**
+     * Lastseenat
+     */
+    lastSeenAt: string;
+};
+
+/**
+ * FollowUpdate
+ *
+ * Partial update. Weekdays, stations and label only apply to commutes;
+ * toStationId and label can be cleared with null.
+ */
+export type FollowUpdate = {
+    /**
+     * Alertsenabled
+     */
+    alertsEnabled?: boolean | null;
+    /**
+     * Delaythresholdmin
+     */
+    delayThresholdMin?: number | null;
+    /**
+     * Notifyplatformchange
+     */
+    notifyPlatformChange?: boolean | null;
+    /**
+     * Weekdays
+     */
+    weekdays?: Array<number> | null;
+    /**
+     * Fromstationid
+     */
+    fromStationId?: string | null;
+    /**
+     * Tostationid
+     */
+    toStationId?: string | null;
+    /**
+     * Label
+     */
+    label?: string | null;
+};
+
+/**
  * HTTPValidationError
  */
 export type HttpValidationError = {
@@ -553,6 +750,104 @@ export type Trip = {
 };
 
 /**
+ * TripFollow
+ */
+export type TripFollow = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Tripshortname
+     */
+    tripShortName: string;
+    /**
+     * Alertsenabled
+     */
+    alertsEnabled: boolean;
+    /**
+     * Delaythresholdmin
+     */
+    delayThresholdMin: number;
+    /**
+     * Notifyplatformchange
+     */
+    notifyPlatformChange: boolean;
+    /**
+     * Createdat
+     */
+    createdAt: string;
+    /**
+     * Updatedat
+     */
+    updatedAt: string;
+    /**
+     * Kind
+     */
+    kind: 'trip';
+    /**
+     * Tripid
+     */
+    tripId: string;
+    /**
+     * Servicedate
+     */
+    serviceDate: string;
+    /**
+     * Fromstopid
+     */
+    fromStopId: string | null;
+    /**
+     * Tostopid
+     */
+    toStopId: string | null;
+};
+
+/**
+ * TripFollowCreate
+ *
+ * Follow one trip on one service date
+ */
+export type TripFollowCreate = {
+    /**
+     * Alertsenabled
+     */
+    alertsEnabled?: boolean;
+    /**
+     * Delaythresholdmin
+     */
+    delayThresholdMin?: number;
+    /**
+     * Notifyplatformchange
+     */
+    notifyPlatformChange?: boolean;
+    /**
+     * Kind
+     */
+    kind: 'trip';
+    /**
+     * Tripid
+     */
+    tripId: string;
+    /**
+     * Servicedate
+     */
+    serviceDate: string;
+    /**
+     * Tripshortname
+     */
+    tripShortName: string;
+    /**
+     * Fromstopid
+     */
+    fromStopId?: string | null;
+    /**
+     * Tostopid
+     */
+    toStopId?: string | null;
+};
+
+/**
  * TripGeometry
  *
  * Trip geometry polyline
@@ -877,3 +1172,258 @@ export type GetAlertsResponses = {
 };
 
 export type GetAlertsResponse = GetAlertsResponses[keyof GetAlertsResponses];
+
+export type RegisterDeviceData = {
+    body: DeviceCreate;
+    path?: never;
+    query?: never;
+    url: '/v1/devices';
+};
+
+export type RegisterDeviceErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+    /**
+     * Too many registrations; see Retry-After
+     */
+    429: unknown;
+};
+
+export type RegisterDeviceError = RegisterDeviceErrors[keyof RegisterDeviceErrors];
+
+export type RegisterDeviceResponses = {
+    /**
+     * Successful Response
+     */
+    201: DeviceCredentials;
+};
+
+export type RegisterDeviceResponse = RegisterDeviceResponses[keyof RegisterDeviceResponses];
+
+export type DeleteDeviceData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/devices/me';
+};
+
+export type DeleteDeviceErrors = {
+    /**
+     * Missing, malformed or invalid device token
+     */
+    401: unknown;
+};
+
+export type DeleteDeviceResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteDeviceResponse = DeleteDeviceResponses[keyof DeleteDeviceResponses];
+
+export type GetDeviceData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/devices/me';
+};
+
+export type GetDeviceErrors = {
+    /**
+     * Missing, malformed or invalid device token
+     */
+    401: unknown;
+};
+
+export type GetDeviceResponses = {
+    /**
+     * Successful Response
+     */
+    200: DeviceInfo;
+};
+
+export type GetDeviceResponse = GetDeviceResponses[keyof GetDeviceResponses];
+
+export type RotateDeviceTokenData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/devices/me/rotate-token';
+};
+
+export type RotateDeviceTokenErrors = {
+    /**
+     * Missing, malformed or invalid device token
+     */
+    401: unknown;
+};
+
+export type RotateDeviceTokenResponses = {
+    /**
+     * Successful Response
+     */
+    200: DeviceCredentials;
+};
+
+export type RotateDeviceTokenResponse = RotateDeviceTokenResponses[keyof RotateDeviceTokenResponses];
+
+export type ListFollowsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/follows';
+};
+
+export type ListFollowsErrors = {
+    /**
+     * Missing, malformed or invalid device token
+     */
+    401: unknown;
+};
+
+export type ListFollowsResponses = {
+    /**
+     * Response Listfollows
+     *
+     * Successful Response
+     */
+    200: Array<({
+        kind: 'trip';
+    } & TripFollow) | ({
+        kind: 'commute';
+    } & CommuteFollow)>;
+};
+
+export type ListFollowsResponse = ListFollowsResponses[keyof ListFollowsResponses];
+
+export type CreateFollowData = {
+    /**
+     * Body
+     */
+    body: ({
+        kind: 'trip';
+    } & TripFollowCreate) | ({
+        kind: 'commute';
+    } & CommuteFollowCreate);
+    path?: never;
+    query?: never;
+    url: '/v1/follows';
+};
+
+export type CreateFollowErrors = {
+    /**
+     * Missing, malformed or invalid device token
+     */
+    401: unknown;
+    /**
+     * Already following this trip, or the limit of 50 follows is reached
+     */
+    409: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateFollowError = CreateFollowErrors[keyof CreateFollowErrors];
+
+export type CreateFollowResponses = {
+    /**
+     * Response Createfollow
+     *
+     * Successful Response
+     */
+    201: ({
+        kind: 'trip';
+    } & TripFollow) | ({
+        kind: 'commute';
+    } & CommuteFollow);
+};
+
+export type CreateFollowResponse = CreateFollowResponses[keyof CreateFollowResponses];
+
+export type DeleteFollowData = {
+    body?: never;
+    path: {
+        /**
+         * Follow Id
+         */
+        follow_id: string;
+    };
+    query?: never;
+    url: '/v1/follows/{follow_id}';
+};
+
+export type DeleteFollowErrors = {
+    /**
+     * Missing, malformed or invalid device token
+     */
+    401: unknown;
+    /**
+     * No such follow on this device
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteFollowError = DeleteFollowErrors[keyof DeleteFollowErrors];
+
+export type DeleteFollowResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteFollowResponse = DeleteFollowResponses[keyof DeleteFollowResponses];
+
+export type UpdateFollowData = {
+    body: FollowUpdate;
+    path: {
+        /**
+         * Follow Id
+         */
+        follow_id: string;
+    };
+    query?: never;
+    url: '/v1/follows/{follow_id}';
+};
+
+export type UpdateFollowErrors = {
+    /**
+     * Missing, malformed or invalid device token
+     */
+    401: unknown;
+    /**
+     * No such follow on this device
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateFollowError = UpdateFollowErrors[keyof UpdateFollowErrors];
+
+export type UpdateFollowResponses = {
+    /**
+     * Response Updatefollow
+     *
+     * Successful Response
+     */
+    200: ({
+        kind: 'trip';
+    } & TripFollow) | ({
+        kind: 'commute';
+    } & CommuteFollow);
+};
+
+export type UpdateFollowResponse = UpdateFollowResponses[keyof UpdateFollowResponses];

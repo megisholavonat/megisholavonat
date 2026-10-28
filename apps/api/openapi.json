@@ -301,6 +301,387 @@
           }
         }
       }
+    },
+    "/v1/devices": {
+      "post": {
+        "tags": [
+          "devices"
+        ],
+        "summary": "Register Device",
+        "description": "Register an anonymous device. The token is returned only here and from\nrotate-token; store it securely.",
+        "operationId": "registerDevice",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeviceCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceCredentials"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many registrations; see Retry-After"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/devices/me": {
+      "get": {
+        "tags": [
+          "devices"
+        ],
+        "summary": "Get Device",
+        "description": "The calling device",
+        "operationId": "getDevice",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceInfo"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, malformed or invalid device token"
+          }
+        },
+        "security": [
+          {
+            "DeviceToken": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "devices"
+        ],
+        "summary": "Delete Device",
+        "description": "Delete this device and everything stored about it (follows included).",
+        "operationId": "deleteDevice",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "description": "Missing, malformed or invalid device token"
+          }
+        },
+        "security": [
+          {
+            "DeviceToken": []
+          }
+        ]
+      }
+    },
+    "/v1/devices/me/rotate-token": {
+      "post": {
+        "tags": [
+          "devices"
+        ],
+        "summary": "Rotate Device Token",
+        "description": "Issue a new token; the current one stops working immediately.",
+        "operationId": "rotateDeviceToken",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceCredentials"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, malformed or invalid device token"
+          }
+        },
+        "security": [
+          {
+            "DeviceToken": []
+          }
+        ]
+      }
+    },
+    "/v1/follows": {
+      "get": {
+        "tags": [
+          "follows"
+        ],
+        "summary": "List Follows",
+        "description": "Follows of the calling device, oldest first",
+        "operationId": "listFollows",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "oneOf": [
+                      {
+                        "$ref": "#/components/schemas/TripFollow"
+                      },
+                      {
+                        "$ref": "#/components/schemas/CommuteFollow"
+                      }
+                    ],
+                    "discriminator": {
+                      "propertyName": "kind",
+                      "mapping": {
+                        "trip": "#/components/schemas/TripFollow",
+                        "commute": "#/components/schemas/CommuteFollow"
+                      }
+                    }
+                  },
+                  "type": "array",
+                  "title": "Response Listfollows"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, malformed or invalid device token"
+          }
+        },
+        "security": [
+          {
+            "DeviceToken": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "follows"
+        ],
+        "summary": "Create Follow",
+        "description": "Follow a single trip or a recurring commute",
+        "operationId": "createFollow",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/TripFollowCreate"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CommuteFollowCreate"
+                  }
+                ],
+                "title": "Body",
+                "discriminator": {
+                  "propertyName": "kind",
+                  "mapping": {
+                    "trip": "#/components/schemas/TripFollowCreate",
+                    "commute": "#/components/schemas/CommuteFollowCreate"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/TripFollow"
+                    },
+                    {
+                      "$ref": "#/components/schemas/CommuteFollow"
+                    }
+                  ],
+                  "title": "Response Createfollow",
+                  "discriminator": {
+                    "propertyName": "kind",
+                    "mapping": {
+                      "trip": "#/components/schemas/TripFollow",
+                      "commute": "#/components/schemas/CommuteFollow"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, malformed or invalid device token"
+          },
+          "409": {
+            "description": "Already following this trip, or the limit of 50 follows is reached"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "DeviceToken": []
+          }
+        ]
+      }
+    },
+    "/v1/follows/{follow_id}": {
+      "patch": {
+        "tags": [
+          "follows"
+        ],
+        "summary": "Update Follow",
+        "description": "Change alert preferences, or a commute's days, stations or label",
+        "operationId": "updateFollow",
+        "security": [
+          {
+            "DeviceToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "follow_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Follow Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FollowUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/TripFollow"
+                    },
+                    {
+                      "$ref": "#/components/schemas/CommuteFollow"
+                    }
+                  ],
+                  "discriminator": {
+                    "propertyName": "kind",
+                    "mapping": {
+                      "trip": "#/components/schemas/TripFollow",
+                      "commute": "#/components/schemas/CommuteFollow"
+                    }
+                  },
+                  "title": "Response Updatefollow"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, malformed or invalid device token"
+          },
+          "404": {
+            "description": "No such follow on this device"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "follows"
+        ],
+        "summary": "Delete Follow",
+        "description": "Stop following",
+        "operationId": "deleteFollow",
+        "security": [
+          {
+            "DeviceToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "follow_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Follow Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "description": "Missing, malformed or invalid device token"
+          },
+          "404": {
+            "description": "No such follow on this device"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -537,6 +918,385 @@
         ],
         "title": "BoardEntry",
         "description": "One train on a station's departure or arrival board"
+      },
+      "CommuteFollow": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "tripShortName": {
+            "type": "string",
+            "title": "Tripshortname"
+          },
+          "alertsEnabled": {
+            "type": "boolean",
+            "title": "Alertsenabled"
+          },
+          "delayThresholdMin": {
+            "type": "integer",
+            "title": "Delaythresholdmin"
+          },
+          "notifyPlatformChange": {
+            "type": "boolean",
+            "title": "Notifyplatformchange"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updatedat"
+          },
+          "kind": {
+            "type": "string",
+            "const": "commute",
+            "title": "Kind"
+          },
+          "weekdays": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Weekdays"
+          },
+          "fromStationId": {
+            "type": "string",
+            "title": "Fromstationid"
+          },
+          "toStationId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tostationid"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "tripShortName",
+          "alertsEnabled",
+          "delayThresholdMin",
+          "notifyPlatformChange",
+          "createdAt",
+          "updatedAt",
+          "kind",
+          "weekdays",
+          "fromStationId",
+          "toStationId",
+          "label"
+        ],
+        "title": "CommuteFollow"
+      },
+      "CommuteFollowCreate": {
+        "properties": {
+          "alertsEnabled": {
+            "type": "boolean",
+            "title": "Alertsenabled",
+            "default": true
+          },
+          "delayThresholdMin": {
+            "type": "integer",
+            "maximum": 240.0,
+            "minimum": 0.0,
+            "title": "Delaythresholdmin",
+            "default": 5
+          },
+          "notifyPlatformChange": {
+            "type": "boolean",
+            "title": "Notifyplatformchange",
+            "default": true
+          },
+          "kind": {
+            "type": "string",
+            "const": "commute",
+            "title": "Kind"
+          },
+          "tripShortName": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Tripshortname"
+          },
+          "weekdays": {
+            "items": {
+              "type": "integer",
+              "maximum": 7.0,
+              "minimum": 1.0
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Weekdays"
+          },
+          "fromStationId": {
+            "type": "string",
+            "pattern": "^\\d{1,16}$",
+            "title": "Fromstationid",
+            "examples": [
+              "005501024"
+            ]
+          },
+          "toStationId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{1,16}$",
+                "examples": [
+                  "005501024"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tostationid"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "tripShortName",
+          "weekdays",
+          "fromStationId"
+        ],
+        "title": "CommuteFollowCreate",
+        "description": "Follow a train taken regularly. Train numbers are not unique within a day,\nso the boarding station is required to pick the right trip."
+      },
+      "DeviceCreate": {
+        "properties": {
+          "platform": {
+            "type": "string",
+            "enum": [
+              "web",
+              "ios",
+              "android"
+            ],
+            "title": "Platform"
+          },
+          "locale": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 35,
+                "pattern": "^[A-Za-z]{2,8}(-[A-Za-z0-9]{1,8})*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locale"
+          }
+        },
+        "type": "object",
+        "required": [
+          "platform"
+        ],
+        "title": "DeviceCreate",
+        "description": "Register an anonymous device"
+      },
+      "DeviceCredentials": {
+        "properties": {
+          "deviceId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Deviceid"
+          },
+          "token": {
+            "type": "string",
+            "title": "Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "deviceId",
+          "token"
+        ],
+        "title": "DeviceCredentials",
+        "description": "Shown only once. Send `Authorization: Bearer <deviceId>.<token>` on every\nauthenticated request."
+      },
+      "DeviceInfo": {
+        "properties": {
+          "deviceId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Deviceid"
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "web",
+              "ios",
+              "android"
+            ],
+            "title": "Platform"
+          },
+          "locale": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locale"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "lastSeenAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Lastseenat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "deviceId",
+          "platform",
+          "locale",
+          "createdAt",
+          "lastSeenAt"
+        ],
+        "title": "DeviceInfo",
+        "description": "The calling device"
+      },
+      "FollowUpdate": {
+        "properties": {
+          "alertsEnabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alertsenabled"
+          },
+          "delayThresholdMin": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 240.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delaythresholdmin"
+          },
+          "notifyPlatformChange": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notifyplatformchange"
+          },
+          "weekdays": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer",
+                  "maximum": 7.0,
+                  "minimum": 1.0
+                },
+                "type": "array",
+                "minItems": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weekdays"
+          },
+          "fromStationId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{1,16}$",
+                "examples": [
+                  "005501024"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fromstationid"
+          },
+          "toStationId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{1,16}$",
+                "examples": [
+                  "005501024"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tostationid"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "title": "FollowUpdate",
+        "description": "Partial update. Weekdays, stations and label only apply to commutes;\ntoStationId and label can be cleared with null."
       },
       "HTTPValidationError": {
         "properties": {
@@ -1211,6 +1971,171 @@
         "title": "Trip",
         "description": "Trip information"
       },
+      "TripFollow": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "tripShortName": {
+            "type": "string",
+            "title": "Tripshortname"
+          },
+          "alertsEnabled": {
+            "type": "boolean",
+            "title": "Alertsenabled"
+          },
+          "delayThresholdMin": {
+            "type": "integer",
+            "title": "Delaythresholdmin"
+          },
+          "notifyPlatformChange": {
+            "type": "boolean",
+            "title": "Notifyplatformchange"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updatedat"
+          },
+          "kind": {
+            "type": "string",
+            "const": "trip",
+            "title": "Kind"
+          },
+          "tripId": {
+            "type": "string",
+            "title": "Tripid"
+          },
+          "serviceDate": {
+            "type": "string",
+            "format": "date",
+            "title": "Servicedate"
+          },
+          "fromStopId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fromstopid"
+          },
+          "toStopId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tostopid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "tripShortName",
+          "alertsEnabled",
+          "delayThresholdMin",
+          "notifyPlatformChange",
+          "createdAt",
+          "updatedAt",
+          "kind",
+          "tripId",
+          "serviceDate",
+          "fromStopId",
+          "toStopId"
+        ],
+        "title": "TripFollow"
+      },
+      "TripFollowCreate": {
+        "properties": {
+          "alertsEnabled": {
+            "type": "boolean",
+            "title": "Alertsenabled",
+            "default": true
+          },
+          "delayThresholdMin": {
+            "type": "integer",
+            "maximum": 240.0,
+            "minimum": 0.0,
+            "title": "Delaythresholdmin",
+            "default": 5
+          },
+          "notifyPlatformChange": {
+            "type": "boolean",
+            "title": "Notifyplatformchange",
+            "default": true
+          },
+          "kind": {
+            "type": "string",
+            "const": "trip",
+            "title": "Kind"
+          },
+          "tripId": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Tripid"
+          },
+          "serviceDate": {
+            "type": "string",
+            "format": "date",
+            "title": "Servicedate"
+          },
+          "tripShortName": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Tripshortname"
+          },
+          "fromStopId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fromstopid"
+          },
+          "toStopId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tostopid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "tripId",
+          "serviceDate",
+          "tripShortName"
+        ],
+        "title": "TripFollowCreate",
+        "description": "Follow one trip on one service date"
+      },
       "TripGeometry": {
         "properties": {
           "points": {
@@ -1392,6 +2317,13 @@
         ],
         "title": "VehicleProgress",
         "description": "Vehicle progress between stops"
+      }
+    },
+    "securitySchemes": {
+      "DeviceToken": {
+        "type": "http",
+        "description": "`<deviceId>.<token>` as returned by POST /v1/devices",
+        "scheme": "bearer"
       }
     }
   }
