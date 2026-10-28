@@ -2,7 +2,7 @@
     "Home": {
         "loading_map": "Loading map...",
         "contact_us": "Contact us",
-        "app_title": "Where is the train?",
+        "app_title": "Mégis hol a vonat?",
         "app_description": "Train tracking application with accurate data and useful information."
     },
     "SearchComponent": {
@@ -161,7 +161,7 @@
         "title": "No data available",
         "description": "We're not receiving any data at the moment. Please try again later.",
         "stale_data_title": "Showing outdated data",
-        "stale_data_description": "The external API is not responding. Showing data that is {minutes, plural, =1 {# minute} other {# minutes}} old.",
+        "stale_data_description": "The external data source is not responding. The data shown is {minutes, plural, =1 {# minute} other {# minutes}} old.",
         "close_button": "OK"
     }
 }
