@@ -174,7 +174,9 @@ export function getDelayColor(delay: number, darkBg: boolean = false): string {
     } else if (delay >= ORANGE_THRESHOLD) {
         return darkBg ? "text-orange-300" : "text-orange-500";
     } else if (delay >= YELLOW_THRESHOLD) {
-        return darkBg ? "text-yellow-200" : "text-yellow-400";
+        return darkBg
+            ? "text-yellow-200"
+            : "text-yellow-700 dark:text-yellow-400";
     }
 
     return darkBg ? "text-green-400" : "text-green-600";
