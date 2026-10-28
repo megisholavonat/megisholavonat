@@ -124,6 +124,8 @@ def snap_stops(
         processed_stops.append(
             {
                 "id": stop["id"],
+                "gtfsId": stop.get("gtfsId"),
+                "index": stop.get("index"),
                 "originalCoords": stop["coords"],
                 "distanceAlongRoute": distance_along_route,
             }
@@ -144,12 +146,15 @@ def get_vehicle_progress(
     Determines the last and next stop based on vehicle position.
     vehicle_pos: [lon, lat]
     """
-    # Handle empty stops array
-    if not processed_stops:
-        return {"lastStop": "", "nextStop": "", "progress": 0}
-
-    if len(route_coords) < 2:
-        return {"lastStop": "", "nextStop": "", "progress": 0}
+    empty = {
+        "lastStop": "",
+        "nextStop": "",
+        "lastStopIndex": None,
+        "nextStopIndex": None,
+        "progress": 0,
+    }
+    if not processed_stops or len(route_coords) < 2:
+        return empty
 
     line = LineString(route_coords)
     vehicle_point = Point(vehicle_pos)
@@ -168,8 +173,14 @@ def get_vehicle_progress(
             break
 
     if not next_stop:
-        last_stop_id = processed_stops[-1]["id"]
-        return {"lastStop": last_stop_id, "nextStop": last_stop_id, "progress": 1}
+        final = processed_stops[-1]
+        return {
+            "lastStop": final["id"],
+            "nextStop": final["id"],
+            "lastStopIndex": final.get("index"),
+            "nextStopIndex": final.get("index"),
+            "progress": 1,
+        }
 
     total_leg_distance = (
         next_stop["distanceAlongRoute"] - last_stop["distanceAlongRoute"]
@@ -178,14 +189,15 @@ def get_vehicle_progress(
         vehicle_distance_along_route - last_stop["distanceAlongRoute"]
     )
 
-    if total_leg_distance == 0:
-        return {"lastStop": last_stop["id"], "nextStop": next_stop["id"], "progress": 1}
-
-    progress = traveled_leg_distance / total_leg_distance
+    progress = (
+        1 if total_leg_distance == 0 else traveled_leg_distance / total_leg_distance
+    )
 
     return {
         "lastStop": last_stop["id"],
         "nextStop": next_stop["id"],
+        "lastStopIndex": last_stop.get("index"),
+        "nextStopIndex": next_stop.get("index"),
         "progress": progress,
     }
 
@@ -218,13 +230,17 @@ def get_delay_and_position(
             unique_geojson_route_coords.append(t_coord)
             seen.add(t_coord)
 
-    # Prepare stops for processing
+    # Prepare stops for processing. `id` stays the stop name for API
+    # compatibility; matching back to stoptimes uses the stoptimes index, which
+    # is unambiguous even when a trip calls at a station twice.
     stops = []
-    for stop_time in stoptimes:
+    for index, stop_time in enumerate(stoptimes):
         stop_data = stop_time.get("stop", {})
         stops.append(
             {
                 "id": stop_data.get("name"),
+                "gtfsId": stop_data.get("gtfsId"),
+                "index": index,
                 "coords": [stop_data.get("lon"), stop_data.get("lat")],
             }
         )
@@ -235,12 +251,8 @@ def get_delay_and_position(
     # Add stop time info back
     processed_stops_with_info = []
     for p_stop in processed_stops:
-        original_stop_time = next(
-            (st for st in stoptimes if st.get("stop", {}).get("name") == p_stop["id"]),
-            None,
-        )
         new_p_stop = p_stop.copy()
-        new_p_stop["stopTimeInfo"] = original_stop_time
+        new_p_stop["stopTimeInfo"] = stoptimes[p_stop["index"]]
         processed_stops_with_info.append(new_p_stop)
 
     # Get vehicle progress
@@ -262,22 +274,10 @@ def get_delay_and_position(
     # Calculate Delay
     delay = 0
 
-    previous_stop_time = next(
-        (
-            st
-            for st in stoptimes
-            if st.get("stop", {}).get("name") == vehicle_progress["lastStop"]
-        ),
-        None,
-    )
-    next_stop_time = next(
-        (
-            st
-            for st in stoptimes
-            if st.get("stop", {}).get("name") == vehicle_progress["nextStop"]
-        ),
-        None,
-    )
+    last_index = vehicle_progress["lastStopIndex"]
+    next_index = vehicle_progress["nextStopIndex"]
+    previous_stop_time = stoptimes[last_index] if last_index is not None else None
+    next_stop_time = stoptimes[next_index] if next_index is not None else None
 
     if previous_stop_time and next_stop_time:
         prev_dep = previous_stop_time.get("scheduledDeparture", 0)

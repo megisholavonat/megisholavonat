@@ -190,6 +190,8 @@ class TrainService:
             processed_location.update(
                 {
                     "delay": round(delay_data["delay"] / 60),
+                    # Unrounded GPS delay, used for history (not in the schema)
+                    "delaySeconds": round(delay_data["delay"]),
                     "trainPosition": delay_data["trainPosition"],
                     "totalRouteDistance": delay_data["totalRouteDistance"],
                     "processedStops": delay_data["processedStops"],
