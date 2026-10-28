@@ -115,6 +115,17 @@ uv run alembic upgrade head
 uv run alembic check   # CI fails if models and migrations differ
 ```
 
+### Delay history
+
+After every refresh the worker enqueues `record_history`, which writes one row
+to `stop_delay_observations` per trip and stop the first time a train is seen
+past that stop (keyed on trip gtfsId, since train numbers repeat within a
+day). The delay stored is our GPS-derived delay; OTP's own delays are kept
+alongside. Positions from vehicles not yet running their trip, far off the
+route, or with impossible delays are ignored. A daily task (03:30 Budapest)
+creates partitions, rolls yesterday into `delay_daily_agg` and drops raw
+partitions older than `HISTORY_RETENTION_MONTHS` (13).
+
 ### Replaying recorded data
 
 To develop without calling upstream, set
