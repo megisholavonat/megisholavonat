@@ -3,6 +3,8 @@
     "private": true,
     "scripts": {
         "dev": "turbo dev",
+        "check": "turbo check",
+        "test": "turbo test",
         "generate:schema": "pnpm --filter api run generate-openapi",
         "generate:client": "pnpm --filter api-client run generate",
         "generate:api": "pnpm generate:schema && pnpm generate:client"
