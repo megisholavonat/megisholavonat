@@ -446,8 +446,9 @@ export const getRankingsQueryKey = (options?: Options<GetRankingsData>) => creat
 /**
  * Get Rankings
  *
- * Stations, lines (route short names) or trains ranked by on-time share
- * (at most 5 minutes late), then by median delay
+ * Stations, lines (S10, Z30, H5, ...) or trains ranked by on-time share (at
+ * most 5 minutes late), then by median delay. Stations and lines count every
+ * stop passage; trains count one arrival per run, at its last recorded stop.
  */
 export const getRankingsOptions = (options?: Options<GetRankingsData>) => {
     return queryOptions({

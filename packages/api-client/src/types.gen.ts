@@ -386,8 +386,7 @@ export type HttpValidationError = {
 /**
  * HistoryWindow
  *
- * Service dates the statistics cover. The window ends at the latest service
- * date with recorded data, so it does not drift into days without data.
+ * Service dates the statistics cover: the last `days` up to today
  */
 export type HistoryWindow = {
     /**
@@ -1908,9 +1907,9 @@ export type GetRankingsData = {
         /**
          * Minsamples
          *
-         * Minimum stop passages ranked
+         * Minimum samples to be ranked; defaults to 100 for stations, 300 for lines and 15 for trains
          */
-        minSamples?: number;
+        minSamples?: number | null;
     };
     url: '/v1/rankings';
 };

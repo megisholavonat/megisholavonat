@@ -256,8 +256,7 @@ export const zFollowUpdate = z.object({
 /**
  * HistoryWindow
  *
- * Service dates the statistics cover. The window ends at the latest service
- * date with recorded data, so it does not drift into days without data.
+ * Service dates the statistics cover: the last `days` up to today
  */
 export const zHistoryWindow = z.object({
     start: z.iso.date(),
@@ -1125,7 +1124,10 @@ export const zGetRankingsData = z.object({
         ])),
         days: z.optional(z.int().gte(1).lte(365)).default(28),
         limit: z.optional(z.int().gte(1).lte(200)).default(20),
-        minSamples: z.optional(z.int().gte(1)).default(100)
+        minSamples: z.optional(z.union([
+            z.int().gte(1),
+            z.null()
+        ]))
     }))
 });
 

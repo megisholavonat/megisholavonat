@@ -893,7 +893,7 @@
           "rankings"
         ],
         "summary": "Get Rankings",
-        "description": "Stations, lines (route short names) or trains ranked by on-time share\n(at most 5 minutes late), then by median delay",
+        "description": "Stations, lines (S10, Z30, H5, ...) or trains ranked by on-time share (at\nmost 5 minutes late), then by median delay. Stations and lines count every\nstop passage; trains count one arrival per run, at its last recorded stop.",
         "operationId": "getRankings",
         "parameters": [
           {
@@ -956,13 +956,19 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "description": "Minimum stop passages ranked",
-              "default": 100,
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Minimum samples to be ranked; defaults to 100 for stations, 300 for lines and 15 for trains",
               "title": "Minsamples"
             },
-            "description": "Minimum stop passages ranked"
+            "description": "Minimum samples to be ranked; defaults to 100 for stations, 300 for lines and 15 for trains"
           }
         ],
         "responses": {
@@ -1757,7 +1763,7 @@
           "days"
         ],
         "title": "HistoryWindow",
-        "description": "Service dates the statistics cover. The window ends at the latest service\ndate with recorded data, so it does not drift into days without data."
+        "description": "Service dates the statistics cover: the last `days` up to today"
       },
       "HourPunctuality": {
         "properties": {
