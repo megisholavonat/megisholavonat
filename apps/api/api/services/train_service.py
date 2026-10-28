@@ -1,12 +1,9 @@
-import itertools
 import json
-import math
 import time
 from datetime import UTC, datetime
 from typing import Any
 
 import httpx
-import polyline  # type: ignore[import-untyped]
 from httpx_socks import AsyncProxyTransport  # type: ignore[import-untyped]
 from redis.asyncio import Redis
 
@@ -17,27 +14,11 @@ from api.core.redis import add_key
 from api.util.county import get_county_for_point
 from api.util.preprocess import get_delay_and_position
 from api.util.replay import next_snapshot
+from api.util.route import route_from_polyline
 from api.util.trip import seconds_outside_window
 from api.util.vehicle import should_remove
 
 logger = get_logger(__name__)
-
-
-def route_length(route_coords: list[tuple[float, float]]) -> float:
-    """
-    Returns the total haversine length of the route in km.
-    """
-    total = 0.0
-    for (lat1, lon1), (lat2, lon2) in itertools.pairwise(route_coords):
-        phi1, phi2 = math.radians(lat1), math.radians(lat2)
-        dphi = phi2 - phi1
-        dlam = math.radians(lon2 - lon1)
-        a = (
-            math.sin(dphi / 2) ** 2
-            + math.cos(phi1) * math.cos(phi2) * math.sin(dlam / 2) ** 2
-        )
-        total += 2 * 6371.0 * math.asin(min(1.0, math.sqrt(a)))
-    return total
 
 
 class TrainService:
@@ -175,7 +156,7 @@ class TrainService:
             trip_geometry = trip.get("tripGeometry", {})
             points = trip_geometry.get("points", "")
 
-            route_coords = polyline.decode(points)
+            route = route_from_polyline(points)
 
             last_updated_dt = datetime.fromtimestamp(
                 location.get("lastUpdated", 0), tz=UTC
@@ -188,7 +169,7 @@ class TrainService:
                 last_updated_dt,
                 trip.get("serviceDate"),
                 trip.get("stoptimes", []),
-                route_coords,
+                route,
                 lat,
                 lon,
                 location.get("heading"),
@@ -205,7 +186,7 @@ class TrainService:
                     "totalRouteDistance": delay_data["totalRouteDistance"],
                     "processedStops": delay_data["processedStops"],
                     "vehicleProgress": delay_data["vehicleProgress"],
-                    "routeLengthKm": route_length(route_coords),
+                    "routeLengthKm": route.length_km,
                 }
             )
 
