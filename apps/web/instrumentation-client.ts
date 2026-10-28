@@ -1,14 +1,4 @@
-import { getPosthogKey } from "@megisholavonat/api-client";
-import posthog from "posthog-js";
+import { applyConsent } from "@/lib/analytics";
 
-const { data: posthogKey } = await getPosthogKey();
-
-if (process.env.NODE_ENV !== "development" && posthogKey?.key) {
-    posthog.init(posthogKey.key, {
-        api_host: "/relay-OfoJ",
-        ui_host: "https://eu.posthog.com",
-        defaults: "2025-05-24",
-        capture_exceptions: true,
-        // debug: env.NODE_ENV === "development",
-    });
-}
+// PostHog only starts if the user has agreed to analytics (see ConsentBanner).
+applyConsent();

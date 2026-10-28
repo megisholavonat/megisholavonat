@@ -3,7 +3,9 @@ import "@/app/globals.css";
 import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
+import { Suspense } from "react";
 import Providers from "@/app/providers";
+import ConsentBanner from "@/components/ui/ConsentBanner";
 import { routing } from "@/i18n/routing";
 
 const geistSans = Geist({
@@ -64,7 +66,12 @@ export default async function LocaleLayout({
                 className={`${geistSans.variable} ${geistMono.variable} antialiased`}
             >
                 <Providers>
-                    <NextIntlClientProvider>{children}</NextIntlClientProvider>
+                    <NextIntlClientProvider>
+                        {children}
+                        <Suspense fallback={null}>
+                            <ConsentBanner />
+                        </Suspense>
+                    </NextIntlClientProvider>
                 </Providers>
             </body>
         </html>

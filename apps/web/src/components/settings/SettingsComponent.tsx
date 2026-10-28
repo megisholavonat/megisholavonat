@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FaCog } from "react-icons/fa";
 import { FaInfo } from "react-icons/fa6";
+import AnalyticsConsentSwitch from "@/components/settings/AnalyticsConsentSwitch";
 import ChangelogComponent from "@/components/settings/ChangelogComponent";
 import ComputerBadge from "@/components/settings/ComputerBadge";
 import { InfoBox } from "@/components/settings/InfoBox";
@@ -703,6 +704,14 @@ export default function SettingsComponent() {
                                             aria-describedby="animate-vehicles-description"
                                         />
                                     </div>
+                                </fieldset>
+
+                                {/* Privacy */}
+                                <fieldset className="space-y-4 border-0 p-0">
+                                    <legend className="font-bold text-lg">
+                                        {t("privacy_title")}
+                                    </legend>
+                                    <AnalyticsConsentSwitch />
                                 </fieldset>
                             </TabsContent>
 

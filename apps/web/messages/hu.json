@@ -3,7 +3,8 @@
         "loading_map": "Térkép betöltése...",
         "contact_us": "Kapcsolat",
         "app_title": "Mégis hol a vonat?",
-        "app_description": "Vonatkövető alkalmazás, pontos adatokkal és hasznos információkkal."
+        "app_description": "Vonatkövető alkalmazás, pontos adatokkal és hasznos információkkal.",
+        "privacy_notice": "Adatvédelem"
     },
     "SearchComponent": {
         "search_placeholder": "Szám, típus, állomás, UIC kód...",
@@ -53,7 +54,8 @@
         "map_settings_title": "Térkép beállítások",
         "railway_overlay_label": "Vasútvonalak megjelenítése",
         "animate_vehicles_label": "Járművek animálása",
-        "animate_vehicles_description": "A járművek pozíciójának folyamatos animálása frissítések között"
+        "animate_vehicles_description": "A járművek pozíciójának folyamatos animálása frissítések között",
+        "privacy_title": "Adatvédelem"
     },
     "TrainPanel": {
         "uic_code": "UIC kód",
@@ -163,5 +165,21 @@
         "stale_data_title": "Elavult adatok megjelenítve",
         "stale_data_description": "A külső adatforrás nem válaszol. A megjelenített adatok {minutes} percesek.",
         "close_button": "Rendben"
+    },
+    "AnalyticsConsentSwitch": {
+        "label": "Használati statisztika",
+        "description": "Részletes statisztika egy véletlenszerű azonosítóval (PostHog, EU-s szerver). Kikapcsolva csak a napi látogatószámot mérjük, sütik és tárolt azonosító nélkül, és töröljük a böngésződből a PostHog adatait."
+    },
+    "ConsentBanner": {
+        "title": "Használati statisztika",
+        "description": "Ez egy ingyenes hobbiprojekt. Ha engeded, egy véletlenszerű azonosítóval használati statisztikát gyűjtünk, ami segít eldönteni, mit fejlesszünk. Ha nem engeded, akkor is mérjük a napi látogatószámot, de sütik és tárolt azonosító nélkül.",
+        "privacy_link": "Adatvédelmi tájékoztató",
+        "accept": "Elfogadom",
+        "reject": "Elutasítom"
+    },
+    "PrivacyPage": {
+        "title": "Adatvédelmi tájékoztató",
+        "back_to_map": "Vissza a térképhez",
+        "last_updated": "Utolsó frissítés: {date}"
     }
 }

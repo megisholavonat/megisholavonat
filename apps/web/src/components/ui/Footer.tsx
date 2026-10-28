@@ -3,7 +3,8 @@
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { FaGithub } from "react-icons/fa";
-import { LuMail, LuScale } from "react-icons/lu";
+import { LuMail, LuScale, LuShield } from "react-icons/lu";
+import { Link } from "@/i18n/navigation";
 
 export default function Footer() {
     const tHome = useTranslations("Home");
@@ -40,6 +41,15 @@ export default function Footer() {
                         <LuMail className="w-4 h-4" />
                         <span>hello@megisholavonat.info</span>
                     </a>
+
+                    {/* Privacy notice */}
+                    <Link
+                        href="/privacy"
+                        className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                        <LuShield className="w-4 h-4" />
+                        <span>{tHome("privacy_notice")}</span>
+                    </Link>
 
                     {/* License */}
                     <a
