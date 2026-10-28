@@ -3,18 +3,6 @@
 import * as z from 'zod';
 
 /**
- * Alert
- *
- * Alert information
- */
-export const zAlert = z.object({
-    alertDescriptionText: z.string(),
-    alertUrl: z.string().nullish(),
-    effectiveStartDate: z.int(),
-    effectiveEndDate: z.int()
-});
-
-/**
  * AlertRoute
  *
  * Route affected by an alert
@@ -44,28 +32,6 @@ export const zAlertStation = z.object({
 export const zAlertTrip = z.object({
     tripId: z.string(),
     tripShortName: z.string().nullish()
-});
-
-/**
- * BoardEntry
- *
- * One train on a station's departure or arrival board
- */
-export const zBoardEntry = z.object({
-    tripId: z.string(),
-    tripShortName: z.string(),
-    routeShortName: z.string(),
-    routeTextColor: z.string().nullish(),
-    headsign: z.string().nullish(),
-    serviceDate: z.string(),
-    scheduledTime: z.int(),
-    expectedTime: z.int(),
-    delayMinutes: z.int(),
-    delaySource: z.enum(['gps', 'otp']),
-    platform: z.string().nullish(),
-    realtime: z.boolean(),
-    canceled: z.boolean().optional().default(false),
-    vehicleId: z.string().nullish()
 });
 
 /**
@@ -102,6 +68,71 @@ export const zCommuteFollowCreate = z.object({
     fromStationId: z.string().regex(/^\d{1,16}$/),
     toStationId: z.string().regex(/^\d{1,16}$/).nullish(),
     label: z.string().min(1).max(64).nullish()
+});
+
+/**
+ * DelayReason
+ *
+ * A known delay reason of a train, parsed from its alert text. The label is
+ * Hungarian; clients can localise by code (see packages/core delayReasons).
+ */
+export const zDelayReason = z.object({
+    code: z.enum([
+        'track',
+        'technical',
+        'other_train',
+        'dwell',
+        'partner_railway',
+        'connection',
+        'signalling',
+        'external',
+        'weather',
+        'construction',
+        'accident',
+        'switch',
+        'operational',
+        'overhead_line',
+        'police',
+        'vandalism',
+        'replacement_bus'
+    ]),
+    label: z.string()
+});
+
+/**
+ * Alert
+ *
+ * Alert information
+ */
+export const zAlert = z.object({
+    alertDescriptionText: z.string(),
+    alertUrl: z.string().nullish(),
+    effectiveStartDate: z.int(),
+    effectiveEndDate: z.int(),
+    reason: zDelayReason.nullish()
+});
+
+/**
+ * BoardEntry
+ *
+ * One train on a station's departure or arrival board
+ */
+export const zBoardEntry = z.object({
+    tripId: z.string(),
+    tripShortName: z.string(),
+    routeShortName: z.string(),
+    routeTextColor: z.string().nullish(),
+    headsign: z.string().nullish(),
+    serviceDate: z.string(),
+    scheduledTime: z.int(),
+    expectedTime: z.int(),
+    delayMinutes: z.int(),
+    delaySource: z.enum(['gps', 'otp']),
+    platform: z.string().nullish(),
+    realtime: z.boolean(),
+    canceled: z.boolean().optional().default(false),
+    vehicleId: z.string().nullish(),
+    reason: zDelayReason.nullish()
 });
 
 /**
@@ -244,7 +275,8 @@ export const zRailAlert = z.object({
     end: z.int().nullish(),
     affectedRoutes: z.array(zAlertRoute),
     affectedTrips: z.array(zAlertTrip),
-    affectedStations: z.array(zAlertStation)
+    affectedStations: z.array(zAlertStation),
+    reason: zDelayReason.nullish()
 });
 
 /**
@@ -396,7 +428,8 @@ export const zTrainFeatureProperties = z.object({
     routePolyline: z.string().nullish(),
     distanceToNextStop: z.number().nullish(),
     lastUpdated: z.int(),
-    isStale: z.boolean().optional().default(false)
+    isStale: z.boolean().optional().default(false),
+    reason: zDelayReason.nullish()
 });
 
 /**
