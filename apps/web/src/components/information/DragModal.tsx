@@ -77,7 +77,7 @@ export const DragCloseDrawer = ({
                             damping: 35,
                             stiffness: 300,
                         }}
-                        className="absolute bottom-0 w-full rounded-t-3xl bg-white shadow-2xl border-t border-gray-200"
+                        className="absolute bottom-0 w-full rounded-t-3xl bg-card shadow-2xl border-t border-border"
                         style={{
                             y,
                             zIndex: Z_LAYERS.PANELS,
@@ -119,6 +119,7 @@ export const DragCloseDrawer = ({
                                 onPointerDown={(e) => {
                                     controls.start(e);
                                 }}
+                                aria-label={t("drag_handle")}
                                 className="h-2 w-14 cursor-grab touch-none rounded-full bg-white/70 active:cursor-grabbing"
                                 whileHover={{
                                     scale: 1.1,
@@ -185,13 +186,13 @@ export const DragCloseDrawer = ({
 
                         {/* Content */}
                         <div className="relative z-0 h-full overflow-hidden pt-4">
-                            <div className="h-full overflow-auto rounded-t-3xl">
+                            <div className="h-full overflow-auto rounded-t-3xl pb-[env(safe-area-inset-bottom)]">
                                 {children}
                             </div>
                         </div>
 
                         {/* Background extension for overscroll */}
-                        <div className="bg-white h-full w-full absolute bottom-0 translate-y-full"></div>
+                        <div className="bg-card h-full w-full absolute bottom-0 translate-y-full"></div>
                     </motion.div>
                 </motion.div>
             )}

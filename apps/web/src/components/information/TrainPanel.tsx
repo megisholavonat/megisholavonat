@@ -174,7 +174,9 @@ export function getDelayColor(delay: number, darkBg: boolean = false): string {
     } else if (delay >= ORANGE_THRESHOLD) {
         return darkBg ? "text-orange-300" : "text-orange-500";
     } else if (delay >= YELLOW_THRESHOLD) {
-        return darkBg ? "text-yellow-200" : "text-yellow-400";
+        return darkBg
+            ? "text-yellow-200"
+            : "text-yellow-700 dark:text-yellow-400";
     }
 
     return darkBg ? "text-green-400" : "text-green-600";
@@ -188,41 +190,48 @@ function TimeDisplay({
     realtime: number | null;
 }) {
     const isMobile = useIsMobile();
-    if (!scheduled || !realtime) {
+    if (scheduled == null) {
         return (
             <span className="text-gray-400 dark:text-muted-foreground">—</span>
         );
     }
 
-    const delayMinutes = Math.round((realtime - scheduled) / 60);
+    const textSize = isMobile ? "text-xs" : "text-sm";
+    const scheduledText = formatSecondsAsTime(scheduled);
 
+    if (realtime == null) {
+        return (
+            <div
+                className={`text-gray-600 dark:text-muted-foreground ${textSize}`}
+            >
+                {scheduledText}
+            </div>
+        );
+    }
+
+    const realtimeText = formatSecondsAsTime(realtime);
+    const delayMinutes = Math.round((realtime - scheduled) / 60);
     const delayColor = getDelayColor(delayMinutes);
+
+    // Realtime matches the timetable: show a single line in the on-time colour
+    if (realtimeText === scheduledText) {
+        return (
+            <div className={`font-semibold ${textSize} ${delayColor}`}>
+                {scheduledText}
+            </div>
+        );
+    }
 
     return (
         <div className={`flex flex-col ${isMobile ? "gap-0" : "gap-1"}`}>
-            {scheduled && (
-                <div
-                    className={`text-gray-500 dark:text-muted-foreground ${isMobile ? "text-xs" : "text-sm"}`}
-                >
-                    {formatSecondsAsTime(scheduled)}
-                </div>
-            )}
-            {realtime && (
-                <div
-                    className={`font-semibold ${
-                        isMobile ? "text-xs" : "text-sm"
-                    } ${delayColor}`}
-                >
-                    {formatSecondsAsTime(realtime)}
-                </div>
-            )}
-            {!realtime && scheduled && (
-                <div
-                    className={`text-gray-600 dark:text-muted-foreground ${isMobile ? "text-xs" : "text-sm"}`}
-                >
-                    {formatSecondsAsTime(scheduled)}
-                </div>
-            )}
+            <div
+                className={`text-gray-500 dark:text-muted-foreground ${textSize}`}
+            >
+                {scheduledText}
+            </div>
+            <div className={`font-semibold ${textSize} ${delayColor}`}>
+                {realtimeText}
+            </div>
         </div>
     );
 }
@@ -236,7 +245,7 @@ function ServiceBadge({
 }) {
     return (
         <TooltipPopover content={service.name}>
-            <span className={className}>
+            <span className={className} role="img" aria-label={service.name}>
                 {String.fromCharCode(Number(service.fontCode))}
             </span>
         </TooltipPopover>
@@ -281,6 +290,7 @@ export const TrainPanel = memo(function TrainPanel({
     const t = useTranslations("TrainPanel");
     const isMobile = useIsMobile();
     const locale = useLocale();
+    const dateLocale = locale === "hu" ? "hu-HU" : "en-GB";
 
     const trainIsStale = isStale(vehicle);
 
@@ -352,6 +362,7 @@ export const TrainPanel = memo(function TrainPanel({
                         <button
                             onClick={onClose}
                             type="button"
+                            aria-label={t("close")}
                             className="text-white hover:text-gray-200 dark:hover:text-gray-300 text-xl cursor-pointer transition-colors duration-200 hover:bg-white/20 dark:hover:bg-white/30 rounded-full p-1"
                         >
                             <FaXmark className="w-4 h-4" />
@@ -500,8 +511,9 @@ export const TrainPanel = memo(function TrainPanel({
                                                                     rel="noopener noreferrer"
                                                                     className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 underline text-xs transition-colors duration-150"
                                                                 >
-                                                                    További
-                                                                    információ
+                                                                    {t(
+                                                                        "more_info",
+                                                                    )}
                                                                 </a>
                                                             )}
                                                             <div className="text-xs text-red-600 dark:text-red-400 mt-1">
@@ -509,14 +521,14 @@ export const TrainPanel = memo(function TrainPanel({
                                                                     alert.effectiveStartDate *
                                                                         1000,
                                                                 ).toLocaleString(
-                                                                    "hu-HU",
+                                                                    dateLocale,
                                                                 )}{" "}
                                                                 -{" "}
                                                                 {new Date(
                                                                     alert.effectiveEndDate *
                                                                         1000,
                                                                 ).toLocaleString(
-                                                                    "hu-HU",
+                                                                    dateLocale,
                                                                 )}
                                                             </div>
                                                         </div>

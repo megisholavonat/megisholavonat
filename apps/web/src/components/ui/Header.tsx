@@ -84,7 +84,7 @@ export default function Header({ data, onSearchResultClick }: HeaderProps) {
 
                         {/* Settings */}
                         <motion.div
-                            className="border-r border-gray-300 dark:border-border px-2 sm:px-4 shrink-0"
+                            className="sm:border-r border-gray-300 dark:border-border px-2 sm:px-4 shrink-0"
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{
@@ -97,9 +97,9 @@ export default function Header({ data, onSearchResultClick }: HeaderProps) {
                         </motion.div>
                     </div>
 
-                    {/* Contact Email */}
+                    {/* Contact Email (on mobile it lives in the Settings footer) */}
                     <motion.div
-                        className="shrink-0 "
+                        className="hidden sm:block shrink-0"
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{

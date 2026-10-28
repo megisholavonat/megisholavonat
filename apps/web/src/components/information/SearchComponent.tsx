@@ -354,10 +354,12 @@ export default function SearchComponent({
                                                                 <span
                                                                     className={`font-medium ${delayColor}`}
                                                                 >
-                                                                    {
-                                                                        result.delay
-                                                                    }
-                                                                    p
+                                                                    {t(
+                                                                        "delay_short",
+                                                                        {
+                                                                            delay: result.delay,
+                                                                        },
+                                                                    )}
                                                                 </span>
                                                             </div>
 

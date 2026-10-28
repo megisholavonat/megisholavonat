@@ -2,7 +2,7 @@
     "Home": {
         "loading_map": "Loading map...",
         "contact_us": "Contact us",
-        "app_title": "Where is the train?",
+        "app_title": "Mégis hol a vonat?",
         "app_description": "Train tracking application with accurate data and useful information."
     },
     "SearchComponent": {
@@ -18,7 +18,8 @@
         "sort_descending": "descending",
         "no_search_results": "No search results",
         "no_trains_available": "No trains available",
-        "select_train": "Select train"
+        "select_train": "Select train",
+        "delay_short": "{delay} min"
     },
     "SettingsComponent": {
         "settings_button": "Settings",
@@ -103,7 +104,9 @@
             "dsb_me": "DSB class ME \"Viking\"",
             "suburban": "LEW Henningsdorf MX/MXA",
             "unknown": "Unknown vehicle"
-        }
+        },
+        "close": "Close",
+        "more_info": "More information"
     },
     "DelayLegend": {
         "title": "Delay legend",
@@ -129,7 +132,8 @@
     "DragModal": {
         "down": "Down",
         "up": "Up",
-        "close": "Close"
+        "close": "Close",
+        "drag_handle": "Drag to resize the panel"
     },
     "ZoomButtons": {
         "zoom_in": "Zoom in",
@@ -157,7 +161,7 @@
         "title": "No data available",
         "description": "We're not receiving any data at the moment. Please try again later.",
         "stale_data_title": "Showing outdated data",
-        "stale_data_description": "The external API is not responding. Showing data that is {minutes, plural, =1 {# minute} other {# minutes}} old.",
+        "stale_data_description": "The external data source is not responding. The data shown is {minutes, plural, =1 {# minute} other {# minutes}} old.",
         "close_button": "OK"
     }
 }
