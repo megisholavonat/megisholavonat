@@ -583,7 +583,7 @@ export default function MapComponent({
                 {train && (
                     <>
                         <motion.div
-                            className="hidden md:block md:w-1/2 lg:w-1/3 rounded-l-3xl bg-white border-l border-gray-300 overflow-hidden flex-col fixed right-0 top-0 h-full shadow-2xl"
+                            className="hidden md:block md:w-1/2 lg:w-1/3 rounded-l-3xl bg-card border-l border-border overflow-hidden flex-col fixed right-0 top-0 h-full shadow-2xl"
                             style={{ zIndex: Z_LAYERS.PANELS }}
                             variants={desktopVariants}
                             initial="hidden"

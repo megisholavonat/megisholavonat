@@ -77,7 +77,7 @@ export const DragCloseDrawer = ({
                             damping: 35,
                             stiffness: 300,
                         }}
-                        className="absolute bottom-0 w-full rounded-t-3xl bg-white shadow-2xl border-t border-gray-200"
+                        className="absolute bottom-0 w-full rounded-t-3xl bg-card shadow-2xl border-t border-border"
                         style={{
                             y,
                             zIndex: Z_LAYERS.PANELS,
@@ -192,7 +192,7 @@ export const DragCloseDrawer = ({
                         </div>
 
                         {/* Background extension for overscroll */}
-                        <div className="bg-white h-full w-full absolute bottom-0 translate-y-full"></div>
+                        <div className="bg-card h-full w-full absolute bottom-0 translate-y-full"></div>
                     </motion.div>
                 </motion.div>
             )}
