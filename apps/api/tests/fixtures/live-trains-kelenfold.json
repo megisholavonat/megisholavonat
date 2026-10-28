@@ -1,0 +1,41 @@
+[
+ {
+  "vehicleId": "1:915506300507",
+  "delay": 9,
+  "trip": {
+   "serviceDate": "2026-10-28",
+   "tripShortName": "201 AGRAM - TÓPART InterCity",
+   "stoptimes": [
+    {
+     "scheduledDeparture": 59400
+    }
+   ]
+  }
+ },
+ {
+  "vehicleId": "1:918071936325",
+  "delay": 7,
+  "trip": {
+   "serviceDate": "2026-10-28",
+   "tripShortName": "341 SEMMELWEIS IGNÁC EuroCity",
+   "stoptimes": [
+    {
+     "scheduledDeparture": 68400
+    }
+   ]
+  }
+ },
+ {
+  "vehicleId": "1:945514150073",
+  "delay": 0,
+  "trip": {
+   "serviceDate": "2026-10-28",
+   "tripShortName": "4351 személyvonat",
+   "stoptimes": [
+    {
+     "scheduledDeparture": 79320
+    }
+   ]
+  }
+ }
+]

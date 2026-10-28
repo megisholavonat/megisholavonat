@@ -29,6 +29,7 @@ dev = [
     "mypy>=1.18.2",
     "pytest>=9.2.0",
     "pytest-asyncio>=1.4.1",
+    "respx>=0.23.1",
     "ruff>=0.14.6",
     "types-pytz>=2025.2.0.20251108",
     "types-shapely>=2.1.0.20250917",
