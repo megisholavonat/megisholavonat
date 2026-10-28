@@ -595,16 +595,14 @@ export default function MapComponent({
         const map = mapRef.current?.getMap();
         if (!map) return;
 
-        const onStyleImageMissing = (ev: { id: string }) => {
-            if (!map.hasImage(ev.id)) {
-                map.addImage(ev.id, createTransparentBasemapIcon());
+        map.setMissingStyleImageResolver((id) => {
+            if (!map.hasImage(id)) {
+                map.addImage(id, createTransparentBasemapIcon());
             }
-        };
-
-        map.on("styleimagemissing", onStyleImageMissing);
+        });
         return () => {
             try {
-                map.off("styleimagemissing", onStyleImageMissing);
+                map.setMissingStyleImageResolver(null);
             } catch {
                 /* Map may already be removed (e.g. locale change / unmount). */
             }
