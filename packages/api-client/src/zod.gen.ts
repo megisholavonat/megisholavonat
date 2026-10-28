@@ -99,6 +99,139 @@ export const zBoardEntry = z.object({
 });
 
 /**
+ * CommuteFollow
+ */
+export const zCommuteFollow = z.object({
+    id: z.uuid(),
+    tripShortName: z.string(),
+    alertsEnabled: z.boolean(),
+    delayThresholdMin: z.int(),
+    notifyPlatformChange: z.boolean(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    kind: z.literal('commute'),
+    weekdays: z.array(z.int()),
+    fromStationId: z.string(),
+    toStationId: z.union([
+        z.string(),
+        z.null()
+    ]),
+    label: z.union([
+        z.string(),
+        z.null()
+    ])
+});
+
+/**
+ * CommuteFollowCreate
+ *
+ * Follow a train taken regularly. Train numbers are not unique within a day,
+ * so the boarding station is required to pick the right trip.
+ */
+export const zCommuteFollowCreate = z.object({
+    alertsEnabled: z.optional(z.boolean()).default(true),
+    delayThresholdMin: z.optional(z.int().gte(0).lte(240)).default(5),
+    notifyPlatformChange: z.optional(z.boolean()).default(true),
+    kind: z.literal('commute'),
+    tripShortName: z.string().min(1).max(128),
+    weekdays: z.array(z.int().gte(1).lte(7)).min(1),
+    fromStationId: z.string().regex(/^\d{1,16}$/),
+    toStationId: z.optional(z.union([
+        z.string().regex(/^\d{1,16}$/),
+        z.null()
+    ])),
+    label: z.optional(z.union([
+        z.string().min(1).max(64),
+        z.null()
+    ]))
+});
+
+/**
+ * DeviceCreate
+ *
+ * Register an anonymous device
+ */
+export const zDeviceCreate = z.object({
+    platform: z.enum([
+        'web',
+        'ios',
+        'android'
+    ]),
+    locale: z.optional(z.union([
+        z.string().max(35).regex(/^[A-Za-z]{2,8}(-[A-Za-z0-9]{1,8})*$/),
+        z.null()
+    ]))
+});
+
+/**
+ * DeviceCredentials
+ *
+ * Shown only once. Send `Authorization: Bearer <deviceId>.<token>` on every
+ * authenticated request.
+ */
+export const zDeviceCredentials = z.object({
+    deviceId: z.uuid(),
+    token: z.string()
+});
+
+/**
+ * DeviceInfo
+ *
+ * The calling device
+ */
+export const zDeviceInfo = z.object({
+    deviceId: z.uuid(),
+    platform: z.enum([
+        'web',
+        'ios',
+        'android'
+    ]),
+    locale: z.union([
+        z.string(),
+        z.null()
+    ]),
+    createdAt: z.iso.datetime(),
+    lastSeenAt: z.iso.datetime()
+});
+
+/**
+ * FollowUpdate
+ *
+ * Partial update. Weekdays, stations and label only apply to commutes;
+ * toStationId and label can be cleared with null.
+ */
+export const zFollowUpdate = z.object({
+    alertsEnabled: z.optional(z.union([
+        z.boolean(),
+        z.null()
+    ])),
+    delayThresholdMin: z.optional(z.union([
+        z.int().gte(0).lte(240),
+        z.null()
+    ])),
+    notifyPlatformChange: z.optional(z.union([
+        z.boolean(),
+        z.null()
+    ])),
+    weekdays: z.optional(z.union([
+        z.array(z.int().gte(1).lte(7)).min(1),
+        z.null()
+    ])),
+    fromStationId: z.optional(z.union([
+        z.string().regex(/^\d{1,16}$/),
+        z.null()
+    ])),
+    toStationId: z.optional(z.union([
+        z.string().regex(/^\d{1,16}$/),
+        z.null()
+    ])),
+    label: z.optional(z.union([
+        z.string().min(1).max(64),
+        z.null()
+    ]))
+});
+
+/**
  * InfoService
  *
  * Information service details
@@ -327,6 +460,53 @@ export const zTrainFeatureCollection = z.object({
 });
 
 /**
+ * TripFollow
+ */
+export const zTripFollow = z.object({
+    id: z.uuid(),
+    tripShortName: z.string(),
+    alertsEnabled: z.boolean(),
+    delayThresholdMin: z.int(),
+    notifyPlatformChange: z.boolean(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    kind: z.literal('trip'),
+    tripId: z.string(),
+    serviceDate: z.iso.date(),
+    fromStopId: z.union([
+        z.string(),
+        z.null()
+    ]),
+    toStopId: z.union([
+        z.string(),
+        z.null()
+    ])
+});
+
+/**
+ * TripFollowCreate
+ *
+ * Follow one trip on one service date
+ */
+export const zTripFollowCreate = z.object({
+    alertsEnabled: z.optional(z.boolean()).default(true),
+    delayThresholdMin: z.optional(z.int().gte(0).lte(240)).default(5),
+    notifyPlatformChange: z.optional(z.boolean()).default(true),
+    kind: z.literal('trip'),
+    tripId: z.string().min(1).max(128),
+    serviceDate: z.iso.date(),
+    tripShortName: z.string().min(1).max(128),
+    fromStopId: z.optional(z.union([
+        z.string().min(1).max(128),
+        z.null()
+    ])),
+    toStopId: z.optional(z.union([
+        z.string().min(1).max(128),
+        z.null()
+    ]))
+});
+
+/**
  * TripGeometry
  *
  * Trip geometry polyline
@@ -523,3 +703,129 @@ export const zGetAlertsData = z.object({
  * Successful Response
  */
 export const zGetAlertsResponse = z.array(zRailAlert);
+
+export const zRegisterDeviceData = z.object({
+    body: zDeviceCreate,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * Successful Response
+ */
+export const zRegisterDeviceResponse = zDeviceCredentials;
+
+export const zDeleteDeviceData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * Successful Response
+ */
+export const zDeleteDeviceResponse = z.void();
+
+export const zGetDeviceData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * Successful Response
+ */
+export const zGetDeviceResponse = zDeviceInfo;
+
+export const zRotateDeviceTokenData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * Successful Response
+ */
+export const zRotateDeviceTokenResponse = zDeviceCredentials;
+
+export const zListFollowsData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * Response Listfollows
+ *
+ * Successful Response
+ */
+export const zListFollowsResponse = z.array(z.union([
+    z.object({
+        kind: z.literal('trip')
+    }).and(zTripFollow),
+    z.object({
+        kind: z.literal('commute')
+    }).and(zCommuteFollow)
+]));
+
+export const zCreateFollowData = z.object({
+    body: z.union([
+        z.object({
+            kind: z.literal('trip')
+        }).and(zTripFollowCreate),
+        z.object({
+            kind: z.literal('commute')
+        }).and(zCommuteFollowCreate)
+    ]),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * Response Createfollow
+ *
+ * Successful Response
+ */
+export const zCreateFollowResponse = z.union([
+    z.object({
+        kind: z.literal('trip')
+    }).and(zTripFollow),
+    z.object({
+        kind: z.literal('commute')
+    }).and(zCommuteFollow)
+]);
+
+export const zDeleteFollowData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        follow_id: z.uuid()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * Successful Response
+ */
+export const zDeleteFollowResponse = z.void();
+
+export const zUpdateFollowData = z.object({
+    body: zFollowUpdate,
+    path: z.object({
+        follow_id: z.uuid()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * Response Updatefollow
+ *
+ * Successful Response
+ */
+export const zUpdateFollowResponse = z.union([
+    z.object({
+        kind: z.literal('trip')
+    }).and(zTripFollow),
+    z.object({
+        kind: z.literal('commute')
+    }).and(zCommuteFollow)
+]);

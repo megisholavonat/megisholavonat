@@ -1,3 +1,5 @@
+import ipaddress
+
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -25,6 +27,16 @@ class Settings(BaseSettings):
     # Raw stop_delay_observations partitions older than this many whole months
     # are dropped; delay_daily_agg is kept forever
     HISTORY_RETENTION_MONTHS: int = 13
+    # Reverse proxies (comma-separated IPs or CIDRs, or "*") whose
+    # X-Forwarded-For / X-Forwarded-Proto headers are trusted. The client IP is
+    # the rightmost X-Forwarded-For entry that is not a trusted proxy. Empty
+    # (the default) trusts no header and uses the TCP peer address.
+    TRUSTED_PROXIES: str = ""
+    # Device registrations allowed per hour (fixed window)
+    DEVICE_REGISTRATIONS_PER_IP_PER_HOUR: int = 5
+    DEVICE_REGISTRATIONS_PER_HOUR: int = 500
+    # Devices not seen for this many days are deleted with all their data
+    DEVICE_IDLE_DAYS: int = 180
 
     # Caching Constants
     CACHE_DURATION: int = 15 * 60  # 15 minutes
@@ -36,6 +48,18 @@ class Settings(BaseSettings):
             if v.startswith(prefix):
                 return "postgresql+asyncpg://" + v.removeprefix(prefix)
         return v
+
+    @field_validator("TRUSTED_PROXIES")
+    @classmethod
+    def _valid_proxies(cls, v: str) -> str:
+        for item in filter(None, (p.strip() for p in v.split(","))):
+            if item != "*":
+                ipaddress.ip_network(item, strict=False)
+        return v
+
+    @property
+    def trusted_proxies(self) -> list[str]:
+        return [p.strip() for p in self.TRUSTED_PROXIES.split(",") if p.strip()]
 
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"

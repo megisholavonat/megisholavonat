@@ -128,6 +128,27 @@ task (03:30 Budapest) creates partitions, rolls yesterday into
 `delay_daily_agg` (per station and route) and drops raw partitions older than
 `HISTORY_RETENTION_MONTHS` (13).
 
+### Devices and follows
+
+There are no accounts. `POST /v1/devices` returns a `deviceId` and a token
+(shown once; only its sha256 is stored); clients send
+`Authorization: Bearer <deviceId>.<token>`. Registration is limited to 5 per
+hour per client IP (per /64 for IPv6) and 500 per hour overall.
+
+The client IP is the TCP peer unless the request comes from a proxy listed in
+`TRUSTED_PROXIES` (comma-separated IPs/CIDRs, empty by default), in which case
+it is the rightmost `X-Forwarded-For` entry that is not a trusted proxy.
+Uvicorn's own proxy header handling is turned off (`--no-proxy-headers`), so
+set `TRUSTED_PROXIES` to the ingress addresses in production, and to
+`127.0.0.1,::1` locally (the Next.js dev server proxies `/api`).
+
+A device follows up to 50 trains: a single trip (`kind: "trip"`, by trip
+gtfsId and service date) or a commute (`kind: "commute"`, a train number on
+some ISO weekdays from a boarding station, required because train numbers
+repeat within a day). A daily task (03:45 Budapest) deletes trip follows two
+days after their service date and devices idle for 180 days.
+`DELETE /v1/devices/me` erases a device with all its follows and Redis keys.
+
 ### Replaying recorded data
 
 To develop without calling upstream, set

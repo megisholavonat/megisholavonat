@@ -3,11 +3,22 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.routing import APIRoute, APIRouter
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
+from api.core.config import settings
 from api.core.db import engine
 from api.core.logging_config import get_logger, setup_logging
 from api.core.taskiq_broker import broker
-from api.routers import alerts, posthog, redis_test, root, stations, trains
+from api.routers import (
+    alerts,
+    devices,
+    follows,
+    posthog,
+    redis_test,
+    root,
+    stations,
+    trains,
+)
 from api.routers.errors import register_error_handlers
 
 # Initialize logging
@@ -56,8 +67,20 @@ def create_app() -> FastAPI:
     v1_router.include_router(posthog.router)
     v1_router.include_router(stations.router)
     v1_router.include_router(alerts.router)
+    v1_router.include_router(devices.router)
+    v1_router.include_router(follows.router)
 
     register_error_handlers(app)
+
+    # Behind reverse proxies the client address comes from X-Forwarded-For,
+    # but only for requests arriving from a proxy listed in TRUSTED_PROXIES.
+    # Uvicorn's own proxy header handling is disabled (--no-proxy-headers), so
+    # this is the one place deciding which forwarded headers to believe.
+    if settings.trusted_proxies:
+        app.add_middleware(
+            ProxyHeadersMiddleware,
+            trusted_hosts=settings.trusted_proxies,  # type: ignore[arg-type]
+        )
 
     app.include_router(root.router)
     app.include_router(v1_router)
