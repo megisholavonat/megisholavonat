@@ -211,6 +211,19 @@ export const zInfoService = z.object({
 });
 
 /**
+ * JourneyStop
+ *
+ * Where a leg starts or ends
+ */
+export const zJourneyStop = z.object({
+    id: z.string().nullish(),
+    name: z.string(),
+    lat: z.number(),
+    lon: z.number(),
+    platform: z.string().nullish()
+});
+
+/**
  * PlatformPrediction
  */
 export const zPlatformPrediction = z.object({
@@ -476,6 +489,50 @@ export const zTrainStationHistory = z.object({
 });
 
 /**
+ * Transfer
+ *
+ * A change between two consecutive trains
+ */
+export const zTransfer = z.object({
+    fromLeg: z.int(),
+    toLeg: z.int(),
+    station: z.string(),
+    transferMinutes: z.int(),
+    expectedTransferMinutes: z.int(),
+    missRisk: z.number().nullish()
+});
+
+/**
+ * TransitLeg
+ *
+ * A ride on one train (or rail replacement bus)
+ */
+export const zTransitLeg = z.object({
+    type: z.literal('transit').optional().default('transit'),
+    mode: z.string(),
+    tripId: z.string(),
+    tripShortName: z.string(),
+    trainNumber: z.string(),
+    routeShortName: z.string(),
+    routeLongName: z.string().nullish(),
+    routeTextColor: z.string().nullish(),
+    headsign: z.string().nullish(),
+    serviceDate: z.string(),
+    fromStop: zJourneyStop,
+    toStop: zJourneyStop,
+    scheduledDeparture: z.int(),
+    expectedDeparture: z.int(),
+    scheduledArrival: z.int(),
+    expectedArrival: z.int(),
+    delayMinutes: z.int(),
+    delaySource: z.enum(['gps', 'otp']),
+    realtime: z.boolean(),
+    canceled: z.boolean().optional().default(false),
+    intermediateStops: z.int(),
+    vehicleId: z.string().nullish()
+});
+
+/**
  * TripFollow
  */
 export const zTripFollow = z.object({
@@ -589,6 +646,55 @@ export const zVehiclePositionWithDelay = z.object({
 });
 
 /**
+ * WalkLeg
+ *
+ * A walk, e.g. between two stations of a town
+ */
+export const zWalkLeg = z.object({
+    type: z.literal('walk').optional().default('walk'),
+    fromStop: zJourneyStop,
+    toStop: zJourneyStop,
+    departureTime: z.int(),
+    arrivalTime: z.int(),
+    distanceMeters: z.int()
+});
+
+/**
+ * Itinerary
+ *
+ * One way to get from A to B
+ */
+export const zItinerary = z.object({
+    scheduledDeparture: z.int(),
+    expectedDeparture: z.int(),
+    scheduledArrival: z.int(),
+    expectedArrival: z.int(),
+    durationMinutes: z.int(),
+    transferCount: z.int(),
+    legs: z.array(z.union([z.object({
+            type: z.literal('walk')
+        }).and(zWalkLeg), z.object({
+            type: z.literal('transit')
+        }).and(zTransitLeg)])),
+    transfers: z.array(zTransfer),
+    ticketUrl: z.string()
+});
+
+/**
+ * JourneyPlan
+ *
+ * Journeys between two rail stations
+ */
+export const zJourneyPlan = z.object({
+    fromStation: zStation,
+    toStation: zStation,
+    time: z.int(),
+    arriveBy: z.boolean(),
+    generatedAt: z.int(),
+    itineraries: z.array(zItinerary)
+});
+
+/**
  * Response Getredisstatus
  *
  * Successful Response
@@ -639,6 +745,19 @@ export const zGetStationBoardQuery = z.object({
  * Successful Response
  */
 export const zGetStationBoardResponse = zStationBoard;
+
+export const zPlanJourneysQuery = z.object({
+    from: z.string(),
+    to: z.string(),
+    time: z.iso.datetime().nullish(),
+    arriveBy: z.boolean().optional().default(false),
+    limit: z.int().gte(1).lte(10).optional().default(5)
+});
+
+/**
+ * Successful Response
+ */
+export const zPlanJourneysResponse = zJourneyPlan;
 
 /**
  * Response Getalerts
