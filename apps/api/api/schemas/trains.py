@@ -1,6 +1,8 @@
-from typing import Any, Literal
+from typing import Any, Literal, Self
 
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
+
+from api.schemas.alerts import DelayReason
 
 
 class StopWithCounty(BaseModel):
@@ -59,6 +61,16 @@ class Alert(BaseModel):
     alertUrl: str | None = None
     effectiveStartDate: int
     effectiveEndDate: int
+
+    # Short label when the alert is a known per-train delay reason. Derived
+    # from the text on validation, so cached alerts get it too.
+    reason: DelayReason | None = None
+
+    @model_validator(mode="after")
+    def _fill_reason(self) -> Self:
+        if self.reason is None:
+            self.reason = DelayReason.from_texts(self.alertDescriptionText)
+        return self
 
 
 class Trip(BaseModel):
@@ -148,6 +160,8 @@ class TrainFeatureProperties(BaseModel):
     # its origin, at its destination). See api.util.vehicle.is_stale_or_inactive.
     # Defaults to False for features cached before the field existed.
     isStale: bool = False
+    # First known delay reason among the trip's alerts
+    reason: DelayReason | None = None
 
 
 class TrainFeature(BaseModel):

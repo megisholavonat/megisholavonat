@@ -13,6 +13,7 @@ from api.core.logging_config import get_logger
 from api.core.queries import POSITIONS_QUERY
 from api.core.redis import add_key
 from api.forecast.serve import annotate_with_latest_model
+from api.schemas.alerts import DelayReason
 from api.util.county import get_county_for_point
 from api.util.preprocess import get_delay_and_position
 from api.util.replay import next_snapshot
@@ -293,6 +294,10 @@ class TrainService:
                         shapely_dist / total_route_distance * route_length_km, 4
                     )
 
+            reason = DelayReason.from_texts(
+                *(a.get("alertDescriptionText") for a in trip.get("alerts") or [])
+            )
+
             feature = {
                 "type": "Feature",
                 "geometry": {
@@ -314,6 +319,7 @@ class TrainService:
                     "delay": loc.get("delay"),
                     "routePolyline": trip.get("tripGeometry", {}).get("points"),
                     "distanceToNextStop": distance_to_next_stop_km,
+                    "reason": reason.model_dump() if reason else None,
                 },
             }
             features.append(feature)

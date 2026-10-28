@@ -38,6 +38,7 @@ async def test_trains_after_replayed_refresh(
     assert props["vehicleId"]
     assert props["tripShortName"]
     assert isinstance(props["delay"], int)
+    assert "reason" in props
 
 
 async def test_train_details(

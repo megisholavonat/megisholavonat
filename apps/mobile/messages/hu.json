@@ -1,0 +1,20 @@
+{
+    "Home": {
+        "app_title": "Mégis hol a vonat?",
+        "loading_map": "Térkép betöltése..."
+    },
+    "TrainPanel": {
+        "delay": "Késés",
+        "delay_minutes": "{delay} perc",
+        "next_stop": "Következő megálló"
+    },
+    "DelayLegend": {
+        "labels": {
+            "on_time": "Időben",
+            "no_data": "Nincs adat"
+        }
+    },
+    "NoDataDialog": {
+        "title": "Nincsenek elérhető adatok"
+    }
+}

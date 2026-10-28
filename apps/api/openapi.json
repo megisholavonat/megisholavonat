@@ -1296,6 +1296,16 @@
           "effectiveEndDate": {
             "type": "integer",
             "title": "Effectiveenddate"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DelayReason"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -1488,6 +1498,16 @@
               }
             ],
             "title": "Vehicleid"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DelayReason"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -1680,6 +1700,44 @@
         ],
         "title": "CommuteFollowCreate",
         "description": "Follow a train taken regularly. Train numbers are not unique within a day,\nso the boarding station is required to pick the right trip."
+      },
+      "DelayReason": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "track",
+              "technical",
+              "other_train",
+              "dwell",
+              "partner_railway",
+              "connection",
+              "signalling",
+              "external",
+              "weather",
+              "construction",
+              "accident",
+              "switch",
+              "operational",
+              "overhead_line",
+              "police",
+              "vandalism",
+              "replacement_bus"
+            ],
+            "title": "Code"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "label"
+        ],
+        "title": "DelayReason",
+        "description": "A known delay reason of a train, parsed from its alert text. The label is\nHungarian; clients can localise by code (see packages/core delayReasons)."
       },
       "DelayStats": {
         "properties": {
@@ -2533,6 +2591,16 @@
             },
             "type": "array",
             "title": "Affectedstations"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DelayReason"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -3088,6 +3156,16 @@
             "type": "boolean",
             "title": "Isstale",
             "default": false
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DelayReason"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",

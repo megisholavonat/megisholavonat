@@ -1,0 +1,67 @@
+{
+    "expo": {
+        "name": "Mégis hol a vonat?",
+        "slug": "megisholavonat",
+        "owner": "megisholavonat",
+        "scheme": "megisholavonat",
+        "version": "0.1.0",
+        "orientation": "portrait",
+        "icon": "./assets/images/icon.png",
+        "userInterfaceStyle": "automatic",
+        "platforms": ["ios", "android"],
+        "ios": {
+            "bundleIdentifier": "info.megisholavonat.app",
+            "supportsTablet": true,
+            "infoPlist": {
+                "CFBundleDisplayName": "MHaV",
+                "ITSAppUsesNonExemptEncryption": false
+            }
+        },
+        "android": {
+            "package": "info.megisholavonat.app",
+            "adaptiveIcon": {
+                "foregroundImage": "./assets/images/adaptive-icon.png",
+                "backgroundColor": "#FFFFFF"
+            },
+            "predictiveBackGestureEnabled": false
+        },
+        "plugins": [
+            "expo-router",
+            "expo-font",
+            "expo-localization",
+            "@maplibre/maplibre-react-native",
+            [
+                "./plugins/withAndroidAppLabel",
+                {
+                    "label": "MHaV"
+                }
+            ],
+            [
+                "expo-notifications",
+                {
+                    "color": "#1E4E8C"
+                }
+            ],
+            [
+                "expo-splash-screen",
+                {
+                    "image": "./assets/images/splash-icon.png",
+                    "imageWidth": 160,
+                    "backgroundColor": "#FFFFFF",
+                    "dark": {
+                        "backgroundColor": "#0B1220"
+                    }
+                }
+            ]
+        ],
+        "experiments": {
+            "typedRoutes": true,
+            "reactCompiler": true
+        },
+        "extra": {
+            "eas": {
+                "projectId": "b05777ee-cd17-4075-8dbf-40845bb5f7c3"
+            }
+        }
+    }
+}

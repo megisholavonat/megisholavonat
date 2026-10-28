@@ -2,6 +2,8 @@ from typing import Literal
 
 from pydantic import BaseModel
 
+from api.schemas.alerts import DelayReason
+
 BoardKind = Literal["departures", "arrivals"]
 DelaySource = Literal["gps", "otp"]
 
@@ -35,6 +37,8 @@ class BoardEntry(BaseModel):
     canceled: bool = False
     # Set when the train is live on our map
     vehicleId: str | None = None
+    # First known delay reason among the trip's alerts
+    reason: DelayReason | None = None
 
 
 class StationBoard(BaseModel):

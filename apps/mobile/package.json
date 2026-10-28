@@ -1,0 +1,51 @@
+{
+    "name": "@megisholavonat/mobile",
+    "version": "0.1.0",
+    "private": true,
+    "main": "expo-router/entry",
+    "scripts": {
+        "dev": "expo start",
+        "start": "expo start",
+        "android": "expo run:android",
+        "ios": "expo run:ios",
+        "check": "biome check && tsc --noEmit",
+        "test": "vitest run",
+        "doctor": "expo-doctor"
+    },
+    "dependencies": {
+        "@expo/ui": "~58.0.25",
+        "@maplibre/maplibre-react-native": "^11.5.0",
+        "@megisholavonat/api-client": "workspace:*",
+        "@megisholavonat/core": "workspace:*",
+        "@tanstack/react-query": "^5.96.1",
+        "expo": "~58.0.21",
+        "expo-constants": "~58.0.14",
+        "expo-dev-client": "~58.0.17",
+        "expo-font": "~58.0.11",
+        "expo-linking": "~58.0.15",
+        "expo-localization": "~58.0.5",
+        "expo-notifications": "~58.1.7",
+        "expo-router": "~58.0.28",
+        "expo-splash-screen": "~58.0.12",
+        "expo-status-bar": "~58.0.4",
+        "expo-system-ui": "~58.0.7",
+        "react": "19.3.0",
+        "react-native": "0.88.1",
+        "react-native-safe-area-context": "~5.10.1",
+        "react-native-screens": "~4.30.0",
+        "use-intl": "^4.14.9"
+    },
+    "devDependencies": {
+        "@types/geojson": "^7946.0.16",
+        "@types/react": "~19.3.0",
+        "typescript": "~6.0.3",
+        "vitest": "^5.0.5"
+    },
+    "expo": {
+        "install": {
+            "exclude": [
+                "react-native"
+            ]
+        }
+    }
+}

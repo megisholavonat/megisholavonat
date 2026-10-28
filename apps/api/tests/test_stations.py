@@ -155,6 +155,26 @@ async def test_departures_merge_platforms_sorted_by_expected_time(
     assert eurocity["realtime"] is True
     assert eurocity["vehicleId"] is None
     assert eurocity["routeShortName"].startswith('<span class="MNR2007">')
+    assert eurocity["reason"] is None
+
+
+async def test_board_entries_carry_first_known_delay_reason(
+    client: httpx.AsyncClient, otp: respx.MockRouter
+) -> None:
+    graphql_route(otp).mock(side_effect=otp_responder(BOARDS))
+
+    response = await client.get(
+        f"/v1/stations/{KELENFOLD}/departures", params={"limit": 10}
+    )
+
+    by_trip = {e["tripId"]: e for e in response.json()["entries"]}
+    # A service notice first, then a known reason
+    assert by_trip["1:36017936"]["reason"] == {
+        "code": "dwell",
+        "label": "Hosszú állás",
+    }
+    # Only a service notice
+    assert by_trip["1:36017868"]["reason"] is None
 
 
 async def test_gps_delay_replaces_otp_delay_for_live_trains(
