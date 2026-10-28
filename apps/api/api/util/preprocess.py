@@ -12,6 +12,14 @@ from api.util.route import (
 )
 from api.util.time import get_seconds_since_day
 
+# The heading may only move the projection to a segment at most this much
+# further from the GPS position than the nearest point of the route. Genuine
+# ambiguities (out-and-back over the same track, loops, parallel tracks) are a
+# few metres apart; a stationary vehicle's heading is often stale (a train
+# waiting at its origin still faces the way it arrived), and the nearest
+# "aligned" segment can then be hundreds of kilometres down the line.
+MAX_HEADING_DETOUR_M = 50.0
+
 # --- Helpers ---
 
 
@@ -83,11 +91,19 @@ def project_with_heading(
     if diff <= 90:
         return default_proj
 
-    # Otherwise, pick the closest segment that matches the heading
+    # Otherwise, pick the closest segment that matches the heading, as long as
+    # the GPS position is (nearly) as close to it as to the nearest point
     if coords is None:
         coords = np.asarray(line.coords, dtype=float)
     best = best_aligned_projection(coords, point.x, point.y, heading)
-    return default_proj if best is None else best
+    if best is None:
+        return default_proj
+    nearest = line.interpolate(default_proj)
+    aligned = line.interpolate(best)
+    detour = haversine_m(point.y, point.x, aligned.y, aligned.x) - haversine_m(
+        point.y, point.x, nearest.y, nearest.x
+    )
+    return best if detour <= MAX_HEADING_DETOUR_M else default_proj
 
 
 def snap_stops(
