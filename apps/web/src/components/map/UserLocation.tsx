@@ -160,7 +160,6 @@ export function UserLocation({
         ctrl._container.style.visibility = "hidden";
 
         let cancelled = false;
-        setIsLoading(true);
         const waitAndTrigger = () => {
             if (cancelled) return;
             if (ctrl._setup) {
@@ -169,7 +168,22 @@ export function UserLocation({
                 requestAnimationFrame(waitAndTrigger);
             }
         };
-        requestAnimationFrame(waitAndTrigger);
+
+        // Only locate automatically if the user already granted permission
+        // earlier; otherwise wait for them to tap the location button.
+        const autoLocateIfGranted = async () => {
+            try {
+                const status = await navigator.permissions?.query({
+                    name: "geolocation",
+                });
+                if (cancelled || status?.state !== "granted") return;
+            } catch {
+                return;
+            }
+            setIsLoading(true);
+            requestAnimationFrame(waitAndTrigger);
+        };
+        void autoLocateIfGranted();
 
         return () => {
             cancelled = true;
@@ -195,6 +209,8 @@ export function UserLocation({
                 duration: 1200,
             });
         } else {
+            // A user-initiated request should always fly to the location
+            initialFlyHandledRef.current = true;
             setIsLoading(true);
             setHasError(false);
             ctrl.trigger();
