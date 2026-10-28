@@ -33,10 +33,11 @@ import type {
     GeoJSON as GeoJsonType,
     LineString,
 } from "geojson";
-import type {
-    ExpressionSpecification,
-    GeoJSONSource,
-    Popup as MaplibrePopup,
+import {
+    type ExpressionSpecification,
+    type GeoJSONSource,
+    type Popup as MaplibrePopup,
+    setWorkerUrl,
 } from "maplibre-gl";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
@@ -61,6 +62,15 @@ import { useTheme } from "@/components/ui/ThemeProvider";
 import { useMapSettings } from "@/hooks/useMapSettings";
 import { LAYER_IDS, Z_LAYERS } from "@/util/constants";
 import { OVERLAYS } from "@/util/mapConfigs";
+
+// maplibre-gl 6 can't find its worker from inside a bundle; point it at the
+// copy Next.js emits as a hashed asset.
+setWorkerUrl(
+    new URL(
+        "maplibre-gl/dist/maplibre-gl-worker.mjs",
+        import.meta.url,
+    ).toString(),
+);
 
 const BASEMAP_MISSING_ICON_PX = 16;
 
@@ -585,16 +595,14 @@ export default function MapComponent({
         const map = mapRef.current?.getMap();
         if (!map) return;
 
-        const onStyleImageMissing = (ev: { id: string }) => {
-            if (!map.hasImage(ev.id)) {
-                map.addImage(ev.id, createTransparentBasemapIcon());
+        map.setMissingStyleImageResolver((id) => {
+            if (!map.hasImage(id)) {
+                map.addImage(id, createTransparentBasemapIcon());
             }
-        };
-
-        map.on("styleimagemissing", onStyleImageMissing);
+        });
         return () => {
             try {
-                map.off("styleimagemissing", onStyleImageMissing);
+                map.setMissingStyleImageResolver(null);
             } catch {
                 /* Map may already be removed (e.g. locale change / unmount). */
             }
@@ -775,12 +783,13 @@ export default function MapComponent({
                 cursor={cursor ?? undefined}
                 onClick={onClick}
                 onMouseMove={onHover}
-                maxBounds={[
-                    [5.5, 43], // Southwest
-                    [30, 52.5], // Northeast
-                ]}
+                // [west, south, east, north]
+                maxBounds={[5.5, 43, 30, 52.5]}
                 minZoom={5}
                 maxZoom={19}
+                // Keep v5's overscaling past the basemap's max zoom; v6's
+                // default (4) changes label placement at zoom 15+.
+                zoomLevelsToOverscale={undefined}
             >
                 <MapImage id="marker-triangle" svg={SVG_TRIANGLE} sdf={true} />
                 <ZoomButtons />
