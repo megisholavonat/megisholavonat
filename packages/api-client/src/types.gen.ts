@@ -528,6 +528,10 @@ export type ProcessedStop = {
      */
     distanceAlongRoute: number;
     stopTimeInfo?: StopTimeWithCounty | null;
+    /**
+     * Predicteddelay
+     */
+    predictedDelay?: number | null;
 };
 
 /**
