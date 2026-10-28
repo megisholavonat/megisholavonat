@@ -736,7 +736,7 @@ async def test_state_rows_are_keyed_by_follow_and_service_date(
 
 async def seed_platforms(session: AsyncSession, platforms: list[str]) -> None:
     """One passage of train 5123 at Kelenföld per past day, on these platforms."""
-    rows = []
+    rows: list[dict[str, Any]] = []
     for i, platform in enumerate(platforms):
         rows.append(
             {
