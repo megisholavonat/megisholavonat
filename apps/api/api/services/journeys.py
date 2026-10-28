@@ -170,19 +170,34 @@ def _itinerary(raw: dict[str, Any], live_index: dict[str, Any]) -> Itinerary | N
         return None
     first, last = rides[0], rides[-1]
     transfers = _transfers(legs, interlined)
+    # The journey runs from the start of its first leg to the end of its last,
+    # including any walk to the first train or from the last one
+    start, end = _times(legs[0]), _times(legs[-1])
 
     return Itinerary(
-        scheduledDeparture=first.scheduledDeparture,
-        expectedDeparture=first.expectedDeparture,
-        scheduledArrival=last.scheduledArrival,
-        expectedArrival=last.expectedArrival,
-        durationMinutes=_minutes(last.scheduledArrival - first.scheduledDeparture),
+        scheduledDeparture=start[0],
+        expectedDeparture=start[1],
+        scheduledArrival=end[2],
+        expectedArrival=end[3],
+        durationMinutes=_minutes(end[2] - start[0]),
         transferCount=len(transfers),
         legs=legs,
         transfers=transfers,
         ticketUrl=ticket_url(
             first.fromStop.id, last.toStop.id, first.scheduledDeparture
         ),
+    )
+
+
+def _times(leg: JourneyLeg) -> tuple[int, int, int, int]:
+    """Scheduled and expected departure, then scheduled and expected arrival."""
+    if isinstance(leg, WalkLeg):
+        return (leg.departureTime, leg.departureTime, leg.arrivalTime, leg.arrivalTime)
+    return (
+        leg.scheduledDeparture,
+        leg.expectedDeparture,
+        leg.scheduledArrival,
+        leg.expectedArrival,
     )
 
 

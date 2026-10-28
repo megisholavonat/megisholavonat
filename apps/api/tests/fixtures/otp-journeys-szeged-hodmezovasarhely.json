@@ -1,0 +1,379 @@
+{
+ "data": {
+  "plan": {
+   "itineraries": [
+    {
+     "legs": [
+      {
+       "mode": "WALK",
+       "startTime": 1793243703000,
+       "endTime": 1793243820000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 99.14,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Szeged",
+        "lat": 46.239722,
+        "lon": 20.143056,
+        "stop": {
+         "platformCode": "4",
+         "stationUicPricingCode": "005517228"
+        }
+       },
+       "to": {
+        "name": "Szeged vasútállomás",
+        "lat": 46.239789,
+        "lon": 20.142561,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005500700"
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "TRAMTRAIN",
+       "startTime": 1793243820000,
+       "endTime": 1793246280000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 26431.8,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-29",
+       "headsign": "Hódmezővásárhely vasútállomás",
+       "from": {
+        "name": "Szeged vasútállomás",
+        "lat": 46.239789,
+        "lon": 20.142561,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005500700"
+        }
+       },
+       "to": {
+        "name": "Hódmezővásárhelyi Népkert vasútállomás",
+        "lat": 46.403733,
+        "lon": 20.312986,
+        "stop": {
+         "platformCode": "T1",
+         "stationUicPricingCode": "005518800"
+        }
+       },
+       "route": {
+        "shortName": "<span class=\"MNR2007\">&#449;</span>",
+        "longName": "1",
+        "textColor": "F5AD0E"
+       },
+       "trip": {
+        "gtfsId": "1:28520905",
+        "tripShortName": "33010 TramTrain",
+        "departureStoptime": {
+         "scheduledDeparture": 15420
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005500701_0"
+        },
+        {
+         "gtfsId": "1:005500702_0"
+        },
+        {
+         "gtfsId": "1:005500703_0"
+        },
+        {
+         "gtfsId": "1:005500704_0"
+        },
+        {
+         "gtfsId": "1:005500705_0"
+        },
+        {
+         "gtfsId": "1:005500706_0"
+        },
+        {
+         "gtfsId": "1:005500707_0"
+        },
+        {
+         "gtfsId": "1:005500708_0"
+        },
+        {
+         "gtfsId": "1:005500709_0"
+        },
+        {
+         "gtfsId": "1:005500710_0"
+        },
+        {
+         "gtfsId": "1:005500711_0"
+        },
+        {
+         "gtfsId": "1:005500712_0"
+        },
+        {
+         "gtfsId": "1:005518549_2"
+        }
+       ]
+      },
+      {
+       "mode": "WALK",
+       "startTime": 1793246280000,
+       "endTime": 1793246358000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 91.33,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Hódmezővásárhelyi Népkert vasútállomás",
+        "lat": 46.403733,
+        "lon": 20.312986,
+        "stop": {
+         "platformCode": "T1",
+         "stationUicPricingCode": "005518800"
+        }
+       },
+       "to": {
+        "name": "Hódmezővásárhelyi Népkert",
+        "lat": 46.403333,
+        "lon": 20.312778,
+        "stop": {
+         "platformCode": "1",
+         "stationUicPricingCode": "005518564"
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793246820000,
+       "endTime": 1793247060000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 2365.76,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-29",
+       "headsign": "Hódmezővásárhely",
+       "from": {
+        "name": "Hódmezővásárhelyi Népkert",
+        "lat": 46.403333,
+        "lon": 20.312778,
+        "stop": {
+         "platformCode": "1",
+         "stationUicPricingCode": "005518564"
+        }
+       },
+       "to": {
+        "name": "Hódmezővásárhely",
+        "lat": 46.413333,
+        "lon": 20.34,
+        "stop": {
+         "platformCode": "4",
+         "stationUicPricingCode": "005518572"
+        }
+       },
+       "route": {
+        "shortName": "<span class=\"MNR2007\">&#484;</span>",
+        "longName": "Sz 17240/17243/17248/17249/32610/32612/32613/32614/32616/32617/32619/32626/7240/7241/7242/7243/7244/7245/7247/7265",
+        "textColor": "00A0E3"
+       },
+       "trip": {
+        "gtfsId": "1:28519357",
+        "tripShortName": "7240 személyvonat",
+        "departureStoptime": {
+         "scheduledDeparture": 15900
+        }
+       },
+       "intermediateStops": []
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "WALK",
+       "startTime": 1793243703000,
+       "endTime": 1793243820000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 99.14,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Szeged",
+        "lat": 46.239722,
+        "lon": 20.143056,
+        "stop": {
+         "platformCode": "4",
+         "stationUicPricingCode": "005517228"
+        }
+       },
+       "to": {
+        "name": "Szeged vasútállomás",
+        "lat": 46.239789,
+        "lon": 20.142561,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005500700"
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "TRAMTRAIN",
+       "startTime": 1793243820000,
+       "endTime": 1793247000000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 29717.28,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-29",
+       "headsign": "Hódmezővásárhely vasútállomás",
+       "from": {
+        "name": "Szeged vasútállomás",
+        "lat": 46.239789,
+        "lon": 20.142561,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005500700"
+        }
+       },
+       "to": {
+        "name": "Hódmezővásárhely vasútállomás",
+        "lat": 46.413242,
+        "lon": 20.338701,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005518810"
+        }
+       },
+       "route": {
+        "shortName": "<span class=\"MNR2007\">&#449;</span>",
+        "longName": "1",
+        "textColor": "F5AD0E"
+       },
+       "trip": {
+        "gtfsId": "1:28520905",
+        "tripShortName": "33010 TramTrain",
+        "departureStoptime": {
+         "scheduledDeparture": 15420
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005500701_0"
+        },
+        {
+         "gtfsId": "1:005500702_0"
+        },
+        {
+         "gtfsId": "1:005500703_0"
+        },
+        {
+         "gtfsId": "1:005500704_0"
+        },
+        {
+         "gtfsId": "1:005500705_0"
+        },
+        {
+         "gtfsId": "1:005500706_0"
+        },
+        {
+         "gtfsId": "1:005500707_0"
+        },
+        {
+         "gtfsId": "1:005500708_0"
+        },
+        {
+         "gtfsId": "1:005500709_0"
+        },
+        {
+         "gtfsId": "1:005500710_0"
+        },
+        {
+         "gtfsId": "1:005500711_0"
+        },
+        {
+         "gtfsId": "1:005500712_0"
+        },
+        {
+         "gtfsId": "1:005518549_2"
+        },
+        {
+         "gtfsId": "1:005518800_T1"
+        },
+        {
+         "gtfsId": "1:005518802_0"
+        },
+        {
+         "gtfsId": "1:005518804_0"
+        },
+        {
+         "gtfsId": "1:005518806_0"
+        },
+        {
+         "gtfsId": "1:005518808_0"
+        }
+       ]
+      },
+      {
+       "mode": "WALK",
+       "startTime": 1793247000000,
+       "endTime": 1793247122000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 159.39,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Hódmezővásárhely vasútállomás",
+        "lat": 46.413242,
+        "lon": 20.338701,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005518810"
+        }
+       },
+       "to": {
+        "name": "Hódmezővásárhely",
+        "lat": 46.413333,
+        "lon": 20.34,
+        "stop": {
+         "platformCode": "2",
+         "stationUicPricingCode": "005518572"
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      }
+     ]
+    }
+   ]
+  }
+ }
+}

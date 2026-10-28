@@ -78,7 +78,8 @@ class Transfer(BaseModel):
 class Itinerary(BaseModel):
     """One way to get from A to B"""
 
-    # Unix seconds, of the first and last train
+    # Unix seconds, from the start of the first leg to the end of the last,
+    # walks included
     scheduledDeparture: int
     expectedDeparture: int
     scheduledArrival: int

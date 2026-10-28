@@ -7,6 +7,7 @@ import pytest
 import respx
 
 from api.core.redis import add_key
+from api.schemas.journeys import TransitLeg, WalkLeg
 from api.services.journeys import _itinerary
 from tests.upstream import graphql_route, load_fixture, otp_responder
 
@@ -408,3 +409,30 @@ async def test_upstream_error_is_502(
     response = await _plan(client)
 
     assert response.status_code == 502
+
+
+def test_itinerary_times_include_walks() -> None:
+    # Szeged -> Hódmezővásárhely by tram-train, which leaves from the tram stop
+    # in front of the station and ends at another one
+    raw = load_fixture("otp-journeys-szeged-hodmezovasarhely.json")
+    via_nepkert, direct = (
+        _itinerary(r, {}) for r in raw["data"]["plan"]["itineraries"]
+    )
+
+    assert direct is not None
+    walk_in, tram_train, walk_out = direct.legs
+    assert isinstance(walk_in, WalkLeg)
+    assert isinstance(walk_out, WalkLeg)
+    assert isinstance(tram_train, TransitLeg)
+    assert tram_train.mode == "TRAMTRAIN"
+    assert direct.scheduledDeparture == direct.expectedDeparture == 1793243703
+    assert direct.scheduledArrival == direct.expectedArrival == 1793247122
+    assert walk_in.departureTime == direct.scheduledDeparture
+    assert walk_out.arrivalTime == direct.scheduledArrival
+    assert direct.durationMinutes == 57  # 3419 s
+
+    # Walk first, train last
+    assert via_nepkert is not None
+    assert via_nepkert.scheduledDeparture == 1793243703
+    assert via_nepkert.scheduledArrival == 1793247060
+    assert via_nepkert.durationMinutes == 56
