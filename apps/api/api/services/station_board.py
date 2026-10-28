@@ -10,6 +10,7 @@ from redis.asyncio import Redis
 from api.core.graphql import query_graphql
 from api.core.queries import STATION_BOARD_QUERY
 from api.core.redis import add_key
+from api.schemas.alerts import DelayReason
 from api.schemas.stations import BoardEntry, BoardKind, Station, StationBoard
 from api.services.live_trips import load_live_trip_index, match_live_trip
 from api.services.station_index import RAIL_FEED
@@ -100,6 +101,9 @@ def _board_entry(
         realtime=realtime,
         canceled=stoptime.get("realtimeState") == "CANCELED",
         vehicleId=vehicle_id,
+        reason=DelayReason.from_texts(
+            *(a.get("alertDescriptionText") for a in trip.get("alerts") or [])
+        ),
     )
 
 

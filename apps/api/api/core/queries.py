@@ -119,6 +119,9 @@ STATION_BOARD_QUERY = """
             longName
             textColor
           }
+          alerts {
+            alertDescriptionText
+          }
           departureStoptime {
             scheduledDeparture
             stop {

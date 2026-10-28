@@ -29,6 +29,14 @@
        "longName": "G44",
        "textColor": "B0CB1F"
       },
+      "alerts": [
+       {
+        "alertDescriptionText": "Utolsó kettő kocsija lezárva közlekedik, utazásra nem vehető igénybe."
+       },
+       {
+        "alertDescriptionText": "Tartózkodási idő túllépése"
+       }
+      ],
       "departureStoptime": {
        "scheduledDeparture": 1200,
        "stop": {
@@ -60,6 +68,11 @@
        "longName": "S10",
        "textColor": "00A0E3"
       },
+      "alerts": [
+       {
+        "alertDescriptionText": "Kisebb ülőhely-kapacitású szerelvénnyel közlekedik."
+       }
+      ],
       "departureStoptime": {
        "scheduledDeparture": 1500,
        "stop": {
@@ -91,6 +104,7 @@
        "longName": "S40",
        "textColor": "00A0E3"
       },
+      "alerts": [],
       "departureStoptime": {
        "scheduledDeparture": 3000,
        "stop": {
@@ -122,6 +136,7 @@
        "longName": "Gy AGRAM - TÓPART",
        "textColor": "C82227"
       },
+      "alerts": [],
       "departureStoptime": {
        "scheduledDeparture": 66180,
        "stop": {
@@ -153,6 +168,7 @@
        "longName": "IC AGRAM - TÓPART",
        "textColor": "274F96"
       },
+      "alerts": [],
       "departureStoptime": {
        "scheduledDeparture": 59400,
        "stop": {
@@ -184,6 +200,7 @@
        "longName": "EC BARTÓK BÉLA/CSÁRDÁS/LEHÁR FERENC/LISZT FERENC/SEMMELWEIS IGNÁC",
        "textColor": "274F96"
       },
+      "alerts": [],
       "departureStoptime": {
        "scheduledDeparture": 68400,
        "stop": {
@@ -215,6 +232,7 @@
        "longName": "S40",
        "textColor": "00A0E3"
       },
+      "alerts": [],
       "departureStoptime": {
        "scheduledDeparture": 79320,
        "stop": {
@@ -246,6 +264,7 @@
        "longName": "G44",
        "textColor": "B0CB1F"
       },
+      "alerts": [],
       "departureStoptime": {
        "scheduledDeparture": 80400,
        "stop": {
@@ -277,6 +296,7 @@
        "longName": "S10",
        "textColor": "00A0E3"
       },
+      "alerts": [],
       "departureStoptime": {
        "scheduledDeparture": 80700,
        "stop": {
@@ -308,6 +328,7 @@
        "longName": "Sz 9068",
        "textColor": "00A0E3"
       },
+      "alerts": [],
       "departureStoptime": {
        "scheduledDeparture": 81600,
        "stop": {
