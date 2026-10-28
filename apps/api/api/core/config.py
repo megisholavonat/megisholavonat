@@ -43,6 +43,19 @@ class Settings(BaseSettings):
     # Devices not seen for this many days are deleted with all their data
     DEVICE_IDLE_DAYS: int = 180
 
+    # Push alerts. Expo works without an access token unless the Expo project
+    # enforces one.
+    EXPO_ACCESS_TOKEN: str | None = None
+    # iOS Live Activities through APNs (token-based auth). Unset: not sent.
+    APNS_KEY_ID: str | None = None
+    APNS_TEAM_ID: str | None = None
+    # Contents of the .p8 key; literal "\n" sequences are accepted for newlines
+    APNS_PRIVATE_KEY: str | None = None
+    APNS_BUNDLE_ID: str | None = None
+    APNS_USE_SANDBOX: bool = False
+    # Push tokens failing this many times in a row are deleted by housekeeping
+    PUSH_TOKEN_MAX_FAILURES: int = 10
+
     # Database the weekly delay forecast training reads stop_delay_observations
     # from (read-only). Empty uses DATABASE_URL.
     FORECAST_TRAINING_DATABASE_URL: str = ""

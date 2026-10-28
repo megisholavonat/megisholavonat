@@ -1,7 +1,7 @@
 """add delay forecast models
 
 Revision ID: d9b83d570d48
-Revises: 122c46b20619
+Revises: bd531f4476fc
 Create Date: 2026-10-29 00:26:56.142654
 
 """
@@ -13,7 +13,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision: str = 'd9b83d570d48'
-down_revision: Union[str, Sequence[str], None] = '122c46b20619'
+down_revision: Union[str, Sequence[str], None] = 'bd531f4476fc'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

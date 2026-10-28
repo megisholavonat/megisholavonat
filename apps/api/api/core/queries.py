@@ -189,3 +189,87 @@ ALERTS_QUERY = """
     }
   }
 """
+
+# Journeys between two rail stations. Upstream only supports the legacy `plan`
+# query (`planConnection` fails). Places are parent stations (`1:<UIC>`), so
+# no walk to or from the station is added. Times are in ms, delays in s.
+# RAIL_REPLACEMENT_BUS is MÁV's own mode; plain BUS would let city and
+# regional buses replace trains.
+JOURNEYS_QUERY = """
+  query Journeys(
+    $from: String!
+    $to: String!
+    $date: String!
+    $time: String!
+    $arriveBy: Boolean!
+    $n: Int!
+  ) {
+    plan(
+      fromPlace: $from
+      toPlace: $to
+      date: $date
+      time: $time
+      arriveBy: $arriveBy
+      numItineraries: $n
+      # Without it, train categories come in English ("passenger train")
+      # unlike everywhere else, and live trains match by gtfsId only
+      locale: "hu"
+      transportModes: [
+        { mode: RAIL }
+        { mode: SUBURBAN_RAILWAY }
+        { mode: TRAMTRAIN }
+        { mode: RAIL_REPLACEMENT_BUS }
+        { mode: WALK }
+      ]
+    ) {
+      itineraries {
+        legs {
+          mode
+          startTime
+          endTime
+          departureDelay
+          arrivalDelay
+          realTime
+          realtimeState
+          distance
+          interlineWithPreviousLeg
+          serviceDate
+          headsign
+          from {
+            name
+            lat
+            lon
+            stop {
+              platformCode
+              stationUicPricingCode
+            }
+          }
+          to {
+            name
+            lat
+            lon
+            stop {
+              platformCode
+              stationUicPricingCode
+            }
+          }
+          route {
+            shortName
+            longName
+            textColor
+          }
+          trip {
+            gtfsId
+            tripShortName
+            departureStoptime {
+              scheduledDeparture
+            }
+          }
+          intermediateStops {
+            gtfsId
+          }
+        }
+      }
+    }
+  }
+"""

@@ -4,6 +4,8 @@ from zoneinfo import ZoneInfo
 
 BUDAPEST_TZ = ZoneInfo("Europe/Budapest")
 
+# Ported to packages/core/src/time.ts (serviceDayStart, getSecondsSinceDay)
+
 
 def service_day_start(service_date: date) -> datetime:
     """
