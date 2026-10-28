@@ -71,6 +71,7 @@ async def test_expo_batches_and_maps_tickets(mock: respx.MockRouter) -> None:
         "data": {},
         "sound": "default",
         "priority": "high",
+        "channelId": "alerts",
     }
     assert len(results) == 150
     assert results[0].outcome == Outcome.OK

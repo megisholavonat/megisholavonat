@@ -33,6 +33,9 @@ EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send"
 EXPO_RECEIPTS_URL = "https://exp.host/--/api/v2/push/getReceipts"
 EXPO_BATCH_SIZE = 100
 EXPO_RECEIPTS_BATCH_SIZE = 1000
+# Android notification channel of every alert. The app must create it (the
+# mobile scaffold will), or Android 8+ does not show the notification
+ANDROID_CHANNEL_ID = "alerts"
 
 APNS_HOST = "https://api.push.apple.com"
 APNS_SANDBOX_HOST = "https://api.sandbox.push.apple.com"
@@ -168,6 +171,7 @@ class ExpoPushSender:
                 "data": m.data,
                 "sound": "default",
                 "priority": "high",
+                "channelId": ANDROID_CHANNEL_ID,
             }
             if m.body:
                 message["body"] = m.body
