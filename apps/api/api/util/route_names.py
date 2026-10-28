@@ -294,6 +294,13 @@ MAV_ROUTE_MAP: dict[int, str] = {
     697: "S210",
 }
 
+# Lines are a letter prefix and a number, with an optional variant suffix:
+# S10, Z30, G43, IR85, H5, H8SZ. Everything else in the map is a train
+# category (IC, Sz, Gy, rj, ...) or an operator (MÁV, GYSEV, ...).
+# Also used as a PostgreSQL regex.
+LINE_PATTERN = r"^[A-Z]+[0-9]+[A-Z]*$"
+_LINE = re.compile(LINE_PATTERN)
+
 _DEC_ENTITY = re.compile(r"&#(\d+);")
 _HEX_ENTITY = re.compile(r"&#[xX]([0-9a-fA-F]+);")
 _TAG = re.compile(r"<[^>]+>")
@@ -324,3 +331,8 @@ def route_name(route_short_name: str | None) -> str | None:
     if clean and not clean.startswith("&#"):
         return clean
     return None
+
+
+def is_line(name: str | None) -> bool:
+    """Whether a route name is a line (S10, H5) rather than a category (IC)."""
+    return bool(name and _LINE.match(name))

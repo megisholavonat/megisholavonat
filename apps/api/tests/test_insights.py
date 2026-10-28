@@ -305,9 +305,9 @@ def _glyph(code: int) -> str:
 async def test_rankings_merge_glyphs_of_the_same_line(
     client: httpx.AsyncClient, db_session: AsyncSession
 ) -> None:
-    # 474 and 611 are both IC; 335 is S10
-    rows = [_obs(0, route=_glyph(474), seq=i) for i in range(3)]
-    rows += [_obs(600, route=_glyph(611), seq=10 + i) for i in range(4)]
+    # 383 and 395 are both Z51; 335 is S10
+    rows = [_obs(0, route=_glyph(383), seq=i) for i in range(3)]
+    rows += [_obs(600, route=_glyph(395), seq=10 + i) for i in range(4)]
     rows += [_obs(0, route=_glyph(335), seq=20 + i) for i in range(5)]
     await _seed(db_session, rows)
 
@@ -318,8 +318,24 @@ async def test_rankings_merge_glyphs_of_the_same_line(
         for e in body["entries"]
     ] == [
         ("S10", "S10", 5, 1.0, _glyph(335)),
-        ("IC", "IC", 7, round(3 / 7, 3), _glyph(611)),
+        ("Z51", "Z51", 7, round(3 / 7, 3), _glyph(395)),
     ]
+
+
+async def test_rankings_lines_keep_hev_but_not_train_categories(
+    client: httpx.AsyncClient, db_session: AsyncSession
+) -> None:
+    # 440 is the H5 HEV line; 474 (IC), 484 (Sz) and 473 (Gy) are categories
+    rows = [_obs(0, route=_glyph(440), seq=i) for i in range(5)]
+    for j, code in enumerate((474, 484, 473)):
+        rows += [_obs(0, route=_glyph(code), seq=10 * (j + 1) + i) for i in range(5)]
+    # Plain-text names follow the same rule
+    rows += [_obs(0, route="IC", seq=50 + i) for i in range(5)]
+    await _seed(db_session, rows)
+
+    body = (await client.get("/v1/rankings?kind=lines&minSamples=5")).json()
+
+    assert [e["id"] for e in body["entries"]] == ["H5"]
 
 
 async def test_rankings_by_line_and_train(

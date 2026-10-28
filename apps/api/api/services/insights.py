@@ -29,7 +29,7 @@ from api.schemas.insights import (
     TrainRouteStation,
     TrainStationHistory,
 )
-from api.util.route_names import MAV_ROUTE_MAP, route_name
+from api.util.route_names import LINE_PATTERN, MAV_ROUTE_MAP, is_line, route_name
 from api.util.time import BUDAPEST_TZ
 
 # Below this many passages a delay statistic is flagged as insufficient
@@ -264,13 +264,20 @@ async def train_history(
 
 # OTP's exact glyph markup for each MNR2007 code. Rankings by line join on it
 # (a hash join on a few hundred strings) instead of parsing every row; other
-# spellings fall back to the text without tags.
-GLYPHS = [f'<span class="MNR2007">&#{code};</span>' for code in MAV_ROUTE_MAP]
-GLYPH_LINES = list(MAV_ROUTE_MAP.values())
+# spellings fall back to the text without tags. Only lines (S10, Z30, H5, ...)
+# are ranked; train category glyphs (IC, Sz, Gy, ...) are not lines.
+LINE_GLYPHS = {
+    f'<span class="MNR2007">&#{code};</span>': name
+    for code, name in MAV_ROUTE_MAP.items()
+    if is_line(name)
+}
+GLYPHS = list(LINE_GLYPHS)
+GLYPH_LINES = list(LINE_GLYPHS.values())
+LINE_NAME = "coalesce(g.line, regexp_replace(route_short_name, '<[^>]+>', '', 'g'))"
 
 RANKING_KEYS: dict[str, str] = {
     "stations": "station_id",
-    "lines": "coalesce(g.line, regexp_replace(route_short_name, '<[^>]+>', '', 'g'))",
+    "lines": LINE_NAME,
     "trains": TRAIN_NUMBER,
 }
 RANKING_JOINS: dict[str, str] = {
@@ -278,6 +285,9 @@ RANKING_JOINS: dict[str, str] = {
         "LEFT JOIN unnest(CAST(:glyphs AS text[]), CAST(:lines AS text[])) "
         "AS g(glyph, line) ON g.glyph = route_short_name"
     ),
+}
+RANKING_FILTERS: dict[str, str] = {
+    "lines": f"AND (g.line IS NOT NULL OR {LINE_NAME} ~ :line_pattern)",
 }
 # Only what each kind needs: these sort text per group and are not cheap
 RANKING_EXTRAS: dict[str, str] = {
@@ -305,13 +315,13 @@ async def rankings(
     tiebreak = "ASC" if order == "best" else "DESC"
     params = {**_window_params(window), "min_samples": min_samples, "limit": limit}
     if kind == "lines":
-        params.update(glyphs=GLYPHS, lines=GLYPH_LINES)
+        params.update(glyphs=GLYPHS, lines=GLYPH_LINES, line_pattern=LINE_PATTERN)
     result = await session.execute(
         text(
             f"""
             SELECT {key} AS id, {DELAY_AGGREGATES} {RANKING_EXTRAS[kind]}
             FROM stop_delay_observations {RANKING_JOINS.get(kind, "")}
-            WHERE {IN_WINDOW} AND {key} <> ''
+            WHERE {IN_WINDOW} AND {key} <> '' {RANKING_FILTERS.get(kind, "")}
             GROUP BY 1
             HAVING count(*) >= :min_samples
             ORDER BY on_time_share {direction}, median_s {tiebreak}, n DESC, id
