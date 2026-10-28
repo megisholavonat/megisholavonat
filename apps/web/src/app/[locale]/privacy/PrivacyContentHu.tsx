@@ -58,8 +58,9 @@ export default function PrivacyContentHu() {
                 </li>
                 <li>
                     <strong>Adattovábbítás:</strong> az adatok Egyesült
-                    Királyságba továbbítása az Európai Bizottság Egyesült
-                    Királyságra vonatkozó megfelelőségi határozatán alapul.
+                    Királyságba történő továbbítása az Európai Bizottság
+                    Egyesült Királyságra vonatkozó megfelelőségi határozatán
+                    alapul.
                 </li>
             </ul>
             <p>
@@ -98,10 +99,6 @@ export default function PrivacyContentHu() {
                     </a>{" "}
                     csempéit tárolja. Az OpenRailwayMap így nem látja az
                     IP-címedet.
-                </li>
-                <li>
-                    <strong>Zászló ikonok</strong> a nyelvválasztóban: a GitHub
-                    Pages (purecatamphetamine.github.io).
                 </li>
             </ul>
             <p>

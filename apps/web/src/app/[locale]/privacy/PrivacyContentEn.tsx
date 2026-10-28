@@ -97,10 +97,6 @@ export default function PrivacyContentEn() {
                     </a>
                     , so OpenRailwayMap does not see your IP address.
                 </li>
-                <li>
-                    <strong>Flag icons</strong> in the language switcher: GitHub
-                    Pages (purecatamphetamine.github.io).
-                </li>
             </ul>
             <p>
                 <strong>Legal basis:</strong> legitimate interest (GDPR Art.
