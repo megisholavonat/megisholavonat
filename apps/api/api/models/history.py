@@ -46,6 +46,8 @@ class StopDelayObservation(Base):
             "ix_stop_delay_observations_station_id_service_date",
             "station_id",
             "service_date",
+            # Lets station aggregates (rankings) use an index-only scan
+            postgresql_include=["delay_s"],
         ),
         {"postgresql_partition_by": "RANGE (service_date)"},
     )

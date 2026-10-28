@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateFollowData, CreateFollowErrors, CreateFollowResponses, DeleteDeviceData, DeleteDeviceErrors, DeleteDeviceResponses, DeleteFollowData, DeleteFollowErrors, DeleteFollowResponses, GetAlertsData, GetAlertsErrors, GetAlertsResponses, GetDeviceData, GetDeviceErrors, GetDeviceResponses, GetPosthogKeyData, GetPosthogKeyResponses, GetRedisStatusData, GetRedisStatusResponses, GetStationBoardData, GetStationBoardErrors, GetStationBoardResponses, GetTrainDetailsData, GetTrainDetailsErrors, GetTrainDetailsResponses, GetTrainsData, GetTrainsResponses, ListFollowsData, ListFollowsErrors, ListFollowsResponses, RegisterDeviceData, RegisterDeviceErrors, RegisterDeviceResponses, RootData, RootResponses, RotateDeviceTokenData, RotateDeviceTokenErrors, RotateDeviceTokenResponses, SearchStationsData, SearchStationsErrors, SearchStationsResponses, UpdateFollowData, UpdateFollowErrors, UpdateFollowResponses } from './types.gen';
+import type { CreateFollowData, CreateFollowErrors, CreateFollowResponses, DeleteDeviceData, DeleteDeviceErrors, DeleteDeviceResponses, DeleteFollowData, DeleteFollowErrors, DeleteFollowResponses, GetAlertsData, GetAlertsErrors, GetAlertsResponses, GetDeviceData, GetDeviceErrors, GetDeviceResponses, GetPosthogKeyData, GetPosthogKeyResponses, GetRankingsData, GetRankingsErrors, GetRankingsResponses, GetRedisStatusData, GetRedisStatusResponses, GetStationBoardData, GetStationBoardErrors, GetStationBoardResponses, GetStationPlatformsData, GetStationPlatformsErrors, GetStationPlatformsResponses, GetTimeOfDayPunctualityData, GetTimeOfDayPunctualityErrors, GetTimeOfDayPunctualityResponses, GetTrainDetailsData, GetTrainDetailsErrors, GetTrainDetailsResponses, GetTrainHistoryData, GetTrainHistoryErrors, GetTrainHistoryResponses, GetTrainsData, GetTrainsResponses, GetTrainStationHistoryData, GetTrainStationHistoryErrors, GetTrainStationHistoryResponses, ListFollowsData, ListFollowsErrors, ListFollowsResponses, RegisterDeviceData, RegisterDeviceErrors, RegisterDeviceResponses, RootData, RootResponses, RotateDeviceTokenData, RotateDeviceTokenErrors, RotateDeviceTokenResponses, SearchStationsData, SearchStationsErrors, SearchStationsResponses, UpdateFollowData, UpdateFollowErrors, UpdateFollowResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -274,5 +274,72 @@ export const updateFollow = <ThrowOnError extends boolean = false>(options: Opti
             'Content-Type': 'application/json',
             ...options.headers
         }
+    });
+};
+
+/**
+ * Get Train Station History
+ *
+ * How late a train usually is at a station ("usually late by X")
+ */
+export const getTrainStationHistory = <ThrowOnError extends boolean = false>(options: Options<GetTrainStationHistoryData, ThrowOnError>) => {
+    return (options.client ?? client).get<GetTrainStationHistoryResponses, GetTrainStationHistoryErrors, ThrowOnError>({
+        responseType: 'json',
+        url: '/v1/history/trains/{trainNumber}/stations/{stationId}',
+        ...options
+    });
+};
+
+/**
+ * Get Train History
+ *
+ * Typical delay at each station of a train's usual route
+ */
+export const getTrainHistory = <ThrowOnError extends boolean = false>(options: Options<GetTrainHistoryData, ThrowOnError>) => {
+    return (options.client ?? client).get<GetTrainHistoryResponses, GetTrainHistoryErrors, ThrowOnError>({
+        responseType: 'json',
+        url: '/v1/history/trains/{trainNumber}',
+        ...options
+    });
+};
+
+/**
+ * Get Station Platforms
+ *
+ * Predicted platform per train at a station: the most common one recently
+ */
+export const getStationPlatforms = <ThrowOnError extends boolean = false>(options: Options<GetStationPlatformsData, ThrowOnError>) => {
+    return (options.client ?? client).get<GetStationPlatformsResponses, GetStationPlatformsErrors, ThrowOnError>({
+        responseType: 'json',
+        url: '/v1/history/stations/{stationId}/platforms',
+        ...options
+    });
+};
+
+/**
+ * Get Rankings
+ *
+ * Stations, lines (S10, Z30, H5, ...) or trains ranked by on-time share (at
+ * most 5 minutes late), then by median delay. Stations and lines count every
+ * stop passage; trains count one arrival per run, at its last recorded stop.
+ */
+export const getRankings = <ThrowOnError extends boolean = false>(options?: Options<GetRankingsData, ThrowOnError>) => {
+    return (options?.client ?? client).get<GetRankingsResponses, GetRankingsErrors, ThrowOnError>({
+        responseType: 'json',
+        url: '/v1/rankings',
+        ...options
+    });
+};
+
+/**
+ * Get Time Of Day Punctuality
+ *
+ * On-time share by scheduled hour, network-wide or at one station
+ */
+export const getTimeOfDayPunctuality = <ThrowOnError extends boolean = false>(options?: Options<GetTimeOfDayPunctualityData, ThrowOnError>) => {
+    return (options?.client ?? client).get<GetTimeOfDayPunctualityResponses, GetTimeOfDayPunctualityErrors, ThrowOnError>({
+        responseType: 'json',
+        url: '/v1/rankings/time-of-day',
+        ...options
     });
 };

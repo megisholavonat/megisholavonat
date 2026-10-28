@@ -682,6 +682,382 @@
           }
         }
       }
+    },
+    "/v1/history/trains/{trainNumber}/stations/{stationId}": {
+      "get": {
+        "tags": [
+          "history"
+        ],
+        "summary": "Get Train Station History",
+        "description": "How late a train usually is at a station (\"usually late by X\")",
+        "operationId": "getTrainStationHistory",
+        "parameters": [
+          {
+            "name": "trainNumber",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "e.g. 10 for 10 TRANSCARPATHIA",
+              "title": "Trainnumber"
+            },
+            "description": "e.g. 10 for 10 TRANSCARPATHIA"
+          },
+          {
+            "name": "stationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "UIC station code, e.g. 005501024",
+              "title": "Stationid"
+            },
+            "description": "UIC station code, e.g. 005501024"
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 365,
+              "minimum": 1,
+              "description": "Number of service dates to look back",
+              "default": 28,
+              "title": "Days"
+            },
+            "description": "Number of service dates to look back"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainStationHistory"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/history/trains/{trainNumber}": {
+      "get": {
+        "tags": [
+          "history"
+        ],
+        "summary": "Get Train History",
+        "description": "Typical delay at each station of a train's usual route",
+        "operationId": "getTrainHistory",
+        "parameters": [
+          {
+            "name": "trainNumber",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "e.g. 10 for 10 TRANSCARPATHIA",
+              "title": "Trainnumber"
+            },
+            "description": "e.g. 10 for 10 TRANSCARPATHIA"
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 365,
+              "minimum": 1,
+              "description": "Number of service dates to look back",
+              "default": 28,
+              "title": "Days"
+            },
+            "description": "Number of service dates to look back"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainHistory"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/history/stations/{stationId}/platforms": {
+      "get": {
+        "tags": [
+          "history"
+        ],
+        "summary": "Get Station Platforms",
+        "description": "Predicted platform per train at a station: the most common one recently",
+        "operationId": "getStationPlatforms",
+        "parameters": [
+          {
+            "name": "stationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "UIC station code, e.g. 005501024",
+              "title": "Stationid"
+            },
+            "description": "UIC station code, e.g. 005501024"
+          },
+          {
+            "name": "trainNumber",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Trainnumber"
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 365,
+              "minimum": 1,
+              "description": "Number of service dates to look back",
+              "default": 28,
+              "title": "Days"
+            },
+            "description": "Number of service dates to look back"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StationPlatforms"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/rankings": {
+      "get": {
+        "tags": [
+          "rankings"
+        ],
+        "summary": "Get Rankings",
+        "description": "Stations, lines (S10, Z30, H5, ...) or trains ranked by on-time share (at\nmost 5 minutes late), then by median delay. Stations and lines count every\nstop passage; trains count one arrival per run, at its last recorded stop.",
+        "operationId": "getRankings",
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "stations",
+                "lines",
+                "trains"
+              ],
+              "type": "string",
+              "default": "stations",
+              "title": "Kind"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "best",
+                "worst"
+              ],
+              "type": "string",
+              "default": "best",
+              "title": "Order"
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 365,
+              "minimum": 1,
+              "description": "Number of service dates to look back",
+              "default": 28,
+              "title": "Days"
+            },
+            "description": "Number of service dates to look back"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "minSamples",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Minimum samples to be ranked; defaults to 100 for stations, 300 for lines and 15 for trains",
+              "title": "Minsamples"
+            },
+            "description": "Minimum samples to be ranked; defaults to 100 for stations, 300 for lines and 15 for trains"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Rankings"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/rankings/time-of-day": {
+      "get": {
+        "tags": [
+          "rankings"
+        ],
+        "summary": "Get Time Of Day Punctuality",
+        "description": "On-time share by scheduled hour, network-wide or at one station",
+        "operationId": "getTimeOfDayPunctuality",
+        "parameters": [
+          {
+            "name": "stationId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Stationid"
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 365,
+              "minimum": 1,
+              "description": "Number of service dates to look back",
+              "default": 28,
+              "title": "Days"
+            },
+            "description": "Number of service dates to look back"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeOfDayPunctuality"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1095,6 +1471,58 @@
         "title": "CommuteFollowCreate",
         "description": "Follow a train taken regularly. Train numbers are not unique within a day,\nso the boarding station is required to pick the right trip."
       },
+      "DelayStats": {
+        "properties": {
+          "n": {
+            "type": "integer",
+            "title": "N"
+          },
+          "medianDelayMin": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mediandelaymin"
+          },
+          "p80DelayMin": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P80Delaymin"
+          },
+          "onTimeShare": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ontimeshare"
+          },
+          "insufficientData": {
+            "type": "boolean",
+            "title": "Insufficientdata"
+          }
+        },
+        "type": "object",
+        "required": [
+          "n",
+          "insufficientData"
+        ],
+        "title": "DelayStats",
+        "description": "Delay distribution of a set of stop passages (our GPS-derived delay)"
+      },
       "DeviceCreate": {
         "properties": {
           "platform": {
@@ -1311,6 +1739,72 @@
         "type": "object",
         "title": "HTTPValidationError"
       },
+      "HistoryWindow": {
+        "properties": {
+          "start": {
+            "type": "string",
+            "format": "date",
+            "title": "Start"
+          },
+          "end": {
+            "type": "string",
+            "format": "date",
+            "title": "End"
+          },
+          "days": {
+            "type": "integer",
+            "title": "Days"
+          }
+        },
+        "type": "object",
+        "required": [
+          "start",
+          "end",
+          "days"
+        ],
+        "title": "HistoryWindow",
+        "description": "Service dates the statistics cover: the last `days` up to today"
+      },
+      "HourPunctuality": {
+        "properties": {
+          "hour": {
+            "type": "integer",
+            "title": "Hour"
+          },
+          "n": {
+            "type": "integer",
+            "title": "N"
+          },
+          "onTimeShare": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ontimeshare"
+          },
+          "medianDelayMin": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mediandelaymin"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hour",
+          "n"
+        ],
+        "title": "HourPunctuality"
+      },
       "InfoService": {
         "properties": {
           "name": {
@@ -1349,6 +1843,67 @@
         ],
         "title": "InfoService",
         "description": "Information service details"
+      },
+      "PlatformPrediction": {
+        "properties": {
+          "trainNumber": {
+            "type": "string",
+            "title": "Trainnumber"
+          },
+          "tripShortName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tripshortname"
+          },
+          "routeShortName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Routeshortname"
+          },
+          "lineName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linename"
+          },
+          "platform": {
+            "type": "string",
+            "title": "Platform"
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence"
+          },
+          "n": {
+            "type": "integer",
+            "title": "N"
+          }
+        },
+        "type": "object",
+        "required": [
+          "trainNumber",
+          "platform",
+          "confidence",
+          "n"
+        ],
+        "title": "PlatformPrediction"
       },
       "PosthogKey": {
         "properties": {
@@ -1516,6 +2071,105 @@
         "title": "RailAlert",
         "description": "An active rail disruption or service notice"
       },
+      "RankingEntry": {
+        "properties": {
+          "rank": {
+            "type": "integer",
+            "title": "Rank"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "routeShortName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Routeshortname"
+          },
+          "n": {
+            "type": "integer",
+            "title": "N"
+          },
+          "onTimeShare": {
+            "type": "number",
+            "title": "Ontimeshare"
+          },
+          "medianDelayMin": {
+            "type": "number",
+            "title": "Mediandelaymin"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rank",
+          "id",
+          "n",
+          "onTimeShare",
+          "medianDelayMin"
+        ],
+        "title": "RankingEntry"
+      },
+      "Rankings": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "stations",
+              "lines",
+              "trains"
+            ],
+            "title": "Kind"
+          },
+          "order": {
+            "type": "string",
+            "enum": [
+              "best",
+              "worst"
+            ],
+            "title": "Order"
+          },
+          "minSamples": {
+            "type": "integer",
+            "title": "Minsamples"
+          },
+          "window": {
+            "$ref": "#/components/schemas/HistoryWindow"
+          },
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/RankingEntry"
+            },
+            "type": "array",
+            "title": "Entries"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "order",
+          "minSamples",
+          "window",
+          "entries"
+        ],
+        "title": "Rankings"
+      },
       "Route": {
         "properties": {
           "mode": {
@@ -1614,6 +2268,42 @@
         ],
         "title": "StationBoard",
         "description": "Departure or arrival board of a station, merged across platforms"
+      },
+      "StationPlatforms": {
+        "properties": {
+          "stationId": {
+            "type": "string",
+            "title": "Stationid"
+          },
+          "stationName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stationname"
+          },
+          "window": {
+            "$ref": "#/components/schemas/HistoryWindow"
+          },
+          "predictions": {
+            "items": {
+              "$ref": "#/components/schemas/PlatformPrediction"
+            },
+            "type": "array",
+            "title": "Predictions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "stationId",
+          "window",
+          "predictions"
+        ],
+        "title": "StationPlatforms"
       },
       "StopTimeWithCounty": {
         "properties": {
@@ -1726,6 +2416,37 @@
         ],
         "title": "StopWithCounty",
         "description": "Stop information with county data"
+      },
+      "TimeOfDayPunctuality": {
+        "properties": {
+          "stationId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stationid"
+          },
+          "window": {
+            "$ref": "#/components/schemas/HistoryWindow"
+          },
+          "hours": {
+            "items": {
+              "$ref": "#/components/schemas/HourPunctuality"
+            },
+            "type": "array",
+            "title": "Hours"
+          }
+        },
+        "type": "object",
+        "required": [
+          "window",
+          "hours"
+        ],
+        "title": "TimeOfDayPunctuality"
       },
       "TrainFeature": {
         "properties": {
@@ -1908,6 +2629,256 @@
         ],
         "title": "TrainFeatureProperties",
         "description": "Properties for a train feature (lighter version)"
+      },
+      "TrainHistory": {
+        "properties": {
+          "trainNumber": {
+            "type": "string",
+            "title": "Trainnumber"
+          },
+          "tripShortName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tripshortname"
+          },
+          "routeShortName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Routeshortname"
+          },
+          "lineName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linename"
+          },
+          "window": {
+            "$ref": "#/components/schemas/HistoryWindow"
+          },
+          "runs": {
+            "type": "integer",
+            "title": "Runs"
+          },
+          "stations": {
+            "items": {
+              "$ref": "#/components/schemas/TrainRouteStation"
+            },
+            "type": "array",
+            "title": "Stations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "trainNumber",
+          "window",
+          "runs",
+          "stations"
+        ],
+        "title": "TrainHistory",
+        "description": "Per-station delay along a train's usual route"
+      },
+      "TrainRouteStation": {
+        "properties": {
+          "stationId": {
+            "type": "string",
+            "title": "Stationid"
+          },
+          "stationName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stationname"
+          },
+          "scheduledTimeS": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scheduledtimes"
+          },
+          "n": {
+            "type": "integer",
+            "title": "N"
+          },
+          "medianDelayMin": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mediandelaymin"
+          },
+          "p80DelayMin": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P80Delaymin"
+          },
+          "onTimeShare": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ontimeshare"
+          },
+          "insufficientData": {
+            "type": "boolean",
+            "title": "Insufficientdata"
+          },
+          "typicalPlatform": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Typicalplatform"
+          }
+        },
+        "type": "object",
+        "required": [
+          "stationId",
+          "n",
+          "insufficientData"
+        ],
+        "title": "TrainRouteStation",
+        "description": "One station on a train's usual route"
+      },
+      "TrainStationHistory": {
+        "properties": {
+          "trainNumber": {
+            "type": "string",
+            "title": "Trainnumber"
+          },
+          "stationId": {
+            "type": "string",
+            "title": "Stationid"
+          },
+          "stationName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stationname"
+          },
+          "window": {
+            "$ref": "#/components/schemas/HistoryWindow"
+          },
+          "n": {
+            "type": "integer",
+            "title": "N"
+          },
+          "medianDelayMin": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mediandelaymin"
+          },
+          "p80DelayMin": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P80Delaymin"
+          },
+          "onTimeShare": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ontimeshare"
+          },
+          "insufficientData": {
+            "type": "boolean",
+            "title": "Insufficientdata"
+          },
+          "typicalPlatform": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Typicalplatform"
+          },
+          "weekday": {
+            "$ref": "#/components/schemas/DelayStats"
+          },
+          "weekend": {
+            "$ref": "#/components/schemas/DelayStats"
+          }
+        },
+        "type": "object",
+        "required": [
+          "trainNumber",
+          "stationId",
+          "window",
+          "n",
+          "insufficientData",
+          "weekday",
+          "weekend"
+        ],
+        "title": "TrainStationHistory",
+        "description": "How late a train usually is at a station"
       },
       "Trip": {
         "properties": {

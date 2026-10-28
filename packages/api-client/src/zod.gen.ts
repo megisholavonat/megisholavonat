@@ -147,6 +147,28 @@ export const zCommuteFollowCreate = z.object({
 });
 
 /**
+ * DelayStats
+ *
+ * Delay distribution of a set of stop passages (our GPS-derived delay)
+ */
+export const zDelayStats = z.object({
+    n: z.int(),
+    medianDelayMin: z.optional(z.union([
+        z.number(),
+        z.null()
+    ])),
+    p80DelayMin: z.optional(z.union([
+        z.number(),
+        z.null()
+    ])),
+    onTimeShare: z.optional(z.union([
+        z.number(),
+        z.null()
+    ])),
+    insufficientData: z.boolean()
+});
+
+/**
  * DeviceCreate
  *
  * Register an anonymous device
@@ -232,6 +254,33 @@ export const zFollowUpdate = z.object({
 });
 
 /**
+ * HistoryWindow
+ *
+ * Service dates the statistics cover: the last `days` up to today
+ */
+export const zHistoryWindow = z.object({
+    start: z.iso.date(),
+    end: z.iso.date(),
+    days: z.int()
+});
+
+/**
+ * HourPunctuality
+ */
+export const zHourPunctuality = z.object({
+    hour: z.int(),
+    n: z.int(),
+    onTimeShare: z.optional(z.union([
+        z.number(),
+        z.null()
+    ])),
+    medianDelayMin: z.optional(z.union([
+        z.number(),
+        z.null()
+    ]))
+});
+
+/**
  * InfoService
  *
  * Information service details
@@ -243,6 +292,28 @@ export const zInfoService = z.object({
     fontCharSet: z.string(),
     fontCode: z.int(),
     displayable: z.boolean()
+});
+
+/**
+ * PlatformPrediction
+ */
+export const zPlatformPrediction = z.object({
+    trainNumber: z.string(),
+    tripShortName: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    routeShortName: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    lineName: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    platform: z.string(),
+    confidence: z.number(),
+    n: z.int()
 });
 
 /**
@@ -285,6 +356,43 @@ export const zRailAlert = z.object({
 });
 
 /**
+ * RankingEntry
+ */
+export const zRankingEntry = z.object({
+    rank: z.int(),
+    id: z.string(),
+    name: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    routeShortName: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    n: z.int(),
+    onTimeShare: z.number(),
+    medianDelayMin: z.number()
+});
+
+/**
+ * Rankings
+ */
+export const zRankings = z.object({
+    kind: z.enum([
+        'stations',
+        'lines',
+        'trains'
+    ]),
+    order: z.enum([
+        'best',
+        'worst'
+    ]),
+    minSamples: z.int(),
+    window: zHistoryWindow,
+    entries: z.array(zRankingEntry)
+});
+
+/**
  * Route
  *
  * Route information
@@ -324,6 +432,19 @@ export const zStationBoard = z.object({
     ]),
     generatedAt: z.int(),
     entries: z.array(zBoardEntry)
+});
+
+/**
+ * StationPlatforms
+ */
+export const zStationPlatforms = z.object({
+    stationId: z.string(),
+    stationName: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    window: zHistoryWindow,
+    predictions: z.array(zPlatformPrediction)
 });
 
 /**
@@ -394,6 +515,18 @@ export const zProcessedStop = z.object({
 });
 
 /**
+ * TimeOfDayPunctuality
+ */
+export const zTimeOfDayPunctuality = z.object({
+    stationId: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    window: zHistoryWindow,
+    hours: z.array(zHourPunctuality)
+});
+
+/**
  * TrainFeatureProperties
  *
  * Properties for a train feature (lighter version)
@@ -459,6 +592,100 @@ export const zTrainFeatureCollection = z.object({
         z.null()
     ])),
     features: z.array(zTrainFeature)
+});
+
+/**
+ * TrainRouteStation
+ *
+ * One station on a train's usual route
+ */
+export const zTrainRouteStation = z.object({
+    stationId: z.string(),
+    stationName: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    scheduledTimeS: z.optional(z.union([
+        z.int(),
+        z.null()
+    ])),
+    n: z.int(),
+    medianDelayMin: z.optional(z.union([
+        z.number(),
+        z.null()
+    ])),
+    p80DelayMin: z.optional(z.union([
+        z.number(),
+        z.null()
+    ])),
+    onTimeShare: z.optional(z.union([
+        z.number(),
+        z.null()
+    ])),
+    insufficientData: z.boolean(),
+    typicalPlatform: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
+});
+
+/**
+ * TrainHistory
+ *
+ * Per-station delay along a train's usual route
+ */
+export const zTrainHistory = z.object({
+    trainNumber: z.string(),
+    tripShortName: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    routeShortName: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    lineName: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    window: zHistoryWindow,
+    runs: z.int(),
+    stations: z.array(zTrainRouteStation)
+});
+
+/**
+ * TrainStationHistory
+ *
+ * How late a train usually is at a station
+ */
+export const zTrainStationHistory = z.object({
+    trainNumber: z.string(),
+    stationId: z.string(),
+    stationName: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    window: zHistoryWindow,
+    n: z.int(),
+    medianDelayMin: z.optional(z.union([
+        z.number(),
+        z.null()
+    ])),
+    p80DelayMin: z.optional(z.union([
+        z.number(),
+        z.null()
+    ])),
+    onTimeShare: z.optional(z.union([
+        z.number(),
+        z.null()
+    ])),
+    insufficientData: z.boolean(),
+    typicalPlatform: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    weekday: zDelayStats,
+    weekend: zDelayStats
 });
 
 /**
@@ -831,3 +1058,97 @@ export const zUpdateFollowResponse = z.union([
         kind: z.literal('commute')
     }).and(zCommuteFollow)
 ]);
+
+export const zGetTrainStationHistoryData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        trainNumber: z.string(),
+        stationId: z.string()
+    }),
+    query: z.optional(z.object({
+        days: z.optional(z.int().gte(1).lte(365)).default(28)
+    }))
+});
+
+/**
+ * Successful Response
+ */
+export const zGetTrainStationHistoryResponse = zTrainStationHistory;
+
+export const zGetTrainHistoryData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        trainNumber: z.string()
+    }),
+    query: z.optional(z.object({
+        days: z.optional(z.int().gte(1).lte(365)).default(28)
+    }))
+});
+
+/**
+ * Successful Response
+ */
+export const zGetTrainHistoryResponse = zTrainHistory;
+
+export const zGetStationPlatformsData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        stationId: z.string()
+    }),
+    query: z.optional(z.object({
+        trainNumber: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        days: z.optional(z.int().gte(1).lte(365)).default(28)
+    }))
+});
+
+/**
+ * Successful Response
+ */
+export const zGetStationPlatformsResponse = zStationPlatforms;
+
+export const zGetRankingsData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        kind: z.optional(z.enum([
+            'stations',
+            'lines',
+            'trains'
+        ])),
+        order: z.optional(z.enum([
+            'best',
+            'worst'
+        ])),
+        days: z.optional(z.int().gte(1).lte(365)).default(28),
+        limit: z.optional(z.int().gte(1).lte(200)).default(20),
+        minSamples: z.optional(z.union([
+            z.int().gte(1),
+            z.null()
+        ]))
+    }))
+});
+
+/**
+ * Successful Response
+ */
+export const zGetRankingsResponse = zRankings;
+
+export const zGetTimeOfDayPunctualityData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        stationId: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
+        days: z.optional(z.int().gte(1).lte(365)).default(28)
+    }))
+});
+
+/**
+ * Successful Response
+ */
+export const zGetTimeOfDayPunctualityResponse = zTimeOfDayPunctuality;

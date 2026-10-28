@@ -248,6 +248,34 @@ export type CommuteFollowCreate = {
 };
 
 /**
+ * DelayStats
+ *
+ * Delay distribution of a set of stop passages (our GPS-derived delay)
+ */
+export type DelayStats = {
+    /**
+     * N
+     */
+    n: number;
+    /**
+     * Mediandelaymin
+     */
+    medianDelayMin?: number | null;
+    /**
+     * P80Delaymin
+     */
+    p80DelayMin?: number | null;
+    /**
+     * Ontimeshare
+     */
+    onTimeShare?: number | null;
+    /**
+     * Insufficientdata
+     */
+    insufficientData: boolean;
+};
+
+/**
  * DeviceCreate
  *
  * Register an anonymous device
@@ -356,6 +384,48 @@ export type HttpValidationError = {
 };
 
 /**
+ * HistoryWindow
+ *
+ * Service dates the statistics cover: the last `days` up to today
+ */
+export type HistoryWindow = {
+    /**
+     * Start
+     */
+    start: string;
+    /**
+     * End
+     */
+    end: string;
+    /**
+     * Days
+     */
+    days: number;
+};
+
+/**
+ * HourPunctuality
+ */
+export type HourPunctuality = {
+    /**
+     * Hour
+     */
+    hour: number;
+    /**
+     * N
+     */
+    n: number;
+    /**
+     * Ontimeshare
+     */
+    onTimeShare?: number | null;
+    /**
+     * Mediandelaymin
+     */
+    medianDelayMin?: number | null;
+};
+
+/**
  * InfoService
  *
  * Information service details
@@ -385,6 +455,40 @@ export type InfoService = {
      * Displayable
      */
     displayable: boolean;
+};
+
+/**
+ * PlatformPrediction
+ */
+export type PlatformPrediction = {
+    /**
+     * Trainnumber
+     */
+    trainNumber: string;
+    /**
+     * Tripshortname
+     */
+    tripShortName?: string | null;
+    /**
+     * Routeshortname
+     */
+    routeShortName?: string | null;
+    /**
+     * Linename
+     */
+    lineName?: string | null;
+    /**
+     * Platform
+     */
+    platform: string;
+    /**
+     * Confidence
+     */
+    confidence: number;
+    /**
+     * N
+     */
+    n: number;
 };
 
 /**
@@ -471,6 +575,63 @@ export type RailAlert = {
 };
 
 /**
+ * RankingEntry
+ */
+export type RankingEntry = {
+    /**
+     * Rank
+     */
+    rank: number;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Name
+     */
+    name?: string | null;
+    /**
+     * Routeshortname
+     */
+    routeShortName?: string | null;
+    /**
+     * N
+     */
+    n: number;
+    /**
+     * Ontimeshare
+     */
+    onTimeShare: number;
+    /**
+     * Mediandelaymin
+     */
+    medianDelayMin: number;
+};
+
+/**
+ * Rankings
+ */
+export type Rankings = {
+    /**
+     * Kind
+     */
+    kind: 'stations' | 'lines' | 'trains';
+    /**
+     * Order
+     */
+    order: 'best' | 'worst';
+    /**
+     * Minsamples
+     */
+    minSamples: number;
+    window: HistoryWindow;
+    /**
+     * Entries
+     */
+    entries: Array<RankingEntry>;
+};
+
+/**
  * Route
  *
  * Route information
@@ -540,6 +701,25 @@ export type StationBoard = {
 };
 
 /**
+ * StationPlatforms
+ */
+export type StationPlatforms = {
+    /**
+     * Stationid
+     */
+    stationId: string;
+    /**
+     * Stationname
+     */
+    stationName?: string | null;
+    window: HistoryWindow;
+    /**
+     * Predictions
+     */
+    predictions: Array<PlatformPrediction>;
+};
+
+/**
  * StopTimeWithCounty
  *
  * Stop time information with county data
@@ -602,6 +782,21 @@ export type StopWithCounty = {
      * County
      */
     county?: string | null;
+};
+
+/**
+ * TimeOfDayPunctuality
+ */
+export type TimeOfDayPunctuality = {
+    /**
+     * Stationid
+     */
+    stationId?: string | null;
+    window: HistoryWindow;
+    /**
+     * Hours
+     */
+    hours: Array<HourPunctuality>;
 };
 
 /**
@@ -713,6 +908,130 @@ export type TrainFeatureProperties = {
      * Isstale
      */
     isStale?: boolean;
+};
+
+/**
+ * TrainHistory
+ *
+ * Per-station delay along a train's usual route
+ */
+export type TrainHistory = {
+    /**
+     * Trainnumber
+     */
+    trainNumber: string;
+    /**
+     * Tripshortname
+     */
+    tripShortName?: string | null;
+    /**
+     * Routeshortname
+     */
+    routeShortName?: string | null;
+    /**
+     * Linename
+     */
+    lineName?: string | null;
+    window: HistoryWindow;
+    /**
+     * Runs
+     */
+    runs: number;
+    /**
+     * Stations
+     */
+    stations: Array<TrainRouteStation>;
+};
+
+/**
+ * TrainRouteStation
+ *
+ * One station on a train's usual route
+ */
+export type TrainRouteStation = {
+    /**
+     * Stationid
+     */
+    stationId: string;
+    /**
+     * Stationname
+     */
+    stationName?: string | null;
+    /**
+     * Scheduledtimes
+     */
+    scheduledTimeS?: number | null;
+    /**
+     * N
+     */
+    n: number;
+    /**
+     * Mediandelaymin
+     */
+    medianDelayMin?: number | null;
+    /**
+     * P80Delaymin
+     */
+    p80DelayMin?: number | null;
+    /**
+     * Ontimeshare
+     */
+    onTimeShare?: number | null;
+    /**
+     * Insufficientdata
+     */
+    insufficientData: boolean;
+    /**
+     * Typicalplatform
+     */
+    typicalPlatform?: string | null;
+};
+
+/**
+ * TrainStationHistory
+ *
+ * How late a train usually is at a station
+ */
+export type TrainStationHistory = {
+    /**
+     * Trainnumber
+     */
+    trainNumber: string;
+    /**
+     * Stationid
+     */
+    stationId: string;
+    /**
+     * Stationname
+     */
+    stationName?: string | null;
+    window: HistoryWindow;
+    /**
+     * N
+     */
+    n: number;
+    /**
+     * Mediandelaymin
+     */
+    medianDelayMin?: number | null;
+    /**
+     * P80Delaymin
+     */
+    p80DelayMin?: number | null;
+    /**
+     * Ontimeshare
+     */
+    onTimeShare?: number | null;
+    /**
+     * Insufficientdata
+     */
+    insufficientData: boolean;
+    /**
+     * Typicalplatform
+     */
+    typicalPlatform?: string | null;
+    weekday: DelayStats;
+    weekend: DelayStats;
 };
 
 /**
@@ -1435,3 +1754,216 @@ export type UpdateFollowResponses = {
 };
 
 export type UpdateFollowResponse = UpdateFollowResponses[keyof UpdateFollowResponses];
+
+export type GetTrainStationHistoryData = {
+    body?: never;
+    path: {
+        /**
+         * Trainnumber
+         *
+         * e.g. 10 for 10 TRANSCARPATHIA
+         */
+        trainNumber: string;
+        /**
+         * Stationid
+         *
+         * UIC station code, e.g. 005501024
+         */
+        stationId: string;
+    };
+    query?: {
+        /**
+         * Days
+         *
+         * Number of service dates to look back
+         */
+        days?: number;
+    };
+    url: '/v1/history/trains/{trainNumber}/stations/{stationId}';
+};
+
+export type GetTrainStationHistoryErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetTrainStationHistoryError = GetTrainStationHistoryErrors[keyof GetTrainStationHistoryErrors];
+
+export type GetTrainStationHistoryResponses = {
+    /**
+     * Successful Response
+     */
+    200: TrainStationHistory;
+};
+
+export type GetTrainStationHistoryResponse = GetTrainStationHistoryResponses[keyof GetTrainStationHistoryResponses];
+
+export type GetTrainHistoryData = {
+    body?: never;
+    path: {
+        /**
+         * Trainnumber
+         *
+         * e.g. 10 for 10 TRANSCARPATHIA
+         */
+        trainNumber: string;
+    };
+    query?: {
+        /**
+         * Days
+         *
+         * Number of service dates to look back
+         */
+        days?: number;
+    };
+    url: '/v1/history/trains/{trainNumber}';
+};
+
+export type GetTrainHistoryErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetTrainHistoryError = GetTrainHistoryErrors[keyof GetTrainHistoryErrors];
+
+export type GetTrainHistoryResponses = {
+    /**
+     * Successful Response
+     */
+    200: TrainHistory;
+};
+
+export type GetTrainHistoryResponse = GetTrainHistoryResponses[keyof GetTrainHistoryResponses];
+
+export type GetStationPlatformsData = {
+    body?: never;
+    path: {
+        /**
+         * Stationid
+         *
+         * UIC station code, e.g. 005501024
+         */
+        stationId: string;
+    };
+    query?: {
+        /**
+         * Trainnumber
+         */
+        trainNumber?: string | null;
+        /**
+         * Days
+         *
+         * Number of service dates to look back
+         */
+        days?: number;
+    };
+    url: '/v1/history/stations/{stationId}/platforms';
+};
+
+export type GetStationPlatformsErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetStationPlatformsError = GetStationPlatformsErrors[keyof GetStationPlatformsErrors];
+
+export type GetStationPlatformsResponses = {
+    /**
+     * Successful Response
+     */
+    200: StationPlatforms;
+};
+
+export type GetStationPlatformsResponse = GetStationPlatformsResponses[keyof GetStationPlatformsResponses];
+
+export type GetRankingsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Kind
+         */
+        kind?: 'stations' | 'lines' | 'trains';
+        /**
+         * Order
+         */
+        order?: 'best' | 'worst';
+        /**
+         * Days
+         *
+         * Number of service dates to look back
+         */
+        days?: number;
+        /**
+         * Limit
+         */
+        limit?: number;
+        /**
+         * Minsamples
+         *
+         * Minimum samples to be ranked; defaults to 100 for stations, 300 for lines and 15 for trains
+         */
+        minSamples?: number | null;
+    };
+    url: '/v1/rankings';
+};
+
+export type GetRankingsErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetRankingsError = GetRankingsErrors[keyof GetRankingsErrors];
+
+export type GetRankingsResponses = {
+    /**
+     * Successful Response
+     */
+    200: Rankings;
+};
+
+export type GetRankingsResponse = GetRankingsResponses[keyof GetRankingsResponses];
+
+export type GetTimeOfDayPunctualityData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Stationid
+         */
+        stationId?: string | null;
+        /**
+         * Days
+         *
+         * Number of service dates to look back
+         */
+        days?: number;
+    };
+    url: '/v1/rankings/time-of-day';
+};
+
+export type GetTimeOfDayPunctualityErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetTimeOfDayPunctualityError = GetTimeOfDayPunctualityErrors[keyof GetTimeOfDayPunctualityErrors];
+
+export type GetTimeOfDayPunctualityResponses = {
+    /**
+     * Successful Response
+     */
+    200: TimeOfDayPunctuality;
+};
+
+export type GetTimeOfDayPunctualityResponse = GetTimeOfDayPunctualityResponses[keyof GetTimeOfDayPunctualityResponses];

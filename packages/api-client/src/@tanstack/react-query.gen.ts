@@ -4,8 +4,8 @@ import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanst
 import type { AxiosError } from 'axios';
 
 import { client } from '../client.gen';
-import { createFollow, deleteDevice, deleteFollow, getAlerts, getDevice, getPosthogKey, getRedisStatus, getStationBoard, getTrainDetails, getTrains, listFollows, type Options, registerDevice, root, rotateDeviceToken, searchStations, updateFollow } from '../sdk.gen';
-import type { CreateFollowData, CreateFollowError, CreateFollowResponse, DeleteDeviceData, DeleteDeviceResponse, DeleteFollowData, DeleteFollowError, DeleteFollowResponse, GetAlertsData, GetDeviceData, GetPosthogKeyData, GetRedisStatusData, GetStationBoardData, GetTrainDetailsData, GetTrainsData, ListFollowsData, RegisterDeviceData, RegisterDeviceError, RegisterDeviceResponse, RootData, RotateDeviceTokenData, RotateDeviceTokenResponse, SearchStationsData, UpdateFollowData, UpdateFollowError, UpdateFollowResponse } from '../types.gen';
+import { createFollow, deleteDevice, deleteFollow, getAlerts, getDevice, getPosthogKey, getRankings, getRedisStatus, getStationBoard, getStationPlatforms, getTimeOfDayPunctuality, getTrainDetails, getTrainHistory, getTrains, getTrainStationHistory, listFollows, type Options, registerDevice, root, rotateDeviceToken, searchStations, updateFollow } from '../sdk.gen';
+import type { CreateFollowData, CreateFollowError, CreateFollowResponse, DeleteDeviceData, DeleteDeviceResponse, DeleteFollowData, DeleteFollowError, DeleteFollowResponse, GetAlertsData, GetDeviceData, GetPosthogKeyData, GetRankingsData, GetRedisStatusData, GetStationBoardData, GetStationPlatformsData, GetTimeOfDayPunctualityData, GetTrainDetailsData, GetTrainHistoryData, GetTrainsData, GetTrainStationHistoryData, ListFollowsData, RegisterDeviceData, RegisterDeviceError, RegisterDeviceResponse, RootData, RotateDeviceTokenData, RotateDeviceTokenResponse, SearchStationsData, UpdateFollowData, UpdateFollowError, UpdateFollowResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseURL' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -373,4 +373,116 @@ export const updateFollowMutation = (options?: Partial<Options<UpdateFollowData>
         }
     };
     return mutationOptions;
+};
+
+export const getTrainStationHistoryQueryKey = (options: Options<GetTrainStationHistoryData>) => createQueryKey('getTrainStationHistory', options);
+
+/**
+ * Get Train Station History
+ *
+ * How late a train usually is at a station ("usually late by X")
+ */
+export const getTrainStationHistoryOptions = (options: Options<GetTrainStationHistoryData>) => {
+    return queryOptions({
+        queryFn: async ({ queryKey, signal }) => {
+            const { data } = await getTrainStationHistory({
+                ...options,
+                ...queryKey[0],
+                signal,
+                throwOnError: true
+            });
+            return data;
+        },
+        queryKey: getTrainStationHistoryQueryKey(options)
+    });
+};
+
+export const getTrainHistoryQueryKey = (options: Options<GetTrainHistoryData>) => createQueryKey('getTrainHistory', options);
+
+/**
+ * Get Train History
+ *
+ * Typical delay at each station of a train's usual route
+ */
+export const getTrainHistoryOptions = (options: Options<GetTrainHistoryData>) => {
+    return queryOptions({
+        queryFn: async ({ queryKey, signal }) => {
+            const { data } = await getTrainHistory({
+                ...options,
+                ...queryKey[0],
+                signal,
+                throwOnError: true
+            });
+            return data;
+        },
+        queryKey: getTrainHistoryQueryKey(options)
+    });
+};
+
+export const getStationPlatformsQueryKey = (options: Options<GetStationPlatformsData>) => createQueryKey('getStationPlatforms', options);
+
+/**
+ * Get Station Platforms
+ *
+ * Predicted platform per train at a station: the most common one recently
+ */
+export const getStationPlatformsOptions = (options: Options<GetStationPlatformsData>) => {
+    return queryOptions({
+        queryFn: async ({ queryKey, signal }) => {
+            const { data } = await getStationPlatforms({
+                ...options,
+                ...queryKey[0],
+                signal,
+                throwOnError: true
+            });
+            return data;
+        },
+        queryKey: getStationPlatformsQueryKey(options)
+    });
+};
+
+export const getRankingsQueryKey = (options?: Options<GetRankingsData>) => createQueryKey('getRankings', options);
+
+/**
+ * Get Rankings
+ *
+ * Stations, lines (S10, Z30, H5, ...) or trains ranked by on-time share (at
+ * most 5 minutes late), then by median delay. Stations and lines count every
+ * stop passage; trains count one arrival per run, at its last recorded stop.
+ */
+export const getRankingsOptions = (options?: Options<GetRankingsData>) => {
+    return queryOptions({
+        queryFn: async ({ queryKey, signal }) => {
+            const { data } = await getRankings({
+                ...options,
+                ...queryKey[0],
+                signal,
+                throwOnError: true
+            });
+            return data;
+        },
+        queryKey: getRankingsQueryKey(options)
+    });
+};
+
+export const getTimeOfDayPunctualityQueryKey = (options?: Options<GetTimeOfDayPunctualityData>) => createQueryKey('getTimeOfDayPunctuality', options);
+
+/**
+ * Get Time Of Day Punctuality
+ *
+ * On-time share by scheduled hour, network-wide or at one station
+ */
+export const getTimeOfDayPunctualityOptions = (options?: Options<GetTimeOfDayPunctualityData>) => {
+    return queryOptions({
+        queryFn: async ({ queryKey, signal }) => {
+            const { data } = await getTimeOfDayPunctuality({
+                ...options,
+                ...queryKey[0],
+                signal,
+                throwOnError: true
+            });
+            return data;
+        },
+        queryKey: getTimeOfDayPunctualityQueryKey(options)
+    });
 };
