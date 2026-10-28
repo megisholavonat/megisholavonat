@@ -293,7 +293,9 @@ export const zTrainFeatureProperties = z.object({
     distanceToNextStop: z.optional(z.union([
         z.number(),
         z.null()
-    ]))
+    ])),
+    lastUpdated: z.int(),
+    isStale: z.optional(z.boolean()).default(false)
 });
 
 /**

@@ -16,7 +16,7 @@ from api.util.preprocess import get_delay_and_position
 from api.util.replay import next_snapshot
 from api.util.route import route_from_polyline
 from api.util.trip import seconds_outside_window
-from api.util.vehicle import should_remove
+from api.util.vehicle import is_stale_or_inactive, should_remove
 
 logger = get_logger(__name__)
 
@@ -245,6 +245,8 @@ class TrainService:
                 await self.redis.hset(hash_key, mapping=mapping)  # type: ignore[misc]
                 await self.redis.expire(hash_key, settings.CACHE_DURATION)
 
+        # Staleness is judged at the snapshot time in replay, else now
+        judged_at = self.reference_time or time.time()
         features = []
         for loc in locations_processed:
             if "vehicleId" not in loc:
@@ -290,7 +292,8 @@ class TrainService:
                     "lon": loc.get("lon"),
                     "heading": loc.get("heading"),
                     "speed": loc.get("speed"),
-                    "lastUpdated": str(loc.get("lastUpdated")),
+                    "lastUpdated": int(loc.get("lastUpdated") or 0),
+                    "isStale": is_stale_or_inactive(loc, judged_at),
                     "tripShortName": trip.get("tripShortName", ""),
                     "routeShortName": trip.get("route", {}).get("shortName", ""),
                     "routeTextColor": trip.get("route", {}).get("textColor", ""),

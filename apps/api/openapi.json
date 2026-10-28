@@ -1123,6 +1123,15 @@
               }
             ],
             "title": "Distancetonextstop"
+          },
+          "lastUpdated": {
+            "type": "integer",
+            "title": "Lastupdated"
+          },
+          "isStale": {
+            "type": "boolean",
+            "title": "Isstale",
+            "default": false
           }
         },
         "type": "object",
@@ -1134,7 +1143,8 @@
           "tripShortName",
           "routeShortName",
           "routeTextColor",
-          "delay"
+          "delay",
+          "lastUpdated"
         ],
         "title": "TrainFeatureProperties",
         "description": "Properties for a train feature (lighter version)"

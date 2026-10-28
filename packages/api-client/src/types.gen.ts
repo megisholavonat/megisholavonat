@@ -508,6 +508,14 @@ export type TrainFeatureProperties = {
      * Distancetonextstop
      */
     distanceToNextStop?: number | null;
+    /**
+     * Lastupdated
+     */
+    lastUpdated: number;
+    /**
+     * Isstale
+     */
+    isStale?: boolean;
 };
 
 /**
