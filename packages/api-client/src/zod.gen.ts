@@ -160,6 +160,16 @@ export const zDeviceInfo = z.object({
 });
 
 /**
+ * ExpoPushTokenCreate
+ *
+ * An Expo push token (iOS or Android): alerts about every follow
+ */
+export const zExpoPushTokenCreate = z.object({
+    type: z.literal('expo'),
+    token: z.string().regex(/^Expo(nent)?PushToken\[[^\]]{1,200}\]$/)
+});
+
+/**
  * FollowUpdate
  *
  * Partial update. Weekdays, stations and label only apply to commutes;
@@ -211,6 +221,20 @@ export const zInfoService = z.object({
 });
 
 /**
+ * LiveActivityPushTokenCreate
+ *
+ * The ActivityKit push token of one followed trip's iOS Live Activity. It
+ * receives `update` events while the train runs and `end` once it has passed
+ * the alighting station; alerts about that follow are shown on it instead of
+ * as a separate notification.
+ */
+export const zLiveActivityPushTokenCreate = z.object({
+    type: z.literal('liveactivity'),
+    token: z.string().regex(/^[0-9a-fA-F]{16,512}$/),
+    followId: z.uuid()
+});
+
+/**
  * PlatformPrediction
  */
 export const zPlatformPrediction = z.object({
@@ -228,6 +252,18 @@ export const zPlatformPrediction = z.object({
  */
 export const zPosthogKey = z.object({
     key: z.string().nullable()
+});
+
+/**
+ * PushToken
+ *
+ * A registered push token; the token itself is not echoed back
+ */
+export const zPushToken = z.object({
+    id: z.uuid(),
+    type: z.enum(['expo', 'liveactivity']),
+    followId: z.uuid().nullable(),
+    createdAt: z.iso.datetime()
 });
 
 /**
@@ -668,6 +704,28 @@ export const zGetDeviceResponse = zDeviceInfo;
  * Successful Response
  */
 export const zRotateDeviceTokenResponse = zDeviceCredentials;
+
+/**
+ * Body
+ */
+export const zRegisterPushTokenBody = z.discriminatedUnion('type', [
+    zExpoPushTokenCreate.extend({ type: z.literal('expo') }),
+    zLiveActivityPushTokenCreate.extend({ type: z.literal('liveactivity') })
+]);
+
+/**
+ * Successful Response
+ */
+export const zRegisterPushTokenResponse = zPushToken;
+
+export const zDeletePushTokenPath = z.object({
+    token_id: z.uuid()
+});
+
+/**
+ * Successful Response
+ */
+export const zDeletePushTokenResponse = z.void();
 
 /**
  * Response Listfollows
