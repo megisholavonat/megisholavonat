@@ -787,6 +787,9 @@ export default function MapComponent({
                 maxBounds={[5.5, 43, 30, 52.5]}
                 minZoom={5}
                 maxZoom={19}
+                // Keep v5's overscaling past the basemap's max zoom; v6's
+                // default (4) changes label placement at zoom 15+.
+                zoomLevelsToOverscale={undefined}
             >
                 <MapImage id="marker-triangle" svg={SVG_TRIANGLE} sdf={true} />
                 <ZoomButtons />
