@@ -23,7 +23,10 @@ ON_TIME_THRESHOLD_S = 5 * 60
 class Stop(Base):
     __tablename__ = "stops"
 
+    # Platform-level stop, e.g. 1:005501024_14
     gtfs_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    # UIC station code, e.g. 005501024 (shared by all platforms of a station)
+    station_id: Mapped[str] = mapped_column(Text, index=True)
     name: Mapped[str] = mapped_column(Text)
     lat: Mapped[float] = mapped_column(Float)
     lon: Mapped[float] = mapped_column(Float)
@@ -40,7 +43,9 @@ class StopDelayObservation(Base):
     __tablename__ = "stop_delay_observations"
     __table_args__ = (
         Index(
-            "ix_stop_delay_observations_stop_id_service_date", "stop_id", "service_date"
+            "ix_stop_delay_observations_station_id_service_date",
+            "station_id",
+            "service_date",
         ),
         {"postgresql_partition_by": "RANGE (service_date)"},
     )
@@ -53,7 +58,9 @@ class StopDelayObservation(Base):
     gtfs_stop_sequence: Mapped[int | None] = mapped_column(Integer)
     trip_short_name: Mapped[str] = mapped_column(Text)
     route_short_name: Mapped[str] = mapped_column(Text)
+    # Platform-level stop; platform prediction needs it next to the station
     stop_id: Mapped[str] = mapped_column(Text, ForeignKey("stops.gtfs_id"))
+    station_id: Mapped[str] = mapped_column(Text)
     # Seconds since local midnight of the service date, as OTP reports them
     scheduled_arrival_s: Mapped[int | None] = mapped_column(Integer)
     scheduled_departure_s: Mapped[int | None] = mapped_column(Integer)
@@ -67,12 +74,12 @@ class StopDelayObservation(Base):
 
 
 class DelayDailyAgg(Base):
-    """Per day, stop and route rollup of stop_delay_observations. Kept forever."""
+    """Per day, station and route rollup of stop_delay_observations. Kept forever."""
 
     __tablename__ = "delay_daily_agg"
 
     service_date: Mapped[date] = mapped_column(Date, primary_key=True)
-    stop_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    station_id: Mapped[str] = mapped_column(Text, primary_key=True)
     route_short_name: Mapped[str] = mapped_column(Text, primary_key=True)
     n: Mapped[int] = mapped_column(Integer)
     n_on_time: Mapped[int] = mapped_column(Integer)

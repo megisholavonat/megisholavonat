@@ -26,6 +26,7 @@ from api.models.history import (
     Stop,
     StopDelayObservation,
 )
+from api.util.stop import station_id
 from api.util.trip import (
     IN_SERVICE_BEFORE_S,
     scheduled_window,
@@ -127,6 +128,7 @@ def detect_passages(
         stop = st.get("stop") or {}
         if not stop.get("gtfsId"):
             continue
+        station = station_id(stop)
         sched_arr = st.get("scheduledArrival")
         sched_dep = st.get("scheduledDeparture")
         reference = sched_arr if i == final_idx else sched_dep
@@ -143,6 +145,7 @@ def detect_passages(
                     "trip_short_name": trip.get("tripShortName") or "",
                     "route_short_name": route.get("shortName") or "",
                     "stop_id": stop["gtfsId"],
+                    "station_id": station,
                     "scheduled_arrival_s": sched_arr,
                     "scheduled_departure_s": sched_dep,
                     "delay_s": delay_s,
@@ -157,6 +160,7 @@ def detect_passages(
                 },
                 stop={
                     "gtfs_id": stop["gtfsId"],
+                    "station_id": station,
                     "name": stop.get("name") or "",
                     "lat": stop.get("lat") or 0.0,
                     "lon": stop.get("lon") or 0.0,
@@ -303,6 +307,7 @@ async def store_passages(session: AsyncSession, passages: list[Passage]) -> int:
             index_elements=[Stop.gtfs_id],
             set_={
                 "name": stmt.excluded.name,
+                "station_id": stmt.excluded.station_id,
                 "lat": stmt.excluded.lat,
                 "lon": stmt.excluded.lon,
                 "county": stmt.excluded.county,
@@ -373,7 +378,7 @@ async def record_from_cache(redis: Redis, session: AsyncSession) -> int:
 
 
 async def rollup_day(session: AsyncSession, day: date) -> int:
-    """(Re)build delay_daily_agg for one service date. Idempotent. Commits."""
+    """(Re)build delay_daily_agg (per station) for one service date. Idempotent."""
     await session.execute(
         text("DELETE FROM delay_daily_agg WHERE service_date = :d"), {"d": day}
     )
@@ -381,11 +386,11 @@ async def rollup_day(session: AsyncSession, day: date) -> int:
         text(
             """
             INSERT INTO delay_daily_agg (
-                service_date, stop_id, route_short_name,
+                service_date, station_id, route_short_name,
                 n, n_on_time, sum_delay_s, p90_delay_s, max_delay_s
             )
             SELECT
-                service_date, stop_id, route_short_name,
+                service_date, station_id, route_short_name,
                 count(*),
                 count(*) FILTER (WHERE delay_s <= :on_time),
                 sum(delay_s),
@@ -393,7 +398,7 @@ async def rollup_day(session: AsyncSession, day: date) -> int:
                 max(delay_s)
             FROM stop_delay_observations
             WHERE service_date = :d
-            GROUP BY service_date, stop_id, route_short_name
+            GROUP BY service_date, station_id, route_short_name
             """
         ),
         {"d": day, "on_time": ON_TIME_THRESHOLD_S},

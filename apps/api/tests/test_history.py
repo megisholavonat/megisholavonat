@@ -20,6 +20,7 @@ from api.services.history import (
     rollup_day,
 )
 from api.services.train_service import TrainService
+from api.util.stop import station_id, station_id_from_gtfs_id
 
 BUDAPEST = pytz.timezone("Europe/Budapest")
 SERVICE_DATE = "2026-08-14"
@@ -45,6 +46,7 @@ def _vehicle(lon: float, at: int, lat: float = LAT) -> dict[str, Any]:
             "realtimeDeparture": t + 120,
             "stop": {
                 "gtfsId": f"1:stop{i}",
+                "stationUicPricingCode": "005500000" if i == 0 else None,
                 "name": f"Stop {i}",
                 "lat": LAT,
                 "lon": stop_lon,
@@ -110,6 +112,8 @@ def test_origin_passed_after_departure_with_our_delay() -> None:
     assert row["trip_gtfs_id"] == "1:trip"
     assert row["service_date"] == date(2026, 8, 14)
     assert row["stop_id"] == "1:stop0"
+    assert row["station_id"] == "005500000"  # stationUicPricingCode
+    assert passages[0].stop["station_id"] == "005500000"
     assert row["gtfs_stop_sequence"] == 10
     # Our GPS estimate: 10:03 at 20% of a 5-minute leg -> 2 minutes late
     assert row["delay_s"] == pytest.approx(120, abs=5)
@@ -230,18 +234,26 @@ async def _insert_observation(
 ) -> None:
     await session.execute(
         text(
-            "INSERT INTO stops (gtfs_id, name, lat, lon) VALUES (:s, :s, 0, 0) "
-            "ON CONFLICT DO NOTHING"
+            "INSERT INTO stops (gtfs_id, station_id, name, lat, lon) "
+            "VALUES (:s, :station, :s, 0, 0) ON CONFLICT DO NOTHING"
         ),
-        {"s": stop},
+        {"s": stop, "station": station_id_from_gtfs_id(stop)},
     )
     await session.execute(
         text(
             "INSERT INTO stop_delay_observations (service_date, trip_gtfs_id, "
-            "stop_sequence, trip_short_name, route_short_name, stop_id, delay_s, "
-            "observed_at) VALUES (:d, :t, 0, :t, :r, :s, :delay, now())"
+            "stop_sequence, trip_short_name, route_short_name, stop_id, station_id, "
+            "delay_s, observed_at) "
+            "VALUES (:d, :t, 0, :t, :r, :s, :station, :delay, now())"
         ),
-        {"d": day, "t": trip, "r": route, "s": stop, "delay": delay},
+        {
+            "d": day,
+            "t": trip,
+            "r": route,
+            "s": stop,
+            "station": station_id_from_gtfs_id(stop),
+            "delay": delay,
+        },
     )
 
 
@@ -249,10 +261,14 @@ async def test_rollup_day(db_session: AsyncSession) -> None:
     day = date(2026, 8, 14)
     await ensure_partition(db_session, day)
     delays = [-60, 0, 120, 300, 301, 600, 900, 1200, 1800, 3600]
+    # One station, trains spread over two of its platforms
     for i, delay in enumerate(delays):
-        await _insert_observation(db_session, day, f"t{i}", "1:A", "S1", delay)
-    await _insert_observation(db_session, day, "other", "1:B", "S1", 30)
-    await _insert_observation(db_session, date(2026, 8, 15), "next", "1:A", "S1", 0)
+        platform = "1:005501024_1" if i % 2 else "1:005501024_14"
+        await _insert_observation(db_session, day, f"t{i}", platform, "S1", delay)
+    await _insert_observation(db_session, day, "other", "1:005501164_5b", "S1", 30)
+    await _insert_observation(
+        db_session, date(2026, 8, 15), "next", "1:005501024_1", "S1", 0
+    )
 
     assert await rollup_day(db_session, day) == 2
     # Idempotent
@@ -262,7 +278,7 @@ async def test_rollup_day(db_session: AsyncSession) -> None:
         await db_session.execute(
             text(
                 "SELECT n, n_on_time, sum_delay_s, p90_delay_s, max_delay_s "
-                "FROM delay_daily_agg WHERE stop_id = '1:A'"
+                "FROM delay_daily_agg WHERE station_id = '005501024'"
             )
         )
     ).one()
@@ -283,3 +299,29 @@ async def test_drop_old_partitions(db_session: AsyncSession) -> None:
     remaining = await list_partitions(db_session)
     assert "stop_delay_observations_y2025m09" in remaining
     assert "stop_delay_observations_y2026m10" in remaining
+
+
+# --- Station ids ---
+
+
+@pytest.mark.parametrize(
+    ("gtfs_id", "expected"),
+    [
+        ("1:005501024_14", "005501024"),
+        ("1:005505876_5b", "005505876"),
+        ("1:005546409_mh", "005546409"),
+        ("1:005515362_", "005515362"),
+        ("1:005517665_mh.", "005517665"),
+        ("1:005510017", "005510017"),
+    ],
+)
+def test_station_id_from_gtfs_id(gtfs_id: str, expected: str) -> None:
+    assert station_id_from_gtfs_id(gtfs_id) == expected
+
+
+def test_station_id_prefers_uic_code() -> None:
+    assert station_id({"gtfsId": "1:x_1", "stationUicPricingCode": "005510017"}) == (
+        "005510017"
+    )
+    assert station_id({"gtfsId": "1:005510017_3"}) == "005510017"
+    assert station_id({}) is None
