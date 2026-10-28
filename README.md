@@ -156,6 +156,30 @@ repeat within a day). A daily task (03:45 Budapest) deletes trip follows two
 days after their service date and devices idle for 180 days.
 `DELETE /v1/devices/me` erases a device with all its follows and Redis keys.
 
+### Push alerts
+
+Followers get native push only (no web push): Expo notifications on iOS and
+Android, and iOS Live Activity updates through APNs. Apps register tokens with
+`POST /v1/devices/me/push-tokens`. After every refresh the worker enqueues
+`evaluate_alerts`; the rules are documented in
+`apps/api/api/services/push_alerts.py`. Without credentials a sender logs
+once and sends nothing, so local development needs none of these
+(`apps/api/.env`):
+
+```
+EXPO_ACCESS_TOKEN=
+APNS_KEY_ID=
+APNS_TEAM_ID=
+APNS_PRIVATE_KEY= (contents of the .p8 key; newlines may be written as \n)
+APNS_BUNDLE_ID=
+APNS_USE_SANDBOX= (optional, defaults to false)
+PUSH_TOKEN_MAX_FAILURES= (optional, defaults to 10)
+```
+
+In production, set `EXPO_ACCESS_TOKEN` **and** turn on "Enhanced push
+security" in the Expo project settings. Without it, anyone holding a leaked
+device push token could send pushes to that device through Expo.
+
 ### Replaying recorded data
 
 To develop without calling upstream, set
