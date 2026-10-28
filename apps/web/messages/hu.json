@@ -18,7 +18,8 @@
         "sort_descending": "csökkenő",
         "no_search_results": "Nincs találat a keresésre",
         "no_trains_available": "Nincs elérhető vonat",
-        "select_train": "Vonat kiválasztása"
+        "select_train": "Vonat kiválasztása",
+        "delay_short": "{delay}p"
     },
     "SettingsComponent": {
         "settings_button": "Beállítások",
@@ -104,7 +105,8 @@
             "suburban": "LEW Henningsdorf MX/MXA",
             "unknown": "Ismeretlen járműtípus"
         },
-        "close": "Bezárás"
+        "close": "Bezárás",
+        "more_info": "További információ"
     },
     "DelayLegend": {
         "title": "Késés színkódok",

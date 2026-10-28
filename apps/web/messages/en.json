@@ -18,7 +18,8 @@
         "sort_descending": "descending",
         "no_search_results": "No search results",
         "no_trains_available": "No trains available",
-        "select_train": "Select train"
+        "select_train": "Select train",
+        "delay_short": "{delay} min"
     },
     "SettingsComponent": {
         "settings_button": "Settings",
@@ -104,7 +105,8 @@
             "suburban": "LEW Henningsdorf MX/MXA",
             "unknown": "Unknown vehicle"
         },
-        "close": "Close"
+        "close": "Close",
+        "more_info": "More information"
     },
     "DelayLegend": {
         "title": "Delay legend",

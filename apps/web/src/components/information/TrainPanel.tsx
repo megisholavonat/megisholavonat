@@ -288,6 +288,7 @@ export const TrainPanel = memo(function TrainPanel({
     const t = useTranslations("TrainPanel");
     const isMobile = useIsMobile();
     const locale = useLocale();
+    const dateLocale = locale === "hu" ? "hu-HU" : "en-GB";
 
     const trainIsStale = isStale(vehicle);
 
@@ -508,8 +509,9 @@ export const TrainPanel = memo(function TrainPanel({
                                                                     rel="noopener noreferrer"
                                                                     className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 underline text-xs transition-colors duration-150"
                                                                 >
-                                                                    További
-                                                                    információ
+                                                                    {t(
+                                                                        "more_info",
+                                                                    )}
                                                                 </a>
                                                             )}
                                                             <div className="text-xs text-red-600 dark:text-red-400 mt-1">
@@ -517,14 +519,14 @@ export const TrainPanel = memo(function TrainPanel({
                                                                     alert.effectiveStartDate *
                                                                         1000,
                                                                 ).toLocaleString(
-                                                                    "hu-HU",
+                                                                    dateLocale,
                                                                 )}{" "}
                                                                 -{" "}
                                                                 {new Date(
                                                                     alert.effectiveEndDate *
                                                                         1000,
                                                                 ).toLocaleString(
-                                                                    "hu-HU",
+                                                                    dateLocale,
                                                                 )}
                                                             </div>
                                                         </div>
