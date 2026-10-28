@@ -103,7 +103,8 @@
             "dsb_me": "DSB ME sorozat \"Viking\"",
             "suburban": "LEW Henningsdorf MX/MXA",
             "unknown": "Ismeretlen járműtípus"
-        }
+        },
+        "close": "Bezárás"
     },
     "DelayLegend": {
         "title": "Késés színkódok",
@@ -129,7 +130,8 @@
     "DragModal": {
         "down": "Le",
         "up": "Fel",
-        "close": "Bezárás"
+        "close": "Bezárás",
+        "drag_handle": "Panel átméretezése húzással"
     },
     "ZoomButtons": {
         "zoom_in": "Nagyítás",

@@ -119,6 +119,7 @@ export const DragCloseDrawer = ({
                                 onPointerDown={(e) => {
                                     controls.start(e);
                                 }}
+                                aria-label={t("drag_handle")}
                                 className="h-2 w-14 cursor-grab touch-none rounded-full bg-white/70 active:cursor-grabbing"
                                 whileHover={{
                                     scale: 1.1,

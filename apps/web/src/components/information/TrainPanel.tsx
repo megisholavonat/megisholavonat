@@ -243,7 +243,7 @@ function ServiceBadge({
 }) {
     return (
         <TooltipPopover content={service.name}>
-            <span className={className}>
+            <span className={className} role="img" aria-label={service.name}>
                 {String.fromCharCode(Number(service.fontCode))}
             </span>
         </TooltipPopover>
@@ -359,6 +359,7 @@ export const TrainPanel = memo(function TrainPanel({
                         <button
                             onClick={onClose}
                             type="button"
+                            aria-label={t("close")}
                             className="text-white hover:text-gray-200 dark:hover:text-gray-300 text-xl cursor-pointer transition-colors duration-200 hover:bg-white/20 dark:hover:bg-white/30 rounded-full p-1"
                         >
                             <FaXmark className="w-4 h-4" />

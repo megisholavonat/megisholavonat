@@ -103,7 +103,8 @@
             "dsb_me": "DSB class ME \"Viking\"",
             "suburban": "LEW Henningsdorf MX/MXA",
             "unknown": "Unknown vehicle"
-        }
+        },
+        "close": "Close"
     },
     "DelayLegend": {
         "title": "Delay legend",
@@ -129,7 +130,8 @@
     "DragModal": {
         "down": "Down",
         "up": "Up",
-        "close": "Close"
+        "close": "Close",
+        "drag_handle": "Drag to resize the panel"
     },
     "ZoomButtons": {
         "zoom_in": "Zoom in",
