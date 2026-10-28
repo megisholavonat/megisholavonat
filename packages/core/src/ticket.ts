@@ -23,13 +23,18 @@ export function ticketUrl(
         return TICKET_SHOP_URL;
     }
 
-    const query = new URLSearchParams({
-        from_ticketing_stop_time_id: JSON.stringify([fromUic]),
-        to_ticketing_stop_time_id: JSON.stringify([toUic]),
-        boarding_time: JSON.stringify([
-            new Date(departure * 1000).toISOString(),
-        ]),
-        lang: "hu",
-    });
-    return `${TICKET_SHOP_URL}?${query.toString()}`;
+    // No URLSearchParams: this package is built without DOM types
+    const params: [string, string][] = [
+        ["from_ticketing_stop_time_id", JSON.stringify([fromUic])],
+        ["to_ticketing_stop_time_id", JSON.stringify([toUic])],
+        [
+            "boarding_time",
+            JSON.stringify([new Date(departure * 1000).toISOString()]),
+        ],
+        ["lang", "hu"],
+    ];
+    const query = params
+        .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+        .join("&");
+    return `${TICKET_SHOP_URL}?${query}`;
 }
