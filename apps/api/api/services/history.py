@@ -300,8 +300,11 @@ async def store_passages(session: AsyncSession, passages: list[Passage]) -> int:
     if not passages:
         return 0
 
+    # Rows are written in key order, so concurrent writers (overlapping
+    # recorder runs, parallel backfills) lock them in the same order and
+    # cannot deadlock
     stops = {p.stop["gtfs_id"]: p.stop for p in passages}
-    stmt = insert(Stop).values(list(stops.values()))
+    stmt = insert(Stop).values([stops[k] for k in sorted(stops)])
     await session.execute(
         stmt.on_conflict_do_update(
             index_elements=[Stop.gtfs_id],
@@ -319,7 +322,10 @@ async def store_passages(session: AsyncSession, passages: list[Passage]) -> int:
         await ensure_partition(session, d)
 
     inserted = 0
-    rows = [p.row for p in passages]
+    rows = sorted(
+        (p.row for p in passages),
+        key=lambda r: (r["service_date"], r["trip_gtfs_id"], r["stop_sequence"]),
+    )
     for i in range(0, len(rows), INSERT_CHUNK):
         chunk = rows[i : i + INSERT_CHUNK]
         result = await session.execute(
