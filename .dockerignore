@@ -1,0 +1,12 @@
+# Both images build with the repo root as context
+**/node_modules
+**/.next
+**/.turbo
+**/.venv
+**/__pycache__
+**/.env
+**/.env.*
+!**/.env.example
+.git
+.claude
+data

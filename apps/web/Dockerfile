@@ -45,7 +45,7 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 WORKDIR /app
 
-RUN adduser --system --uid 1001 app
+RUN addgroup -S -g 1001 app && adduser -S -u 1001 -G app app
 
 COPY --from=builder /app/apps/web/public /app/apps/web/public
 COPY --from=builder --chown=app:app /app/apps/web/.next/standalone /app
