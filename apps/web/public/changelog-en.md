@@ -1,3 +1,10 @@
+### 28/10/2026
+
+#### Added
+
+- Privacy notice
+- Detailed usage statistics only with consent; otherwise cookieless visitor counting only
+
 ### 14/05/2025
 
 #### Added

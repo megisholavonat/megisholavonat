@@ -1,3 +1,10 @@
+### 2026. 10. 28.
+
+#### Újdonságok
+
+- Adatvédelmi tájékoztató
+- Részletes használati statisztika csak hozzájárulással; anélkül csak sütimentes látogatószám-mérés
+
 ### 2026. 05. 14.
 
 #### Újdonságok
