@@ -347,7 +347,7 @@ export default function SettingsComponent() {
                                     </div>
                                     <div className="flex items-center gap-3">
                                         <Image
-                                            src="https://purecatamphetamine.github.io/country-flag-icons/3x2/HU.svg"
+                                            src="/flags/HU.svg"
                                             alt="Magyar"
                                             width={20}
                                             height={13}
@@ -366,7 +366,7 @@ export default function SettingsComponent() {
                                             aria-describedby="language-description"
                                         />
                                         <Image
-                                            src="https://purecatamphetamine.github.io/country-flag-icons/3x2/GB.svg"
+                                            src="/flags/GB.svg"
                                             alt="English"
                                             width={20}
                                             height={13}
