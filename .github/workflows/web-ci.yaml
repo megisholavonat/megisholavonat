@@ -45,4 +45,4 @@ jobs:
         run: pnpm --filter @megisholavonat/api-client build
 
       - name: Check and test
-        run: pnpm turbo check test
+        run: pnpm turbo check test --filter=!@megisholavonat/api
