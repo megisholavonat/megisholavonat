@@ -52,7 +52,13 @@ export default function PrivacyContentEn() {
                     automatically.
                 </li>
                 <li>
-                    <strong>Processor:</strong> a hosting provider in the EU.
+                    <strong>Processor:</strong> a hosting provider in London,
+                    United Kingdom.
+                </li>
+                <li>
+                    <strong>Transfer:</strong> the transfer to the UK relies on
+                    the European Commission&apos;s adequacy decision for the
+                    United Kingdom.
                 </li>
             </ul>
             <p>

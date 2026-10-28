@@ -53,7 +53,13 @@ export default function PrivacyContentHu() {
                     utána automatikusan törlődnek.
                 </li>
                 <li>
-                    <strong>Adatfeldolgozó:</strong> EU-s tárhelyszolgáltató.
+                    <strong>Adatfeldolgozó:</strong> londoni (Egyesült
+                    Királyság) tárhelyszolgáltató.
+                </li>
+                <li>
+                    <strong>Adattovábbítás:</strong> az adatok Egyesült
+                    Királyságba továbbítása az Európai Bizottság Egyesült
+                    Királyságra vonatkozó megfelelőségi határozatán alapul.
                 </li>
             </ul>
             <p>
