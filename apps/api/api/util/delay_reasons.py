@@ -44,7 +44,7 @@ class ReasonInfo(TypedDict):
 
 
 DELAY_REASONS: dict[DelayReasonCode, ReasonInfo] = {
-    "track": {"hu": "Pályahiba", "en": "Track issue", "icon": "construction"},
+    "track": {"hu": "Pálya állapota", "en": "Track condition", "icon": "construction"},
     "technical": {"hu": "Műszaki hiba", "en": "Technical fault", "icon": "wrench"},
     "other_train": {"hu": "Más vonat", "en": "Other train", "icon": "train-front"},
     "dwell": {"hu": "Hosszú állás", "en": "Long dwell", "icon": "timer"},

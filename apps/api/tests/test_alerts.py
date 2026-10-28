@@ -48,7 +48,7 @@ async def test_alerts_are_rail_only(
     reasons = {a["description"]: a["reason"] for a in alerts}
     assert reasons["Pálya állapota miatti késés"] == {
         "code": "track",
-        "label": "Pályahiba",
+        "label": "Pálya állapota",
     }
 
     accident = next(a for a in alerts if a["affectedStations"])
