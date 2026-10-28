@@ -1,6 +1,6 @@
 """Helpers for a trip's scheduled time window."""
 
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 from api.util.time import get_seconds_since_day
@@ -9,16 +9,49 @@ from api.util.time import get_seconds_since_day
 IN_SERVICE_BEFORE_S = 10 * 60
 # ... and is still running its trip for a while after the last arrival if late
 IN_SERVICE_AFTER_S = 30 * 60
+# A neighbouring service date replaces the trip's own only if it puts the
+# position time at least this much closer to the trip's schedule
+SERVICE_DATE_MISMATCH_S = 12 * 3600
 
 
 def seconds_into_service_day(trip: dict[str, Any], unix_time: float) -> int:
     """
-    Seconds since local (Europe/Budapest) midnight of the trip's service date,
-    the same clock the stoptimes use. Exceeds 86400 for trips past midnight.
+    Seconds since the start of the trip's service day, the same clock the
+    stoptimes use. Exceeds 86400 for trips past midnight.
+
+    OTP's `serviceDate` does not always match the day the stoptimes count
+    from: HÉV trips after midnight carry the previous day's date with
+    stoptimes under 86400, and an overnight train can carry the next day's
+    date while still running the previous day's departure. Taken at face
+    value, either is off by a whole day (a delay of about ±1440 min), so when
+    the previous or next date puts `unix_time` far closer to the trip's
+    schedule, that date is used instead.
     """
-    return get_seconds_since_day(
-        trip.get("serviceDate", ""), datetime.fromtimestamp(unix_time, tz=UTC)
-    )
+    when = datetime.fromtimestamp(unix_time, tz=UTC)
+    service_date = trip.get("serviceDate", "")
+    now = get_seconds_since_day(service_date, when)
+    window = expected_window(trip)
+    if window is None:
+        return now
+    try:
+        day = date.fromisoformat(service_date)
+    except ValueError:
+        return now
+
+    # Another date has to beat this to be used
+    best, to_beat = now, _outside(window, now) - SERVICE_DATE_MISMATCH_S
+    for offset in (-1, 1):
+        other_date = (day + timedelta(days=offset)).isoformat()
+        other = get_seconds_since_day(other_date, when)
+        outside = _outside(window, other)
+        if outside <= to_beat:
+            best, to_beat = other, outside - 1
+    return best
+
+
+def _outside(window: tuple[int, int], now: int) -> int:
+    first, last = window
+    return max(0, first - now, now - last)
 
 
 def scheduled_window(trip: dict[str, Any]) -> tuple[int, int] | None:
@@ -55,9 +88,7 @@ def seconds_outside_window(trip: dict[str, Any], unix_time: float) -> float:
     window = expected_window(trip)
     if window is None or not trip.get("serviceDate"):
         return float("inf")
-    now = seconds_into_service_day(trip, unix_time)
-    first, last = window
-    return max(0, first - now, now - last)
+    return _outside(window, seconds_into_service_day(trip, unix_time))
 
 
 def is_in_service(trip: dict[str, Any], unix_time: float) -> bool:
