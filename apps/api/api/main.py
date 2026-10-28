@@ -15,6 +15,7 @@ from api.routers import (
     devices,
     follows,
     history,
+    journeys,
     posthog,
     rankings,
     redis_test,
@@ -69,6 +70,7 @@ def create_app() -> FastAPI:
     v1_router.include_router(trains.router)
     v1_router.include_router(posthog.router)
     v1_router.include_router(stations.router)
+    v1_router.include_router(journeys.router)
     v1_router.include_router(alerts.router)
     v1_router.include_router(devices.router)
     v1_router.include_router(follows.router)
