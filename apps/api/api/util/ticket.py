@@ -21,9 +21,7 @@ def _iso_utc(unix_seconds: int) -> str:
     return when.strftime("%Y-%m-%dT%H:%M:%S.") + f"{when.microsecond // 1000:03d}Z"
 
 
-def ticket_url(
-    from_uic: str | None, to_uic: str | None, departure: int | None
-) -> str:
+def ticket_url(from_uic: str | None, to_uic: str | None, departure: int | None) -> str:
     """
     Shop link searching from `from_uic` to `to_uic` at `departure` (unix
     seconds). Falls back to the shop's start page if anything is missing.
