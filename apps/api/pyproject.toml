@@ -7,9 +7,11 @@ requires-python = ">=3.13"
 dependencies = [
     "alembic>=1.20.1",
     "asyncpg>=0.32.0",
+    "cryptography>=46",
     "fastapi[standard]>=0.121.3",
     "holidays>=0.107",
     "httpx-socks>=0.10.1",
+    "httpx[http2]>=0.28.1",
     "numpy>=2.4.4",
     "orjson>=3.11.8",
     "polyline>=2.0.3",
