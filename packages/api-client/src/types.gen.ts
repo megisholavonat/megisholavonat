@@ -173,6 +173,10 @@ export type StopWithCounty = {
      */
     gtfsId?: string | null;
     /**
+     * Stationuicpricingcode
+     */
+    stationUicPricingCode?: string | null;
+    /**
      * Name
      */
     name: string;

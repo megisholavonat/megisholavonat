@@ -66,6 +66,10 @@ export const zStopWithCounty = z.object({
         z.string(),
         z.null()
     ])),
+    stationUicPricingCode: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
     name: z.string(),
     lat: z.number(),
     lon: z.number(),

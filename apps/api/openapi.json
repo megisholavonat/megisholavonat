@@ -395,6 +395,17 @@
             ],
             "title": "Gtfsid"
           },
+          "stationUicPricingCode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stationuicpricingcode"
+          },
           "name": {
             "type": "string",
             "title": "Name"
