@@ -14,12 +14,15 @@ POSITIONS_QUERY = """
       speed
       lastUpdated
       trip {
+        gtfsId
         stoptimes {
+          stopPosition
           scheduledArrival
           realtimeArrival
           scheduledDeparture
           realtimeDeparture
           stop {
+            gtfsId
             name
             lat
             lon
