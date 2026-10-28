@@ -15,9 +15,11 @@ Rules, per follow and service date (state in `notification_state`):
   threshold or below sends one "back on time".
 - Platform: the platform at the boarding station differing from the last
   notified one alerts. On first sight it is compared with the scheduled
-  platform, which is known only for trip follows with a boarding stop (the
-  platform of that stop); commutes take the first platform seen as the
-  baseline. Not sent once the train has left the boarding station.
+  platform: for trip follows with a boarding stop, the platform of that stop;
+  for commutes, the train's usual platform at the boarding station from the
+  delay history when at least PLATFORM_MIN_CONFIDENCE of its recent
+  passages used it. Otherwise the first platform seen is a silent baseline.
+  Not sent once the train has left the boarding station.
 - Train ahead: the train before ours over the last segment into the boarding
   station (it calls at our previous station and then at our boarding station,
   scheduled there within TRAIN_AHEAD_WINDOW_S before us) is at least
@@ -52,9 +54,12 @@ from sqlalchemy import and_, delete, exists, or_, select, tuple_, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.core.cache import cached_model
 from api.core.logging_config import get_logger
 from api.core.redis import add_key
 from api.models.devices import Device, Follow, NotificationState, PushToken
+from api.schemas.insights import StationPlatforms
+from api.services import insights
 from api.services.commute import resolve_commute_trip
 from api.services.devices import device_key
 from api.services.history import MAX_OFF_ROUTE_M, passed_stop_index
@@ -82,6 +87,11 @@ DELAY_REALERT_STEP_MIN = 5
 QUIET_INTERVAL = timedelta(minutes=5)
 TRAIN_AHEAD_MIN_DELAY_MIN = 15
 TRAIN_AHEAD_WINDOW_S = 60 * 60
+# A commute's usual platform stands in for the schedule only if this share of
+# its passages over the last PLATFORM_HISTORY_DAYS used it
+PLATFORM_MIN_CONFIDENCE = 0.8
+PLATFORM_HISTORY_DAYS = 28
+PLATFORM_CACHE_TTL_S = 6 * 3600
 
 # A Live Activity shows as stale if no update arrives for this long
 LIVE_ACTIVITY_STALE_S = 10 * 60
@@ -505,6 +515,67 @@ async def track_commute(
     return Tracked(loc, board, len(stoptimes) - 1 if alight is None else alight)
 
 
+async def usual_platform(
+    session: AsyncSession, redis: Redis, station: str, train_number: str
+) -> str | None:
+    """
+    The platform a train usually uses at a station (the platform prediction
+    of the history API), if confident enough; else None.
+    """
+    platforms = await cached_model(
+        redis,
+        f"alerts:usual-platform:{station}:{train_number}",
+        StationPlatforms,
+        PLATFORM_CACHE_TTL_S,
+        lambda: insights.station_platforms(
+            session, station, train_number, PLATFORM_HISTORY_DAYS
+        ),
+    )
+    for p in platforms.predictions:
+        if p.trainNumber == train_number and p.confidence >= PLATFORM_MIN_CONFIDENCE:
+            return p.platform
+    return None
+
+
+async def _with_usual_platforms(
+    session: AsyncSession,
+    redis: Redis,
+    observed: list[tuple["FollowInfo", Observation]],
+    states: dict[tuple[uuid.UUID, date], AlertState | None],
+) -> list[tuple["FollowInfo", Observation]]:
+    """Fill in the usual platform of commutes seen for the first time today."""
+    result = []
+    for follow, obs in observed:
+        state = states.get((follow.id, obs.service_date))
+        number = (follow.trip_short_name.split() or [""])[0]
+        if (
+            follow.kind == "commute"
+            and follow.from_station_id
+            and number
+            and follow.alerts_enabled
+            and follow.notify_platform_change
+            and obs.scheduled_platform is None
+            and not obs.departed
+            and (
+                state is None
+                or state.trip_id != obs.trip_id
+                or state.last_platform is None
+            )
+        ):
+            try:
+                usual = await usual_platform(
+                    session, redis, follow.from_station_id, number
+                )
+            except Exception as e:
+                await session.rollback()
+                logger.warning(f"Usual platform lookup failed: {e!r}")
+                usual = None
+            if usual is not None:
+                obs = replace(obs, scheduled_platform=usual)
+        result.append((follow, obs))
+    return result
+
+
 # --- Evaluation run ---
 
 
@@ -737,6 +808,7 @@ async def _evaluate(
             )
         )
         states = {(r.follow_id, r.service_date): _state_from_row(r) for r in state_rows}
+    observed = await _with_usual_platforms(session, redis, observed, states)
     # No transaction stays open while sending
     await session.commit()
 

@@ -6,10 +6,13 @@ from typing import Any
 import fakeredis
 import pytest
 from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.models.devices import Device, Follow, NotificationState, PushToken
-from api.services import push_alerts
+from api.models.history import Stop, StopDelayObservation
+from api.services import insights, push_alerts
+from api.services.history import ensure_partition
 from api.services.push_alerts import (
     AlertState,
     Observation,
@@ -22,6 +25,7 @@ from api.services.push_alerts import (
     platform_of_stop,
     receipts_key,
     train_label,
+    usual_platform,
 )
 from api.services.push_copy import Alert, AlertKind, TrainContext, lang_for, render
 from api.services.push_senders import Outcome, SendResult
@@ -725,3 +729,117 @@ async def test_state_rows_are_keyed_by_follow_and_service_date(
     assert [(r.service_date, r.trip_id) for r in rows] == [
         (date(2026, 10, 27), "1:s70")
     ]
+
+
+# --- Usual platform of commutes ---
+
+
+async def seed_platforms(session: AsyncSession, platforms: list[str]) -> None:
+    """One passage of train 5123 at Kelenföld per past day, on these platforms."""
+    rows = []
+    for i, platform in enumerate(platforms):
+        rows.append(
+            {
+                "service_date": TODAY - timedelta(days=i + 1),
+                "trip_gtfs_id": f"1:s70-{i}",
+                "stop_sequence": 1,
+                "trip_short_name": "5123 személyvonat",
+                "route_short_name": "S70",
+                "stop_id": f"1:{KELENFOLD}_{platform}",
+                "station_id": KELENFOLD,
+                "scheduled_arrival_s": 14 * 3600 + 32 * 60,
+                "scheduled_departure_s": 14 * 3600 + 32 * 60,
+                "delay_s": 0,
+                "platform": platform,
+                "observed_at": NOW - timedelta(days=i + 1),
+            }
+        )
+    stops = {
+        r["stop_id"]: {
+            "gtfs_id": r["stop_id"],
+            "station_id": KELENFOLD,
+            "name": "Kelenföld",
+            "lat": 47.0,
+            "lon": 19.0,
+        }
+        for r in rows
+    }
+    await session.execute(
+        insert(Stop).values(list(stops.values())).on_conflict_do_nothing()
+    )
+    for d in {r["service_date"] for r in rows}:
+        await ensure_partition(session, d)
+    await session.execute(insert(StopDelayObservation).values(rows))
+    await session.flush()
+
+
+@pytest.fixture
+def _history_today(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(insights, "today", lambda: TODAY)
+
+
+@pytest.mark.usefixtures("_history_today")
+async def test_commute_platform_change_against_usual_platform(
+    db_session: AsyncSession,
+    redis: fakeredis.FakeAsyncRedis,
+    senders: Senders,
+    expo: FakeExpo,
+) -> None:
+    # 9 of 10 recent passages on platform 4
+    await seed_platforms(db_session, ["4"] * 9 + ["2"])
+    device = await add_device(db_session)
+    await add_token(db_session, device)
+    follow = await add_commute(db_session, device, TUESDAY_ONLY, FEHERVAR)
+    await set_live(redis, location(passed=-1, platforms={1: "6"}))
+
+    await run(db_session, redis, senders)
+    assert [m.title for m in expo.sent] == ["S70 · új vágány: 6 · Kelenföld 14:32"]
+    state = await state_of(db_session, follow)
+    assert state is not None
+    assert state.last_platform == "6"
+
+
+@pytest.mark.usefixtures("_history_today")
+async def test_commute_on_usual_platform_is_quiet(
+    db_session: AsyncSession,
+    redis: fakeredis.FakeAsyncRedis,
+    senders: Senders,
+    expo: FakeExpo,
+) -> None:
+    await seed_platforms(db_session, ["4"] * 10)
+    device = await add_device(db_session)
+    await add_token(db_session, device)
+    await add_commute(db_session, device, TUESDAY_ONLY)
+    await set_live(redis, location(passed=-1, platforms={1: "4"}))
+    await run(db_session, redis, senders)
+    assert expo.sent == []
+
+
+@pytest.mark.usefixtures("_history_today")
+async def test_commute_with_unsure_usual_platform_takes_first_sight(
+    db_session: AsyncSession,
+    redis: fakeredis.FakeAsyncRedis,
+    senders: Senders,
+    expo: FakeExpo,
+) -> None:
+    # 7 of 10 is below the 0.8 confidence needed
+    await seed_platforms(db_session, ["4"] * 7 + ["2"] * 3)
+    device = await add_device(db_session)
+    await add_token(db_session, device)
+    follow = await add_commute(db_session, device, TUESDAY_ONLY)
+    await set_live(redis, location(passed=-1, platforms={1: "6"}))
+
+    await run(db_session, redis, senders)
+    assert expo.sent == []
+    state = await state_of(db_session, follow)
+    assert state is not None
+    assert state.last_platform == "6"
+
+
+@pytest.mark.usefixtures("_history_today")
+async def test_usual_platform_needs_confidence(
+    db_session: AsyncSession, redis: fakeredis.FakeAsyncRedis
+) -> None:
+    await seed_platforms(db_session, ["4"] * 8 + ["2"] * 2)
+    assert await usual_platform(db_session, redis, KELENFOLD, "5123") == "4"
+    assert await usual_platform(db_session, redis, KELENFOLD, "9999") is None
