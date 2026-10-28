@@ -91,6 +91,14 @@ export type ProcessedStop = {
      */
     id: string;
     /**
+     * Gtfsid
+     */
+    gtfsId?: string | null;
+    /**
+     * Index
+     */
+    index?: number | null;
+    /**
      * Originalcoords
      */
     originalCoords: Array<number>;
@@ -132,6 +140,10 @@ export type Route = {
  */
 export type StopTimeWithCounty = {
     /**
+     * Stopposition
+     */
+    stopPosition?: number | null;
+    /**
      * Scheduledarrival
      */
     scheduledArrival: number;
@@ -156,6 +168,14 @@ export type StopTimeWithCounty = {
  * Stop information with county data
  */
 export type StopWithCounty = {
+    /**
+     * Gtfsid
+     */
+    gtfsId?: string | null;
+    /**
+     * Stationuicpricingcode
+     */
+    stationUicPricingCode?: string | null;
     /**
      * Name
      */
@@ -287,6 +307,10 @@ export type TrainFeatureProperties = {
  * Trip information
  */
 export type Trip = {
+    /**
+     * Gtfsid
+     */
+    gtfsId?: string | null;
     /**
      * Servicedate
      */
@@ -423,6 +447,14 @@ export type VehicleProgress = {
      * Nextstop
      */
     nextStop: string;
+    /**
+     * Laststopindex
+     */
+    lastStopIndex?: number | null;
+    /**
+     * Nextstopindex
+     */
+    nextStopIndex?: number | null;
     /**
      * Progress
      */

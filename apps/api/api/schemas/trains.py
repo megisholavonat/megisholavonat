@@ -6,6 +6,8 @@ from pydantic import BaseModel
 class StopWithCounty(BaseModel):
     """Stop information with county data"""
 
+    gtfsId: str | None = None
+    stationUicPricingCode: str | None = None
     name: str
     lat: float
     lon: float
@@ -16,6 +18,7 @@ class StopWithCounty(BaseModel):
 class StopTimeWithCounty(BaseModel):
     """Stop time information with county data"""
 
+    stopPosition: int | None = None
     scheduledArrival: int
     realtimeArrival: int
     scheduledDeparture: int
@@ -61,6 +64,7 @@ class Alert(BaseModel):
 class Trip(BaseModel):
     """Trip information"""
 
+    gtfsId: str | None = None
     serviceDate: str
     tripShortName: str
     route: Route
@@ -76,6 +80,8 @@ class ProcessedStop(BaseModel):
     """Processed stop with distance information"""
 
     id: str
+    gtfsId: str | None = None
+    index: int | None = None
     originalCoords: list[float]
     distanceAlongRoute: float
     stopTimeInfo: StopTimeWithCounty | None = None
@@ -86,6 +92,8 @@ class VehicleProgress(BaseModel):
 
     lastStop: str
     nextStop: str
+    lastStopIndex: int | None = None
+    nextStopIndex: int | None = None
     progress: float
 
 

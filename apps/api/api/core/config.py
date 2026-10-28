@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     # Path to a vehicles-*.jsonl(.gz) snapshot file. When set, upstream is
     # never called and each refresh serves the next snapshot from the file.
     REPLAY_FILE: str | None = None
+    # Raw stop_delay_observations partitions older than this many whole months
+    # are dropped; delay_daily_agg is kept forever
+    HISTORY_RETENTION_MONTHS: int = 13
 
     # Caching Constants
     CACHE_DURATION: int = 15 * 60  # 15 minutes

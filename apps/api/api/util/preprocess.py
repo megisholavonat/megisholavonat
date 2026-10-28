@@ -2,11 +2,29 @@ import math
 from datetime import datetime
 from typing import Any
 
+import numpy as np
 from shapely.geometry import LineString, Point
 
+from api.util.route import (
+    RouteGeometry,
+    best_aligned_projection,
+    snapped_stops,
+)
 from api.util.time import get_seconds_since_day
 
 # --- Helpers ---
+
+
+def haversine_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Great-circle distance in meters."""
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    dphi = phi2 - phi1
+    dlam = math.radians(lon2 - lon1)
+    a = (
+        math.sin(dphi / 2) ** 2
+        + math.cos(phi1) * math.cos(phi2) * math.sin(dlam / 2) ** 2
+    )
+    return 2 * 6_371_000.0 * math.asin(min(1.0, math.sqrt(a)))
 
 
 def calculate_bearing(p1: tuple[float, float], p2: tuple[float, float]) -> float:
@@ -27,7 +45,10 @@ def calculate_bearing(p1: tuple[float, float], p2: tuple[float, float]) -> float
 
 
 def project_with_heading(
-    line: LineString, point: Point, heading: float | None
+    line: LineString,
+    point: Point,
+    heading: float | None,
+    coords: np.ndarray | None = None,
 ) -> float:
     """
     Projects a point onto a line, respecting vehicle heading to handle
@@ -62,47 +83,11 @@ def project_with_heading(
     if diff <= 90:
         return default_proj
 
-    # Otherwise, search for a better segment
-    # Iterate through segments to find one that matches heading and is close
-    coords = list(line.coords)
-    best_dist = default_proj
-    min_dist = float("inf")
-    found_better = False
-
-    current_len = 0.0
-
-    for i in range(len(coords) - 1):
-        p1 = coords[i]
-        p2 = coords[i + 1]
-
-        seg_vec = (p2[0] - p1[0], p2[1] - p1[1])
-        seg_len = math.sqrt(seg_vec[0] ** 2 + seg_vec[1] ** 2)
-
-        if seg_len == 0:
-            continue
-
-        # Calculate segment bearing
-        seg_bearing = calculate_bearing((p1[0], p1[1]), (p2[0], p2[1]))
-
-        # Check alignment
-        h_diff = abs(heading - seg_bearing)
-        if h_diff > 180:
-            h_diff = 360 - h_diff
-
-        if h_diff <= 90:
-            # Valid segment, check distance
-            seg_line = LineString([p1, p2])
-            dist = seg_line.distance(point)
-
-            if dist < min_dist:
-                min_dist = dist
-                dist_on_seg = seg_line.project(point)
-                best_dist = current_len + dist_on_seg
-                found_better = True
-
-        current_len += seg_len
-
-    return best_dist if found_better else default_proj
+    # Otherwise, pick the closest segment that matches the heading
+    if coords is None:
+        coords = np.asarray(line.coords, dtype=float)
+    best = best_aligned_projection(coords, point.x, point.y, heading)
+    return default_proj if best is None else best
 
 
 def snap_stops(
@@ -124,6 +109,8 @@ def snap_stops(
         processed_stops.append(
             {
                 "id": stop["id"],
+                "gtfsId": stop.get("gtfsId"),
+                "index": stop.get("index"),
                 "originalCoords": stop["coords"],
                 "distanceAlongRoute": distance_along_route,
             }
@@ -139,23 +126,28 @@ def get_vehicle_progress(
     processed_stops: list[dict[str, Any]],
     vehicle_pos: tuple[float, float],
     heading: float | None = None,
+    vehicle_distance: float | None = None,
 ) -> dict[str, Any]:
     """
     Determines the last and next stop based on vehicle position.
     vehicle_pos: [lon, lat]
     """
-    # Handle empty stops array
-    if not processed_stops:
-        return {"lastStop": "", "nextStop": "", "progress": 0}
+    empty = {
+        "lastStop": "",
+        "nextStop": "",
+        "lastStopIndex": None,
+        "nextStopIndex": None,
+        "progress": 0,
+    }
+    if not processed_stops or len(route_coords) < 2:
+        return empty
 
-    if len(route_coords) < 2:
-        return {"lastStop": "", "nextStop": "", "progress": 0}
-
-    line = LineString(route_coords)
-    vehicle_point = Point(vehicle_pos)
-
-    # Use heading-aware projection
-    vehicle_distance_along_route = project_with_heading(line, vehicle_point, heading)
+    if vehicle_distance is None:
+        # Use heading-aware projection
+        vehicle_distance = project_with_heading(
+            LineString(route_coords), Point(vehicle_pos), heading
+        )
+    vehicle_distance_along_route = vehicle_distance
 
     last_stop = processed_stops[0]
     next_stop = None
@@ -168,8 +160,14 @@ def get_vehicle_progress(
             break
 
     if not next_stop:
-        last_stop_id = processed_stops[-1]["id"]
-        return {"lastStop": last_stop_id, "nextStop": last_stop_id, "progress": 1}
+        final = processed_stops[-1]
+        return {
+            "lastStop": final["id"],
+            "nextStop": final["id"],
+            "lastStopIndex": final.get("index"),
+            "nextStopIndex": final.get("index"),
+            "progress": 1,
+        }
 
     total_leg_distance = (
         next_stop["distanceAlongRoute"] - last_stop["distanceAlongRoute"]
@@ -178,14 +176,15 @@ def get_vehicle_progress(
         vehicle_distance_along_route - last_stop["distanceAlongRoute"]
     )
 
-    if total_leg_distance == 0:
-        return {"lastStop": last_stop["id"], "nextStop": next_stop["id"], "progress": 1}
-
-    progress = traveled_leg_distance / total_leg_distance
+    progress = (
+        1 if total_leg_distance == 0 else traveled_leg_distance / total_leg_distance
+    )
 
     return {
         "lastStop": last_stop["id"],
         "nextStop": next_stop["id"],
+        "lastStopIndex": last_stop.get("index"),
+        "nextStopIndex": next_stop.get("index"),
         "progress": progress,
     }
 
@@ -197,7 +196,8 @@ def get_delay_and_position(
     calculate_date: datetime,
     service_date: str,
     stoptimes: list[dict[str, Any]],
-    route_coords: list[tuple[float, float]],  # [lat, lon] from polyline
+    # [lat, lon] points from the polyline, or a (cached) RouteGeometry
+    route_coords: list[tuple[float, float]] | RouteGeometry,
     lat: float,
     lon: float,
     heading: float | None = None,
@@ -205,55 +205,60 @@ def get_delay_and_position(
     # Calculate current time in seconds since midnight
     current_time = get_seconds_since_day(service_date, calculate_date)
 
-    # Swap coords of routeCoords for GeoJSON [lon, lat]
-    # route_coords input is [lat, lon], we need [lon, lat]
-    geojson_route_coords = [[coord[1], coord[0]] for coord in route_coords]
+    # GeoJSON [lon, lat] points without duplicates, and the shapely line
+    route = (
+        route_coords
+        if isinstance(route_coords, RouteGeometry)
+        else RouteGeometry.from_latlon(route_coords)
+    )
+    unique_geojson_route_coords = route.coords
 
-    # Remove duplicates
-    unique_geojson_route_coords: list[tuple[float, float]] = []
-    seen = set()
-    for coord in geojson_route_coords:
-        t_coord: tuple[float, float] = (coord[0], coord[1])
-        if t_coord not in seen:
-            unique_geojson_route_coords.append(t_coord)
-            seen.add(t_coord)
-
-    # Prepare stops for processing
-    stops = []
-    for stop_time in stoptimes:
-        stop_data = stop_time.get("stop", {})
-        stops.append(
-            {
-                "id": stop_data.get("name"),
-                "coords": [stop_data.get("lon"), stop_data.get("lat")],
-            }
+    # Prepare stops for processing. `id` stays the stop name for API
+    # compatibility; matching back to stoptimes uses the stoptimes index, which
+    # is unambiguous even when a trip calls at a station twice.
+    stops_key = tuple(
+        (
+            stop_data.get("name"),
+            stop_data.get("gtfsId"),
+            index,
+            stop_data.get("lon"),
+            stop_data.get("lat"),
         )
+        for index, stop_data in (
+            (i, st.get("stop", {})) for i, st in enumerate(stoptimes)
+        )
+    )
 
-    # Process stops (snap to line)
-    processed_stops = snap_stops(unique_geojson_route_coords, stops)
+    # Process stops (snap to line); identical for every observation of a trip
+    processed_stops = snapped_stops(route, stops_key)
 
     # Add stop time info back
     processed_stops_with_info = []
     for p_stop in processed_stops:
-        original_stop_time = next(
-            (st for st in stoptimes if st.get("stop", {}).get("name") == p_stop["id"]),
-            None,
-        )
         new_p_stop = p_stop.copy()
-        new_p_stop["stopTimeInfo"] = original_stop_time
+        new_p_stop["stopTimeInfo"] = stoptimes[p_stop["index"]]
         processed_stops_with_info.append(new_p_stop)
+
+    # Train position along route (heading-aware projection), computed once
+    train_position = 0.0
+    off_route_m: float | None = None
+    if route.line is not None:
+        line = route.line
+        vehicle_point = Point(lon, lat)
+        train_position = project_with_heading(
+            line, vehicle_point, heading, route.coords_array
+        )
+        nearest = line.interpolate(line.project(vehicle_point))
+        off_route_m = haversine_m(lat, lon, nearest.y, nearest.x)
 
     # Get vehicle progress
     vehicle_progress = get_vehicle_progress(
-        unique_geojson_route_coords, processed_stops, (lon, lat), heading
+        unique_geojson_route_coords,
+        list(processed_stops),
+        (lon, lat),
+        heading,
+        vehicle_distance=train_position if route.line is not None else None,
     )
-
-    # Calculate train position along route (re-using the robust projection)
-    train_position = 0.0
-    if len(unique_geojson_route_coords) >= 2:
-        line = LineString(unique_geojson_route_coords)
-        vehicle_point = Point(lon, lat)
-        train_position = project_with_heading(line, vehicle_point, heading)
 
     total_route_distance = 0
     if processed_stops:
@@ -262,22 +267,10 @@ def get_delay_and_position(
     # Calculate Delay
     delay = 0
 
-    previous_stop_time = next(
-        (
-            st
-            for st in stoptimes
-            if st.get("stop", {}).get("name") == vehicle_progress["lastStop"]
-        ),
-        None,
-    )
-    next_stop_time = next(
-        (
-            st
-            for st in stoptimes
-            if st.get("stop", {}).get("name") == vehicle_progress["nextStop"]
-        ),
-        None,
-    )
+    last_index = vehicle_progress["lastStopIndex"]
+    next_index = vehicle_progress["nextStopIndex"]
+    previous_stop_time = stoptimes[last_index] if last_index is not None else None
+    next_stop_time = stoptimes[next_index] if next_index is not None else None
 
     if previous_stop_time and next_stop_time:
         prev_dep = previous_stop_time.get("scheduledDeparture", 0)
@@ -297,4 +290,5 @@ def get_delay_and_position(
         "totalRouteDistance": total_route_distance,
         "processedStops": processed_stops_with_info,
         "vehicleProgress": vehicle_progress,
+        "offRouteMeters": off_route_m,
     }
