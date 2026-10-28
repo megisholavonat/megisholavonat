@@ -1,14 +1,19 @@
 import type { VehiclePositionWithDelay } from "@megisholavonat/api-client";
 import * as turf from "@turf/turf";
 import { decodePolyline } from "./polyline";
-import { getSecondsSinceDay } from "./time";
+import { getSecondsSinceDay, secondsIntoServiceDay } from "./time";
 
 // The API ports isStale / isActive / isFarFromRoute to flag stale trains in
-// the train list (apps/api/api/util/vehicle.py). Keep both in sync.
+// the train list (apps/api/api/util/vehicle.py). Keep both in sync. Both
+// read the clock through the service-date resolution in ./time.ts
+// (`secondsIntoServiceDay`, ported from apps/api/api/util/trip.py).
 
 const STALENESS_THRESHOLD_MINUTES = 30; // Show as stale after 30 minutes
 
-export function isActive(vehiclePosition: VehiclePositionWithDelay) {
+export function isActive(
+    vehiclePosition: VehiclePositionWithDelay,
+    now: Date = new Date(),
+) {
     const { lat, lon, trip } = vehiclePosition;
     const stops = trip.stoptimes;
 
@@ -22,7 +27,8 @@ export function isActive(vehiclePosition: VehiclePositionWithDelay) {
     }
 
     const currentPosition = turf.point([lon, lat]);
-    const currentTime = getSecondsSinceDay(trip.serviceDate);
+    // The trip's `serviceDate` can be off by a day around midnight
+    const currentTime = secondsIntoServiceDay(trip, now);
 
     // Check if near departure station and before departure time
     const firstStop = stops[0];
