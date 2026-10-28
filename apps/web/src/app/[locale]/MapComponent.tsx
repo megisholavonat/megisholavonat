@@ -33,9 +33,21 @@ import type {
     GeoJSON as GeoJsonType,
     LineString,
 } from "geojson";
-import type { ExpressionSpecification, GeoJSONSource } from "maplibre-gl";
-import { AnimatePresence, motion } from "motion/react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type {
+    ExpressionSpecification,
+    GeoJSONSource,
+    Popup as MaplibrePopup,
+} from "maplibre-gl";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import {
+    memo,
+    type Ref,
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import { DelayLegend } from "@/components/information/DelayLegend";
 import { DragCloseDrawer } from "@/components/information/DragModal";
 import { NoDataDialog } from "@/components/information/NoDataDialog";
@@ -95,6 +107,44 @@ const desktopVariants = {
     },
 };
 
+// Interpolated train positions are pushed to the map at most this often.
+const VEHICLE_FRAME_INTERVAL_MS = 1000 / 12;
+// Skip setData unless some train moved more than this (degrees, ~0.1 m)…
+const VEHICLE_COORD_EPSILON = 1e-6;
+// …or turned more than this many degrees.
+const VEHICLE_BEARING_EPSILON = 0.5;
+
+function bearingDelta(a: number, b: number): number {
+    return Math.abs(((((a - b) % 360) + 540) % 360) - 180);
+}
+
+const TOOLTIP_OFFSET: [number, number] = [0, -10]; // Appear "above" the marker
+
+// Memoized so MapComponent re-renders don't reset the popup to `info`'s
+// coordinates; the animation loop moves it through `popupRef`.
+const HoverTooltip = memo(function HoverTooltip({
+    info,
+    popupRef,
+}: {
+    info: TrainFeatureProperties;
+    popupRef: Ref<MaplibrePopup>;
+}) {
+    return (
+        <Popup
+            ref={popupRef}
+            longitude={info.lon}
+            latitude={info.lat}
+            offset={TOOLTIP_OFFSET}
+            closeButton={false}
+            closeOnClick={false}
+            anchor="bottom"
+            className="vehicle-tooltip"
+        >
+            <TrainTooltip featureProperties={info} />
+        </Popup>
+    );
+});
+
 export interface SearchSelection {
     vehicleId: string;
     timestamp: number;
@@ -116,10 +166,11 @@ export default function MapComponent({
         animateVehicles,
     } = useMapSettings();
     const { resolvedTheme } = useTheme();
+    const prefersReducedMotion = useReducedMotion() ?? false;
     const mapRef = useRef<MapRef>(null);
     const trackersRef = useRef<Map<string, VehicleState>>(new Map());
     const filteredTrainsRef = useRef<FeatureCollection | null>(null);
-    const rafRef = useRef<number | null>(null);
+    const popupRef = useRef<MaplibrePopup>(null);
     const lastHoveredIdRef = useRef<string | null>(null);
     const { data: trains } = useQuery(getTrainsOptions());
     const [cursor, setCursor] = useState<string | null>(null);
@@ -311,84 +362,143 @@ export default function MapComponent({
         }
     }, [trains]);
 
+    // Keep the hovered tooltip's content in sync with fresh feed data. Its
+    // position is moved imperatively by the animation loop below.
     useEffect(() => {
-        if (!mapLoaded || !animateVehicles) return;
+        const hoveredId = lastHoveredIdRef.current;
+        if (!hoveredId) return;
+        const feature = filteredTrains.features.find(
+            (f) => f.properties.vehicleId === hoveredId,
+        );
+        if (feature) setHoverInfo(feature.properties as TrainFeatureProperties);
+    }, [filteredTrains]);
 
-        const animate = (timestamp: DOMHighResTimeStamp) => {
-            const map = mapRef.current?.getMap();
-            if (map?.isStyleLoaded() && filteredTrainsRef.current) {
-                const source = map.getSource("vehicles-source") as
-                    | GeoJSONSource
-                    | undefined;
-                if (source) {
-                    const features = filteredTrainsRef.current.features.map(
-                        (feature) => {
-                            const props =
-                                feature.properties as TrainFeatureProperties;
-                            const state = trackersRef.current.get(
-                                props.vehicleId,
-                            );
-                            if (!state) return feature;
-                            const result = tick(state, timestamp);
-                            return {
-                                ...feature,
-                                geometry: {
-                                    type: "Point" as const,
-                                    coordinates: result.coords,
-                                },
-                                properties: {
-                                    ...feature.properties,
-                                    lon: result.coords[0],
-                                    lat: result.coords[1],
-                                    heading: result.bearing,
-                                },
-                            };
-                        },
-                    );
-                    source.setData({
-                        type: "FeatureCollection",
-                        features,
-                    });
+    useEffect(() => {
+        if (!mapLoaded || !animateVehicles || prefersReducedMotion) return;
+        const map = mapRef.current?.getMap();
+        if (!map) return;
 
-                    // Keep popup anchored when the vehicle moves without new mousemove events.
-                    const hoveredId = lastHoveredIdRef.current;
-                    if (showTooltip && hoveredId) {
-                        const hoveredFeature = features.find(
-                            (f) =>
-                                (f.properties as TrainFeatureProperties)
-                                    .vehicleId === hoveredId,
-                        );
-                        if (hoveredFeature) {
-                            const nextProps =
-                                hoveredFeature.properties as TrainFeatureProperties;
-                            setHoverInfo((prev) => {
-                                if (!prev || prev.vehicleId !== hoveredId) {
-                                    return prev;
-                                }
-                                if (
-                                    prev.lon === nextProps.lon &&
-                                    prev.lat === nextProps.lat &&
-                                    prev.heading === nextProps.heading
-                                ) {
-                                    return prev;
-                                }
-                                return nextProps;
-                            });
-                        }
-                    }
+        let rafId: number | null = null;
+        let lastFrameAt = Number.NEGATIVE_INFINITY;
+        let lastSource: GeoJSONSource | undefined;
+        let lastData: FeatureCollection | null = null;
+        // Last [lon, lat, bearing] pushed to the source, per vehicle.
+        const lastSent = new Map<string, [number, number, number]>();
+
+        const update = (timestamp: number) => {
+            const data = filteredTrainsRef.current;
+            if (!data || !map.isStyleLoaded()) return;
+            const source = map.getSource("vehicles-source") as
+                | GeoJSONSource
+                | undefined;
+            if (!source) return;
+
+            // New feed data or a re-created source (style change) must be
+            // pushed even if no train moved.
+            let changed = source !== lastSource || data !== lastData;
+            const ticks = data.features.map((feature) => {
+                const { vehicleId } =
+                    feature.properties as TrainFeatureProperties;
+                const state = trackersRef.current.get(vehicleId);
+                if (!state) return null;
+                const result = tick(state, timestamp);
+                if (!changed) {
+                    const prev = lastSent.get(vehicleId);
+                    changed =
+                        !prev ||
+                        Math.abs(prev[0] - result.coords[0]) >
+                            VEHICLE_COORD_EPSILON ||
+                        Math.abs(prev[1] - result.coords[1]) >
+                            VEHICLE_COORD_EPSILON ||
+                        bearingDelta(prev[2], result.bearing) >
+                            VEHICLE_BEARING_EPSILON;
                 }
-            }
-            rafRef.current = requestAnimationFrame(animate);
+                return result;
+            });
+            if (!changed) return;
+
+            lastSent.clear();
+            const features = data.features.map((feature, i) => {
+                const result = ticks[i];
+                if (!result) return feature;
+                const props = feature.properties as TrainFeatureProperties;
+                const [lon, lat] = result.coords;
+                lastSent.set(props.vehicleId, [lon, lat, result.bearing]);
+                return {
+                    ...feature,
+                    geometry: {
+                        type: "Point" as const,
+                        coordinates: result.coords,
+                    },
+                    properties: {
+                        ...feature.properties,
+                        lon,
+                        lat,
+                        heading: result.bearing,
+                    },
+                };
+            });
+            source.setData({ type: "FeatureCollection", features });
+            lastSource = source;
+            lastData = data;
+
+            // Keep the tooltip anchored to the moving vehicle without
+            // re-rendering this component.
+            const hoveredId = lastHoveredIdRef.current;
+            const hovered = hoveredId ? lastSent.get(hoveredId) : undefined;
+            if (hovered) popupRef.current?.setLngLat([hovered[0], hovered[1]]);
         };
 
-        rafRef.current = requestAnimationFrame(animate);
-        return () => {
-            if (rafRef.current !== null) {
-                cancelAnimationFrame(rafRef.current);
-                rafRef.current = null;
+        const frame = (timestamp: DOMHighResTimeStamp) => {
+            rafId = requestAnimationFrame(frame);
+            // Leave the map alone while the user pans or zooms.
+            if (map.isMoving()) return;
+            if (timestamp - lastFrameAt < VEHICLE_FRAME_INTERVAL_MS) return;
+            lastFrameAt = timestamp;
+            update(timestamp);
+        };
+
+        const start = () => {
+            if (rafId !== null || document.visibilityState === "hidden") {
+                return;
+            }
+            // Continue from where the trains were frozen instead of
+            // catching up the paused time in one jump.
+            for (const state of trackersRef.current.values()) {
+                state.lastTimestamp = null;
+            }
+            rafId = requestAnimationFrame(frame);
+        };
+        const stop = () => {
+            if (rafId !== null) {
+                cancelAnimationFrame(rafId);
+                rafId = null;
             }
         };
-    }, [mapLoaded, animateVehicles, showTooltip]);
+        const onVisibilityChange = () => {
+            if (document.visibilityState === "hidden") stop();
+            else start();
+        };
+
+        map.on("movestart", stop);
+        map.on("moveend", start);
+        document.addEventListener("visibilitychange", onVisibilityChange);
+        start();
+
+        return () => {
+            stop();
+            document.removeEventListener(
+                "visibilitychange",
+                onVisibilityChange,
+            );
+            try {
+                map.off("movestart", stop);
+                map.off("moveend", start);
+            } catch {
+                /* Map may already be removed (e.g. locale change / unmount). */
+            }
+        };
+    }, [mapLoaded, animateVehicles, prefersReducedMotion]);
 
     const stopMarkersGeojson = useMemo(() => {
         if (!train?.trip?.stoptimes) return null;
@@ -515,10 +625,10 @@ export default function MapComponent({
                     lastHoveredIdRef.current = newId;
                     setCursor("pointer");
                 }
-                // When vehicles animate, lon/lat/heading must come only from the RAF/tick path so
-                // they match the rendered symbol. Map queryFeature properties can differ slightly and
-                // fighting both updates causes visible jitter.
-                if (animateVehicles && isSameVehicle) {
+                // While hovering the same vehicle, the animation loop moves the
+                // tooltip and the feed effect refreshes its content; setting
+                // state here would re-render the map on every mousemove.
+                if (isSameVehicle) {
                     return;
                 }
                 setHoverInfo(feature.properties as TrainFeatureProperties);
@@ -529,7 +639,7 @@ export default function MapComponent({
                 setHoverInfo(null);
             }
         },
-        [trains, showTooltip, animateVehicles],
+        [trains, showTooltip],
     );
 
     const onClick = useCallback(
@@ -797,17 +907,7 @@ export default function MapComponent({
                     </Source>
                 )}
                 {hoverInfo && (
-                    <Popup
-                        longitude={hoverInfo.lon}
-                        latitude={hoverInfo.lat}
-                        offset={[0, -10]} // Offset to appear "above" the marker
-                        closeButton={false}
-                        closeOnClick={false}
-                        anchor="bottom"
-                        className="vehicle-tooltip"
-                    >
-                        <TrainTooltip featureProperties={hoverInfo} />
-                    </Popup>
+                    <HoverTooltip info={hoverInfo} popupRef={popupRef} />
                 )}
             </MapLibreMap>
         </div>
