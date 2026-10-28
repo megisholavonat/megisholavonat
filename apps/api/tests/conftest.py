@@ -34,6 +34,8 @@ _test_url = _test_url.set(drivername="postgresql+asyncpg")
 settings.DATABASE_URL = _test_url.render_as_string(hide_password=False)
 settings.REPLAY_FILE = str(REPLAY_FIXTURE)
 settings.REDIS_KEY = "mhav-test"
+# Tests must not depend on a developer's .env
+settings.TRUSTED_PROXIES = ""
 
 import fakeredis  # noqa: E402
 import httpx  # noqa: E402
