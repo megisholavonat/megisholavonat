@@ -531,7 +531,13 @@ async def test_housekeeping(
     await redis.set(device_key(active.id, "x"), "1")
 
     result = await run_housekeeping(db_session, redis, today, now=now)
-    assert result == {"expiredTripFollows": 1, "idleDevices": 1}
+    assert result == {
+        "expiredTripFollows": 1,
+        "idleDevices": 1,
+        "failingPushTokens": 0,
+        "expiredLiveActivityTokens": 0,
+        "expiredNotificationStates": 0,
+    }
 
     remaining = set(
         await db_session.scalars(select(Follow.id).where(Follow.device_id == active.id))
