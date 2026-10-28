@@ -7,7 +7,6 @@ GPS-derived delay_s. Statistics cover a window of service dates that ends at
 the latest recorded service date (see `history_window`).
 """
 
-import json
 from datetime import date, datetime, timedelta
 from typing import Any
 
@@ -268,19 +267,31 @@ async def train_history(
     )
 
 
-# Line name of a route shortName in SQL, like api.util.route_names.route_name:
-# the MNR2007 glyph code looked up in :route_map, else the text without tags
-LINE_NAME = (
-    "coalesce(CAST(:route_map AS jsonb) ->> "
-    "substring(route_short_name FROM '&#([0-9]+);'), "
-    "regexp_replace(route_short_name, '<[^>]+>', '', 'g'))"
-)
-ROUTE_MAP_JSON = json.dumps({str(k): v for k, v in MAV_ROUTE_MAP.items()})
+# OTP's exact glyph markup for each MNR2007 code. Rankings by line join on it
+# (a hash join on a few hundred strings) instead of parsing every row; other
+# spellings fall back to the text without tags.
+GLYPHS = [f'<span class="MNR2007">&#{code};</span>' for code in MAV_ROUTE_MAP]
+GLYPH_LINES = list(MAV_ROUTE_MAP.values())
 
 RANKING_KEYS: dict[str, str] = {
     "stations": "station_id",
-    "lines": LINE_NAME,
+    "lines": "coalesce(g.line, regexp_replace(route_short_name, '<[^>]+>', '', 'g'))",
     "trains": TRAIN_NUMBER,
+}
+RANKING_JOINS: dict[str, str] = {
+    "lines": (
+        "LEFT JOIN unnest(CAST(:glyphs AS text[]), CAST(:lines AS text[])) "
+        "AS g(glyph, line) ON g.glyph = route_short_name"
+    ),
+}
+# Only what each kind needs: these sort text per group and are not cheap
+RANKING_EXTRAS: dict[str, str] = {
+    "stations": "",
+    "lines": ", mode() WITHIN GROUP (ORDER BY route_short_name) AS route_short_name",
+    "trains": (
+        ", mode() WITHIN GROUP (ORDER BY trip_short_name) AS trip_short_name"
+        ", mode() WITHIN GROUP (ORDER BY route_short_name) AS route_short_name"
+    ),
 }
 
 
@@ -299,14 +310,12 @@ async def rankings(
     tiebreak = "ASC" if order == "best" else "DESC"
     params = {**_window_params(window), "min_samples": min_samples, "limit": limit}
     if kind == "lines":
-        params["route_map"] = ROUTE_MAP_JSON
+        params.update(glyphs=GLYPHS, lines=GLYPH_LINES)
     result = await session.execute(
         text(
             f"""
-            SELECT {key} AS id, {DELAY_AGGREGATES},
-                   mode() WITHIN GROUP (ORDER BY trip_short_name) AS trip_short_name,
-                   mode() WITHIN GROUP (ORDER BY route_short_name) AS route_short_name
-            FROM stop_delay_observations
+            SELECT {key} AS id, {DELAY_AGGREGATES} {RANKING_EXTRAS[kind]}
+            FROM stop_delay_observations {RANKING_JOINS.get(kind, "")}
             WHERE {IN_WINDOW} AND {key} <> ''
             GROUP BY 1
             HAVING count(*) >= :min_samples
