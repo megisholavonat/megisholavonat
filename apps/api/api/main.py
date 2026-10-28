@@ -13,6 +13,7 @@ from api.routers import (
     alerts,
     devices,
     follows,
+    history,
     posthog,
     redis_test,
     root,
@@ -69,6 +70,7 @@ def create_app() -> FastAPI:
     v1_router.include_router(alerts.router)
     v1_router.include_router(devices.router)
     v1_router.include_router(follows.router)
+    v1_router.include_router(history.router)
 
     register_error_handlers(app)
 
