@@ -77,7 +77,7 @@ async def get_train_details(
     """Get specific train details"""
     try:
         hash_key = add_key("train-positions-hash")
-        data = await redis.hget(hash_key, vehicle_id)
+        data = await redis.hget(hash_key, vehicle_id)  # type: ignore[misc]
 
         if not data:
             raise HTTPException(status_code=404, detail="Train not found")

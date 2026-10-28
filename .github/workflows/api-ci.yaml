@@ -1,0 +1,82 @@
+name: API CI
+
+on:
+  pull_request:
+    paths:
+      - "apps/api/**"
+      - ".github/workflows/api-ci.yaml"
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/api/**"
+      - ".github/workflows/api-ci.yaml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: api-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Lint, type-check and test
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: apps/api
+
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: mhav
+          POSTGRES_PASSWORD: mhav
+          POSTGRES_DB: mhav
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U mhav -d mhav"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql+asyncpg://mhav:mhav@localhost:5432/mhav
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          working-directory: apps/api
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: Ruff
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+
+      - name: Mypy
+        run: uv run mypy .
+
+      - name: Apply migrations
+        run: uv run alembic upgrade head
+
+      - name: Check migrations match models
+        run: uv run alembic check
+
+      - name: Pytest
+        run: uv run pytest
+
+      - name: Check OpenAPI spec is up to date
+        run: |
+          uv run scripts/generate-openapi.py
+          git diff --exit-code -- openapi.json

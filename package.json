@@ -5,7 +5,9 @@
         "dev": "turbo dev",
         "generate:schema": "pnpm --filter api run generate-openapi",
         "generate:client": "pnpm --filter api-client run generate",
-        "generate:api": "pnpm generate:schema && pnpm generate:client"
+        "generate:api": "pnpm generate:schema && pnpm generate:client",
+        "db:migrate": "pnpm --filter @megisholavonat/api db:migrate",
+        "test": "pnpm --filter @megisholavonat/api test"
     },
     "devDependencies": {
         "@biomejs/biome": "2.4.11",

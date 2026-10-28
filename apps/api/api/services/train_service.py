@@ -1,3 +1,4 @@
+import itertools
 import json
 import math
 import time
@@ -15,6 +16,7 @@ from api.core.queries import POSITIONS_QUERY
 from api.core.redis import add_key
 from api.util.county import get_county_for_point
 from api.util.preprocess import get_delay_and_position
+from api.util.replay import next_snapshot
 from api.util.vehicle import should_remove
 
 logger = get_logger(__name__)
@@ -25,11 +27,14 @@ def route_length(route_coords: list[tuple[float, float]]) -> float:
     Returns the total haversine length of the route in km.
     """
     total = 0.0
-    for (lat1, lon1), (lat2, lon2) in zip(route_coords[:-1], route_coords[1:]):
+    for (lat1, lon1), (lat2, lon2) in itertools.pairwise(route_coords):
         phi1, phi2 = math.radians(lat1), math.radians(lat2)
         dphi = phi2 - phi1
         dlam = math.radians(lon2 - lon1)
-        a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlam / 2) ** 2
+        a = (
+            math.sin(dphi / 2) ** 2
+            + math.cos(phi1) * math.cos(phi2) * math.sin(dlam / 2) ** 2
+        )
         total += 2 * 6371.0 * math.asin(min(1.0, math.sqrt(a)))
     return total
 
@@ -37,6 +42,9 @@ def route_length(route_coords: list[tuple[float, float]]) -> float:
 class TrainService:
     def __init__(self, redis: Redis):
         self.redis = redis
+        # Unix time the vehicle data refers to. None means "now"; replay mode
+        # sets it to the snapshot time so recorded data does not look stale.
+        self.reference_time: float | None = None
 
     @staticmethod
     def get_vehicle_type(location: dict[str, Any]) -> str:
@@ -51,7 +59,13 @@ class TrainService:
     async def fetch_graphql_data(self) -> dict[str, Any]:
         """
         Fetches data from the GraphQL endpoint, optionally using a SOCKS5 proxy.
+        In replay mode (REPLAY_FILE set) the next recorded snapshot is served.
         """
+        if settings.REPLAY_FILE:
+            snapshot = await next_snapshot(self.redis, settings.REPLAY_FILE)
+            self.reference_time = snapshot.get("fetched_at_unix")
+            return {"data": {"vehiclePositions": snapshot.get("vehicles") or []}}
+
         transport = None
 
         if settings.SOCKS5_PROXY_ENABLE:
@@ -146,6 +160,7 @@ class TrainService:
         """
         Process delays and filter stale data
         """
+        now = self.reference_time or time.time()
         locations_processed = []
         for location in locations:
             trip = location.get("trip", {})
@@ -183,7 +198,7 @@ class TrainService:
                 }
             )
 
-            if not should_remove(processed_location):
+            if not should_remove(processed_location, now):
                 locations_processed.append(processed_location)
 
         return locations_processed
@@ -212,9 +227,10 @@ class TrainService:
 
             vehicle_count = len(locations_raw)
             proxy_status = "✅" if settings.SOCKS5_PROXY_ENABLE else "❌"
+            source = "replay" if settings.REPLAY_FILE else "GraphQL endpoint"
 
             logger.info(
-                f"Request sent to GraphQL endpoint | "
+                f"Data fetched from {source} | "
                 f"Proxy: {proxy_status} | Vehicle Count: {vehicle_count}"
             )
 
@@ -261,7 +277,7 @@ class TrainService:
                 if "vehicleId" in loc
             }
             if mapping:
-                await self.redis.hset(hash_key, mapping=mapping)
+                await self.redis.hset(hash_key, mapping=mapping)  # type: ignore[misc]
                 await self.redis.expire(hash_key, settings.CACHE_DURATION)
 
         features = []
@@ -278,7 +294,12 @@ class TrainService:
             total_route_distance = loc.get("totalRouteDistance", 0.0)
             route_length_km = loc.get("routeLengthKm", 0.0)
 
-            if next_stop_id and processed_stops and total_route_distance > 0 and route_length_km > 0:
+            if (
+                next_stop_id
+                and processed_stops
+                and total_route_distance > 0
+                and route_length_km > 0
+            ):
                 next_stop = next(
                     (s for s in processed_stops if s.get("id") == next_stop_id),
                     None,

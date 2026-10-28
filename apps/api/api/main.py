@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.routing import APIRoute, APIRouter
 
+from api.core.db import engine
 from api.core.logging_config import get_logger, setup_logging
 from api.core.taskiq_broker import broker
 from api.routers import posthog, redis_test, root, trains
@@ -30,6 +31,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
 
     # Shutdown
     await broker.shutdown()
+    await engine.dispose()
 
 
 def create_app() -> FastAPI:

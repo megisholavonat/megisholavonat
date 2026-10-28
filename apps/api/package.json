@@ -10,7 +10,9 @@
         "lint": "uv run ruff check . && uv run mypy .",
         "format": "uv run ruff format .",
         "start": "uv run uvicorn api.main:create_app --factory --host 0.0.0.0 --port 8000 --app-dir .",
-        "generate-openapi": "uv run scripts/generate-openapi.py"
+        "generate-openapi": "uv run scripts/generate-openapi.py",
+        "db:migrate": "uv run alembic upgrade head",
+        "test": "uv run pytest"
     },
     "packageManager": "pnpm@10.18.3",
     "devDependencies": {

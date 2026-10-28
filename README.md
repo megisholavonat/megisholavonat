@@ -33,7 +33,7 @@ This repository is a pnpm monorepo with:
 - [pnpm](https://pnpm.io/)
 - [Python 3.13](https://www.python.org/)
 - [uv](https://docs.astral.sh/uv/)
-- Docker (or native Redis)
+- Docker or Podman (or native Redis and Postgres 18)
 - [biome](https://biomejs.dev/) VS Code extension
 
 ### Step-by-step setup
@@ -60,17 +60,23 @@ This repository is a pnpm monorepo with:
    REDIS_HOST= (optional if running Redis from the provided compose file)
    REDIS_PORT= (optional, defaults to 6379)
    REDIS_KEY= (optional, prefix for all Redis keys, defaults to mhav-local)
+   DATABASE_URL=postgresql+asyncpg://mhav:mhav@localhost:5432/mhav
+   REPLAY_FILE= (optional, see "Replaying recorded data" below)
    DEBUG=true (optional)
    ```
 
-6. **Start Redis (if not running separate)**
+6. **Start Redis and Postgres (if not running separate)**
 
    ```bash
    docker compose up -d
+   pnpm db:migrate
    ```
 
-   This exposes Redis on `localhost:6379`. If that port is taken, set
-   `MHAV_REDIS_PORT=6380` in a root `.env` and `REDIS_PORT=6380` in `apps/api/.env`.
+   This exposes Redis on `localhost:6379` and Postgres on `localhost:5432`
+   (user, password and database are all `mhav`). If a port is taken, set
+   `MHAV_REDIS_PORT` / `MHAV_POSTGRES_PORT` in a root `.env` (e.g. `6380` and
+   `5433`) and use the same ports in `REDIS_PORT` and `DATABASE_URL` in
+   `apps/api/.env`.
 
 7. **Run the dev servers**
 
@@ -95,3 +101,25 @@ This repository is a pnpm monorepo with:
 ### Extra commands
 
 - `pnpm generate:api` – Regenerate API client after backend changes
+- `pnpm db:migrate` – Apply database migrations (`alembic upgrade head`)
+- `pnpm test` – Run the API test suite (needs the compose Postgres; tests use a
+  separate `<database>_test` database, or `TEST_DATABASE_URL` if set)
+
+### Database migrations
+
+Models live in `apps/api/api/models`. After changing them, from `apps/api`:
+
+```bash
+uv run alembic revision --autogenerate -m "describe the change"
+uv run alembic upgrade head
+uv run alembic check   # CI fails if models and migrations differ
+```
+
+### Replaying recorded data
+
+To develop without calling upstream, set
+`REPLAY_FILE=tests/fixtures/vehicles-sample.jsonl.gz` in `apps/api/.env`. This
+committed fixture holds ten recorded snapshots of twelve trains. Every refresh
+serves the next snapshot (looping at the end), and staleness is judged against
+the snapshot time. The position is kept in Redis under
+`<REDIS_KEY>:replay-cursor`; delete that key to start over.

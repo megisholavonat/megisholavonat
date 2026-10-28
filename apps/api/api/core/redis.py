@@ -11,7 +11,11 @@ from api.core.config import settings
 
 # Create a connection pool
 redis_pool = redis.ConnectionPool(
-    host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=0, decode_responses=True, socket_timeout=5
+    host=settings.REDIS_HOST,
+    port=settings.REDIS_PORT,
+    db=0,
+    decode_responses=True,
+    socket_timeout=5,
 )
 
 
