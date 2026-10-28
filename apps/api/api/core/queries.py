@@ -211,6 +211,9 @@ JOURNEYS_QUERY = """
       time: $time
       arriveBy: $arriveBy
       numItineraries: $n
+      # Without it, train categories come in English ("passenger train")
+      # unlike everywhere else, and live trains match by gtfsId only
+      locale: "hu"
       transportModes: [
         { mode: RAIL }
         { mode: SUBURBAN_RAILWAY }
