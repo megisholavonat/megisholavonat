@@ -1,6 +1,6 @@
 "use client";
 
-import maplibregl from "maplibre-gl";
+import { GeolocateControl, type GeolocatePositionEvent } from "maplibre-gl";
 import { AnimatePresence, motion } from "motion/react";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -9,7 +9,7 @@ import { MdLocationOff } from "react-icons/md";
 import { useMap } from "react-map-gl/maplibre";
 import { Z_LAYERS } from "@/util/constants";
 
-type GeoCtrl = maplibregl.GeolocateControl & {
+type GeoCtrl = GeolocateControl & {
     _setup?: boolean;
     _container?: HTMLElement;
     _watchState?: string;
@@ -123,14 +123,14 @@ export function UserLocation({
         const map = mapRef?.getMap();
         if (!map) return;
 
-        const ctrl = new maplibregl.GeolocateControl({
+        const ctrl = new GeolocateControl({
             positionOptions: { enableHighAccuracy: true },
             trackUserLocation: true,
             showUserLocation: true,
             showAccuracyCircle: true,
         }) as GeoCtrl;
 
-        ctrl.on("geolocate", (e: GeolocationPosition) => {
+        ctrl.on("geolocate", (e: GeolocatePositionEvent) => {
             // GeolocateControl calls flyTo() just before firing this event.
             // Calling map.stop() here cancels that animation before any frame
             // renders, so the map stays on the selected train.
