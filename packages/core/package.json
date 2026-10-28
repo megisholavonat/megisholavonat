@@ -8,15 +8,20 @@
         "./mavRoutes": "./src/mavRoutes.ts",
         "./polyline": "./src/polyline.ts",
         "./search": "./src/search.ts",
-        "./time": "./src/time.ts"
+        "./time": "./src/time.ts",
+        "./vehicle": "./src/vehicle.ts",
+        "./VehicleTracker": "./src/VehicleTracker.ts"
     },
     "scripts": {
         "check": "biome check && tsc --noEmit"
     },
     "dependencies": {
+        "@megisholavonat/api-client": "workspace:*",
+        "@turf/turf": "^7.3.4",
         "luxon": "^3.7.2"
     },
     "devDependencies": {
+        "@types/geojson": "^7946.0.16",
         "@types/luxon": "^3.7.1",
         "typescript": "^5.9.3"
     }

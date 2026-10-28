@@ -14,6 +14,13 @@ import {
     getTrainDetailsOptions,
     getTrainsOptions,
 } from "@megisholavonat/api-client/react-query";
+import {
+    createVehicleState,
+    onPositionUpdate,
+    setRoute,
+    tick,
+    type VehicleState,
+} from "@megisholavonat/core/VehicleTracker";
 import { useQuery } from "@tanstack/react-query";
 import type {
     FeatureCollection,
@@ -34,13 +41,6 @@ import { UserLocation } from "@/components/map/UserLocation";
 import { ZoomButtons } from "@/components/map/ZoomButtons";
 import { useTheme } from "@/components/ui/ThemeProvider";
 import { useMapSettings } from "@/hooks/useMapSettings";
-import {
-    createVehicleState,
-    onPositionUpdate,
-    setRoute,
-    tick,
-    type VehicleState,
-} from "@/lib/VehicleTracker";
 import { LAYER_IDS, Z_LAYERS } from "@/util/constants";
 import { OVERLAYS } from "@/util/mapConfigs";
 

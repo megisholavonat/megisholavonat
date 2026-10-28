@@ -77,9 +77,6 @@ importers:
       '@tanstack/react-query-devtools':
         specifier: ^5.96.1
         version: 5.97.0(@tanstack/react-query@5.97.0(react@19.2.5))(react@19.2.5)
-      '@turf/turf':
-        specifier: ^7.3.4
-        version: 7.3.4
       '@types/mapbox__polyline':
         specifier: ^1.0.5
         version: 1.0.5
@@ -208,10 +205,19 @@ importers:
 
   packages/core:
     dependencies:
+      '@megisholavonat/api-client':
+        specifier: workspace:*
+        version: link:../api-client
+      '@turf/turf':
+        specifier: ^7.3.4
+        version: 7.3.4
       luxon:
         specifier: ^3.7.2
         version: 3.7.2
     devDependencies:
+      '@types/geojson':
+        specifier: ^7946.0.16
+        version: 7946.0.16
       '@types/luxon':
         specifier: ^3.7.1
         version: 3.7.1

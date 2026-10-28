@@ -26,7 +26,6 @@
         "@tailwindcss/typography": "^0.5.19",
         "@tanstack/react-query": "^5.96.1",
         "@tanstack/react-query-devtools": "^5.96.1",
-        "@turf/turf": "^7.3.4",
         "@types/mapbox__polyline": "^1.0.5",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",

@@ -3,6 +3,12 @@ import type {
     VehiclePositionWithDelay,
 } from "@megisholavonat/api-client";
 import { formatSecondsAsTime } from "@megisholavonat/core/time";
+import {
+    dataAppearsFalsified,
+    isActive,
+    isFarFromRoute,
+    isStale,
+} from "@megisholavonat/core/vehicle";
 import { formatDistanceToNow } from "date-fns";
 import { enGB, hu } from "date-fns/locale";
 import { AnimatePresence, motion } from "motion/react";
@@ -22,12 +28,6 @@ import {
     YELLOW_THRESHOLD,
 } from "@/util/constants";
 import { mnr2007 } from "@/util/fonts";
-import {
-    dataAppearsFalsified,
-    isActive,
-    isFarFromRoute,
-    isStale,
-} from "@/util/vehicle";
 import MAVRouteIcon from "../ui/MavRouteIcon";
 
 interface TrainPanelProps {

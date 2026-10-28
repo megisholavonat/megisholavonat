@@ -1,10 +1,9 @@
 import type { VehiclePositionWithDelay } from "@megisholavonat/api-client";
-import { decodePolyline } from "@megisholavonat/core/polyline";
-import { getSecondsSinceDay } from "@megisholavonat/core/time";
 import * as turf from "@turf/turf";
+import { decodePolyline } from "./polyline";
+import { getSecondsSinceDay } from "./time";
 
 const STALENESS_THRESHOLD_MINUTES = 30; // Show as stale after 30 minutes
-const REMOVAL_THRESHOLD_MINUTES = 120; // Remove entirely after 2 hours
 
 export function isActive(vehiclePosition: VehiclePositionWithDelay) {
     const { lat, lon, trip } = vehiclePosition;
@@ -72,16 +71,6 @@ export function isStale(vehiclePosition: VehiclePositionWithDelay): boolean {
     const minutesSinceUpdate = (now - lastUpdated) / 60;
 
     return minutesSinceUpdate > STALENESS_THRESHOLD_MINUTES;
-}
-
-export function shouldRemove(
-    vehiclePosition: VehiclePositionWithDelay,
-): boolean {
-    const now = Date.now() / 1000; // Current time in seconds
-    const lastUpdated = vehiclePosition.lastUpdated;
-    const minutesSinceUpdate = (now - lastUpdated) / 60;
-
-    return minutesSinceUpdate > REMOVAL_THRESHOLD_MINUTES;
 }
 
 export function dataAppearsFalsified(
@@ -243,13 +232,4 @@ export function isFarFromRoute(
     } catch {
         return false;
     }
-}
-
-export function vehicleType(vehiclePosition: VehiclePositionWithDelay): string {
-    if (vehiclePosition.trip.route.longName.startsWith("H")) {
-        return "hev";
-    } else if (vehiclePosition.trip.route.longName === "1") {
-        return "tramtrain";
-    }
-    return "train";
 }
