@@ -1,0 +1,37 @@
+{
+    "cli": {
+        "version": ">= 27.0.0",
+        "appVersionSource": "remote"
+    },
+    "build": {
+        "base": {
+            "pnpm": "10.33.0",
+            "env": {
+                "EXPO_PUBLIC_API_URL": "https://megisholavonat.info/api",
+                "EXPO_PUBLIC_TILE_CACHE_URL": "https://tc.megisholavonat.info"
+            }
+        },
+        "development": {
+            "extends": "base",
+            "developmentClient": true,
+            "distribution": "internal"
+        },
+        "development-simulator": {
+            "extends": "development",
+            "ios": {
+                "simulator": true
+            }
+        },
+        "preview": {
+            "extends": "base",
+            "distribution": "internal"
+        },
+        "production": {
+            "extends": "base",
+            "autoIncrement": true
+        }
+    },
+    "submit": {
+        "production": {}
+    }
+}

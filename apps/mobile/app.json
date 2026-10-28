@@ -30,7 +30,12 @@
             "expo-font",
             "expo-localization",
             "@maplibre/maplibre-react-native",
-            ["./plugins/withAndroidAppLabel", { "label": "MHaV" }],
+            [
+                "./plugins/withAndroidAppLabel",
+                {
+                    "label": "MHaV"
+                }
+            ],
             [
                 "expo-notifications",
                 {
@@ -52,6 +57,11 @@
         "experiments": {
             "typedRoutes": true,
             "reactCompiler": true
+        },
+        "extra": {
+            "eas": {
+                "projectId": "b05777ee-cd17-4075-8dbf-40845bb5f7c3"
+            }
         }
     }
 }
