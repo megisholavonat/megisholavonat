@@ -35,7 +35,7 @@
         "lucide-react": "^0.523.0",
         "maplibre-gl": "^5.13.0",
         "motion": "^12.38.0",
-        "next": "16.2.3",
+        "next": "16.4.3",
         "next-intl": "^4.8.4",
         "nuqs": "^2.8.9",
         "posthog-js": "^1.364.5",
