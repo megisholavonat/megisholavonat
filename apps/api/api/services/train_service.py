@@ -1,3 +1,4 @@
+import itertools
 import json
 import math
 import time
@@ -25,11 +26,14 @@ def route_length(route_coords: list[tuple[float, float]]) -> float:
     Returns the total haversine length of the route in km.
     """
     total = 0.0
-    for (lat1, lon1), (lat2, lon2) in zip(route_coords[:-1], route_coords[1:]):
+    for (lat1, lon1), (lat2, lon2) in itertools.pairwise(route_coords):
         phi1, phi2 = math.radians(lat1), math.radians(lat2)
         dphi = phi2 - phi1
         dlam = math.radians(lon2 - lon1)
-        a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlam / 2) ** 2
+        a = (
+            math.sin(dphi / 2) ** 2
+            + math.cos(phi1) * math.cos(phi2) * math.sin(dlam / 2) ** 2
+        )
         total += 2 * 6371.0 * math.asin(min(1.0, math.sqrt(a)))
     return total
 
@@ -261,7 +265,7 @@ class TrainService:
                 if "vehicleId" in loc
             }
             if mapping:
-                await self.redis.hset(hash_key, mapping=mapping)
+                await self.redis.hset(hash_key, mapping=mapping)  # type: ignore[misc]
                 await self.redis.expire(hash_key, settings.CACHE_DURATION)
 
         features = []
@@ -278,7 +282,12 @@ class TrainService:
             total_route_distance = loc.get("totalRouteDistance", 0.0)
             route_length_km = loc.get("routeLengthKm", 0.0)
 
-            if next_stop_id and processed_stops and total_route_distance > 0 and route_length_km > 0:
+            if (
+                next_stop_id
+                and processed_stops
+                and total_route_distance > 0
+                and route_length_km > 0
+            ):
                 next_stop = next(
                     (s for s in processed_stops if s.get("id") == next_stop_id),
                     None,

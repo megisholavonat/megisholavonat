@@ -10,8 +10,6 @@ broker = RedisStreamBroker(
     redis_url,
     queue_name=f"{settings.REDIS_KEY}:taskiq",
     consumer_group_name=f"{settings.REDIS_KEY}:taskiq",
-).with_result_backend(
-    RedisAsyncResultBackend(redis_url, result_ex_time=60 * 60 * 24)
-)
+).with_result_backend(RedisAsyncResultBackend(redis_url, result_ex_time=60 * 60 * 24))
 
 scheduler = TaskiqScheduler(broker=broker, sources=[LabelScheduleSource(broker)])
