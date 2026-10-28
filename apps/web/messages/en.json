@@ -3,7 +3,8 @@
         "loading_map": "Loading map...",
         "contact_us": "Contact us",
         "app_title": "Mégis hol a vonat?",
-        "app_description": "Train tracking application with accurate data and useful information."
+        "app_description": "Train tracking application with accurate data and useful information.",
+        "privacy_notice": "Privacy"
     },
     "SearchComponent": {
         "search_placeholder": "Number, type, station, UIC code...",
@@ -53,7 +54,8 @@
         "map_settings_title": "Map settings",
         "railway_overlay_label": "Show railway lines",
         "animate_vehicles_label": "Animate vehicles",
-        "animate_vehicles_description": "Animate vehicle positions between updates"
+        "animate_vehicles_description": "Animate vehicle positions between updates",
+        "privacy_title": "Privacy"
     },
     "TrainPanel": {
         "uic_code": "UIC code",
@@ -163,5 +165,21 @@
         "stale_data_title": "Showing outdated data",
         "stale_data_description": "The external data source is not responding. The data shown is {minutes, plural, =1 {# minute} other {# minutes}} old.",
         "close_button": "OK"
+    },
+    "AnalyticsConsentSwitch": {
+        "label": "Usage statistics",
+        "description": "Detailed statistics with a random ID (PostHog, EU servers). When off, we only count daily visitors, without cookies or a stored ID, and PostHog's data is removed from your browser."
+    },
+    "ConsentBanner": {
+        "title": "Usage statistics",
+        "description": "This is a free hobby project. If you allow it, we collect usage statistics with a random ID, which helps us decide what to build next. If you don't, we still count daily visitors, but without cookies or a stored ID.",
+        "privacy_link": "Privacy notice",
+        "accept": "Accept",
+        "reject": "Reject"
+    },
+    "PrivacyPage": {
+        "title": "Privacy notice",
+        "back_to_map": "Back to the map",
+        "last_updated": "Last updated: {date}"
     }
 }
