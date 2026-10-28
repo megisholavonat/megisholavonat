@@ -284,6 +284,39 @@ async def test_rankings_best_and_worst_respect_min_samples(
     assert len(everything["entries"]) == 4
 
 
+@pytest.mark.parametrize(
+    ("kind", "route", "train", "default"),
+    [
+        ("stations", "S10", "10 X", 100),
+        ("lines", "S10", "10 X", 300),
+        ("trains", "S10", "10 X", 15),
+    ],
+)
+async def test_rankings_min_samples_default_per_kind(
+    client: httpx.AsyncClient,
+    db_session: AsyncSession,
+    kind: str,
+    route: str,
+    train: str,
+    default: int,
+) -> None:
+    # Exactly the default for one entry, one short of it for another; trains
+    # count runs, so every observation is its own run here
+    rows = [
+        _obs(0, route=route, train=train, station=KELETI, seq=i) for i in range(default)
+    ]
+    rows += [
+        _obs(0, route="Z30", train="20 Y", station=SZOLNOK, seq=i)
+        for i in range(default - 1)
+    ]
+    await _seed(db_session, rows)
+
+    body = (await client.get(f"/v1/rankings?kind={kind}")).json()
+
+    assert body["minSamples"] == default
+    assert [e["n"] for e in body["entries"]] == [default]
+
+
 async def test_rankings_tie_on_share_broken_by_median(
     client: httpx.AsyncClient, db_session: AsyncSession
 ) -> None:

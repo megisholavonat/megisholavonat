@@ -275,6 +275,10 @@ GLYPHS = list(LINE_GLYPHS)
 GLYPH_LINES = list(LINE_GLYPHS.values())
 LINE_NAME = "coalesce(g.line, regexp_replace(route_short_name, '<[^>]+>', '', 'g'))"
 
+# Fewer samples than this and an entry is left out of the rankings. A daily
+# train has at most about 28 runs, so one arrival each, in a 28-day window.
+DEFAULT_MIN_SAMPLES: dict[str, int] = {"stations": 100, "lines": 300, "trains": 15}
+
 RANKING_KEYS: dict[str, str] = {
     "stations": "station_id",
     "lines": LINE_NAME,

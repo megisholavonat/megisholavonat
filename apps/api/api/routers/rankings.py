@@ -28,21 +28,31 @@ async def get_rankings(
     days: DaysQuery = 28,
     limit: Annotated[int, Query(ge=1, le=200)] = 20,
     min_samples: Annotated[
-        int,
-        Query(alias="minSamples", ge=1, description="Minimum stop passages ranked"),
-    ] = 100,
+        int | None,
+        Query(
+            alias="minSamples",
+            ge=1,
+            description=(
+                "Minimum samples to be ranked; defaults to 100 for stations, "
+                "300 for lines and 15 for trains"
+            ),
+        ),
+    ] = None,
 ) -> Rankings:
     """
     Stations, lines (S10, Z30, H5, ...) or trains ranked by on-time share (at
     most 5 minutes late), then by median delay. Stations and lines count every
     stop passage; trains count one arrival per run, at its last recorded stop.
     """
+    threshold = (
+        min_samples if min_samples is not None else insights.DEFAULT_MIN_SAMPLES[kind]
+    )
     return await cached_model(
         redis,
-        f"rankings:{kind}:{order}:{days}:{limit}:{min_samples}",
+        f"rankings:{kind}:{order}:{days}:{limit}:{threshold}",
         Rankings,
         CACHE_TTL_S,
-        lambda: insights.rankings(session, kind, order, days, limit, min_samples),
+        lambda: insights.rankings(session, kind, order, days, limit, threshold),
     )
 
 
