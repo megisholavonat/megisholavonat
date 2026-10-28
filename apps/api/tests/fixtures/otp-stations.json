@@ -119,6 +119,20 @@
     "lat": 47.464444,
     "lon": 19.02,
     "vehicleMode": "RAIL"
+   },
+   {
+    "gtfsId": "1:005513912",
+    "name": "Debrecen",
+    "lat": 47.520278,
+    "lon": 21.628611,
+    "vehicleMode": "RAIL"
+   },
+   {
+    "gtfsId": "1:005507294",
+    "name": "Pécs",
+    "lat": 46.065833,
+    "lon": 18.223611,
+    "vehicleMode": "RAIL"
    }
   ]
  }
