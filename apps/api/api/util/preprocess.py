@@ -10,7 +10,7 @@ from api.util.route import (
     best_aligned_projection,
     snapped_stops,
 )
-from api.util.time import get_seconds_since_day
+from api.util.trip import seconds_into_service_day
 
 # The heading may only move the projection to a segment at most this much
 # further from the GPS position than the nearest point of the route. Genuine
@@ -218,8 +218,11 @@ def get_delay_and_position(
     lon: float,
     heading: float | None = None,
 ) -> dict[str, Any]:
-    # Calculate current time in seconds since midnight
-    current_time = get_seconds_since_day(service_date, calculate_date)
+    # Current time on the stoptimes' clock (seconds into the service day)
+    current_time = seconds_into_service_day(
+        {"serviceDate": service_date, "stoptimes": stoptimes},
+        calculate_date.timestamp(),
+    )
 
     # GeoJSON [lon, lat] points without duplicates, and the shapely line
     route = (
