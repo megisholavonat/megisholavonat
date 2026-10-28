@@ -15,6 +15,12 @@ import {
     getTrainsOptions,
 } from "@megisholavonat/api-client/react-query";
 import {
+    ORANGE_THRESHOLD,
+    RED_THRESHOLD,
+    YELLOW_THRESHOLD,
+} from "@megisholavonat/core/constants";
+import { DELAY_COLORS } from "@megisholavonat/core/delay";
+import {
     createVehicleState,
     onPositionUpdate,
     setRoute,
@@ -431,13 +437,13 @@ export default function MapComponent({
                 [
                     "step",
                     ["coalesce", ["get", "delay"], 0],
-                    "#4AD94A", // green
-                    5,
-                    "#E4DE3A", // yellow
-                    15,
-                    "#DF9227", // orange
-                    60,
-                    "#D9564A", // red
+                    DELAY_COLORS.onTime,
+                    YELLOW_THRESHOLD,
+                    DELAY_COLORS.slight,
+                    ORANGE_THRESHOLD,
+                    DELAY_COLORS.moderate,
+                    RED_THRESHOLD,
+                    DELAY_COLORS.severe,
                 ],
             ] as ExpressionSpecification,
         [selectedId],

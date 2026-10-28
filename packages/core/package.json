@@ -5,6 +5,8 @@
     "type": "module",
     "sideEffects": false,
     "exports": {
+        "./constants": "./src/constants.ts",
+        "./delay": "./src/delay.ts",
         "./mavRoutes": "./src/mavRoutes.ts",
         "./polyline": "./src/polyline.ts",
         "./search": "./src/search.ts",

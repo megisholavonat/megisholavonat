@@ -22,11 +22,7 @@ import {
 } from "react-icons/fa6";
 import TooltipPopover from "@/components/ui/TooltipPopover";
 import { useIsMobile } from "@/hooks/useIsMobile";
-import {
-    ORANGE_THRESHOLD,
-    RED_THRESHOLD,
-    YELLOW_THRESHOLD,
-} from "@/util/constants";
+import { getDelayColor } from "@/util/delayClasses";
 import { mnr2007 } from "@/util/fonts";
 import MAVRouteIcon from "../ui/MavRouteIcon";
 
@@ -166,20 +162,6 @@ function vehicleTypeFromUICCode(vehicleId: string): string {
             // TODO Use localization
             return "unknown";
     }
-}
-
-export function getDelayColor(delay: number, darkBg: boolean = false): string {
-    if (delay >= RED_THRESHOLD) {
-        return darkBg ? "text-red-400" : "text-red-600";
-    } else if (delay >= ORANGE_THRESHOLD) {
-        return darkBg ? "text-orange-300" : "text-orange-500";
-    } else if (delay >= YELLOW_THRESHOLD) {
-        return darkBg
-            ? "text-yellow-200"
-            : "text-yellow-700 dark:text-yellow-400";
-    }
-
-    return darkBg ? "text-green-400" : "text-green-600";
 }
 
 function TimeDisplay({

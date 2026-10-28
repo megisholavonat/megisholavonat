@@ -18,8 +18,8 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Z_LAYERS } from "@/util/constants";
+import { getDelayColor } from "@/util/delayClasses";
 import MAVRouteIcon from "../ui/MavRouteIcon";
-import { getDelayColor } from "./TrainPanel";
 
 interface SearchComponentProps {
     data: TrainFeatureCollection | undefined;
