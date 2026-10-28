@@ -1,7 +1,7 @@
 "use client";
 
 import type { TrainFeature } from "@megisholavonat/api-client";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { MapRef } from "react-map-gl/maplibre";
 import { useIsMobile } from "@/hooks/useIsMobile";
 
@@ -20,7 +20,15 @@ export function MapController({
 }: MapControllerProps) {
     const isMobile = useIsMobile();
 
+    // Read trains through a ref so periodic refetches don't recentre the map
+    // while the user is panning.
+    const trainsRef = useRef(trains);
     useEffect(() => {
+        trainsRef.current = trains;
+    }, [trains]);
+
+    useEffect(() => {
+        const trains = trainsRef.current;
         if (!isMobile || !selectedTrainId || !trains || !isPanelOpen) return;
 
         const map = mapRef.current;
@@ -56,7 +64,7 @@ export function MapController({
                 duration: 800,
             });
         }
-    }, [mapRef, selectedTrainId, trains, isPanelOpen, isMobile]);
+    }, [mapRef, selectedTrainId, isPanelOpen, isMobile]);
 
     return null;
 }
