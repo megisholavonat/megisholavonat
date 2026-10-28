@@ -1,0 +1,59 @@
+name: Mobile CI
+
+on:
+  pull_request:
+    paths:
+      - "apps/mobile/**"
+      - "packages/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "tsconfig.base.json"
+      - "biome.json"
+      - "turbo.json"
+      - ".github/workflows/mobile-ci.yaml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mobile-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Lint, type-check, test and bundle
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      # Expo SDK 58 needs Node 22.13+ or 24.3+.
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Turbo builds the API client first (check/test depend on ^build).
+      - name: Check and test
+        run: pnpm turbo check test --filter=@megisholavonat/mobile
+
+      - name: Expo Doctor
+        working-directory: apps/mobile
+        run: npx --yes expo-doctor
+
+      - name: Bundle for iOS
+        working-directory: apps/mobile
+        run: npx expo export --platform ios --output-dir dist/ios
+
+      - name: Bundle for Android
+        working-directory: apps/mobile
+        run: npx expo export --platform android --output-dir dist/android

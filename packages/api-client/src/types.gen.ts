@@ -26,6 +26,7 @@ export type Alert = {
      * Effectiveenddate
      */
     effectiveEndDate: number;
+    reason?: DelayReason | null;
 };
 
 /**
@@ -146,6 +147,7 @@ export type BoardEntry = {
      * Vehicleid
      */
     vehicleId?: string | null;
+    reason?: DelayReason | null;
 };
 
 /**
@@ -245,6 +247,23 @@ export type CommuteFollowCreate = {
      * Label
      */
     label?: string | null;
+};
+
+/**
+ * DelayReason
+ *
+ * A known delay reason of a train, parsed from its alert text. The label is
+ * Hungarian; clients can localise by code (see packages/core delayReasons).
+ */
+export type DelayReason = {
+    /**
+     * Code
+     */
+    code: 'track' | 'technical' | 'other_train' | 'dwell' | 'partner_railway' | 'connection' | 'signalling' | 'external' | 'weather' | 'construction' | 'accident' | 'switch' | 'operational' | 'overhead_line' | 'police' | 'vandalism' | 'replacement_bus';
+    /**
+     * Label
+     */
+    label: string;
 };
 
 /**
@@ -737,6 +756,7 @@ export type RailAlert = {
      * Affectedstations
      */
     affectedStations: Array<AlertStation>;
+    reason?: DelayReason | null;
 };
 
 /**
@@ -1073,6 +1093,7 @@ export type TrainFeatureProperties = {
      * Isstale
      */
     isStale?: boolean;
+    reason?: DelayReason | null;
 };
 
 /**

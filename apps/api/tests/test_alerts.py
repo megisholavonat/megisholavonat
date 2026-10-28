@@ -45,6 +45,12 @@ async def test_alerts_are_rail_only(
     assert hev["header"] is None
     assert hev["affectedTrips"][0]["tripId"].startswith("1:")
 
+    reasons = {a["description"]: a["reason"] for a in alerts}
+    assert reasons["Pálya állapota miatti késés"] == {
+        "code": "track",
+        "label": "Pálya állapota",
+    }
+
     accident = next(a for a in alerts if a["affectedStations"])
     assert accident["affectedRoutes"] == []
     assert {"id": "005512880", "name": "Ózd"} in accident["affectedStations"]

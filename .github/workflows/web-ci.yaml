@@ -45,4 +45,5 @@ jobs:
         run: pnpm --filter @megisholavonat/api-client build
 
       - name: Check and test
-        run: pnpm turbo check test --filter=!@megisholavonat/api
+        # The mobile app has its own workflow (mobile-ci.yaml) on a newer Node.
+        run: pnpm turbo check test --filter=!@megisholavonat/api --filter=!@megisholavonat/mobile
