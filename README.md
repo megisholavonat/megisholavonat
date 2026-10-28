@@ -180,6 +180,10 @@ In production, set `EXPO_ACCESS_TOKEN` **and** turn on "Enhanced push
 security" in the Expo project settings. Without it, anyone holding a leaked
 device push token could send pushes to that device through Expo.
 
+Expo alerts are sent on the Android notification channel `alerts`; the app
+must create that channel (the mobile scaffold will), or Android 8+ does not
+show them.
+
 ### Replaying recorded data
 
 To develop without calling upstream, set
