@@ -37,14 +37,15 @@
     },
     "devDependencies": {
         "@types/geojson": "^7946.0.16",
-        "@types/react": "~19.3.0",
+        "@types/react": "19.2.14",
         "typescript": "~6.0.3",
         "vitest": "^5.0.5"
     },
     "expo": {
         "install": {
             "exclude": [
-                "react-native"
+                "react-native",
+                "@types/react"
             ]
         }
     }
