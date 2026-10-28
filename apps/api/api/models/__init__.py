@@ -1,6 +1,15 @@
 """SQLAlchemy models. Import every model module here so Alembic sees them."""
 
 from api.models.base import Base
+from api.models.devices import Device, Follow, NotificationState
 from api.models.history import DelayDailyAgg, Stop, StopDelayObservation
 
-__all__ = ["Base", "DelayDailyAgg", "Stop", "StopDelayObservation"]
+__all__ = [
+    "Base",
+    "DelayDailyAgg",
+    "Device",
+    "Follow",
+    "NotificationState",
+    "Stop",
+    "StopDelayObservation",
+]
