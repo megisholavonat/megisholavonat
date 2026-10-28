@@ -43,10 +43,14 @@ class Settings(BaseSettings):
     # Devices not seen for this many days are deleted with all their data
     DEVICE_IDLE_DAYS: int = 180
 
+    # Database the weekly delay forecast training reads stop_delay_observations
+    # from (read-only). Empty uses DATABASE_URL.
+    FORECAST_TRAINING_DATABASE_URL: str = ""
+
     # Caching Constants
     CACHE_DURATION: int = 15 * 60  # 15 minutes
 
-    @field_validator("DATABASE_URL")
+    @field_validator("DATABASE_URL", "FORECAST_TRAINING_DATABASE_URL")
     @classmethod
     def _use_asyncpg(cls, v: str) -> str:
         for prefix in ("postgres://", "postgresql://"):
