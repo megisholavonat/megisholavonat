@@ -5,7 +5,7 @@ import type { AxiosError } from 'axios';
 
 import { client } from '../client.gen';
 import { createFollow, deleteDevice, deleteFollow, getAlerts, getDevice, getPosthogKey, getRankings, getRedisStatus, getStationBoard, getStationPlatforms, getTimeOfDayPunctuality, getTrainDetails, getTrainHistory, getTrains, getTrainStationHistory, listFollows, type Options, registerDevice, root, rotateDeviceToken, searchStations, updateFollow } from '../sdk.gen';
-import type { CreateFollowData, CreateFollowError, CreateFollowResponse, DeleteDeviceData, DeleteDeviceResponse, DeleteFollowData, DeleteFollowError, DeleteFollowResponse, GetAlertsData, GetDeviceData, GetPosthogKeyData, GetRankingsData, GetRedisStatusData, GetStationBoardData, GetStationPlatformsData, GetTimeOfDayPunctualityData, GetTrainDetailsData, GetTrainHistoryData, GetTrainsData, GetTrainStationHistoryData, ListFollowsData, RegisterDeviceData, RegisterDeviceError, RegisterDeviceResponse, RootData, RotateDeviceTokenData, RotateDeviceTokenResponse, SearchStationsData, UpdateFollowData, UpdateFollowError, UpdateFollowResponse } from '../types.gen';
+import type { CreateFollowData, CreateFollowError, CreateFollowResponse, DeleteDeviceData, DeleteDeviceResponse, DeleteFollowData, DeleteFollowError, DeleteFollowResponse, GetAlertsData, GetAlertsResponse, GetDeviceData, GetDeviceResponse, GetPosthogKeyData, GetPosthogKeyResponse, GetRankingsData, GetRankingsError, GetRankingsResponse, GetRedisStatusData, GetRedisStatusResponse, GetStationBoardData, GetStationBoardError, GetStationBoardResponse, GetStationPlatformsData, GetStationPlatformsError, GetStationPlatformsResponse, GetTimeOfDayPunctualityData, GetTimeOfDayPunctualityError, GetTimeOfDayPunctualityResponse, GetTrainDetailsData, GetTrainDetailsError, GetTrainDetailsResponse, GetTrainHistoryData, GetTrainHistoryError, GetTrainHistoryResponse, GetTrainsData, GetTrainsResponse, GetTrainStationHistoryData, GetTrainStationHistoryError, GetTrainStationHistoryResponse, ListFollowsData, ListFollowsResponse, RegisterDeviceData, RegisterDeviceError, RegisterDeviceResponse, RootData, RotateDeviceTokenData, RotateDeviceTokenResponse, SearchStationsData, SearchStationsError, SearchStationsResponse, UpdateFollowData, UpdateFollowError, UpdateFollowResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseURL' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -37,9 +37,7 @@ const createQueryKey = <TOptions extends Options>(id: string, options?: TOptions
     if (options?.query) {
         params.query = options.query;
     }
-    return [
-        params
-    ];
+    return [params];
 };
 
 export const rootQueryKey = (options?: Options<RootData>) => createQueryKey('root', options);
@@ -47,20 +45,18 @@ export const rootQueryKey = (options?: Options<RootData>) => createQueryKey('roo
 /**
  * Root
  */
-export const rootOptions = (options?: Options<RootData>) => {
-    return queryOptions({
-        queryFn: async ({ queryKey, signal }) => {
-            const { data } = await root({
-                ...options,
-                ...queryKey[0],
-                signal,
-                throwOnError: true
-            });
-            return data;
-        },
-        queryKey: rootQueryKey(options)
-    });
-};
+export const rootOptions = (options?: Options<RootData>) => queryOptions<unknown, AxiosError<DefaultError>, unknown, ReturnType<typeof rootQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await root({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: rootQueryKey(options)
+});
 
 export const getRedisStatusQueryKey = (options?: Options<GetRedisStatusData>) => createQueryKey('getRedisStatus', options);
 
@@ -69,20 +65,18 @@ export const getRedisStatusQueryKey = (options?: Options<GetRedisStatusData>) =>
  *
  * Get Redis connection status and test operations
  */
-export const getRedisStatusOptions = (options?: Options<GetRedisStatusData>) => {
-    return queryOptions({
-        queryFn: async ({ queryKey, signal }) => {
-            const { data } = await getRedisStatus({
-                ...options,
-                ...queryKey[0],
-                signal,
-                throwOnError: true
-            });
-            return data;
-        },
-        queryKey: getRedisStatusQueryKey(options)
-    });
-};
+export const getRedisStatusOptions = (options?: Options<GetRedisStatusData>) => queryOptions<GetRedisStatusResponse, AxiosError<DefaultError>, GetRedisStatusResponse, ReturnType<typeof getRedisStatusQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getRedisStatus({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getRedisStatusQueryKey(options)
+});
 
 export const getTrainsQueryKey = (options?: Options<GetTrainsData>) => createQueryKey('getTrains', options);
 
@@ -91,20 +85,18 @@ export const getTrainsQueryKey = (options?: Options<GetTrainsData>) => createQue
  *
  * Get trains information as GeoJSON FeatureCollection
  */
-export const getTrainsOptions = (options?: Options<GetTrainsData>) => {
-    return queryOptions({
-        queryFn: async ({ queryKey, signal }) => {
-            const { data } = await getTrains({
-                ...options,
-                ...queryKey[0],
-                signal,
-                throwOnError: true
-            });
-            return data;
-        },
-        queryKey: getTrainsQueryKey(options)
-    });
-};
+export const getTrainsOptions = (options?: Options<GetTrainsData>) => queryOptions<GetTrainsResponse, AxiosError<DefaultError>, GetTrainsResponse, ReturnType<typeof getTrainsQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getTrains({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getTrainsQueryKey(options)
+});
 
 export const getTrainDetailsQueryKey = (options: Options<GetTrainDetailsData>) => createQueryKey('getTrainDetails', options);
 
@@ -113,20 +105,18 @@ export const getTrainDetailsQueryKey = (options: Options<GetTrainDetailsData>) =
  *
  * Get specific train details
  */
-export const getTrainDetailsOptions = (options: Options<GetTrainDetailsData>) => {
-    return queryOptions({
-        queryFn: async ({ queryKey, signal }) => {
-            const { data } = await getTrainDetails({
-                ...options,
-                ...queryKey[0],
-                signal,
-                throwOnError: true
-            });
-            return data;
-        },
-        queryKey: getTrainDetailsQueryKey(options)
-    });
-};
+export const getTrainDetailsOptions = (options: Options<GetTrainDetailsData>) => queryOptions<GetTrainDetailsResponse, AxiosError<GetTrainDetailsError>, GetTrainDetailsResponse, ReturnType<typeof getTrainDetailsQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getTrainDetails({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getTrainDetailsQueryKey(options)
+});
 
 export const getPosthogKeyQueryKey = (options?: Options<GetPosthogKeyData>) => createQueryKey('getPosthogKey', options);
 
@@ -135,20 +125,18 @@ export const getPosthogKeyQueryKey = (options?: Options<GetPosthogKeyData>) => c
  *
  * Get Posthog key
  */
-export const getPosthogKeyOptions = (options?: Options<GetPosthogKeyData>) => {
-    return queryOptions({
-        queryFn: async ({ queryKey, signal }) => {
-            const { data } = await getPosthogKey({
-                ...options,
-                ...queryKey[0],
-                signal,
-                throwOnError: true
-            });
-            return data;
-        },
-        queryKey: getPosthogKeyQueryKey(options)
-    });
-};
+export const getPosthogKeyOptions = (options?: Options<GetPosthogKeyData>) => queryOptions<GetPosthogKeyResponse, AxiosError<DefaultError>, GetPosthogKeyResponse, ReturnType<typeof getPosthogKeyQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getPosthogKey({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getPosthogKeyQueryKey(options)
+});
 
 export const searchStationsQueryKey = (options: Options<SearchStationsData>) => createQueryKey('searchStations', options);
 
@@ -157,20 +145,18 @@ export const searchStationsQueryKey = (options: Options<SearchStationsData>) => 
  *
  * Search rail stations by name, ignoring accents
  */
-export const searchStationsOptions = (options: Options<SearchStationsData>) => {
-    return queryOptions({
-        queryFn: async ({ queryKey, signal }) => {
-            const { data } = await searchStations({
-                ...options,
-                ...queryKey[0],
-                signal,
-                throwOnError: true
-            });
-            return data;
-        },
-        queryKey: searchStationsQueryKey(options)
-    });
-};
+export const searchStationsOptions = (options: Options<SearchStationsData>) => queryOptions<SearchStationsResponse, AxiosError<SearchStationsError>, SearchStationsResponse, ReturnType<typeof searchStationsQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await searchStations({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: searchStationsQueryKey(options)
+});
 
 export const getStationBoardQueryKey = (options: Options<GetStationBoardData>) => createQueryKey('getStationBoard', options);
 
@@ -179,20 +165,18 @@ export const getStationBoardQueryKey = (options: Options<GetStationBoardData>) =
  *
  * Departure or arrival board of a station, merged across its platforms
  */
-export const getStationBoardOptions = (options: Options<GetStationBoardData>) => {
-    return queryOptions({
-        queryFn: async ({ queryKey, signal }) => {
-            const { data } = await getStationBoard({
-                ...options,
-                ...queryKey[0],
-                signal,
-                throwOnError: true
-            });
-            return data;
-        },
-        queryKey: getStationBoardQueryKey(options)
-    });
-};
+export const getStationBoardOptions = (options: Options<GetStationBoardData>) => queryOptions<GetStationBoardResponse, AxiosError<GetStationBoardError>, GetStationBoardResponse, ReturnType<typeof getStationBoardQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getStationBoard({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getStationBoardQueryKey(options)
+});
 
 export const getAlertsQueryKey = (options?: Options<GetAlertsData>) => createQueryKey('getAlerts', options);
 
@@ -201,20 +185,18 @@ export const getAlertsQueryKey = (options?: Options<GetAlertsData>) => createQue
  *
  * Active rail alerts (MÁV, GYSEV, HÉV), newest first
  */
-export const getAlertsOptions = (options?: Options<GetAlertsData>) => {
-    return queryOptions({
-        queryFn: async ({ queryKey, signal }) => {
-            const { data } = await getAlerts({
-                ...options,
-                ...queryKey[0],
-                signal,
-                throwOnError: true
-            });
-            return data;
-        },
-        queryKey: getAlertsQueryKey(options)
-    });
-};
+export const getAlertsOptions = (options?: Options<GetAlertsData>) => queryOptions<GetAlertsResponse, AxiosError<DefaultError>, GetAlertsResponse, ReturnType<typeof getAlertsQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getAlerts({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getAlertsQueryKey(options)
+});
 
 /**
  * Register Device
@@ -262,20 +244,18 @@ export const getDeviceQueryKey = (options?: Options<GetDeviceData>) => createQue
  *
  * The calling device
  */
-export const getDeviceOptions = (options?: Options<GetDeviceData>) => {
-    return queryOptions({
-        queryFn: async ({ queryKey, signal }) => {
-            const { data } = await getDevice({
-                ...options,
-                ...queryKey[0],
-                signal,
-                throwOnError: true
-            });
-            return data;
-        },
-        queryKey: getDeviceQueryKey(options)
-    });
-};
+export const getDeviceOptions = (options?: Options<GetDeviceData>) => queryOptions<GetDeviceResponse, AxiosError<DefaultError>, GetDeviceResponse, ReturnType<typeof getDeviceQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getDevice({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getDeviceQueryKey(options)
+});
 
 /**
  * Rotate Device Token
@@ -303,20 +283,18 @@ export const listFollowsQueryKey = (options?: Options<ListFollowsData>) => creat
  *
  * Follows of the calling device, oldest first
  */
-export const listFollowsOptions = (options?: Options<ListFollowsData>) => {
-    return queryOptions({
-        queryFn: async ({ queryKey, signal }) => {
-            const { data } = await listFollows({
-                ...options,
-                ...queryKey[0],
-                signal,
-                throwOnError: true
-            });
-            return data;
-        },
-        queryKey: listFollowsQueryKey(options)
-    });
-};
+export const listFollowsOptions = (options?: Options<ListFollowsData>) => queryOptions<ListFollowsResponse, AxiosError<DefaultError>, ListFollowsResponse, ReturnType<typeof listFollowsQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await listFollows({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: listFollowsQueryKey(options)
+});
 
 /**
  * Create Follow
@@ -382,20 +360,18 @@ export const getTrainStationHistoryQueryKey = (options: Options<GetTrainStationH
  *
  * How late a train usually is at a station ("usually late by X")
  */
-export const getTrainStationHistoryOptions = (options: Options<GetTrainStationHistoryData>) => {
-    return queryOptions({
-        queryFn: async ({ queryKey, signal }) => {
-            const { data } = await getTrainStationHistory({
-                ...options,
-                ...queryKey[0],
-                signal,
-                throwOnError: true
-            });
-            return data;
-        },
-        queryKey: getTrainStationHistoryQueryKey(options)
-    });
-};
+export const getTrainStationHistoryOptions = (options: Options<GetTrainStationHistoryData>) => queryOptions<GetTrainStationHistoryResponse, AxiosError<GetTrainStationHistoryError>, GetTrainStationHistoryResponse, ReturnType<typeof getTrainStationHistoryQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getTrainStationHistory({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getTrainStationHistoryQueryKey(options)
+});
 
 export const getTrainHistoryQueryKey = (options: Options<GetTrainHistoryData>) => createQueryKey('getTrainHistory', options);
 
@@ -404,20 +380,18 @@ export const getTrainHistoryQueryKey = (options: Options<GetTrainHistoryData>) =
  *
  * Typical delay at each station of a train's usual route
  */
-export const getTrainHistoryOptions = (options: Options<GetTrainHistoryData>) => {
-    return queryOptions({
-        queryFn: async ({ queryKey, signal }) => {
-            const { data } = await getTrainHistory({
-                ...options,
-                ...queryKey[0],
-                signal,
-                throwOnError: true
-            });
-            return data;
-        },
-        queryKey: getTrainHistoryQueryKey(options)
-    });
-};
+export const getTrainHistoryOptions = (options: Options<GetTrainHistoryData>) => queryOptions<GetTrainHistoryResponse, AxiosError<GetTrainHistoryError>, GetTrainHistoryResponse, ReturnType<typeof getTrainHistoryQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getTrainHistory({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getTrainHistoryQueryKey(options)
+});
 
 export const getStationPlatformsQueryKey = (options: Options<GetStationPlatformsData>) => createQueryKey('getStationPlatforms', options);
 
@@ -426,20 +400,18 @@ export const getStationPlatformsQueryKey = (options: Options<GetStationPlatforms
  *
  * Predicted platform per train at a station: the most common one recently
  */
-export const getStationPlatformsOptions = (options: Options<GetStationPlatformsData>) => {
-    return queryOptions({
-        queryFn: async ({ queryKey, signal }) => {
-            const { data } = await getStationPlatforms({
-                ...options,
-                ...queryKey[0],
-                signal,
-                throwOnError: true
-            });
-            return data;
-        },
-        queryKey: getStationPlatformsQueryKey(options)
-    });
-};
+export const getStationPlatformsOptions = (options: Options<GetStationPlatformsData>) => queryOptions<GetStationPlatformsResponse, AxiosError<GetStationPlatformsError>, GetStationPlatformsResponse, ReturnType<typeof getStationPlatformsQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getStationPlatforms({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getStationPlatformsQueryKey(options)
+});
 
 export const getRankingsQueryKey = (options?: Options<GetRankingsData>) => createQueryKey('getRankings', options);
 
@@ -450,20 +422,18 @@ export const getRankingsQueryKey = (options?: Options<GetRankingsData>) => creat
  * most 5 minutes late), then by median delay. Stations and lines count every
  * stop passage; trains count one arrival per run, at its last recorded stop.
  */
-export const getRankingsOptions = (options?: Options<GetRankingsData>) => {
-    return queryOptions({
-        queryFn: async ({ queryKey, signal }) => {
-            const { data } = await getRankings({
-                ...options,
-                ...queryKey[0],
-                signal,
-                throwOnError: true
-            });
-            return data;
-        },
-        queryKey: getRankingsQueryKey(options)
-    });
-};
+export const getRankingsOptions = (options?: Options<GetRankingsData>) => queryOptions<GetRankingsResponse, AxiosError<GetRankingsError>, GetRankingsResponse, ReturnType<typeof getRankingsQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getRankings({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getRankingsQueryKey(options)
+});
 
 export const getTimeOfDayPunctualityQueryKey = (options?: Options<GetTimeOfDayPunctualityData>) => createQueryKey('getTimeOfDayPunctuality', options);
 
@@ -472,17 +442,15 @@ export const getTimeOfDayPunctualityQueryKey = (options?: Options<GetTimeOfDayPu
  *
  * On-time share by scheduled hour, network-wide or at one station
  */
-export const getTimeOfDayPunctualityOptions = (options?: Options<GetTimeOfDayPunctualityData>) => {
-    return queryOptions({
-        queryFn: async ({ queryKey, signal }) => {
-            const { data } = await getTimeOfDayPunctuality({
-                ...options,
-                ...queryKey[0],
-                signal,
-                throwOnError: true
-            });
-            return data;
-        },
-        queryKey: getTimeOfDayPunctualityQueryKey(options)
-    });
-};
+export const getTimeOfDayPunctualityOptions = (options?: Options<GetTimeOfDayPunctualityData>) => queryOptions<GetTimeOfDayPunctualityResponse, AxiosError<GetTimeOfDayPunctualityError>, GetTimeOfDayPunctualityResponse, ReturnType<typeof getTimeOfDayPunctualityQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getTimeOfDayPunctuality({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getTimeOfDayPunctualityQueryKey(options)
+});
