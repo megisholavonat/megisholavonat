@@ -12,12 +12,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.core.config import settings
 from api.core.logging_config import get_logger
 from api.core.redis import add_key
-from api.models.devices import Device, Follow
+from api.models.devices import Device, Follow, NotificationState, PushToken
 
 logger = get_logger(__name__)
 
 # One-off trip follows are kept this many days after their service date
 TRIP_FOLLOW_KEEP_DAYS = 2
+# Alert state of commutes is only needed for the current service day
+NOTIFICATION_STATE_KEEP_DAYS = 2
+# A Live Activity runs for at most 8 hours, then lingers up to 4 more
+LIVE_ACTIVITY_TOKEN_MAX_AGE = timedelta(hours=12)
 
 
 def device_key(device_id: uuid.UUID, suffix: str) -> str:
@@ -54,8 +58,10 @@ async def run_housekeeping(
     now: datetime | None = None,
 ) -> dict[str, Any]:
     """
-    Delete trip follows 2 days after their service date and devices idle for
-    DEVICE_IDLE_DAYS. `today` is the local (Budapest) date. Commits.
+    Delete trip follows 2 days after their service date, devices idle for
+    DEVICE_IDLE_DAYS, push tokens that keep failing, Live Activity tokens
+    past the activity's lifetime and old alert state. `today` is the local
+    (Budapest) date. Commits.
     """
     now = now or datetime.now(UTC)
     trip_follows = await session.execute(
@@ -74,12 +80,40 @@ async def run_housekeeping(
         .returning(Device.id)
     )
     idle_devices = [row[0] for row in idle]
+
+    failing = await session.execute(
+        delete(PushToken)
+        .where(PushToken.failure_count >= settings.PUSH_TOKEN_MAX_FAILURES)
+        .returning(PushToken.id)
+    )
+    failing_tokens = len(failing.all())
+    old_activities = await session.execute(
+        delete(PushToken)
+        .where(
+            PushToken.type == "liveactivity",
+            PushToken.updated_at < now - LIVE_ACTIVITY_TOKEN_MAX_AGE,
+        )
+        .returning(PushToken.id)
+    )
+    expired_live_activities = len(old_activities.all())
+    states = await session.execute(
+        delete(NotificationState)
+        .where(
+            NotificationState.service_date
+            <= today - timedelta(days=NOTIFICATION_STATE_KEEP_DAYS)
+        )
+        .returning(NotificationState.follow_id)
+    )
+    expired_states = len(states.all())
     await session.commit()
     await delete_device_keys(redis, idle_devices)
 
     result = {
         "expiredTripFollows": expired_follows,
         "idleDevices": len(idle_devices),
+        "failingPushTokens": failing_tokens,
+        "expiredLiveActivityTokens": expired_live_activities,
+        "expiredNotificationStates": expired_states,
     }
     logger.info(f"Device housekeeping: {result}")
     return result
