@@ -39,7 +39,7 @@ class TrainStationHistory(BaseModel):
     onTimeShare: float | None = None
     insufficientData: bool
     typicalPlatform: str | None = None
-    # Mon-Fri vs Sat-Sun
+    # Working days vs Sat, Sun and Hungarian public holidays (and bridge days)
     weekday: DelayStats
     weekend: DelayStats
 

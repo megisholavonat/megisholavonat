@@ -159,6 +159,34 @@ async def test_weekday_weekend_split(
     assert body["weekday"]["onTimeShare"] == 1.0
 
 
+async def test_public_holidays_count_as_weekend(
+    client: httpx.AsyncClient, db_session: AsyncSession
+) -> None:
+    # Thu 20 Aug 2026 is State Foundation Day, Fri 21 Aug a bridge day;
+    # Wed 19 and Mon 24 Aug are working days
+    days = [date(2026, 8, d) for d in (19, 20, 21, 24)]
+    await _seed(
+        db_session,
+        [_obs(60 * i, day=d, trip=f"1:run{i}") for i, d in enumerate(days)],
+    )
+
+    body = (await client.get(f"/v1/history/trains/10/stations/{KELETI}")).json()
+
+    assert body["weekday"]["n"] == 2
+    assert body["weekday"]["medianDelayMin"] == 1.5  # 0 and 3 minutes
+    assert body["weekend"]["n"] == 2
+    assert body["weekend"]["medianDelayMin"] == 1.5  # 1 and 2 minutes
+    assert body["n"] == 4
+
+
+def test_public_holidays_in_window() -> None:
+    found = insights.public_holidays(date(2026, 8, 1), date(2027, 1, 1))
+    assert date(2026, 8, 20) in found
+    assert date(2026, 10, 23) in found
+    assert date(2027, 1, 1) in found
+    assert date(2026, 8, 19) not in found
+
+
 async def test_train_number_is_the_first_token_only(
     client: httpx.AsyncClient, db_session: AsyncSession
 ) -> None:

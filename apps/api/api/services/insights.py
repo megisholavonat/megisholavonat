@@ -8,8 +8,10 @@ GPS-derived delay_s. Statistics cover the last N service dates up to today
 """
 
 from datetime import date, datetime, timedelta
+from functools import cache
 from typing import Any
 
+import holidays
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -41,6 +43,9 @@ USUAL_ROUTE_MIN_SHARE = 0.5
 # Train numbers are the first token of the trip short name ("10 TRANSCARPATHIA")
 TRAIN_NUMBER = "split_part(trip_short_name, ' ', 1)"
 IN_WINDOW = "service_date BETWEEN :start AND :end"
+
+# Weekend timetables also run on public holidays and bridge days
+WEEKEND = "(extract(isodow FROM service_date) >= 6 OR service_date = ANY(:holidays))"
 
 # Delay aggregates over a set of observations
 DELAY_AGGREGATES = """
@@ -76,6 +81,21 @@ def _stats(row: Any) -> dict[str, Any]:
 def today() -> date:
     """Today in Budapest (tests replace it to pin the window)."""
     return datetime.now(BUDAPEST_TZ).date()
+
+
+@cache
+def _holidays(year: int) -> tuple[date, ...]:
+    return tuple(sorted(holidays.country_holidays("HU", years=year)))
+
+
+def public_holidays(start: date, end: date) -> list[date]:
+    """Hungarian public holidays and bridge days between start and end."""
+    return [
+        d
+        for year in range(start.year, end.year + 1)
+        for d in _holidays(year)
+        if start <= d <= end
+    ]
 
 
 def history_window(days: int) -> HistoryWindow:
@@ -142,14 +162,14 @@ async def train_station_history(
         text(
             f"""
             WITH {obs}
-            SELECT extract(isodow FROM service_date) >= 6 AS weekend,
-                   grouping(extract(isodow FROM service_date) >= 6) AS total,
+            SELECT {WEEKEND} AS weekend,
+                   grouping({WEEKEND}) AS total,
                    {DELAY_AGGREGATES}
             FROM obs
-            GROUP BY GROUPING SETS ((), (extract(isodow FROM service_date) >= 6))
+            GROUP BY GROUPING SETS ((), ({WEEKEND}))
             """
         ),
-        params,
+        {**params, "holidays": public_holidays(window.start, window.end)},
     )
     overall = weekday = weekend = None
     for row in stats:
