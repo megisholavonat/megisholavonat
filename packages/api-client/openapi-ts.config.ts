@@ -2,9 +2,9 @@ import { defineConfig } from "@hey-api/openapi-ts";
 
 export default defineConfig({
     input: "../../apps/api/openapi.json",
-    output: { path: "src", format: "biome", clean: false },
+    output: { path: "src", clean: false, preferExportAll: true },
     plugins: [
-        { name: "@hey-api/client-axios", runtimeConfigPath: "./hey-api" },
+        { name: "@hey-api/client-axios", runtimeConfigPath: "./src/hey-api" },
         "@tanstack/react-query",
         "zod",
     ],

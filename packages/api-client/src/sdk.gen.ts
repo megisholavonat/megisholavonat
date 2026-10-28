@@ -4,7 +4,7 @@ import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
 import type { CreateFollowData, CreateFollowErrors, CreateFollowResponses, DeleteDeviceData, DeleteDeviceErrors, DeleteDeviceResponses, DeleteFollowData, DeleteFollowErrors, DeleteFollowResponses, GetAlertsData, GetAlertsErrors, GetAlertsResponses, GetDeviceData, GetDeviceErrors, GetDeviceResponses, GetPosthogKeyData, GetPosthogKeyResponses, GetRankingsData, GetRankingsErrors, GetRankingsResponses, GetRedisStatusData, GetRedisStatusResponses, GetStationBoardData, GetStationBoardErrors, GetStationBoardResponses, GetStationPlatformsData, GetStationPlatformsErrors, GetStationPlatformsResponses, GetTimeOfDayPunctualityData, GetTimeOfDayPunctualityErrors, GetTimeOfDayPunctualityResponses, GetTrainDetailsData, GetTrainDetailsErrors, GetTrainDetailsResponses, GetTrainHistoryData, GetTrainHistoryErrors, GetTrainHistoryResponses, GetTrainsData, GetTrainsResponses, GetTrainStationHistoryData, GetTrainStationHistoryErrors, GetTrainStationHistoryResponses, ListFollowsData, ListFollowsErrors, ListFollowsResponses, RegisterDeviceData, RegisterDeviceErrors, RegisterDeviceResponses, RootData, RootResponses, RotateDeviceTokenData, RotateDeviceTokenErrors, RotateDeviceTokenResponses, SearchStationsData, SearchStationsErrors, SearchStationsResponses, UpdateFollowData, UpdateFollowErrors, UpdateFollowResponses } from './types.gen';
 
-export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
+export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
      * You can provide a client instance returned by `createClient()` instead of
      * individual options. This might be also useful if you want to implement a
@@ -21,104 +21,88 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 /**
  * Root
  */
-export const root = <ThrowOnError extends boolean = false>(options?: Options<RootData, ThrowOnError>) => {
-    return (options?.client ?? client).get<RootResponses, unknown, ThrowOnError>({
-        responseType: 'json',
-        url: '/',
-        ...options
-    });
-};
+export const root = <ThrowOnError extends boolean = false>(options?: Options<RootData, ThrowOnError>) => (options?.client ?? client).get<RootResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/',
+    ...options
+});
 
 /**
  * Get Redis Status
  *
  * Get Redis connection status and test operations
  */
-export const getRedisStatus = <ThrowOnError extends boolean = false>(options?: Options<GetRedisStatusData, ThrowOnError>) => {
-    return (options?.client ?? client).get<GetRedisStatusResponses, unknown, ThrowOnError>({
-        responseType: 'json',
-        url: '/v1/redis',
-        ...options
-    });
-};
+export const getRedisStatus = <ThrowOnError extends boolean = false>(options?: Options<GetRedisStatusData, ThrowOnError>) => (options?.client ?? client).get<GetRedisStatusResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/v1/redis',
+    ...options
+});
 
 /**
  * Get Trains
  *
  * Get trains information as GeoJSON FeatureCollection
  */
-export const getTrains = <ThrowOnError extends boolean = false>(options?: Options<GetTrainsData, ThrowOnError>) => {
-    return (options?.client ?? client).get<GetTrainsResponses, unknown, ThrowOnError>({
-        responseType: 'json',
-        url: '/v1/trains',
-        ...options
-    });
-};
+export const getTrains = <ThrowOnError extends boolean = false>(options?: Options<GetTrainsData, ThrowOnError>) => (options?.client ?? client).get<GetTrainsResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/v1/trains',
+    ...options
+});
 
 /**
  * Get Train Details
  *
  * Get specific train details
  */
-export const getTrainDetails = <ThrowOnError extends boolean = false>(options: Options<GetTrainDetailsData, ThrowOnError>) => {
-    return (options.client ?? client).get<GetTrainDetailsResponses, GetTrainDetailsErrors, ThrowOnError>({
-        responseType: 'json',
-        url: '/v1/trains/{vehicle_id}',
-        ...options
-    });
-};
+export const getTrainDetails = <ThrowOnError extends boolean = false>(options: Options<GetTrainDetailsData, ThrowOnError>) => (options.client ?? client).get<GetTrainDetailsResponses, GetTrainDetailsErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/v1/trains/{vehicle_id}',
+    ...options
+});
 
 /**
  * Get Posthog Key
  *
  * Get Posthog key
  */
-export const getPosthogKey = <ThrowOnError extends boolean = false>(options?: Options<GetPosthogKeyData, ThrowOnError>) => {
-    return (options?.client ?? client).get<GetPosthogKeyResponses, unknown, ThrowOnError>({
-        responseType: 'json',
-        url: '/v1/posthog',
-        ...options
-    });
-};
+export const getPosthogKey = <ThrowOnError extends boolean = false>(options?: Options<GetPosthogKeyData, ThrowOnError>) => (options?.client ?? client).get<GetPosthogKeyResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/v1/posthog',
+    ...options
+});
 
 /**
  * Search Stations
  *
  * Search rail stations by name, ignoring accents
  */
-export const searchStations = <ThrowOnError extends boolean = false>(options: Options<SearchStationsData, ThrowOnError>) => {
-    return (options.client ?? client).get<SearchStationsResponses, SearchStationsErrors, ThrowOnError>({
-        responseType: 'json',
-        url: '/v1/stations',
-        ...options
-    });
-};
+export const searchStations = <ThrowOnError extends boolean = false>(options: Options<SearchStationsData, ThrowOnError>) => (options.client ?? client).get<SearchStationsResponses, SearchStationsErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/v1/stations',
+    ...options
+});
 
 /**
  * Get Station Board
  *
  * Departure or arrival board of a station, merged across its platforms
  */
-export const getStationBoard = <ThrowOnError extends boolean = false>(options: Options<GetStationBoardData, ThrowOnError>) => {
-    return (options.client ?? client).get<GetStationBoardResponses, GetStationBoardErrors, ThrowOnError>({
-        responseType: 'json',
-        url: '/v1/stations/{stationId}/departures',
-        ...options
-    });
-};
+export const getStationBoard = <ThrowOnError extends boolean = false>(options: Options<GetStationBoardData, ThrowOnError>) => (options.client ?? client).get<GetStationBoardResponses, GetStationBoardErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/v1/stations/{stationId}/departures',
+    ...options
+});
 
 /**
  * Get Alerts
  *
  * Active rail alerts (MÁV, GYSEV, HÉV), newest first
  */
-export const getAlerts = <ThrowOnError extends boolean = false>(options?: Options<GetAlertsData, ThrowOnError>) => {
-    return (options?.client ?? client).get<GetAlertsResponses, GetAlertsErrors, ThrowOnError>({
-        responseType: 'json',
-        url: '/v1/alerts',
-        ...options
-    });
-};
+export const getAlerts = <ThrowOnError extends boolean = false>(options?: Options<GetAlertsData, ThrowOnError>) => (options?.client ?? client).get<GetAlertsResponses, GetAlertsErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/v1/alerts',
+    ...options
+});
 
 /**
  * Register Device
@@ -126,195 +110,138 @@ export const getAlerts = <ThrowOnError extends boolean = false>(options?: Option
  * Register an anonymous device. The token is returned only here and from
  * rotate-token; store it securely.
  */
-export const registerDevice = <ThrowOnError extends boolean = false>(options: Options<RegisterDeviceData, ThrowOnError>) => {
-    return (options.client ?? client).post<RegisterDeviceResponses, RegisterDeviceErrors, ThrowOnError>({
-        responseType: 'json',
-        url: '/v1/devices',
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            ...options.headers
-        }
-    });
-};
+export const registerDevice = <ThrowOnError extends boolean = false>(options: Options<RegisterDeviceData, ThrowOnError>) => (options.client ?? client).post<RegisterDeviceResponses, RegisterDeviceErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/v1/devices',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
 
 /**
  * Delete Device
  *
  * Delete this device and everything stored about it (follows included).
  */
-export const deleteDevice = <ThrowOnError extends boolean = false>(options?: Options<DeleteDeviceData, ThrowOnError>) => {
-    return (options?.client ?? client).delete<DeleteDeviceResponses, DeleteDeviceErrors, ThrowOnError>({
-        security: [
-            {
-                scheme: 'bearer',
-                type: 'http'
-            }
-        ],
-        url: '/v1/devices/me',
-        ...options
-    });
-};
+export const deleteDevice = <ThrowOnError extends boolean = false>(options?: Options<DeleteDeviceData, ThrowOnError>) => (options?.client ?? client).delete<DeleteDeviceResponses, DeleteDeviceErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/devices/me',
+    ...options
+});
 
 /**
  * Get Device
  *
  * The calling device
  */
-export const getDevice = <ThrowOnError extends boolean = false>(options?: Options<GetDeviceData, ThrowOnError>) => {
-    return (options?.client ?? client).get<GetDeviceResponses, GetDeviceErrors, ThrowOnError>({
-        responseType: 'json',
-        security: [
-            {
-                scheme: 'bearer',
-                type: 'http'
-            }
-        ],
-        url: '/v1/devices/me',
-        ...options
-    });
-};
+export const getDevice = <ThrowOnError extends boolean = false>(options?: Options<GetDeviceData, ThrowOnError>) => (options?.client ?? client).get<GetDeviceResponses, GetDeviceErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/devices/me',
+    ...options
+});
 
 /**
  * Rotate Device Token
  *
  * Issue a new token; the current one stops working immediately.
  */
-export const rotateDeviceToken = <ThrowOnError extends boolean = false>(options?: Options<RotateDeviceTokenData, ThrowOnError>) => {
-    return (options?.client ?? client).post<RotateDeviceTokenResponses, RotateDeviceTokenErrors, ThrowOnError>({
-        responseType: 'json',
-        security: [
-            {
-                scheme: 'bearer',
-                type: 'http'
-            }
-        ],
-        url: '/v1/devices/me/rotate-token',
-        ...options
-    });
-};
+export const rotateDeviceToken = <ThrowOnError extends boolean = false>(options?: Options<RotateDeviceTokenData, ThrowOnError>) => (options?.client ?? client).post<RotateDeviceTokenResponses, RotateDeviceTokenErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/devices/me/rotate-token',
+    ...options
+});
 
 /**
  * List Follows
  *
  * Follows of the calling device, oldest first
  */
-export const listFollows = <ThrowOnError extends boolean = false>(options?: Options<ListFollowsData, ThrowOnError>) => {
-    return (options?.client ?? client).get<ListFollowsResponses, ListFollowsErrors, ThrowOnError>({
-        responseType: 'json',
-        security: [
-            {
-                scheme: 'bearer',
-                type: 'http'
-            }
-        ],
-        url: '/v1/follows',
-        ...options
-    });
-};
+export const listFollows = <ThrowOnError extends boolean = false>(options?: Options<ListFollowsData, ThrowOnError>) => (options?.client ?? client).get<ListFollowsResponses, ListFollowsErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/follows',
+    ...options
+});
 
 /**
  * Create Follow
  *
  * Follow a single trip or a recurring commute
  */
-export const createFollow = <ThrowOnError extends boolean = false>(options: Options<CreateFollowData, ThrowOnError>) => {
-    return (options.client ?? client).post<CreateFollowResponses, CreateFollowErrors, ThrowOnError>({
-        responseType: 'json',
-        security: [
-            {
-                scheme: 'bearer',
-                type: 'http'
-            }
-        ],
-        url: '/v1/follows',
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            ...options.headers
-        }
-    });
-};
+export const createFollow = <ThrowOnError extends boolean = false>(options: Options<CreateFollowData, ThrowOnError>) => (options.client ?? client).post<CreateFollowResponses, CreateFollowErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/follows',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
 
 /**
  * Delete Follow
  *
  * Stop following
  */
-export const deleteFollow = <ThrowOnError extends boolean = false>(options: Options<DeleteFollowData, ThrowOnError>) => {
-    return (options.client ?? client).delete<DeleteFollowResponses, DeleteFollowErrors, ThrowOnError>({
-        security: [
-            {
-                scheme: 'bearer',
-                type: 'http'
-            }
-        ],
-        url: '/v1/follows/{follow_id}',
-        ...options
-    });
-};
+export const deleteFollow = <ThrowOnError extends boolean = false>(options: Options<DeleteFollowData, ThrowOnError>) => (options.client ?? client).delete<DeleteFollowResponses, DeleteFollowErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/follows/{follow_id}',
+    ...options
+});
 
 /**
  * Update Follow
  *
  * Change alert preferences, or a commute's days, stations or label
  */
-export const updateFollow = <ThrowOnError extends boolean = false>(options: Options<UpdateFollowData, ThrowOnError>) => {
-    return (options.client ?? client).patch<UpdateFollowResponses, UpdateFollowErrors, ThrowOnError>({
-        responseType: 'json',
-        security: [
-            {
-                scheme: 'bearer',
-                type: 'http'
-            }
-        ],
-        url: '/v1/follows/{follow_id}',
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            ...options.headers
-        }
-    });
-};
+export const updateFollow = <ThrowOnError extends boolean = false>(options: Options<UpdateFollowData, ThrowOnError>) => (options.client ?? client).patch<UpdateFollowResponses, UpdateFollowErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/follows/{follow_id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
 
 /**
  * Get Train Station History
  *
  * How late a train usually is at a station ("usually late by X")
  */
-export const getTrainStationHistory = <ThrowOnError extends boolean = false>(options: Options<GetTrainStationHistoryData, ThrowOnError>) => {
-    return (options.client ?? client).get<GetTrainStationHistoryResponses, GetTrainStationHistoryErrors, ThrowOnError>({
-        responseType: 'json',
-        url: '/v1/history/trains/{trainNumber}/stations/{stationId}',
-        ...options
-    });
-};
+export const getTrainStationHistory = <ThrowOnError extends boolean = false>(options: Options<GetTrainStationHistoryData, ThrowOnError>) => (options.client ?? client).get<GetTrainStationHistoryResponses, GetTrainStationHistoryErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/v1/history/trains/{trainNumber}/stations/{stationId}',
+    ...options
+});
 
 /**
  * Get Train History
  *
  * Typical delay at each station of a train's usual route
  */
-export const getTrainHistory = <ThrowOnError extends boolean = false>(options: Options<GetTrainHistoryData, ThrowOnError>) => {
-    return (options.client ?? client).get<GetTrainHistoryResponses, GetTrainHistoryErrors, ThrowOnError>({
-        responseType: 'json',
-        url: '/v1/history/trains/{trainNumber}',
-        ...options
-    });
-};
+export const getTrainHistory = <ThrowOnError extends boolean = false>(options: Options<GetTrainHistoryData, ThrowOnError>) => (options.client ?? client).get<GetTrainHistoryResponses, GetTrainHistoryErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/v1/history/trains/{trainNumber}',
+    ...options
+});
 
 /**
  * Get Station Platforms
  *
  * Predicted platform per train at a station: the most common one recently
  */
-export const getStationPlatforms = <ThrowOnError extends boolean = false>(options: Options<GetStationPlatformsData, ThrowOnError>) => {
-    return (options.client ?? client).get<GetStationPlatformsResponses, GetStationPlatformsErrors, ThrowOnError>({
-        responseType: 'json',
-        url: '/v1/history/stations/{stationId}/platforms',
-        ...options
-    });
-};
+export const getStationPlatforms = <ThrowOnError extends boolean = false>(options: Options<GetStationPlatformsData, ThrowOnError>) => (options.client ?? client).get<GetStationPlatformsResponses, GetStationPlatformsErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/v1/history/stations/{stationId}/platforms',
+    ...options
+});
 
 /**
  * Get Rankings
@@ -323,23 +250,19 @@ export const getStationPlatforms = <ThrowOnError extends boolean = false>(option
  * most 5 minutes late), then by median delay. Stations and lines count every
  * stop passage; trains count one arrival per run, at its last recorded stop.
  */
-export const getRankings = <ThrowOnError extends boolean = false>(options?: Options<GetRankingsData, ThrowOnError>) => {
-    return (options?.client ?? client).get<GetRankingsResponses, GetRankingsErrors, ThrowOnError>({
-        responseType: 'json',
-        url: '/v1/rankings',
-        ...options
-    });
-};
+export const getRankings = <ThrowOnError extends boolean = false>(options?: Options<GetRankingsData, ThrowOnError>) => (options?.client ?? client).get<GetRankingsResponses, GetRankingsErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/v1/rankings',
+    ...options
+});
 
 /**
  * Get Time Of Day Punctuality
  *
  * On-time share by scheduled hour, network-wide or at one station
  */
-export const getTimeOfDayPunctuality = <ThrowOnError extends boolean = false>(options?: Options<GetTimeOfDayPunctualityData, ThrowOnError>) => {
-    return (options?.client ?? client).get<GetTimeOfDayPunctualityResponses, GetTimeOfDayPunctualityErrors, ThrowOnError>({
-        responseType: 'json',
-        url: '/v1/rankings/time-of-day',
-        ...options
-    });
-};
+export const getTimeOfDayPunctuality = <ThrowOnError extends boolean = false>(options?: Options<GetTimeOfDayPunctualityData, ThrowOnError>) => (options?.client ?? client).get<GetTimeOfDayPunctualityResponses, GetTimeOfDayPunctualityErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/v1/rankings/time-of-day',
+    ...options
+});
