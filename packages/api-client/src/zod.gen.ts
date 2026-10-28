@@ -18,6 +18,87 @@ export const zAlert = z.object({
 });
 
 /**
+ * AlertRoute
+ *
+ * Route affected by an alert
+ */
+export const zAlertRoute = z.object({
+    id: z.string(),
+    mode: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    shortName: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    longName: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
+});
+
+/**
+ * AlertStation
+ *
+ * Station affected by an alert
+ */
+export const zAlertStation = z.object({
+    id: z.string(),
+    name: z.string()
+});
+
+/**
+ * AlertTrip
+ *
+ * Single train affected by an alert
+ */
+export const zAlertTrip = z.object({
+    tripId: z.string(),
+    tripShortName: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
+});
+
+/**
+ * BoardEntry
+ *
+ * One train on a station's departure or arrival board
+ */
+export const zBoardEntry = z.object({
+    tripId: z.string(),
+    tripShortName: z.string(),
+    routeShortName: z.string(),
+    routeTextColor: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    headsign: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    serviceDate: z.string(),
+    scheduledTime: z.int(),
+    expectedTime: z.int(),
+    delayMinutes: z.int(),
+    delaySource: z.enum([
+        'gps',
+        'otp'
+    ]),
+    platform: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    realtime: z.boolean(),
+    canceled: z.optional(z.boolean()).default(false),
+    vehicleId: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
+});
+
+/**
  * InfoService
  *
  * Information service details
@@ -42,6 +123,35 @@ export const zPosthogKey = z.object({
 });
 
 /**
+ * RailAlert
+ *
+ * An active rail disruption or service notice
+ */
+export const zRailAlert = z.object({
+    id: z.string(),
+    header: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    description: z.string(),
+    url: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    start: z.optional(z.union([
+        z.int(),
+        z.null()
+    ])),
+    end: z.optional(z.union([
+        z.int(),
+        z.null()
+    ])),
+    affectedRoutes: z.array(zAlertRoute),
+    affectedTrips: z.array(zAlertTrip),
+    affectedStations: z.array(zAlertStation)
+});
+
+/**
  * Route
  *
  * Route information
@@ -54,6 +164,33 @@ export const zRoute = z.object({
     textColor: z.string(),
     shortName: z.string(),
     longName: z.string()
+});
+
+/**
+ * Station
+ *
+ * A rail station, grouping all of its platforms
+ */
+export const zStation = z.object({
+    id: z.string(),
+    name: z.string(),
+    lat: z.number(),
+    lon: z.number()
+});
+
+/**
+ * StationBoard
+ *
+ * Departure or arrival board of a station, merged across platforms
+ */
+export const zStationBoard = z.object({
+    station: zStation,
+    kind: z.enum([
+        'departures',
+        'arrivals'
+    ]),
+    generatedAt: z.int(),
+    entries: z.array(zBoardEntry)
 });
 
 /**
@@ -338,3 +475,51 @@ export const zGetPosthogKeyData = z.object({
  * Successful Response
  */
 export const zGetPosthogKeyResponse = zPosthogKey;
+
+export const zSearchStationsData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.object({
+        q: z.string().min(1).max(100),
+        limit: z.optional(z.int().gte(1).lte(50)).default(10)
+    })
+});
+
+/**
+ * Response Searchstations
+ *
+ * Successful Response
+ */
+export const zSearchStationsResponse = z.array(zStation);
+
+export const zGetStationBoardData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        stationId: z.string()
+    }),
+    query: z.optional(z.object({
+        kind: z.optional(z.enum([
+            'departures',
+            'arrivals'
+        ])),
+        limit: z.optional(z.int().gte(1).lte(50)).default(20)
+    }))
+});
+
+/**
+ * Successful Response
+ */
+export const zGetStationBoardResponse = zStationBoard;
+
+export const zGetAlertsData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+/**
+ * Response Getalerts
+ *
+ * Successful Response
+ */
+export const zGetAlertsResponse = z.array(zRailAlert);

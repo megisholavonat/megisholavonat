@@ -3,8 +3,8 @@
 import { queryOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { getPosthogKey, getRedisStatus, getTrainDetails, getTrains, type Options, root } from '../sdk.gen';
-import type { GetPosthogKeyData, GetRedisStatusData, GetTrainDetailsData, GetTrainsData, RootData } from '../types.gen';
+import { getAlerts, getPosthogKey, getRedisStatus, getStationBoard, getTrainDetails, getTrains, type Options, root, searchStations } from '../sdk.gen';
+import type { GetAlertsData, GetPosthogKeyData, GetRedisStatusData, GetStationBoardData, GetTrainDetailsData, GetTrainsData, RootData, SearchStationsData } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseURL' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -146,5 +146,71 @@ export const getPosthogKeyOptions = (options?: Options<GetPosthogKeyData>) => {
             return data;
         },
         queryKey: getPosthogKeyQueryKey(options)
+    });
+};
+
+export const searchStationsQueryKey = (options: Options<SearchStationsData>) => createQueryKey('searchStations', options);
+
+/**
+ * Search Stations
+ *
+ * Search rail stations by name, ignoring accents
+ */
+export const searchStationsOptions = (options: Options<SearchStationsData>) => {
+    return queryOptions({
+        queryFn: async ({ queryKey, signal }) => {
+            const { data } = await searchStations({
+                ...options,
+                ...queryKey[0],
+                signal,
+                throwOnError: true
+            });
+            return data;
+        },
+        queryKey: searchStationsQueryKey(options)
+    });
+};
+
+export const getStationBoardQueryKey = (options: Options<GetStationBoardData>) => createQueryKey('getStationBoard', options);
+
+/**
+ * Get Station Board
+ *
+ * Departure or arrival board of a station, merged across its platforms
+ */
+export const getStationBoardOptions = (options: Options<GetStationBoardData>) => {
+    return queryOptions({
+        queryFn: async ({ queryKey, signal }) => {
+            const { data } = await getStationBoard({
+                ...options,
+                ...queryKey[0],
+                signal,
+                throwOnError: true
+            });
+            return data;
+        },
+        queryKey: getStationBoardQueryKey(options)
+    });
+};
+
+export const getAlertsQueryKey = (options?: Options<GetAlertsData>) => createQueryKey('getAlerts', options);
+
+/**
+ * Get Alerts
+ *
+ * Active rail alerts (MÁV, GYSEV, HÉV), newest first
+ */
+export const getAlertsOptions = (options?: Options<GetAlertsData>) => {
+    return queryOptions({
+        queryFn: async ({ queryKey, signal }) => {
+            const { data } = await getAlerts({
+                ...options,
+                ...queryKey[0],
+                signal,
+                throwOnError: true
+            });
+            return data;
+        },
+        queryKey: getAlertsQueryKey(options)
     });
 };

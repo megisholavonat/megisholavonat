@@ -133,6 +133,174 @@
           }
         }
       }
+    },
+    "/v1/stations": {
+      "get": {
+        "tags": [
+          "stations"
+        ],
+        "summary": "Search Stations",
+        "description": "Search rail stations by name, ignoring accents",
+        "operationId": "searchStations",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "title": "Q"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "default": 10,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Station"
+                  },
+                  "title": "Response Searchstations"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The upstream timetable service failed"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/stations/{stationId}/departures": {
+      "get": {
+        "tags": [
+          "stations"
+        ],
+        "summary": "Get Station Board",
+        "description": "Departure or arrival board of a station, merged across its platforms",
+        "operationId": "getStationBoard",
+        "parameters": [
+          {
+            "name": "stationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Stationid"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "departures",
+                "arrivals"
+              ],
+              "type": "string",
+              "default": "departures",
+              "title": "Kind"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StationBoard"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The upstream timetable service failed"
+          },
+          "404": {
+            "description": "Unknown station"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/alerts": {
+      "get": {
+        "tags": [
+          "alerts"
+        ],
+        "summary": "Get Alerts",
+        "description": "Active rail alerts (M\u00c1V, GYSEV, H\u00c9V), newest first",
+        "operationId": "getAlerts",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RailAlert"
+                  },
+                  "type": "array",
+                  "title": "Response Getalerts"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The upstream timetable service failed"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -171,6 +339,204 @@
         ],
         "title": "Alert",
         "description": "Alert information"
+      },
+      "AlertRoute": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mode"
+          },
+          "shortName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shortname"
+          },
+          "longName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longname"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "AlertRoute",
+        "description": "Route affected by an alert"
+      },
+      "AlertStation": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "AlertStation",
+        "description": "Station affected by an alert"
+      },
+      "AlertTrip": {
+        "properties": {
+          "tripId": {
+            "type": "string",
+            "title": "Tripid"
+          },
+          "tripShortName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tripshortname"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tripId"
+        ],
+        "title": "AlertTrip",
+        "description": "Single train affected by an alert"
+      },
+      "BoardEntry": {
+        "properties": {
+          "tripId": {
+            "type": "string",
+            "title": "Tripid"
+          },
+          "tripShortName": {
+            "type": "string",
+            "title": "Tripshortname"
+          },
+          "routeShortName": {
+            "type": "string",
+            "title": "Routeshortname"
+          },
+          "routeTextColor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Routetextcolor"
+          },
+          "headsign": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Headsign"
+          },
+          "serviceDate": {
+            "type": "string",
+            "title": "Servicedate"
+          },
+          "scheduledTime": {
+            "type": "integer",
+            "title": "Scheduledtime"
+          },
+          "expectedTime": {
+            "type": "integer",
+            "title": "Expectedtime"
+          },
+          "delayMinutes": {
+            "type": "integer",
+            "title": "Delayminutes"
+          },
+          "delaySource": {
+            "type": "string",
+            "enum": [
+              "gps",
+              "otp"
+            ],
+            "title": "Delaysource"
+          },
+          "platform": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Platform"
+          },
+          "realtime": {
+            "type": "boolean",
+            "title": "Realtime"
+          },
+          "canceled": {
+            "type": "boolean",
+            "title": "Canceled",
+            "default": false
+          },
+          "vehicleId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vehicleid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tripId",
+          "tripShortName",
+          "routeShortName",
+          "serviceDate",
+          "scheduledTime",
+          "expectedTime",
+          "delayMinutes",
+          "delaySource",
+          "realtime"
+        ],
+        "title": "BoardEntry",
+        "description": "One train on a station's departure or arrival board"
       },
       "HTTPValidationError": {
         "properties": {
@@ -303,6 +669,93 @@
         "title": "ProcessedStop",
         "description": "Processed stop with distance information"
       },
+      "RailAlert": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "header": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Header"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "start": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start"
+          },
+          "end": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End"
+          },
+          "affectedRoutes": {
+            "items": {
+              "$ref": "#/components/schemas/AlertRoute"
+            },
+            "type": "array",
+            "title": "Affectedroutes"
+          },
+          "affectedTrips": {
+            "items": {
+              "$ref": "#/components/schemas/AlertTrip"
+            },
+            "type": "array",
+            "title": "Affectedtrips"
+          },
+          "affectedStations": {
+            "items": {
+              "$ref": "#/components/schemas/AlertStation"
+            },
+            "type": "array",
+            "title": "Affectedstations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "description",
+          "affectedRoutes",
+          "affectedTrips",
+          "affectedStations"
+        ],
+        "title": "RailAlert",
+        "description": "An active rail disruption or service notice"
+      },
       "Route": {
         "properties": {
           "mode": {
@@ -337,6 +790,70 @@
         ],
         "title": "Route",
         "description": "Route information"
+      },
+      "Station": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "lat": {
+            "type": "number",
+            "title": "Lat"
+          },
+          "lon": {
+            "type": "number",
+            "title": "Lon"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "lat",
+          "lon"
+        ],
+        "title": "Station",
+        "description": "A rail station, grouping all of its platforms"
+      },
+      "StationBoard": {
+        "properties": {
+          "station": {
+            "$ref": "#/components/schemas/Station"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "departures",
+              "arrivals"
+            ],
+            "title": "Kind"
+          },
+          "generatedAt": {
+            "type": "integer",
+            "title": "Generatedat"
+          },
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/BoardEntry"
+            },
+            "type": "array",
+            "title": "Entries"
+          }
+        },
+        "type": "object",
+        "required": [
+          "station",
+          "kind",
+          "generatedAt",
+          "entries"
+        ],
+        "title": "StationBoard",
+        "description": "Departure or arrival board of a station, merged across platforms"
       },
       "StopTimeWithCounty": {
         "properties": {

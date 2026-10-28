@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetPosthogKeyData, GetPosthogKeyResponses, GetRedisStatusData, GetRedisStatusResponses, GetTrainDetailsData, GetTrainDetailsErrors, GetTrainDetailsResponses, GetTrainsData, GetTrainsResponses, RootData, RootResponses } from './types.gen';
+import type { GetAlertsData, GetAlertsErrors, GetAlertsResponses, GetPosthogKeyData, GetPosthogKeyResponses, GetRedisStatusData, GetRedisStatusResponses, GetStationBoardData, GetStationBoardErrors, GetStationBoardResponses, GetTrainDetailsData, GetTrainDetailsErrors, GetTrainDetailsResponses, GetTrainsData, GetTrainsResponses, RootData, RootResponses, SearchStationsData, SearchStationsErrors, SearchStationsResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -77,6 +77,45 @@ export const getPosthogKey = <ThrowOnError extends boolean = false>(options?: Op
     return (options?.client ?? client).get<GetPosthogKeyResponses, unknown, ThrowOnError>({
         responseType: 'json',
         url: '/v1/posthog',
+        ...options
+    });
+};
+
+/**
+ * Search Stations
+ *
+ * Search rail stations by name, ignoring accents
+ */
+export const searchStations = <ThrowOnError extends boolean = false>(options: Options<SearchStationsData, ThrowOnError>) => {
+    return (options.client ?? client).get<SearchStationsResponses, SearchStationsErrors, ThrowOnError>({
+        responseType: 'json',
+        url: '/v1/stations',
+        ...options
+    });
+};
+
+/**
+ * Get Station Board
+ *
+ * Departure or arrival board of a station, merged across its platforms
+ */
+export const getStationBoard = <ThrowOnError extends boolean = false>(options: Options<GetStationBoardData, ThrowOnError>) => {
+    return (options.client ?? client).get<GetStationBoardResponses, GetStationBoardErrors, ThrowOnError>({
+        responseType: 'json',
+        url: '/v1/stations/{stationId}/departures',
+        ...options
+    });
+};
+
+/**
+ * Get Alerts
+ *
+ * Active rail alerts (MÁV, GYSEV, HÉV), newest first
+ */
+export const getAlerts = <ThrowOnError extends boolean = false>(options?: Options<GetAlertsData, ThrowOnError>) => {
+    return (options?.client ?? client).get<GetAlertsResponses, GetAlertsErrors, ThrowOnError>({
+        responseType: 'json',
+        url: '/v1/alerts',
         ...options
     });
 };
