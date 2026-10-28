@@ -114,3 +114,22 @@ class TimeOfDayPunctuality(BaseModel):
     stationId: str | None = None
     window: HistoryWindow
     hours: list[HourPunctuality]
+
+
+class PlatformPrediction(BaseModel):
+    trainNumber: str
+    tripShortName: str | None = None
+    routeShortName: str | None = None
+    lineName: str | None = None
+    # Most common platform; ties go to the most recently used one
+    platform: str
+    # Share of the train's passages here that used this platform
+    confidence: float
+    n: int
+
+
+class StationPlatforms(BaseModel):
+    stationId: str
+    stationName: str | None = None
+    window: HistoryWindow
+    predictions: list[PlatformPrediction]

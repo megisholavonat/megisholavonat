@@ -353,6 +353,67 @@ async def test_time_of_day(client: httpx.AsyncClient, db_session: AsyncSession) 
     }
 
 
+# --- Platforms ---
+
+
+async def test_platform_prediction_most_common(
+    client: httpx.AsyncClient, db_session: AsyncSession
+) -> None:
+    await _seed(
+        db_session,
+        _runs([0], platform="2")
+        + [_obs(0, day=MONDAY - timedelta(days=i), platform="5") for i in (1, 2, 3)]
+        + _runs([0, 0], train="1001 Other", seq=1, platform=None),
+    )
+
+    body = (await client.get(f"/v1/history/stations/{KELETI}/platforms")).json()
+
+    assert body["stationName"] == "Budapest-Keleti"
+    # Passages without a platform are not predicted
+    assert body["predictions"] == [
+        {
+            "trainNumber": "10",
+            "tripShortName": "10 TRANSCARPATHIA",
+            "routeShortName": "IC",
+            "lineName": "IC",
+            "platform": "5",
+            "confidence": 0.75,
+            "n": 4,
+        }
+    ]
+
+
+async def test_platform_tie_goes_to_most_recent(
+    client: httpx.AsyncClient, db_session: AsyncSession
+) -> None:
+    # Platform 3 twice in the older days, platform 6 twice in the newer
+    rows = [
+        _obs(0, day=MONDAY - timedelta(days=i), platform=p)
+        for i, p in ((0, "6"), (1, "6"), (2, "3"), (3, "3"))
+    ]
+    # Same tie for train 20, newest first the other way round
+    rows += [
+        _obs(0, day=MONDAY - timedelta(days=i), platform=p, train="20 X", seq=1)
+        for i, p in ((0, "3"), (1, "3"), (2, "6"), (3, "6"))
+    ]
+    await _seed(db_session, rows)
+
+    body = (await client.get(f"/v1/history/stations/{KELETI}/platforms")).json()
+    only_10 = (
+        await client.get(f"/v1/history/stations/{KELETI}/platforms?trainNumber=10")
+    ).json()
+    keleti = (await client.get(f"/v1/history/trains/10/stations/{KELETI}")).json()
+
+    assert [
+        (p["trainNumber"], p["platform"], p["confidence"]) for p in body["predictions"]
+    ] == [
+        ("10", "6", 0.5),
+        ("20", "3", 0.5),
+    ]
+    assert [p["trainNumber"] for p in only_10["predictions"]] == ["10"]
+    assert keleti["typicalPlatform"] == "6"
+
+
 async def test_responses_are_cached(
     client: httpx.AsyncClient,
     db_session: AsyncSession,

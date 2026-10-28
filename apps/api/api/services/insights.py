@@ -1,6 +1,6 @@
 """
 Read side of the delay history: typical delays per train and station,
-punctuality rankings and on-time share by hour.
+punctuality rankings, on-time share by hour and platform prediction.
 
 Everything is aggregated in SQL over stop_delay_observations, using our
 GPS-derived delay_s. Statistics cover a window of service dates that ends at
@@ -20,10 +20,12 @@ from api.schemas.insights import (
     DelayStats,
     HistoryWindow,
     HourPunctuality,
+    PlatformPrediction,
     RankingEntry,
     RankingKind,
     RankingOrder,
     Rankings,
+    StationPlatforms,
     TimeOfDayPunctuality,
     TrainHistory,
     TrainRouteStation,
@@ -377,3 +379,54 @@ async def time_of_day(
             )
         )
     return TimeOfDayPunctuality(stationId=station, window=window, hours=hours)
+
+
+async def station_platforms(
+    session: AsyncSession, station: str, train_number: str | None, days: int
+) -> StationPlatforms:
+    window = await history_window(session, days)
+    train_filter = f"AND {TRAIN_NUMBER} = :train" if train_number else ""
+    result = await session.execute(
+        text(
+            f"""
+            WITH obs AS (
+                SELECT * FROM stop_delay_observations
+                WHERE {IN_WINDOW} AND station_id = :station {train_filter}
+            ),
+            {TOP_PLATFORM.format(group=TRAIN_NUMBER)},
+            names AS (
+                SELECT DISTINCT ON (grp) grp, trip_short_name, route_short_name
+                FROM (
+                    SELECT {TRAIN_NUMBER} AS grp, trip_short_name, route_short_name,
+                           count(*) AS c
+                    FROM obs GROUP BY 1, 2, 3
+                ) t
+                ORDER BY grp, c DESC, trip_short_name, route_short_name
+            )
+            SELECT p.grp, p.platform, p.c, p.total,
+                   n.trip_short_name, n.route_short_name
+            FROM top_platform p JOIN names n USING (grp)
+            ORDER BY length(p.grp), p.grp
+            """
+        ),
+        {**_window_params(window), "station": station, "train": train_number},
+    )
+    rows = result.all()
+    names = await station_names(session, [station])
+    return StationPlatforms(
+        stationId=station,
+        stationName=names.get(station),
+        window=window,
+        predictions=[
+            PlatformPrediction(
+                trainNumber=r.grp,
+                tripShortName=r.trip_short_name,
+                routeShortName=r.route_short_name or None,
+                lineName=route_name(r.route_short_name),
+                platform=r.platform,
+                confidence=round(r.c / r.total, 3),
+                n=r.total,
+            )
+            for r in rows
+        ],
+    )

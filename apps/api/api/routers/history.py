@@ -1,4 +1,4 @@
-"""Delay history endpoints: typical delays"""
+"""Delay history endpoints: typical delays and platform prediction"""
 
 from typing import Annotated
 
@@ -7,7 +7,7 @@ from fastapi import APIRouter, Path, Query
 from api.core.cache import cached_model
 from api.core.db import SessionDep
 from api.core.redis import RedisDep
-from api.schemas.insights import TrainHistory, TrainStationHistory
+from api.schemas.insights import StationPlatforms, TrainHistory, TrainStationHistory
 from api.services import insights
 
 router = APIRouter(prefix="/history", tags=["history"])
@@ -57,4 +57,22 @@ async def get_train_history(
         TrainHistory,
         CACHE_TTL_S,
         lambda: insights.train_history(session, train_number, days),
+    )
+
+
+@router.get("/stations/{stationId}/platforms")
+async def get_station_platforms(
+    station_id: StationIdPath,
+    session: SessionDep,
+    redis: RedisDep,
+    train_number: Annotated[str | None, Query(alias="trainNumber")] = None,
+    days: DaysQuery = 28,
+) -> StationPlatforms:
+    """Predicted platform per train at a station: the most common one recently"""
+    return await cached_model(
+        redis,
+        f"history:platforms:{station_id}:{train_number or '*'}:{days}",
+        StationPlatforms,
+        CACHE_TTL_S,
+        lambda: insights.station_platforms(session, station_id, train_number, days),
     )
