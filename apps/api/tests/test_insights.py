@@ -218,6 +218,141 @@ async def test_train_route_in_schedule_order_without_rare_stations(
     assert szolnok["insufficientData"] is True
 
 
+# --- Rankings ---
+
+
+async def _seed_stations(db_session: AsyncSession) -> None:
+    rows = []
+    # KELETI: 9/10 on time, SZOLNOK: 5/10, DEBRECEN: 2/10, tiny station: 0/3
+    for station, late in ((KELETI, 1), (SZOLNOK, 5), (DEBRECEN, 8)):
+        rows += [
+            _obs(900 if i < late else 60, station=station, seq=i, train=f"{i} T")
+            for i in range(10)
+        ]
+    rows += [_obs(1800, station="005599999", seq=i) for i in range(3)]
+    await _seed(db_session, rows)
+
+
+async def test_rankings_best_and_worst_respect_min_samples(
+    client: httpx.AsyncClient, db_session: AsyncSession
+) -> None:
+    await _seed_stations(db_session)
+
+    best = (await client.get("/v1/rankings?kind=stations&minSamples=5")).json()
+    worst = (
+        await client.get("/v1/rankings?kind=stations&order=worst&minSamples=5")
+    ).json()
+    everything = (
+        await client.get("/v1/rankings?kind=stations&order=worst&minSamples=1")
+    ).json()
+
+    assert [e["id"] for e in best["entries"]] == [KELETI, SZOLNOK, DEBRECEN]
+    assert [e["rank"] for e in best["entries"]] == [1, 2, 3]
+    assert best["entries"][0] == {
+        "rank": 1,
+        "id": KELETI,
+        "name": "Budapest-Keleti",
+        "routeShortName": None,
+        "n": 10,
+        "onTimeShare": 0.9,
+        "medianDelayMin": 1.0,
+    }
+    assert [e["id"] for e in worst["entries"]] == [DEBRECEN, SZOLNOK, KELETI]
+    assert everything["entries"][0]["id"] == "005599999"
+    assert len(everything["entries"]) == 4
+
+
+async def test_rankings_tie_on_share_broken_by_median(
+    client: httpx.AsyncClient, db_session: AsyncSession
+) -> None:
+    rows = [_obs(240, station=KELETI, seq=i) for i in range(5)]
+    rows += [_obs(30, station=SZOLNOK, seq=i) for i in range(5)]
+    await _seed(db_session, rows)
+
+    best = (await client.get("/v1/rankings?minSamples=5")).json()
+    worst = (await client.get("/v1/rankings?order=worst&minSamples=5")).json()
+
+    assert [e["id"] for e in best["entries"]] == [SZOLNOK, KELETI]
+    assert [e["id"] for e in worst["entries"]] == [KELETI, SZOLNOK]
+
+
+def _glyph(code: int) -> str:
+    return f'<span class="MNR2007">&#{code};</span>'
+
+
+async def test_rankings_merge_glyphs_of_the_same_line(
+    client: httpx.AsyncClient, db_session: AsyncSession
+) -> None:
+    # 474 and 611 are both IC; 335 is S10
+    rows = [_obs(0, route=_glyph(474), seq=i) for i in range(3)]
+    rows += [_obs(600, route=_glyph(611), seq=10 + i) for i in range(4)]
+    rows += [_obs(0, route=_glyph(335), seq=20 + i) for i in range(5)]
+    await _seed(db_session, rows)
+
+    body = (await client.get("/v1/rankings?kind=lines&minSamples=5")).json()
+
+    assert [
+        (e["id"], e["name"], e["n"], e["onTimeShare"], e["routeShortName"])
+        for e in body["entries"]
+    ] == [
+        ("S10", "S10", 5, 1.0, _glyph(335)),
+        ("IC", "IC", 7, round(3 / 7, 3), _glyph(611)),
+    ]
+
+
+async def test_rankings_by_line_and_train(
+    client: httpx.AsyncClient, db_session: AsyncSession
+) -> None:
+    rows = [_obs(0, route="S10", train="2001 Sz", seq=i) for i in range(5)]
+    rows += [_obs(900, route="Z30", train="3001 Z", seq=i) for i in range(5)]
+    # Unnamed routes are not a line
+    rows += [_obs(0, route="", train="4001", seq=i) for i in range(5)]
+    await _seed(db_session, rows)
+
+    lines = (await client.get("/v1/rankings?kind=lines&minSamples=5&limit=1")).json()
+    trains = (
+        await client.get("/v1/rankings?kind=trains&order=worst&minSamples=5")
+    ).json()
+
+    assert [e["id"] for e in lines["entries"]] == ["S10"]
+    assert lines["entries"][0]["routeShortName"] == "S10"
+    assert [(e["id"], e["name"]) for e in trains["entries"]] == [
+        ("3001", "3001 Z"),
+        ("2001", "2001 Sz"),
+        ("4001", "4001"),
+    ]
+
+
+async def test_time_of_day(client: httpx.AsyncClient, db_session: AsyncSession) -> None:
+    rows = [_obs(0, seq=i, scheduled_s=7 * 3600 + 60 * i) for i in range(3)]
+    rows += [_obs(900, seq=10 + i, scheduled_s=17 * 3600) for i in range(2)]
+    # After midnight of the service day counts as hour 0
+    rows.append(_obs(0, seq=20, scheduled_s=24 * 3600 + 120))
+    rows.append(_obs(900, seq=21, station=SZOLNOK, scheduled_s=7 * 3600))
+    await _seed(db_session, rows)
+
+    network = (await client.get("/v1/rankings/time-of-day")).json()
+    keleti = (await client.get(f"/v1/rankings/time-of-day?stationId={KELETI}")).json()
+
+    assert len(network["hours"]) == 24
+    assert network["hours"][7]["n"] == 4
+    assert network["hours"][7]["onTimeShare"] == 0.75
+    assert keleti["hours"][7] == {
+        "hour": 7,
+        "n": 3,
+        "onTimeShare": 1.0,
+        "medianDelayMin": 0.0,
+    }
+    assert keleti["hours"][17]["onTimeShare"] == 0.0
+    assert keleti["hours"][0]["n"] == 1
+    assert keleti["hours"][12] == {
+        "hour": 12,
+        "n": 0,
+        "onTimeShare": None,
+        "medianDelayMin": None,
+    }
+
+
 async def test_responses_are_cached(
     client: httpx.AsyncClient,
     db_session: AsyncSession,

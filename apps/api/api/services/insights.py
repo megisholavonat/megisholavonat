@@ -1,11 +1,13 @@
 """
-Read side of the delay history: typical delays per train and station.
+Read side of the delay history: typical delays per train and station,
+punctuality rankings and on-time share by hour.
 
 Everything is aggregated in SQL over stop_delay_observations, using our
 GPS-derived delay_s. Statistics cover a window of service dates that ends at
 the latest recorded service date (see `history_window`).
 """
 
+import json
 from datetime import date, datetime, timedelta
 from typing import Any
 
@@ -17,11 +19,17 @@ from api.models.history import ON_TIME_THRESHOLD_S
 from api.schemas.insights import (
     DelayStats,
     HistoryWindow,
+    HourPunctuality,
+    RankingEntry,
+    RankingKind,
+    RankingOrder,
+    Rankings,
+    TimeOfDayPunctuality,
     TrainHistory,
     TrainRouteStation,
     TrainStationHistory,
 )
-from api.util.route_names import route_name
+from api.util.route_names import MAV_ROUTE_MAP, route_name
 
 BUDAPEST_TZ = pytz.timezone("Europe/Budapest")
 
@@ -256,3 +264,116 @@ async def train_history(
             for r in rows
         ],
     )
+
+
+# Line name of a route shortName in SQL, like api.util.route_names.route_name:
+# the MNR2007 glyph code looked up in :route_map, else the text without tags
+LINE_NAME = (
+    "coalesce(CAST(:route_map AS jsonb) ->> "
+    "substring(route_short_name FROM '&#([0-9]+);'), "
+    "regexp_replace(route_short_name, '<[^>]+>', '', 'g'))"
+)
+ROUTE_MAP_JSON = json.dumps({str(k): v for k, v in MAV_ROUTE_MAP.items()})
+
+RANKING_KEYS: dict[str, str] = {
+    "stations": "station_id",
+    "lines": LINE_NAME,
+    "trains": TRAIN_NUMBER,
+}
+
+
+async def rankings(
+    session: AsyncSession,
+    kind: RankingKind,
+    order: RankingOrder,
+    days: int,
+    limit: int,
+    min_samples: int,
+) -> Rankings:
+    window = await history_window(session, days)
+    key = RANKING_KEYS[kind]
+    # best: most on time first, then the smallest median delay
+    direction = "DESC" if order == "best" else "ASC"
+    tiebreak = "ASC" if order == "best" else "DESC"
+    params = {**_window_params(window), "min_samples": min_samples, "limit": limit}
+    if kind == "lines":
+        params["route_map"] = ROUTE_MAP_JSON
+    result = await session.execute(
+        text(
+            f"""
+            SELECT {key} AS id, {DELAY_AGGREGATES},
+                   mode() WITHIN GROUP (ORDER BY trip_short_name) AS trip_short_name,
+                   mode() WITHIN GROUP (ORDER BY route_short_name) AS route_short_name
+            FROM stop_delay_observations
+            WHERE {IN_WINDOW} AND {key} <> ''
+            GROUP BY 1
+            HAVING count(*) >= :min_samples
+            ORDER BY on_time_share {direction}, median_s {tiebreak}, n DESC, id
+            LIMIT :limit
+            """
+        ),
+        params,
+    )
+    rows = result.all()
+
+    names: dict[str, str] = {}
+    if kind == "stations":
+        names = await station_names(session, [r.id for r in rows])
+    elif kind == "lines":
+        names = {r.id: r.id for r in rows}
+    else:
+        # The most common full name, e.g. "10 TRANSCARPATHIA"
+        names = {r.id: r.trip_short_name for r in rows}
+
+    return Rankings(
+        kind=kind,
+        order=order,
+        minSamples=min_samples,
+        window=window,
+        entries=[
+            RankingEntry(
+                rank=i + 1,
+                id=r.id,
+                name=names.get(r.id),
+                routeShortName=None if kind == "stations" else r.route_short_name,
+                n=r.n,
+                onTimeShare=_share(r.on_time_share) or 0.0,
+                medianDelayMin=_minutes(r.median_s) or 0.0,
+            )
+            for i, r in enumerate(rows)
+        ],
+    )
+
+
+async def time_of_day(
+    session: AsyncSession, station: str | None, days: int
+) -> TimeOfDayPunctuality:
+    window = await history_window(session, days)
+    station_filter = "AND station_id = :station" if station else ""
+    result = await session.execute(
+        text(
+            f"""
+            SELECT (coalesce(scheduled_departure_s, scheduled_arrival_s) / 3600) % 24
+                       AS hour,
+                   {DELAY_AGGREGATES}
+            FROM stop_delay_observations
+            WHERE {IN_WINDOW} {station_filter}
+              AND coalesce(scheduled_departure_s, scheduled_arrival_s) IS NOT NULL
+            GROUP BY 1
+            """
+        ),
+        {**_window_params(window), "station": station},
+    )
+    by_hour = {int(r.hour): r for r in result}
+    hours = []
+    for hour in range(24):
+        stats = _stats(by_hour.get(hour))
+        hours.append(
+            HourPunctuality(
+                hour=hour,
+                n=stats["n"],
+                onTimeShare=stats.get("onTimeShare"),
+                medianDelayMin=stats.get("medianDelayMin"),
+            )
+        )
+    return TimeOfDayPunctuality(stationId=station, window=window, hours=hours)

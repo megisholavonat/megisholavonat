@@ -1,6 +1,7 @@
 """Delay history read models: typical delays, rankings, platform prediction"""
 
 from datetime import date
+from typing import Literal
 
 from pydantic import BaseModel
 
@@ -75,3 +76,41 @@ class TrainHistory(BaseModel):
     # Distinct (service date, trip) runs observed
     runs: int
     stations: list[TrainRouteStation]
+
+
+RankingKind = Literal["stations", "lines", "trains"]
+RankingOrder = Literal["best", "worst"]
+
+
+class RankingEntry(BaseModel):
+    rank: int
+    # stationId, line name (S10, Z30, IC, ...) or train number, by kind
+    id: str
+    name: str | None = None
+    # Most common OTP route shortName (MNR2007 glyph HTML); not for stations
+    routeShortName: str | None = None
+    n: int
+    onTimeShare: float
+    medianDelayMin: float
+
+
+class Rankings(BaseModel):
+    kind: RankingKind
+    order: RankingOrder
+    minSamples: int
+    window: HistoryWindow
+    entries: list[RankingEntry]
+
+
+class HourPunctuality(BaseModel):
+    # Local hour of the scheduled departure, 0-23
+    hour: int
+    n: int
+    onTimeShare: float | None = None
+    medianDelayMin: float | None = None
+
+
+class TimeOfDayPunctuality(BaseModel):
+    stationId: str | None = None
+    window: HistoryWindow
+    hours: list[HourPunctuality]
