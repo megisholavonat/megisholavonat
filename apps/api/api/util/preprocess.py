@@ -9,6 +9,18 @@ from api.util.time import get_seconds_since_day
 # --- Helpers ---
 
 
+def haversine_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Great-circle distance in meters."""
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    dphi = phi2 - phi1
+    dlam = math.radians(lon2 - lon1)
+    a = (
+        math.sin(dphi / 2) ** 2
+        + math.cos(phi1) * math.cos(phi2) * math.sin(dlam / 2) ** 2
+    )
+    return 2 * 6_371_000.0 * math.asin(min(1.0, math.sqrt(a)))
+
+
 def calculate_bearing(p1: tuple[float, float], p2: tuple[float, float]) -> float:
     """
     Calculates the bearing between two points (in degrees).
@@ -262,10 +274,13 @@ def get_delay_and_position(
 
     # Calculate train position along route (re-using the robust projection)
     train_position = 0.0
+    off_route_m: float | None = None
     if len(unique_geojson_route_coords) >= 2:
         line = LineString(unique_geojson_route_coords)
         vehicle_point = Point(lon, lat)
         train_position = project_with_heading(line, vehicle_point, heading)
+        nearest = line.interpolate(line.project(vehicle_point))
+        off_route_m = haversine_m(lat, lon, nearest.y, nearest.x)
 
     total_route_distance = 0
     if processed_stops:
@@ -297,4 +312,5 @@ def get_delay_and_position(
         "totalRouteDistance": total_route_distance,
         "processedStops": processed_stops_with_info,
         "vehicleProgress": vehicle_progress,
+        "offRouteMeters": off_route_m,
     }

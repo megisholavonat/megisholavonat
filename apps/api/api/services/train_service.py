@@ -200,6 +200,7 @@ class TrainService:
                     "delay": round(delay_data["delay"] / 60),
                     # Unrounded GPS delay, used for history (not in the schema)
                     "delaySeconds": round(delay_data["delay"]),
+                    "offRouteMeters": delay_data["offRouteMeters"],
                     "trainPosition": delay_data["trainPosition"],
                     "totalRouteDistance": delay_data["totalRouteDistance"],
                     "processedStops": delay_data["processedStops"],
