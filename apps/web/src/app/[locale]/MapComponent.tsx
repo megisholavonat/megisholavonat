@@ -33,9 +33,21 @@ import type {
     GeoJSON as GeoJsonType,
     LineString,
 } from "geojson";
-import type { ExpressionSpecification, GeoJSONSource } from "maplibre-gl";
+import type {
+    ExpressionSpecification,
+    GeoJSONSource,
+    Popup as MaplibrePopup,
+} from "maplibre-gl";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+    memo,
+    type Ref,
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import { DelayLegend } from "@/components/information/DelayLegend";
 import { DragCloseDrawer } from "@/components/information/DragModal";
 import { NoDataDialog } from "@/components/information/NoDataDialog";
@@ -106,6 +118,33 @@ function bearingDelta(a: number, b: number): number {
     return Math.abs(((((a - b) % 360) + 540) % 360) - 180);
 }
 
+const TOOLTIP_OFFSET: [number, number] = [0, -10]; // Appear "above" the marker
+
+// Memoized so MapComponent re-renders don't reset the popup to `info`'s
+// coordinates; the animation loop moves it through `popupRef`.
+const HoverTooltip = memo(function HoverTooltip({
+    info,
+    popupRef,
+}: {
+    info: TrainFeatureProperties;
+    popupRef: Ref<MaplibrePopup>;
+}) {
+    return (
+        <Popup
+            ref={popupRef}
+            longitude={info.lon}
+            latitude={info.lat}
+            offset={TOOLTIP_OFFSET}
+            closeButton={false}
+            closeOnClick={false}
+            anchor="bottom"
+            className="vehicle-tooltip"
+        >
+            <TrainTooltip featureProperties={info} />
+        </Popup>
+    );
+});
+
 export interface SearchSelection {
     vehicleId: string;
     timestamp: number;
@@ -131,6 +170,7 @@ export default function MapComponent({
     const mapRef = useRef<MapRef>(null);
     const trackersRef = useRef<Map<string, VehicleState>>(new Map());
     const filteredTrainsRef = useRef<FeatureCollection | null>(null);
+    const popupRef = useRef<MaplibrePopup>(null);
     const lastHoveredIdRef = useRef<string | null>(null);
     const { data: trains } = useQuery(getTrainsOptions());
     const [cursor, setCursor] = useState<string | null>(null);
@@ -322,6 +362,17 @@ export default function MapComponent({
         }
     }, [trains]);
 
+    // Keep the hovered tooltip's content in sync with fresh feed data. Its
+    // position is moved imperatively by the animation loop below.
+    useEffect(() => {
+        const hoveredId = lastHoveredIdRef.current;
+        if (!hoveredId) return;
+        const feature = filteredTrains.features.find(
+            (f) => f.properties.vehicleId === hoveredId,
+        );
+        if (feature) setHoverInfo(feature.properties as TrainFeatureProperties);
+    }, [filteredTrains]);
+
     useEffect(() => {
         if (!mapLoaded || !animateVehicles || prefersReducedMotion) return;
         const map = mapRef.current?.getMap();
@@ -391,20 +442,11 @@ export default function MapComponent({
             lastSource = source;
             lastData = data;
 
-            // Keep popup anchored when the vehicle moves without new mousemove events.
+            // Keep the tooltip anchored to the moving vehicle without
+            // re-rendering this component.
             const hoveredId = lastHoveredIdRef.current;
             const hovered = hoveredId ? lastSent.get(hoveredId) : undefined;
-            if (showTooltip && hoveredId && hovered) {
-                setHoverInfo((prev) => {
-                    if (!prev || prev.vehicleId !== hoveredId) return prev;
-                    return {
-                        ...prev,
-                        lon: hovered[0],
-                        lat: hovered[1],
-                        heading: hovered[2],
-                    };
-                });
-            }
+            if (hovered) popupRef.current?.setLngLat([hovered[0], hovered[1]]);
         };
 
         const frame = (timestamp: DOMHighResTimeStamp) => {
@@ -456,7 +498,7 @@ export default function MapComponent({
                 /* Map may already be removed (e.g. locale change / unmount). */
             }
         };
-    }, [mapLoaded, animateVehicles, prefersReducedMotion, showTooltip]);
+    }, [mapLoaded, animateVehicles, prefersReducedMotion]);
 
     const stopMarkersGeojson = useMemo(() => {
         if (!train?.trip?.stoptimes) return null;
@@ -581,10 +623,10 @@ export default function MapComponent({
                     lastHoveredIdRef.current = newId;
                     setCursor("pointer");
                 }
-                // When vehicles animate, lon/lat/heading must come only from the RAF/tick path so
-                // they match the rendered symbol. Map queryFeature properties can differ slightly and
-                // fighting both updates causes visible jitter.
-                if (animateVehicles && isSameVehicle) {
+                // While hovering the same vehicle, the animation loop moves the
+                // tooltip and the feed effect refreshes its content; setting
+                // state here would re-render the map on every mousemove.
+                if (isSameVehicle) {
                     return;
                 }
                 setHoverInfo(feature.properties as TrainFeatureProperties);
@@ -595,7 +637,7 @@ export default function MapComponent({
                 setHoverInfo(null);
             }
         },
-        [trains, showTooltip, animateVehicles],
+        [trains, showTooltip],
     );
 
     const onClick = useCallback(
@@ -863,17 +905,7 @@ export default function MapComponent({
                     </Source>
                 )}
                 {hoverInfo && (
-                    <Popup
-                        longitude={hoverInfo.lon}
-                        latitude={hoverInfo.lat}
-                        offset={[0, -10]} // Offset to appear "above" the marker
-                        closeButton={false}
-                        closeOnClick={false}
-                        anchor="bottom"
-                        className="vehicle-tooltip"
-                    >
-                        <TrainTooltip featureProperties={hoverInfo} />
-                    </Popup>
+                    <HoverTooltip info={hoverInfo} popupRef={popupRef} />
                 )}
             </MapLibreMap>
         </div>
