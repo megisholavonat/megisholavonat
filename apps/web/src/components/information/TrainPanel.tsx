@@ -188,41 +188,48 @@ function TimeDisplay({
     realtime: number | null;
 }) {
     const isMobile = useIsMobile();
-    if (!scheduled || !realtime) {
+    if (scheduled == null) {
         return (
             <span className="text-gray-400 dark:text-muted-foreground">—</span>
         );
     }
 
-    const delayMinutes = Math.round((realtime - scheduled) / 60);
+    const textSize = isMobile ? "text-xs" : "text-sm";
+    const scheduledText = formatSecondsAsTime(scheduled);
 
+    if (realtime == null) {
+        return (
+            <div
+                className={`text-gray-600 dark:text-muted-foreground ${textSize}`}
+            >
+                {scheduledText}
+            </div>
+        );
+    }
+
+    const realtimeText = formatSecondsAsTime(realtime);
+    const delayMinutes = Math.round((realtime - scheduled) / 60);
     const delayColor = getDelayColor(delayMinutes);
+
+    // Realtime matches the timetable: show a single line in the on-time colour
+    if (realtimeText === scheduledText) {
+        return (
+            <div className={`font-semibold ${textSize} ${delayColor}`}>
+                {scheduledText}
+            </div>
+        );
+    }
 
     return (
         <div className={`flex flex-col ${isMobile ? "gap-0" : "gap-1"}`}>
-            {scheduled && (
-                <div
-                    className={`text-gray-500 dark:text-muted-foreground ${isMobile ? "text-xs" : "text-sm"}`}
-                >
-                    {formatSecondsAsTime(scheduled)}
-                </div>
-            )}
-            {realtime && (
-                <div
-                    className={`font-semibold ${
-                        isMobile ? "text-xs" : "text-sm"
-                    } ${delayColor}`}
-                >
-                    {formatSecondsAsTime(realtime)}
-                </div>
-            )}
-            {!realtime && scheduled && (
-                <div
-                    className={`text-gray-600 dark:text-muted-foreground ${isMobile ? "text-xs" : "text-sm"}`}
-                >
-                    {formatSecondsAsTime(scheduled)}
-                </div>
-            )}
+            <div
+                className={`text-gray-500 dark:text-muted-foreground ${textSize}`}
+            >
+                {scheduledText}
+            </div>
+            <div className={`font-semibold ${textSize} ${delayColor}`}>
+                {realtimeText}
+            </div>
         </div>
     );
 }
