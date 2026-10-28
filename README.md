@@ -142,6 +142,13 @@ Uvicorn's own proxy header handling is turned off (`--no-proxy-headers`), so
 set `TRUSTED_PROXIES` to the ingress addresses in production, and to
 `127.0.0.1,::1` locally (the Next.js dev server proxies `/api`).
 
+Behind an edge that sends the client address in a header of its own, set
+`CLIENT_IP_HEADER` to it (in production `CF-Connecting-IP`, from Cloudflare).
+It takes precedence over `X-Forwarded-For`, but only when the TCP peer is in
+`TRUSTED_PROXIES` and the value is a valid IP; otherwise it is ignored, so a
+client connecting directly cannot set its own address. The ingress has to pass
+the header through unchanged and be the only way in.
+
 A device follows up to 50 trains: a single trip (`kind: "trip"`, by trip
 gtfsId and service date) or a commute (`kind: "commute"`, a train number on
 some ISO weekdays from a boarding station, required because train numbers

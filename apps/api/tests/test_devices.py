@@ -285,6 +285,104 @@ async def test_forwarded_for_ignored_by_default(client: httpx.AsyncClient) -> No
     assert r.status_code == 429
 
 
+async def _client_from(
+    peer: str,
+    db_session: AsyncSession,
+    redis: fakeredis.FakeAsyncRedis,
+    monkeypatch: pytest.MonkeyPatch,
+) -> httpx.AsyncClient:
+    """Behind 10.0.0.0/8 with CF-Connecting-IP enabled, connecting from `peer`."""
+    monkeypatch.setattr(settings, "TRUSTED_PROXIES", "10.0.0.0/8")
+    monkeypatch.setattr(settings, "CLIENT_IP_HEADER", "CF-Connecting-IP")
+    monkeypatch.setattr(settings, "DEVICE_REGISTRATIONS_PER_IP_PER_HOUR", 1)
+    transport = httpx.ASGITransport(
+        app=_app_behind(db_session, redis), client=(peer, 4000)
+    )
+    return httpx.AsyncClient(transport=transport, base_url="http://test")
+
+
+async def test_client_ip_header_from_trusted_peer_separates_clients(
+    db_session: AsyncSession,
+    redis: fakeredis.FakeAsyncRedis,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # X-Forwarded-For carries only the edge's address, as Traefik sends it
+    # when it does not trust Cloudflare
+    edge = {"X-Forwarded-For": "162.158.1.1"}
+    async with await _client_from("10.42.0.5", db_session, redis, monkeypatch) as c:
+        await register(c, **edge, **{"CF-Connecting-IP": "203.0.113.1"})
+        await register(c, **edge, **{"CF-Connecting-IP": "203.0.113.2"})
+        r = await c.post(
+            "/v1/devices",
+            json={"platform": "web"},
+            headers={**edge, "CF-Connecting-IP": "203.0.113.1"},
+        )
+    assert r.status_code == 429
+
+
+async def test_client_ip_header_keeps_ipv6_bucketing(
+    db_session: AsyncSession,
+    redis: fakeredis.FakeAsyncRedis,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async with await _client_from("10.42.0.5", db_session, redis, monkeypatch) as c:
+        await register(c, **{"CF-Connecting-IP": "2001:db8:1:2::1"})
+        r = await c.post(
+            "/v1/devices",
+            json={"platform": "web"},
+            headers={"CF-Connecting-IP": "2001:db8:1:2::ffff"},
+        )
+    assert r.status_code == 429
+
+
+async def test_client_ip_header_from_untrusted_peer_is_ignored(
+    db_session: AsyncSession,
+    redis: fakeredis.FakeAsyncRedis,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async with await _client_from("198.51.100.7", db_session, redis, monkeypatch) as c:
+        await register(c, **{"CF-Connecting-IP": "203.0.113.1"})
+        r = await c.post(
+            "/v1/devices",
+            json={"platform": "web"},
+            headers={"CF-Connecting-IP": "203.0.113.2"},
+        )
+    assert r.status_code == 429
+
+
+async def test_invalid_client_ip_header_is_ignored(
+    db_session: AsyncSession,
+    redis: fakeredis.FakeAsyncRedis,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Falls back to the X-Forwarded-For client, which is the same both times
+    xff = {"X-Forwarded-For": "203.0.113.9"}
+    async with await _client_from("10.42.0.5", db_session, redis, monkeypatch) as c:
+        await register(c, **xff, **{"CF-Connecting-IP": "not-an-ip"})
+        r = await c.post(
+            "/v1/devices",
+            json={"platform": "web"},
+            headers={**xff, "CF-Connecting-IP": "203.0.113.1, 203.0.113.2"},
+        )
+    assert r.status_code == 429
+
+
+async def test_without_client_ip_header_falls_back_to_forwarded_for(
+    db_session: AsyncSession,
+    redis: fakeredis.FakeAsyncRedis,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async with await _client_from("10.42.0.5", db_session, redis, monkeypatch) as c:
+        await register(c, **{"X-Forwarded-For": "203.0.113.1"})
+        await register(c, **{"X-Forwarded-For": "203.0.113.2"})
+        r = await c.post(
+            "/v1/devices",
+            json={"platform": "web"},
+            headers={"X-Forwarded-For": "203.0.113.1"},
+        )
+    assert r.status_code == 429
+
+
 @pytest.mark.parametrize(
     ("ip", "bucket"),
     [
