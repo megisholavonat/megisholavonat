@@ -250,6 +250,28 @@
             "type": "string",
             "title": "Id"
           },
+          "gtfsId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gtfsid"
+          },
+          "index": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Index"
+          },
           "originalCoords": {
             "items": {
               "type": "number"
@@ -318,6 +340,17 @@
       },
       "StopTimeWithCounty": {
         "properties": {
+          "stopPosition": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stopposition"
+          },
           "scheduledArrival": {
             "type": "integer",
             "title": "Scheduledarrival"
@@ -351,6 +384,17 @@
       },
       "StopWithCounty": {
         "properties": {
+          "gtfsId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gtfsid"
+          },
           "name": {
             "type": "string",
             "title": "Name"
@@ -569,6 +613,17 @@
       },
       "Trip": {
         "properties": {
+          "gtfsId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gtfsid"
+          },
           "serviceDate": {
             "type": "string",
             "title": "Servicedate"
@@ -773,6 +828,28 @@
           "nextStop": {
             "type": "string",
             "title": "Nextstop"
+          },
+          "lastStopIndex": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Laststopindex"
+          },
+          "nextStopIndex": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextstopindex"
           },
           "progress": {
             "type": "number",

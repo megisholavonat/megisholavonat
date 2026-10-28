@@ -62,6 +62,10 @@ export const zRoute = z.object({
  * Stop information with county data
  */
 export const zStopWithCounty = z.object({
+    gtfsId: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
     name: z.string(),
     lat: z.number(),
     lon: z.number(),
@@ -81,6 +85,10 @@ export const zStopWithCounty = z.object({
  * Stop time information with county data
  */
 export const zStopTimeWithCounty = z.object({
+    stopPosition: z.optional(z.union([
+        z.int(),
+        z.null()
+    ])),
     scheduledArrival: z.int(),
     realtimeArrival: z.int(),
     scheduledDeparture: z.int(),
@@ -95,6 +103,14 @@ export const zStopTimeWithCounty = z.object({
  */
 export const zProcessedStop = z.object({
     id: z.string(),
+    gtfsId: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    index: z.optional(z.union([
+        z.int(),
+        z.null()
+    ])),
     originalCoords: z.array(z.number()),
     distanceAlongRoute: z.number(),
     stopTimeInfo: z.optional(z.union([
@@ -184,6 +200,10 @@ export const zTripGeometry = z.object({
  * Trip information
  */
 export const zTrip = z.object({
+    gtfsId: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
     serviceDate: z.string(),
     tripShortName: z.string(),
     route: zRoute,
@@ -224,6 +244,14 @@ export const zHttpValidationError = z.object({
 export const zVehicleProgress = z.object({
     lastStop: z.string(),
     nextStop: z.string(),
+    lastStopIndex: z.optional(z.union([
+        z.int(),
+        z.null()
+    ])),
+    nextStopIndex: z.optional(z.union([
+        z.int(),
+        z.null()
+    ])),
     progress: z.number()
 });
 
