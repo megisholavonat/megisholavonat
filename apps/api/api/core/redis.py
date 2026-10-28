@@ -11,7 +11,7 @@ from api.core.config import settings
 
 # Create a connection pool
 redis_pool = redis.ConnectionPool(
-    host=settings.REDIS_HOST, port=6379, db=0, decode_responses=True, socket_timeout=5
+    host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=0, decode_responses=True, socket_timeout=5
 )
 
 
@@ -29,7 +29,7 @@ async def get_redis() -> AsyncGenerator[redis.Redis]:
 
 def add_key(key: str) -> str:
     """Add prefix to Redis key"""
-    return f"{key}:"
+    return f"{settings.REDIS_KEY}:{key}"
 
 
 RedisDep = Annotated[redis.Redis, Depends(get_redis)]
