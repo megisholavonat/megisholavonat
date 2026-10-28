@@ -1,7 +1,7 @@
 import type { VehiclePositionWithDelay } from "@megisholavonat/api-client";
+import { decodePolyline } from "@megisholavonat/core/polyline";
+import { getSecondsSinceDay } from "@megisholavonat/core/time";
 import * as turf from "@turf/turf";
-import { decodePolyline } from "@/util/polyline";
-import { getSecondsSinceDay } from "@/util/time";
 
 const STALENESS_THRESHOLD_MINUTES = 30; // Show as stale after 30 minutes
 const REMOVAL_THRESHOLD_MINUTES = 120; // Remove entirely after 2 hours

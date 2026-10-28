@@ -4,6 +4,8 @@ import type {
     TrainFeatureCollection,
     TrainFeatureProperties,
 } from "@megisholavonat/api-client";
+import { matchesMavRoute } from "@megisholavonat/core/mavRoutes";
+import { normalizeSearchText } from "@megisholavonat/core/search";
 import { AnimatePresence, motion } from "motion/react";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
@@ -16,8 +18,6 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Z_LAYERS } from "@/util/constants";
-import { matchesMavRoute } from "@/util/mavRoutes";
-import { normalizeSearchText } from "@/util/search";
 import MAVRouteIcon from "../ui/MavRouteIcon";
 import { getDelayColor } from "./TrainPanel";
 

@@ -35,6 +35,9 @@ importers:
       '@megisholavonat/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
+      '@megisholavonat/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@radix-ui/react-collapsible':
         specifier: ^1.1.12
         version: 1.1.12(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
@@ -77,9 +80,6 @@ importers:
       '@turf/turf':
         specifier: ^7.3.4
         version: 7.3.4
-      '@types/luxon':
-        specifier: ^3.7.1
-        version: 3.7.1
       '@types/mapbox__polyline':
         specifier: ^1.0.5
         version: 1.0.5
@@ -107,9 +107,6 @@ importers:
       lucide-react:
         specifier: ^0.523.0
         version: 0.523.0(react@19.2.5)
-      luxon:
-        specifier: ^3.7.2
-        version: 3.7.2
       maplibre-gl:
         specifier: ^5.13.0
         version: 5.13.0
@@ -205,6 +202,19 @@ importers:
       '@types/node':
         specifier: ^20
         version: 20.19.25
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
+  packages/core:
+    dependencies:
+      luxon:
+        specifier: ^3.7.2
+        version: 3.7.2
+    devDependencies:
+      '@types/luxon':
+        specifier: ^3.7.1
+        version: 3.7.1
       typescript:
         specifier: ^5.9.3
         version: 5.9.3

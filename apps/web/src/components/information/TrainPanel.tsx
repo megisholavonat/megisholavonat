@@ -2,6 +2,7 @@ import type {
     InfoService,
     VehiclePositionWithDelay,
 } from "@megisholavonat/api-client";
+import { formatSecondsAsTime } from "@megisholavonat/core/time";
 import { formatDistanceToNow } from "date-fns";
 import { enGB, hu } from "date-fns/locale";
 import { AnimatePresence, motion } from "motion/react";
@@ -21,7 +22,6 @@ import {
     YELLOW_THRESHOLD,
 } from "@/util/constants";
 import { mnr2007 } from "@/util/fonts";
-import { formatSecondsAsTime } from "@/util/time";
 import {
     dataAppearsFalsified,
     isActive,

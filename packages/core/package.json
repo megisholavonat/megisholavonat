@@ -1,0 +1,23 @@
+{
+    "name": "@megisholavonat/core",
+    "version": "0.1.0",
+    "private": true,
+    "type": "module",
+    "sideEffects": false,
+    "exports": {
+        "./mavRoutes": "./src/mavRoutes.ts",
+        "./polyline": "./src/polyline.ts",
+        "./search": "./src/search.ts",
+        "./time": "./src/time.ts"
+    },
+    "scripts": {
+        "check": "biome check && tsc --noEmit"
+    },
+    "dependencies": {
+        "luxon": "^3.7.2"
+    },
+    "devDependencies": {
+        "@types/luxon": "^3.7.1",
+        "typescript": "^5.9.3"
+    }
+}

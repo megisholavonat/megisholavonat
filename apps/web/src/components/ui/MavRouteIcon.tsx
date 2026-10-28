@@ -1,8 +1,8 @@
+import { getMavRouteName } from "@megisholavonat/core/mavRoutes";
 import DOMPurify from "dompurify";
 import parse from "html-react-parser";
 import { cn } from "@/lib/utils";
 import { mnr2007 } from "@/util/fonts";
-import { getMavRouteName } from "@/util/mavRoutes";
 
 export default function MAVRouteIcon({
     routeShortName,
