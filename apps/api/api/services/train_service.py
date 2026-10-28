@@ -17,6 +17,7 @@ from api.core.redis import add_key
 from api.util.county import get_county_for_point
 from api.util.preprocess import get_delay_and_position
 from api.util.replay import next_snapshot
+from api.util.trip import seconds_outside_window
 from api.util.vehicle import should_remove
 
 logger = get_logger(__name__)
@@ -103,21 +104,28 @@ class TrainService:
         self, locations: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
         """
-        Deduplicate results by vehicleId, keeping the most recently updated entry.
+        Deduplicate results by vehicleId. A vehicle is often listed on its
+        current and its next trip(s) with the same lastUpdated, so prefer the
+        trip whose scheduled window is closest to (ideally contains) the
+        position time, then the most recently updated entry.
         """
-        latest_by_id: dict[str, dict[str, Any]] = {}
+
+        def rank(loc: dict[str, Any]) -> tuple[float, int]:
+            last_updated = loc.get("lastUpdated", 0)
+            outside = seconds_outside_window(loc.get("trip") or {}, last_updated)
+            return -outside, last_updated
+
+        best_by_id: dict[str, dict[str, Any]] = {}
         for loc in locations:
             vehicle_id = loc.get("vehicleId")
             if not vehicle_id:
                 continue
 
-            existing = latest_by_id.get(vehicle_id)
-            if not existing or loc.get("lastUpdated", 0) > existing.get(
-                "lastUpdated", 0
-            ):
-                latest_by_id[vehicle_id] = loc
+            existing = best_by_id.get(vehicle_id)
+            if not existing or rank(loc) > rank(existing):
+                best_by_id[vehicle_id] = loc
 
-        return list(latest_by_id.values())
+        return list(best_by_id.values())
 
     def add_counties_to_locations(
         self, locations: list[dict[str, Any]]
