@@ -1,3 +1,4 @@
+import asyncio
 import json
 import time
 from datetime import UTC, datetime
@@ -11,6 +12,7 @@ from api.core.graphql import post_graphql
 from api.core.logging_config import get_logger
 from api.core.queries import POSITIONS_QUERY
 from api.core.redis import add_key
+from api.forecast.serve import annotate_with_latest_model
 from api.util.county import get_county_for_point
 from api.util.preprocess import get_delay_and_position
 from api.util.replay import next_snapshot
@@ -19,6 +21,9 @@ from api.util.trip import seconds_outside_window
 from api.util.vehicle import is_stale_or_inactive, should_remove
 
 logger = get_logger(__name__)
+
+# Upper bound for predictions (including a model reload) in a refresh
+FORECAST_TIMEOUT_S = 15
 
 
 class TrainService:
@@ -227,6 +232,15 @@ class TrainService:
             f"Processed delays & filtered: {len(locations_with_counties)} -> "
             f"{len(locations_processed)} (Time: {(time.time() - step_start):.4f}s)"
         )
+
+        # Best effort: a forecast failure must never break the refresh
+        try:
+            await asyncio.wait_for(
+                annotate_with_latest_model(locations_processed),
+                timeout=FORECAST_TIMEOUT_S,
+            )
+        except Exception as e:
+            logger.error(f"Forecast failed, serving without predictions: {e!r}")
 
         step_start = time.time()
 
