@@ -273,6 +273,104 @@
         }
       }
     },
+    "/v1/journeys": {
+      "get": {
+        "tags": [
+          "journeys"
+        ],
+        "summary": "Plan Journeys",
+        "description": "Itineraries between two rail stations, with live delays and ticket links",
+        "operationId": "planJourneys",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "UIC code of the departure station",
+              "title": "From"
+            },
+            "description": "UIC code of the departure station"
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "UIC code of the destination station",
+              "title": "To"
+            },
+            "description": "UIC code of the destination station"
+          },
+          {
+            "name": "time",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "ISO time; local (Budapest) if no offset. Default: now",
+              "title": "Time"
+            },
+            "description": "ISO time; local (Budapest) if no offset. Default: now"
+          },
+          {
+            "name": "arriveBy",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Arrive by `time` instead of departing at it",
+              "default": false,
+              "title": "Arriveby"
+            },
+            "description": "Arrive by `time` instead of departing at it"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 10,
+              "minimum": 1,
+              "default": 5,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JourneyPlan"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The upstream timetable service failed"
+          },
+          "404": {
+            "description": "Unknown station"
+          },
+          "422": {
+            "description": "Departure and destination are the same"
+          }
+        }
+      }
+    },
     "/v1/alerts": {
       "get": {
         "tags": [
@@ -381,7 +479,7 @@
           "devices"
         ],
         "summary": "Delete Device",
-        "description": "Delete this device and everything stored about it (follows included).",
+        "description": "Delete this device and everything stored about it (follows, push tokens).",
         "operationId": "deleteDevice",
         "responses": {
           "204": {
@@ -426,6 +524,118 @@
             "DeviceToken": []
           }
         ]
+      }
+    },
+    "/v1/devices/me/push-tokens": {
+      "post": {
+        "tags": [
+          "devices"
+        ],
+        "summary": "Register Push Token",
+        "description": "Register where this device receives alerts. Registering a token again is\nharmless; a token registered to another device moves to this one.",
+        "operationId": "registerPushToken",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/ExpoPushTokenCreate"
+                  },
+                  {
+                    "$ref": "#/components/schemas/LiveActivityPushTokenCreate"
+                  }
+                ],
+                "title": "Body",
+                "discriminator": {
+                  "propertyName": "type",
+                  "mapping": {
+                    "expo": "#/components/schemas/ExpoPushTokenCreate",
+                    "liveactivity": "#/components/schemas/LiveActivityPushTokenCreate"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PushToken"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, malformed or invalid device token"
+          },
+          "404": {
+            "description": "No such follow on this device"
+          },
+          "409": {
+            "description": "The limit of 60 push tokens is reached"
+          },
+          "422": {
+            "description": "Invalid token, or wrong platform for its type"
+          }
+        },
+        "security": [
+          {
+            "DeviceToken": []
+          }
+        ]
+      }
+    },
+    "/v1/devices/me/push-tokens/{token_id}": {
+      "delete": {
+        "tags": [
+          "devices"
+        ],
+        "summary": "Delete Push Token",
+        "description": "Stop sending pushes to a token",
+        "operationId": "deletePushToken",
+        "security": [
+          {
+            "DeviceToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "token_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Token Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "description": "Missing, malformed or invalid device token"
+          },
+          "404": {
+            "description": "No such push token"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/v1/follows": {
@@ -1682,6 +1892,30 @@
         "title": "DeviceInfo",
         "description": "The calling device"
       },
+      "ExpoPushTokenCreate": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "expo",
+            "title": "Type"
+          },
+          "token": {
+            "type": "string",
+            "pattern": "^Expo(nent)?PushToken\\[[^\\]]{1,200}\\]$",
+            "title": "Token",
+            "examples": [
+              "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]"
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "token"
+        ],
+        "title": "ExpoPushTokenCreate",
+        "description": "An Expo push token (iOS or Android): alerts about every follow"
+      },
       "FollowUpdate": {
         "properties": {
           "alertsEnabled": {
@@ -1902,6 +2136,193 @@
         "title": "InfoService",
         "description": "Information service details"
       },
+      "Itinerary": {
+        "properties": {
+          "scheduledDeparture": {
+            "type": "integer",
+            "title": "Scheduleddeparture"
+          },
+          "expectedDeparture": {
+            "type": "integer",
+            "title": "Expecteddeparture"
+          },
+          "scheduledArrival": {
+            "type": "integer",
+            "title": "Scheduledarrival"
+          },
+          "expectedArrival": {
+            "type": "integer",
+            "title": "Expectedarrival"
+          },
+          "durationMinutes": {
+            "type": "integer",
+            "title": "Durationminutes"
+          },
+          "transferCount": {
+            "type": "integer",
+            "title": "Transfercount"
+          },
+          "legs": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/WalkLeg"
+                },
+                {
+                  "$ref": "#/components/schemas/TransitLeg"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "type",
+                "mapping": {
+                  "transit": "#/components/schemas/TransitLeg",
+                  "walk": "#/components/schemas/WalkLeg"
+                }
+              }
+            },
+            "type": "array",
+            "title": "Legs"
+          },
+          "transfers": {
+            "items": {
+              "$ref": "#/components/schemas/Transfer"
+            },
+            "type": "array",
+            "title": "Transfers"
+          },
+          "ticketUrl": {
+            "type": "string",
+            "title": "Ticketurl"
+          }
+        },
+        "type": "object",
+        "required": [
+          "scheduledDeparture",
+          "expectedDeparture",
+          "scheduledArrival",
+          "expectedArrival",
+          "durationMinutes",
+          "transferCount",
+          "legs",
+          "transfers",
+          "ticketUrl"
+        ],
+        "title": "Itinerary",
+        "description": "One way to get from A to B"
+      },
+      "JourneyPlan": {
+        "properties": {
+          "fromStation": {
+            "$ref": "#/components/schemas/Station"
+          },
+          "toStation": {
+            "$ref": "#/components/schemas/Station"
+          },
+          "time": {
+            "type": "integer",
+            "title": "Time"
+          },
+          "arriveBy": {
+            "type": "boolean",
+            "title": "Arriveby"
+          },
+          "generatedAt": {
+            "type": "integer",
+            "title": "Generatedat"
+          },
+          "itineraries": {
+            "items": {
+              "$ref": "#/components/schemas/Itinerary"
+            },
+            "type": "array",
+            "title": "Itineraries"
+          }
+        },
+        "type": "object",
+        "required": [
+          "fromStation",
+          "toStation",
+          "time",
+          "arriveBy",
+          "generatedAt",
+          "itineraries"
+        ],
+        "title": "JourneyPlan",
+        "description": "Journeys between two rail stations"
+      },
+      "JourneyStop": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "lat": {
+            "type": "number",
+            "title": "Lat"
+          },
+          "lon": {
+            "type": "number",
+            "title": "Lon"
+          },
+          "platform": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Platform"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "lat",
+          "lon"
+        ],
+        "title": "JourneyStop",
+        "description": "Where a leg starts or ends"
+      },
+      "LiveActivityPushTokenCreate": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "liveactivity",
+            "title": "Type"
+          },
+          "token": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{16,512}$",
+            "title": "Token"
+          },
+          "followId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Followid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "token",
+          "followId"
+        ],
+        "title": "LiveActivityPushTokenCreate",
+        "description": "The ActivityKit push token of one followed trip's iOS Live Activity. It\nreceives `update` events while the train runs and `end` once it has passed\nthe alighting station; alerts about that follow are shown on it instead of\nas a separate notification."
+      },
       "PlatformPrediction": {
         "properties": {
           "trainNumber": {
@@ -2041,6 +2462,49 @@
         ],
         "title": "ProcessedStop",
         "description": "Processed stop with distance information"
+      },
+      "PushToken": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "expo",
+              "liveactivity"
+            ],
+            "title": "Type"
+          },
+          "followId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Followid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "followId",
+          "createdAt"
+        ],
+        "title": "PushToken",
+        "description": "A registered push token; the token itself is not echoed back"
       },
       "RailAlert": {
         "properties": {
@@ -2958,6 +3422,197 @@
         "title": "TrainStationHistory",
         "description": "How late a train usually is at a station"
       },
+      "Transfer": {
+        "properties": {
+          "fromLeg": {
+            "type": "integer",
+            "title": "Fromleg"
+          },
+          "toLeg": {
+            "type": "integer",
+            "title": "Toleg"
+          },
+          "station": {
+            "type": "string",
+            "title": "Station"
+          },
+          "transferMinutes": {
+            "type": "integer",
+            "title": "Transferminutes"
+          },
+          "expectedTransferMinutes": {
+            "type": "integer",
+            "title": "Expectedtransferminutes"
+          },
+          "missRisk": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Missrisk"
+          }
+        },
+        "type": "object",
+        "required": [
+          "fromLeg",
+          "toLeg",
+          "station",
+          "transferMinutes",
+          "expectedTransferMinutes"
+        ],
+        "title": "Transfer",
+        "description": "A change between two consecutive trains"
+      },
+      "TransitLeg": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "transit",
+            "title": "Type",
+            "default": "transit"
+          },
+          "mode": {
+            "type": "string",
+            "title": "Mode"
+          },
+          "tripId": {
+            "type": "string",
+            "title": "Tripid"
+          },
+          "tripShortName": {
+            "type": "string",
+            "title": "Tripshortname"
+          },
+          "trainNumber": {
+            "type": "string",
+            "title": "Trainnumber"
+          },
+          "routeShortName": {
+            "type": "string",
+            "title": "Routeshortname"
+          },
+          "routeLongName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Routelongname"
+          },
+          "routeTextColor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Routetextcolor"
+          },
+          "headsign": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Headsign"
+          },
+          "serviceDate": {
+            "type": "string",
+            "title": "Servicedate"
+          },
+          "fromStop": {
+            "$ref": "#/components/schemas/JourneyStop"
+          },
+          "toStop": {
+            "$ref": "#/components/schemas/JourneyStop"
+          },
+          "scheduledDeparture": {
+            "type": "integer",
+            "title": "Scheduleddeparture"
+          },
+          "expectedDeparture": {
+            "type": "integer",
+            "title": "Expecteddeparture"
+          },
+          "scheduledArrival": {
+            "type": "integer",
+            "title": "Scheduledarrival"
+          },
+          "expectedArrival": {
+            "type": "integer",
+            "title": "Expectedarrival"
+          },
+          "delayMinutes": {
+            "type": "integer",
+            "title": "Delayminutes"
+          },
+          "delaySource": {
+            "type": "string",
+            "enum": [
+              "gps",
+              "otp"
+            ],
+            "title": "Delaysource"
+          },
+          "realtime": {
+            "type": "boolean",
+            "title": "Realtime"
+          },
+          "canceled": {
+            "type": "boolean",
+            "title": "Canceled",
+            "default": false
+          },
+          "intermediateStops": {
+            "type": "integer",
+            "title": "Intermediatestops"
+          },
+          "vehicleId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vehicleid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "mode",
+          "tripId",
+          "tripShortName",
+          "trainNumber",
+          "routeShortName",
+          "serviceDate",
+          "fromStop",
+          "toStop",
+          "scheduledDeparture",
+          "expectedDeparture",
+          "scheduledArrival",
+          "expectedArrival",
+          "delayMinutes",
+          "delaySource",
+          "realtime",
+          "intermediateStops"
+        ],
+        "title": "TransitLeg",
+        "description": "A ride on one train (or rail replacement bus)"
+      },
       "Trip": {
         "properties": {
           "gtfsId": {
@@ -3376,6 +4031,44 @@
         ],
         "title": "VehicleProgress",
         "description": "Vehicle progress between stops"
+      },
+      "WalkLeg": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "walk",
+            "title": "Type",
+            "default": "walk"
+          },
+          "fromStop": {
+            "$ref": "#/components/schemas/JourneyStop"
+          },
+          "toStop": {
+            "$ref": "#/components/schemas/JourneyStop"
+          },
+          "departureTime": {
+            "type": "integer",
+            "title": "Departuretime"
+          },
+          "arrivalTime": {
+            "type": "integer",
+            "title": "Arrivaltime"
+          },
+          "distanceMeters": {
+            "type": "integer",
+            "title": "Distancemeters"
+          }
+        },
+        "type": "object",
+        "required": [
+          "fromStop",
+          "toStop",
+          "departureTime",
+          "arrivalTime",
+          "distanceMeters"
+        ],
+        "title": "WalkLeg",
+        "description": "A walk, e.g. between two stations of a town"
       }
     },
     "securitySchemes": {

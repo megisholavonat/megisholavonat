@@ -4,8 +4,8 @@ import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanst
 import type { AxiosError } from 'axios';
 
 import { client } from '../client.gen';
-import { createFollow, deleteDevice, deleteFollow, getAlerts, getDevice, getPosthogKey, getRankings, getRedisStatus, getStationBoard, getStationPlatforms, getTimeOfDayPunctuality, getTrainDetails, getTrainHistory, getTrains, getTrainStationHistory, listFollows, type Options, registerDevice, root, rotateDeviceToken, searchStations, updateFollow } from '../sdk.gen';
-import type { CreateFollowData, CreateFollowError, CreateFollowResponse, DeleteDeviceData, DeleteDeviceResponse, DeleteFollowData, DeleteFollowError, DeleteFollowResponse, GetAlertsData, GetAlertsResponse, GetDeviceData, GetDeviceResponse, GetPosthogKeyData, GetPosthogKeyResponse, GetRankingsData, GetRankingsError, GetRankingsResponse, GetRedisStatusData, GetRedisStatusResponse, GetStationBoardData, GetStationBoardError, GetStationBoardResponse, GetStationPlatformsData, GetStationPlatformsError, GetStationPlatformsResponse, GetTimeOfDayPunctualityData, GetTimeOfDayPunctualityError, GetTimeOfDayPunctualityResponse, GetTrainDetailsData, GetTrainDetailsError, GetTrainDetailsResponse, GetTrainHistoryData, GetTrainHistoryError, GetTrainHistoryResponse, GetTrainsData, GetTrainsResponse, GetTrainStationHistoryData, GetTrainStationHistoryError, GetTrainStationHistoryResponse, ListFollowsData, ListFollowsResponse, RegisterDeviceData, RegisterDeviceError, RegisterDeviceResponse, RootData, RotateDeviceTokenData, RotateDeviceTokenResponse, SearchStationsData, SearchStationsError, SearchStationsResponse, UpdateFollowData, UpdateFollowError, UpdateFollowResponse } from '../types.gen';
+import { createFollow, deleteDevice, deleteFollow, deletePushToken, getAlerts, getDevice, getPosthogKey, getRankings, getRedisStatus, getStationBoard, getStationPlatforms, getTimeOfDayPunctuality, getTrainDetails, getTrainHistory, getTrains, getTrainStationHistory, listFollows, type Options, planJourneys, registerDevice, registerPushToken, root, rotateDeviceToken, searchStations, updateFollow } from '../sdk.gen';
+import type { CreateFollowData, CreateFollowError, CreateFollowResponse, DeleteDeviceData, DeleteDeviceResponse, DeleteFollowData, DeleteFollowError, DeleteFollowResponse, DeletePushTokenData, DeletePushTokenError, DeletePushTokenResponse, GetAlertsData, GetAlertsResponse, GetDeviceData, GetDeviceResponse, GetPosthogKeyData, GetPosthogKeyResponse, GetRankingsData, GetRankingsError, GetRankingsResponse, GetRedisStatusData, GetRedisStatusResponse, GetStationBoardData, GetStationBoardError, GetStationBoardResponse, GetStationPlatformsData, GetStationPlatformsError, GetStationPlatformsResponse, GetTimeOfDayPunctualityData, GetTimeOfDayPunctualityError, GetTimeOfDayPunctualityResponse, GetTrainDetailsData, GetTrainDetailsError, GetTrainDetailsResponse, GetTrainHistoryData, GetTrainHistoryError, GetTrainHistoryResponse, GetTrainsData, GetTrainsResponse, GetTrainStationHistoryData, GetTrainStationHistoryError, GetTrainStationHistoryResponse, ListFollowsData, ListFollowsResponse, PlanJourneysData, PlanJourneysResponse, RegisterDeviceData, RegisterDeviceError, RegisterDeviceResponse, RegisterPushTokenData, RegisterPushTokenResponse, RootData, RotateDeviceTokenData, RotateDeviceTokenResponse, SearchStationsData, SearchStationsError, SearchStationsResponse, UpdateFollowData, UpdateFollowError, UpdateFollowResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseURL' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -178,6 +178,26 @@ export const getStationBoardOptions = (options: Options<GetStationBoardData>) =>
     queryKey: getStationBoardQueryKey(options)
 });
 
+export const planJourneysQueryKey = (options: Options<PlanJourneysData>) => createQueryKey('planJourneys', options);
+
+/**
+ * Plan Journeys
+ *
+ * Itineraries between two rail stations, with live delays and ticket links
+ */
+export const planJourneysOptions = (options: Options<PlanJourneysData>) => queryOptions<PlanJourneysResponse, AxiosError<DefaultError>, PlanJourneysResponse, ReturnType<typeof planJourneysQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await planJourneys({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: planJourneysQueryKey(options)
+});
+
 export const getAlertsQueryKey = (options?: Options<GetAlertsData>) => createQueryKey('getAlerts', options);
 
 /**
@@ -221,7 +241,7 @@ export const registerDeviceMutation = (options?: Partial<Options<RegisterDeviceD
 /**
  * Delete Device
  *
- * Delete this device and everything stored about it (follows included).
+ * Delete this device and everything stored about it (follows, push tokens).
  */
 export const deleteDeviceMutation = (options?: Partial<Options<DeleteDeviceData>>): UseMutationOptions<DeleteDeviceResponse, AxiosError<DefaultError>, Options<DeleteDeviceData>> => {
     const mutationOptions: UseMutationOptions<DeleteDeviceResponse, AxiosError<DefaultError>, Options<DeleteDeviceData>> = {
@@ -266,6 +286,45 @@ export const rotateDeviceTokenMutation = (options?: Partial<Options<RotateDevice
     const mutationOptions: UseMutationOptions<RotateDeviceTokenResponse, AxiosError<DefaultError>, Options<RotateDeviceTokenData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await rotateDeviceToken({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Register Push Token
+ *
+ * Register where this device receives alerts. Registering a token again is
+ * harmless; a token registered to another device moves to this one.
+ */
+export const registerPushTokenMutation = (options?: Partial<Options<RegisterPushTokenData>>): UseMutationOptions<RegisterPushTokenResponse, AxiosError<DefaultError>, Options<RegisterPushTokenData>> => {
+    const mutationOptions: UseMutationOptions<RegisterPushTokenResponse, AxiosError<DefaultError>, Options<RegisterPushTokenData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await registerPushToken({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Delete Push Token
+ *
+ * Stop sending pushes to a token
+ */
+export const deletePushTokenMutation = (options?: Partial<Options<DeletePushTokenData>>): UseMutationOptions<DeletePushTokenResponse, AxiosError<DeletePushTokenError>, Options<DeletePushTokenData>> => {
+    const mutationOptions: UseMutationOptions<DeletePushTokenResponse, AxiosError<DeletePushTokenError>, Options<DeletePushTokenData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await deletePushToken({
                 ...options,
                 ...fnOptions,
                 throwOnError: true

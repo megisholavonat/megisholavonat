@@ -191,6 +191,16 @@ export const zDeviceInfo = z.object({
 });
 
 /**
+ * ExpoPushTokenCreate
+ *
+ * An Expo push token (iOS or Android): alerts about every follow
+ */
+export const zExpoPushTokenCreate = z.object({
+    type: z.literal('expo'),
+    token: z.string().regex(/^Expo(nent)?PushToken\[[^\]]{1,200}\]$/)
+});
+
+/**
  * FollowUpdate
  *
  * Partial update. Weekdays, stations and label only apply to commutes;
@@ -242,6 +252,33 @@ export const zInfoService = z.object({
 });
 
 /**
+ * JourneyStop
+ *
+ * Where a leg starts or ends
+ */
+export const zJourneyStop = z.object({
+    id: z.string().nullish(),
+    name: z.string(),
+    lat: z.number(),
+    lon: z.number(),
+    platform: z.string().nullish()
+});
+
+/**
+ * LiveActivityPushTokenCreate
+ *
+ * The ActivityKit push token of one followed trip's iOS Live Activity. It
+ * receives `update` events while the train runs and `end` once it has passed
+ * the alighting station; alerts about that follow are shown on it instead of
+ * as a separate notification.
+ */
+export const zLiveActivityPushTokenCreate = z.object({
+    type: z.literal('liveactivity'),
+    token: z.string().regex(/^[0-9a-fA-F]{16,512}$/),
+    followId: z.uuid()
+});
+
+/**
  * PlatformPrediction
  */
 export const zPlatformPrediction = z.object({
@@ -259,6 +296,18 @@ export const zPlatformPrediction = z.object({
  */
 export const zPosthogKey = z.object({
     key: z.string().nullable()
+});
+
+/**
+ * PushToken
+ *
+ * A registered push token; the token itself is not echoed back
+ */
+export const zPushToken = z.object({
+    id: z.uuid(),
+    type: z.enum(['expo', 'liveactivity']),
+    followId: z.uuid().nullable(),
+    createdAt: z.iso.datetime()
 });
 
 /**
@@ -509,6 +558,50 @@ export const zTrainStationHistory = z.object({
 });
 
 /**
+ * Transfer
+ *
+ * A change between two consecutive trains
+ */
+export const zTransfer = z.object({
+    fromLeg: z.int(),
+    toLeg: z.int(),
+    station: z.string(),
+    transferMinutes: z.int(),
+    expectedTransferMinutes: z.int(),
+    missRisk: z.number().nullish()
+});
+
+/**
+ * TransitLeg
+ *
+ * A ride on one train (or rail replacement bus)
+ */
+export const zTransitLeg = z.object({
+    type: z.literal('transit').optional().default('transit'),
+    mode: z.string(),
+    tripId: z.string(),
+    tripShortName: z.string(),
+    trainNumber: z.string(),
+    routeShortName: z.string(),
+    routeLongName: z.string().nullish(),
+    routeTextColor: z.string().nullish(),
+    headsign: z.string().nullish(),
+    serviceDate: z.string(),
+    fromStop: zJourneyStop,
+    toStop: zJourneyStop,
+    scheduledDeparture: z.int(),
+    expectedDeparture: z.int(),
+    scheduledArrival: z.int(),
+    expectedArrival: z.int(),
+    delayMinutes: z.int(),
+    delaySource: z.enum(['gps', 'otp']),
+    realtime: z.boolean(),
+    canceled: z.boolean().optional().default(false),
+    intermediateStops: z.int(),
+    vehicleId: z.string().nullish()
+});
+
+/**
  * TripFollow
  */
 export const zTripFollow = z.object({
@@ -622,6 +715,55 @@ export const zVehiclePositionWithDelay = z.object({
 });
 
 /**
+ * WalkLeg
+ *
+ * A walk, e.g. between two stations of a town
+ */
+export const zWalkLeg = z.object({
+    type: z.literal('walk').optional().default('walk'),
+    fromStop: zJourneyStop,
+    toStop: zJourneyStop,
+    departureTime: z.int(),
+    arrivalTime: z.int(),
+    distanceMeters: z.int()
+});
+
+/**
+ * Itinerary
+ *
+ * One way to get from A to B
+ */
+export const zItinerary = z.object({
+    scheduledDeparture: z.int(),
+    expectedDeparture: z.int(),
+    scheduledArrival: z.int(),
+    expectedArrival: z.int(),
+    durationMinutes: z.int(),
+    transferCount: z.int(),
+    legs: z.array(z.union([z.object({
+            type: z.literal('walk')
+        }).and(zWalkLeg), z.object({
+            type: z.literal('transit')
+        }).and(zTransitLeg)])),
+    transfers: z.array(zTransfer),
+    ticketUrl: z.string()
+});
+
+/**
+ * JourneyPlan
+ *
+ * Journeys between two rail stations
+ */
+export const zJourneyPlan = z.object({
+    fromStation: zStation,
+    toStation: zStation,
+    time: z.int(),
+    arriveBy: z.boolean(),
+    generatedAt: z.int(),
+    itineraries: z.array(zItinerary)
+});
+
+/**
  * Response Getredisstatus
  *
  * Successful Response
@@ -673,6 +815,19 @@ export const zGetStationBoardQuery = z.object({
  */
 export const zGetStationBoardResponse = zStationBoard;
 
+export const zPlanJourneysQuery = z.object({
+    from: z.string(),
+    to: z.string(),
+    time: z.iso.datetime().nullish(),
+    arriveBy: z.boolean().optional().default(false),
+    limit: z.int().gte(1).lte(10).optional().default(5)
+});
+
+/**
+ * Successful Response
+ */
+export const zPlanJourneysResponse = zJourneyPlan;
+
 /**
  * Response Getalerts
  *
@@ -701,6 +856,28 @@ export const zGetDeviceResponse = zDeviceInfo;
  * Successful Response
  */
 export const zRotateDeviceTokenResponse = zDeviceCredentials;
+
+/**
+ * Body
+ */
+export const zRegisterPushTokenBody = z.discriminatedUnion('type', [
+    zExpoPushTokenCreate.extend({ type: z.literal('expo') }),
+    zLiveActivityPushTokenCreate.extend({ type: z.literal('liveactivity') })
+]);
+
+/**
+ * Successful Response
+ */
+export const zRegisterPushTokenResponse = zPushToken;
+
+export const zDeletePushTokenPath = z.object({
+    token_id: z.uuid()
+});
+
+/**
+ * Successful Response
+ */
+export const zDeletePushTokenResponse = z.void();
 
 /**
  * Response Listfollows

@@ -356,6 +356,22 @@ export type DeviceInfo = {
 };
 
 /**
+ * ExpoPushTokenCreate
+ *
+ * An Expo push token (iOS or Android): alerts about every follow
+ */
+export type ExpoPushTokenCreate = {
+    /**
+     * Type
+     */
+    type: 'expo';
+    /**
+     * Token
+     */
+    token: string;
+};
+
+/**
  * FollowUpdate
  *
  * Partial update. Weekdays, stations and label only apply to commutes;
@@ -477,6 +493,131 @@ export type InfoService = {
 };
 
 /**
+ * Itinerary
+ *
+ * One way to get from A to B
+ */
+export type Itinerary = {
+    /**
+     * Scheduleddeparture
+     */
+    scheduledDeparture: number;
+    /**
+     * Expecteddeparture
+     */
+    expectedDeparture: number;
+    /**
+     * Scheduledarrival
+     */
+    scheduledArrival: number;
+    /**
+     * Expectedarrival
+     */
+    expectedArrival: number;
+    /**
+     * Durationminutes
+     */
+    durationMinutes: number;
+    /**
+     * Transfercount
+     */
+    transferCount: number;
+    /**
+     * Legs
+     */
+    legs: Array<({
+        type: 'walk';
+    } & WalkLeg) | ({
+        type: 'transit';
+    } & TransitLeg)>;
+    /**
+     * Transfers
+     */
+    transfers: Array<Transfer>;
+    /**
+     * Ticketurl
+     */
+    ticketUrl: string;
+};
+
+/**
+ * JourneyPlan
+ *
+ * Journeys between two rail stations
+ */
+export type JourneyPlan = {
+    fromStation: Station;
+    toStation: Station;
+    /**
+     * Time
+     */
+    time: number;
+    /**
+     * Arriveby
+     */
+    arriveBy: boolean;
+    /**
+     * Generatedat
+     */
+    generatedAt: number;
+    /**
+     * Itineraries
+     */
+    itineraries: Array<Itinerary>;
+};
+
+/**
+ * JourneyStop
+ *
+ * Where a leg starts or ends
+ */
+export type JourneyStop = {
+    /**
+     * Id
+     */
+    id?: string | null;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Lat
+     */
+    lat: number;
+    /**
+     * Lon
+     */
+    lon: number;
+    /**
+     * Platform
+     */
+    platform?: string | null;
+};
+
+/**
+ * LiveActivityPushTokenCreate
+ *
+ * The ActivityKit push token of one followed trip's iOS Live Activity. It
+ * receives `update` events while the train runs and `end` once it has passed
+ * the alighting station; alerts about that follow are shown on it instead of
+ * as a separate notification.
+ */
+export type LiveActivityPushTokenCreate = {
+    /**
+     * Type
+     */
+    type: 'liveactivity';
+    /**
+     * Token
+     */
+    token: string;
+    /**
+     * Followid
+     */
+    followId: string;
+};
+
+/**
  * PlatformPrediction
  */
 export type PlatformPrediction = {
@@ -547,6 +688,30 @@ export type ProcessedStop = {
      */
     distanceAlongRoute: number;
     stopTimeInfo?: StopTimeWithCounty | null;
+};
+
+/**
+ * PushToken
+ *
+ * A registered push token; the token itself is not echoed back
+ */
+export type PushToken = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Type
+     */
+    type: 'expo' | 'liveactivity';
+    /**
+     * Followid
+     */
+    followId: string | null;
+    /**
+     * Createdat
+     */
+    createdAt: string;
 };
 
 /**
@@ -1056,6 +1221,128 @@ export type TrainStationHistory = {
 };
 
 /**
+ * Transfer
+ *
+ * A change between two consecutive trains
+ */
+export type Transfer = {
+    /**
+     * Fromleg
+     */
+    fromLeg: number;
+    /**
+     * Toleg
+     */
+    toLeg: number;
+    /**
+     * Station
+     */
+    station: string;
+    /**
+     * Transferminutes
+     */
+    transferMinutes: number;
+    /**
+     * Expectedtransferminutes
+     */
+    expectedTransferMinutes: number;
+    /**
+     * Missrisk
+     */
+    missRisk?: number | null;
+};
+
+/**
+ * TransitLeg
+ *
+ * A ride on one train (or rail replacement bus)
+ */
+export type TransitLeg = {
+    /**
+     * Type
+     */
+    type?: 'transit';
+    /**
+     * Mode
+     */
+    mode: string;
+    /**
+     * Tripid
+     */
+    tripId: string;
+    /**
+     * Tripshortname
+     */
+    tripShortName: string;
+    /**
+     * Trainnumber
+     */
+    trainNumber: string;
+    /**
+     * Routeshortname
+     */
+    routeShortName: string;
+    /**
+     * Routelongname
+     */
+    routeLongName?: string | null;
+    /**
+     * Routetextcolor
+     */
+    routeTextColor?: string | null;
+    /**
+     * Headsign
+     */
+    headsign?: string | null;
+    /**
+     * Servicedate
+     */
+    serviceDate: string;
+    fromStop: JourneyStop;
+    toStop: JourneyStop;
+    /**
+     * Scheduleddeparture
+     */
+    scheduledDeparture: number;
+    /**
+     * Expecteddeparture
+     */
+    expectedDeparture: number;
+    /**
+     * Scheduledarrival
+     */
+    scheduledArrival: number;
+    /**
+     * Expectedarrival
+     */
+    expectedArrival: number;
+    /**
+     * Delayminutes
+     */
+    delayMinutes: number;
+    /**
+     * Delaysource
+     */
+    delaySource: 'gps' | 'otp';
+    /**
+     * Realtime
+     */
+    realtime: boolean;
+    /**
+     * Canceled
+     */
+    canceled?: boolean;
+    /**
+     * Intermediatestops
+     */
+    intermediateStops: number;
+    /**
+     * Vehicleid
+     */
+    vehicleId?: string | null;
+};
+
+/**
  * Trip
  *
  * Trip information
@@ -1313,6 +1600,32 @@ export type VehicleProgress = {
     progress: number;
 };
 
+/**
+ * WalkLeg
+ *
+ * A walk, e.g. between two stations of a town
+ */
+export type WalkLeg = {
+    /**
+     * Type
+     */
+    type?: 'walk';
+    fromStop: JourneyStop;
+    toStop: JourneyStop;
+    /**
+     * Departuretime
+     */
+    departureTime: number;
+    /**
+     * Arrivaltime
+     */
+    arrivalTime: number;
+    /**
+     * Distancemeters
+     */
+    distanceMeters: number;
+};
+
 export type RootData = {
     body?: never;
     path?: never;
@@ -1496,6 +1809,66 @@ export type GetStationBoardResponses = {
 
 export type GetStationBoardResponse = GetStationBoardResponses[keyof GetStationBoardResponses];
 
+export type PlanJourneysData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * From
+         *
+         * UIC code of the departure station
+         */
+        from: string;
+        /**
+         * To
+         *
+         * UIC code of the destination station
+         */
+        to: string;
+        /**
+         * Time
+         *
+         * ISO time; local (Budapest) if no offset. Default: now
+         */
+        time?: string | null;
+        /**
+         * Arriveby
+         *
+         * Arrive by `time` instead of departing at it
+         */
+        arriveBy?: boolean;
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/v1/journeys';
+};
+
+export type PlanJourneysErrors = {
+    /**
+     * Unknown station
+     */
+    404: unknown;
+    /**
+     * Departure and destination are the same
+     */
+    422: unknown;
+    /**
+     * The upstream timetable service failed
+     */
+    502: unknown;
+};
+
+export type PlanJourneysResponses = {
+    /**
+     * Successful Response
+     */
+    200: JourneyPlan;
+};
+
+export type PlanJourneysResponse = PlanJourneysResponses[keyof PlanJourneysResponses];
+
 export type GetAlertsData = {
     body?: never;
     path?: never;
@@ -1618,6 +1991,86 @@ export type RotateDeviceTokenResponses = {
 };
 
 export type RotateDeviceTokenResponse = RotateDeviceTokenResponses[keyof RotateDeviceTokenResponses];
+
+export type RegisterPushTokenData = {
+    /**
+     * Body
+     */
+    body: ({
+        type: 'expo';
+    } & ExpoPushTokenCreate) | ({
+        type: 'liveactivity';
+    } & LiveActivityPushTokenCreate);
+    path?: never;
+    query?: never;
+    url: '/v1/devices/me/push-tokens';
+};
+
+export type RegisterPushTokenErrors = {
+    /**
+     * Missing, malformed or invalid device token
+     */
+    401: unknown;
+    /**
+     * No such follow on this device
+     */
+    404: unknown;
+    /**
+     * The limit of 60 push tokens is reached
+     */
+    409: unknown;
+    /**
+     * Invalid token, or wrong platform for its type
+     */
+    422: unknown;
+};
+
+export type RegisterPushTokenResponses = {
+    /**
+     * Successful Response
+     */
+    201: PushToken;
+};
+
+export type RegisterPushTokenResponse = RegisterPushTokenResponses[keyof RegisterPushTokenResponses];
+
+export type DeletePushTokenData = {
+    body?: never;
+    path: {
+        /**
+         * Token Id
+         */
+        token_id: string;
+    };
+    query?: never;
+    url: '/v1/devices/me/push-tokens/{token_id}';
+};
+
+export type DeletePushTokenErrors = {
+    /**
+     * Missing, malformed or invalid device token
+     */
+    401: unknown;
+    /**
+     * No such push token
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeletePushTokenError = DeletePushTokenErrors[keyof DeletePushTokenErrors];
+
+export type DeletePushTokenResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeletePushTokenResponse = DeletePushTokenResponses[keyof DeletePushTokenResponses];
 
 export type ListFollowsData = {
     body?: never;

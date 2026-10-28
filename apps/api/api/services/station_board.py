@@ -1,6 +1,7 @@
 """Departure and arrival boards of rail stations."""
 
 import time
+from collections.abc import Callable
 from datetime import datetime, timedelta
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -107,8 +108,22 @@ def _board_entry(
     )
 
 
-def _train_number(trip_short_name: str) -> str:
+def train_number(trip_short_name: str) -> str:
+    """The number of a train, e.g. "201" of "201 AGRAM - TÓPART InterCity"."""
     return trip_short_name.split(" ", 1)[0]
+
+
+def keep_best[T, K, R: tuple[Any, ...]](
+    items: list[T], key: Callable[[T], K], rank: Callable[[T], R]
+) -> list[T]:
+    """One item per key, the highest ranked, in order of first appearance."""
+    best: dict[K, T] = {}
+    for item in items:
+        k = key(item)
+        existing = best.get(k)
+        if existing is None or rank(item) > rank(existing):
+            best[k] = item
+    return list(best.values())
 
 
 def merge_duplicate_trips(entries: list[BoardEntry]) -> list[BoardEntry]:
@@ -118,21 +133,11 @@ def merge_duplicate_trips(entries: list[BoardEntry]) -> list[BoardEntry]:
     preferring the one matched to a live vehicle, then a running one, then
     realtime data.
     """
-
-    def rank(entry: BoardEntry) -> tuple[bool, bool, bool]:
-        return entry.delaySource == "gps", not entry.canceled, entry.realtime
-
-    best: dict[tuple[str, str, int], BoardEntry] = {}
-    for entry in entries:
-        key = (
-            entry.serviceDate,
-            _train_number(entry.tripShortName),
-            entry.scheduledTime,
-        )
-        existing = best.get(key)
-        if existing is None or rank(entry) > rank(existing):
-            best[key] = entry
-    return list(best.values())
+    return keep_best(
+        entries,
+        key=lambda e: (e.serviceDate, train_number(e.tripShortName), e.scheduledTime),
+        rank=lambda e: (e.delaySource == "gps", not e.canceled, e.realtime),
+    )
 
 
 async def _fetch_station(

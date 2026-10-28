@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateFollowData, CreateFollowErrors, CreateFollowResponses, DeleteDeviceData, DeleteDeviceErrors, DeleteDeviceResponses, DeleteFollowData, DeleteFollowErrors, DeleteFollowResponses, GetAlertsData, GetAlertsErrors, GetAlertsResponses, GetDeviceData, GetDeviceErrors, GetDeviceResponses, GetPosthogKeyData, GetPosthogKeyResponses, GetRankingsData, GetRankingsErrors, GetRankingsResponses, GetRedisStatusData, GetRedisStatusResponses, GetStationBoardData, GetStationBoardErrors, GetStationBoardResponses, GetStationPlatformsData, GetStationPlatformsErrors, GetStationPlatformsResponses, GetTimeOfDayPunctualityData, GetTimeOfDayPunctualityErrors, GetTimeOfDayPunctualityResponses, GetTrainDetailsData, GetTrainDetailsErrors, GetTrainDetailsResponses, GetTrainHistoryData, GetTrainHistoryErrors, GetTrainHistoryResponses, GetTrainsData, GetTrainsResponses, GetTrainStationHistoryData, GetTrainStationHistoryErrors, GetTrainStationHistoryResponses, ListFollowsData, ListFollowsErrors, ListFollowsResponses, RegisterDeviceData, RegisterDeviceErrors, RegisterDeviceResponses, RootData, RootResponses, RotateDeviceTokenData, RotateDeviceTokenErrors, RotateDeviceTokenResponses, SearchStationsData, SearchStationsErrors, SearchStationsResponses, UpdateFollowData, UpdateFollowErrors, UpdateFollowResponses } from './types.gen';
+import type { CreateFollowData, CreateFollowErrors, CreateFollowResponses, DeleteDeviceData, DeleteDeviceErrors, DeleteDeviceResponses, DeleteFollowData, DeleteFollowErrors, DeleteFollowResponses, DeletePushTokenData, DeletePushTokenErrors, DeletePushTokenResponses, GetAlertsData, GetAlertsErrors, GetAlertsResponses, GetDeviceData, GetDeviceErrors, GetDeviceResponses, GetPosthogKeyData, GetPosthogKeyResponses, GetRankingsData, GetRankingsErrors, GetRankingsResponses, GetRedisStatusData, GetRedisStatusResponses, GetStationBoardData, GetStationBoardErrors, GetStationBoardResponses, GetStationPlatformsData, GetStationPlatformsErrors, GetStationPlatformsResponses, GetTimeOfDayPunctualityData, GetTimeOfDayPunctualityErrors, GetTimeOfDayPunctualityResponses, GetTrainDetailsData, GetTrainDetailsErrors, GetTrainDetailsResponses, GetTrainHistoryData, GetTrainHistoryErrors, GetTrainHistoryResponses, GetTrainsData, GetTrainsResponses, GetTrainStationHistoryData, GetTrainStationHistoryErrors, GetTrainStationHistoryResponses, ListFollowsData, ListFollowsErrors, ListFollowsResponses, PlanJourneysData, PlanJourneysErrors, PlanJourneysResponses, RegisterDeviceData, RegisterDeviceErrors, RegisterDeviceResponses, RegisterPushTokenData, RegisterPushTokenErrors, RegisterPushTokenResponses, RootData, RootResponses, RotateDeviceTokenData, RotateDeviceTokenErrors, RotateDeviceTokenResponses, SearchStationsData, SearchStationsErrors, SearchStationsResponses, UpdateFollowData, UpdateFollowErrors, UpdateFollowResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -94,6 +94,17 @@ export const getStationBoard = <ThrowOnError extends boolean = false>(options: O
 });
 
 /**
+ * Plan Journeys
+ *
+ * Itineraries between two rail stations, with live delays and ticket links
+ */
+export const planJourneys = <ThrowOnError extends boolean = false>(options: Options<PlanJourneysData, ThrowOnError>) => (options.client ?? client).get<PlanJourneysResponses, PlanJourneysErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/v1/journeys',
+    ...options
+});
+
+/**
  * Get Alerts
  *
  * Active rail alerts (MÁV, GYSEV, HÉV), newest first
@@ -123,7 +134,7 @@ export const registerDevice = <ThrowOnError extends boolean = false>(options: Op
 /**
  * Delete Device
  *
- * Delete this device and everything stored about it (follows included).
+ * Delete this device and everything stored about it (follows, push tokens).
  */
 export const deleteDevice = <ThrowOnError extends boolean = false>(options?: Options<DeleteDeviceData, ThrowOnError>) => (options?.client ?? client).delete<DeleteDeviceResponses, DeleteDeviceErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -152,6 +163,34 @@ export const rotateDeviceToken = <ThrowOnError extends boolean = false>(options?
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/v1/devices/me/rotate-token',
+    ...options
+});
+
+/**
+ * Register Push Token
+ *
+ * Register where this device receives alerts. Registering a token again is
+ * harmless; a token registered to another device moves to this one.
+ */
+export const registerPushToken = <ThrowOnError extends boolean = false>(options: Options<RegisterPushTokenData, ThrowOnError>) => (options.client ?? client).post<RegisterPushTokenResponses, RegisterPushTokenErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/devices/me/push-tokens',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete Push Token
+ *
+ * Stop sending pushes to a token
+ */
+export const deletePushToken = <ThrowOnError extends boolean = false>(options: Options<DeletePushTokenData, ThrowOnError>) => (options.client ?? client).delete<DeletePushTokenResponses, DeletePushTokenErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/devices/me/push-tokens/{token_id}',
     ...options
 });
 
