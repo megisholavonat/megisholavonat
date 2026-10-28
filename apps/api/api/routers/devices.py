@@ -7,9 +7,10 @@ from fastapi import APIRouter, Request, Response, status
 from sqlalchemy import update
 
 from api.core.auth import DeviceDep, hash_token, new_token
+from api.core.client_ip import client_ip
 from api.core.config import settings
 from api.core.db import SessionDep
-from api.core.rate_limit import client_ip, hit, rate_limit_bucket, too_many_requests
+from api.core.rate_limit import hit, rate_limit_bucket, too_many_requests
 from api.core.redis import RedisDep
 from api.models.devices import Device
 from api.schemas.devices import DeviceCreate, DeviceCredentials, DeviceInfo

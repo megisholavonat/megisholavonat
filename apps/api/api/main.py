@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.routing import APIRoute, APIRouter
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
+from api.core.client_ip import ClientIPHeaderMiddleware
 from api.core.config import settings
 from api.core.db import engine
 from api.core.logging_config import get_logger, setup_logging
@@ -81,6 +82,13 @@ def create_app() -> FastAPI:
             ProxyHeadersMiddleware,
             trusted_hosts=settings.trusted_proxies,  # type: ignore[arg-type]
         )
+        # Added last so it runs first and sees the raw TCP peer
+        if settings.CLIENT_IP_HEADER:
+            app.add_middleware(
+                ClientIPHeaderMiddleware,
+                header=settings.CLIENT_IP_HEADER,
+                trusted_proxies=settings.trusted_proxies,
+            )
 
     app.include_router(root.router)
     app.include_router(v1_router)

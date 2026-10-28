@@ -3,22 +3,13 @@
 import ipaddress
 import time
 
-from fastapi import HTTPException, Request, status
+from fastapi import HTTPException, status
 from redis.asyncio import Redis
 
 from api.core.redis import add_key
 
 # IPv6 clients usually control a whole /64, so they are limited per /64
 IPV6_PREFIX = 64
-
-
-def client_ip(request: Request) -> str:
-    """
-    The client address. X-Forwarded-For is resolved by ProxyHeadersMiddleware
-    (see create_app) only for requests arriving from TRUSTED_PROXIES, so this
-    is the TCP peer unless the request came through a trusted proxy.
-    """
-    return request.client.host if request.client else "unknown"
 
 
 def rate_limit_bucket(ip: str) -> str:

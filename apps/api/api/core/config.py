@@ -32,6 +32,11 @@ class Settings(BaseSettings):
     # the rightmost X-Forwarded-For entry that is not a trusted proxy. Empty
     # (the default) trusts no header and uses the TCP peer address.
     TRUSTED_PROXIES: str = ""
+    # Header carrying the client IP as a single address, set by the edge in
+    # front of the ingress (CF-Connecting-IP behind Cloudflare). Honoured only
+    # when the TCP peer is in TRUSTED_PROXIES and the value is a valid IP;
+    # otherwise the X-Forwarded-For handling above applies. Empty disables it.
+    CLIENT_IP_HEADER: str = ""
     # Device registrations allowed per hour (fixed window)
     DEVICE_REGISTRATIONS_PER_IP_PER_HOUR: int = 5
     DEVICE_REGISTRATIONS_PER_HOUR: int = 500
