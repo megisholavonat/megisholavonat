@@ -1,4 +1,8 @@
-import type { VehiclePositionWithDelay } from "@megisholavonat/api-client";
+import type {
+    TrainFeatureCollection,
+    TrainFeatureProperties,
+    VehiclePositionWithDelay,
+} from "@megisholavonat/api-client";
 import { type DelayLevel, getDelayLevel } from "@megisholavonat/core/delay";
 import { minutesSinceUpdate, staleness } from "@megisholavonat/core/stale";
 import { beforeDeparture } from "./trainData";
@@ -146,4 +150,48 @@ export function sheetInput(
               isStale: feature.isStale ?? null,
           }
         : null;
+}
+
+/**
+ * The map feed with one train brought up to date from its details, when
+ * those are newer: the open train's marker then shows what its sheet shows
+ * (the feed polls every minute, the details every 15 s). The list's "not
+ * active" flag is kept only if it came from fresh data. Returns the same
+ * object when nothing changes.
+ */
+export function patchFeed(
+    feed: TrainFeatureCollection | undefined,
+    details: VehiclePositionWithDelay,
+    now: Date = new Date(),
+): TrainFeatureCollection | undefined {
+    if (!feed) return feed;
+    const index = feed.features.findIndex(
+        (f) => f.properties.vehicleId === details.vehicleId,
+    );
+    const feature = feed.features[index];
+    if (!feature || feature.properties.lastUpdated >= details.lastUpdated) {
+        return feed;
+    }
+    const p = feature.properties;
+    const properties: TrainFeatureProperties = {
+        ...p,
+        lat: details.lat,
+        lon: details.lon,
+        heading: details.heading ?? p.heading,
+        speed: details.speed ?? p.speed,
+        delay: details.delay,
+        lastUpdated: details.lastUpdated,
+        isStale:
+            p.isStale === true && staleness(p.lastUpdated, now) === "fresh",
+    };
+    const features = [...feed.features];
+    features[index] = {
+        ...feature,
+        geometry: {
+            ...feature.geometry,
+            coordinates: [details.lon, details.lat],
+        },
+        properties,
+    };
+    return { ...feed, features };
 }

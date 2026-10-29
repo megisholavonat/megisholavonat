@@ -1,7 +1,11 @@
-import type { VehiclePositionWithDelay } from "@megisholavonat/api-client";
+import type {
+    TrainFeatureCollection,
+    VehiclePositionWithDelay,
+} from "@megisholavonat/api-client";
 import { describe, expect, it } from "vitest";
 import {
     localActivity,
+    patchFeed,
     sheetInput,
     type TrainDisplayInput,
     trainDisplay,
@@ -155,5 +159,71 @@ describe("sheetInput", () => {
             ),
         ).toEqual({ delay: 5, lastUpdated: ago(10), isStale: true });
         expect(sheetInput(undefined, undefined, now)).toBeNull();
+    });
+});
+
+describe("patchFeed", () => {
+    const feature = (
+        vehicleId: string,
+        lastUpdated: number,
+        isStale = false,
+    ) => ({
+        type: "Feature",
+        geometry: { type: "Point", coordinates: [19, 47] },
+        properties: {
+            vehicleId,
+            lat: 47,
+            lon: 19,
+            delay: 4,
+            lastUpdated,
+            isStale,
+        },
+    });
+    const feed = (...features: ReturnType<typeof feature>[]) =>
+        ({ features }) as unknown as TrainFeatureCollection;
+    const fresh = {
+        ...details(0, 1, 0.5),
+        vehicleId: "1:1",
+        lat: 47.5,
+        lon: 19.5,
+        delay: 23,
+        lastUpdated: ago(5),
+    } as VehiclePositionWithDelay;
+
+    it("brings the open train up to date from newer details", () => {
+        const patched = patchFeed(
+            feed(feature("1:1", ago(70)), feature("1:2", ago(70))),
+            fresh,
+            now,
+        );
+        expect(patched?.features[0]?.properties).toMatchObject({
+            delay: 23,
+            lastUpdated: ago(5),
+            lat: 47.5,
+            lon: 19.5,
+        });
+        expect(patched?.features[0]?.geometry).toEqual({
+            type: "Point",
+            coordinates: [19.5, 47.5],
+        });
+        expect(patched?.features[1]?.properties.delay).toBe(4);
+    });
+
+    it("keeps the feed when its data is as new", () => {
+        const current = feed(feature("1:1", ago(5)));
+        expect(patchFeed(current, fresh, now)).toBe(current);
+        const other = feed(feature("1:9", ago(70)));
+        expect(patchFeed(other, fresh, now)).toBe(other);
+    });
+
+    it("keeps the not-active flag only from fresh data", () => {
+        const waiting = patchFeed(
+            feed(feature("1:1", ago(70), true)),
+            fresh,
+            now,
+        );
+        expect(waiting?.features[0]?.properties.isStale).toBe(true);
+        const old = patchFeed(feed(feature("1:1", ago(900), true)), fresh, now);
+        expect(old?.features[0]?.properties.isStale).toBe(false);
     });
 });

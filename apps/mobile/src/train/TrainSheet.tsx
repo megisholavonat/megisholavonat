@@ -1,4 +1,7 @@
-import type { TrainFeatureProperties } from "@megisholavonat/api-client";
+import type {
+    TrainFeatureCollection,
+    TrainFeatureProperties,
+} from "@megisholavonat/api-client";
 import {
     getStationPlatformsOptions,
     getTrainDetailsOptions,
@@ -10,10 +13,10 @@ import {
     formatSecondsAsTime,
     serviceDayStart,
 } from "@megisholavonat/core/time";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
-import { type ReactNode, useMemo } from "react";
+import { type ReactNode, useEffect, useMemo } from "react";
 import {
     Platform,
     ScrollView,
@@ -48,7 +51,7 @@ import {
     stopRows,
     trainTitle,
 } from "./trainData";
-import { sheetInput, trainDisplay } from "./trainState";
+import { patchFeed, sheetInput, trainDisplay } from "./trainState";
 
 const DETAILS_REFRESH_MS = 15_000;
 const HISTORY_STALE_MS = 6 * 3600_000;
@@ -91,6 +94,17 @@ export function TrainSheet({
         ...getTrainDetailsOptions({ path: { vehicle_id: vehicleId } }),
         refetchInterval: DETAILS_REFRESH_MS,
     });
+
+    // Newer details move this train's marker and delay on the map too, so
+    // the marker and the sheet agree between feed polls
+    const queryClient = useQueryClient();
+    useEffect(() => {
+        if (!details) return;
+        queryClient.setQueryData<TrainFeatureCollection>(
+            getTrainsOptions().queryKey,
+            (feed) => patchFeed(feed, details),
+        );
+    }, [details, queryClient]);
 
     // One state for the tile, the times and the rail, by the same rules as
     // the map marker
