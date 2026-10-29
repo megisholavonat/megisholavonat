@@ -239,8 +239,11 @@ export default function PrivacyContentHu() {
             <p>
                 Ezek az oldal és az alkalmazás működéséhez és a döntéseid
                 megjegyzéséhez szükségesek, ezért nem kérünk hozzájuk külön
-                hozzájárulást. Bármikor törölheted őket a böngésző adatainak
-                törlésével vagy az alkalmazás eltávolításával.
+                hozzájárulást. Bármikor törölheted őket a weboldal
+                beállításaiban a <strong>Mentett adatok törlése</strong>, az
+                alkalmazás beállításaiban az <strong>Adataim törlése</strong>{" "}
+                gombbal, a böngésző adatainak törlésével vagy az alkalmazás
+                eltávolításával.
             </p>
 
             <h2>Vonatok követése és értesítések az alkalmazásban</h2>
@@ -336,15 +339,21 @@ export default function PrivacyContentHu() {
             </ul>
             <p>
                 <strong>Az értesítések leállítása és az adatok törlése:</strong>{" "}
-                állítsd le a vonataid követését az alkalmazásban; ez azonnal
-                törli őket a szerverünkről. Ha a telefonod beállításaiban
-                kapcsolod ki az értesítéseket, azok csak nem jelennek meg. Ha
-                törlöd az alkalmazást, a push-tokened érvénytelenné válik, és
-                töröljük, a megmaradt eszközadatot pedig, amely már nem
-                kapcsolható hozzád, 180 nap múlva töröljük. iPhone-on az eszköz
-                belépési adata az alkalmazás törlése után is megmaradhat a
-                kulcskarikában; ha újratelepíted, az alkalmazás eltávolítja a
-                szerverről azokat a vonatokat, amelyek már nincsenek meg nála.
+                koppints az alkalmazás beállításaiban az{" "}
+                <strong>Adataim törlése</strong> gombra. Ez azonnal törli a
+                szerverünkről az eszközt az összes követett vonatával,
+                push-tokenjével és értesítési állapotával együtt, és törli az
+                alkalmazás adatait a telefonodon; ha épp nincs internet, a
+                szerverről az alkalmazás következő megnyitásakor töröljük. Egy
+                vonat követésének leállítása is azonnal törli azt a
+                szerverünkről. Ha a telefonod beállításaiban kapcsolod ki az
+                értesítéseket, azok csak nem jelennek meg. Ha törlöd az
+                alkalmazást, a push-tokened érvénytelenné válik, és töröljük, a
+                megmaradt eszközadatot pedig, amely már nem kapcsolható hozzád,
+                180 nap múlva töröljük. iPhone-on az eszköz belépési adata az
+                alkalmazás törlése után is megmaradhat a kulcskarikában; ha
+                újratelepíted, az alkalmazás eltávolítja a szerverről azokat a
+                vonatokat, amelyek már nincsenek meg nála.
             </p>
 
             <h2>Látogatószám-mérés (mindenkinél)</h2>

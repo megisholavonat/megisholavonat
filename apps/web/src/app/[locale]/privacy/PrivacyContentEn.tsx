@@ -226,8 +226,10 @@ export default function PrivacyContentEn() {
             <p>
                 These are needed for the site and the app to work and to
                 remember your choices, so we do not ask for separate consent.
-                You can remove them at any time by clearing your browser data or
-                deleting the app.
+                You can remove them at any time with{" "}
+                <strong>Clear saved data</strong> in the website&apos;s settings
+                or <strong>Delete my data</strong> in the app&apos;s settings,
+                by clearing your browser data or by deleting the app.
             </p>
 
             <h2>Following trains and alerts in the app</h2>
@@ -316,15 +318,20 @@ export default function PrivacyContentEn() {
                 </li>
             </ul>
             <p>
-                <strong>To stop alerts and delete this data:</strong> unfollow
-                your trains in the app; this deletes them from our server at
-                once. Turning notifications off in your phone&apos;s settings
-                only hides the alerts. If you delete the app, your push token
-                stops working and is removed, and the remaining device record,
-                which can no longer be linked to you, is deleted after 180 days.
-                On iPhone the device credential may stay in the Keychain after
-                deleting the app; if you reinstall it, the app removes any
-                trains from our server that it no longer has.
+                <strong>To stop alerts and delete this data:</strong> tap{" "}
+                <strong>Delete my data</strong> in the app&apos;s settings. This
+                deletes the device with all its followed trains, push tokens and
+                alert state from our server at once, and clears the app&apos;s
+                data on your phone; if you are offline, our server is told the
+                next time you open the app. Unfollowing a train also deletes it
+                from our server at once. Turning notifications off in your
+                phone&apos;s settings only hides the alerts. If you delete the
+                app, your push token stops working and is removed, and the
+                remaining device record, which can no longer be linked to you,
+                is deleted after 180 days. On iPhone the device credential may
+                stay in the Keychain after deleting the app; if you reinstall
+                it, the app removes any trains from our server that it no longer
+                has.
             </p>
 
             <h2>Counting visitors (for everyone)</h2>
