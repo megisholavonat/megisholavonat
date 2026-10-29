@@ -1,12 +1,22 @@
 "use client";
 
-import type { BoardEntry, Station } from "@megisholavonat/api-client";
-import { getStationBoardOptions } from "@megisholavonat/api-client/react-query";
+import type {
+    BoardEntry,
+    Station,
+    TrainFeatureProperties,
+} from "@megisholavonat/api-client";
+import {
+    getStationBoardOptions,
+    getStationPlatformsOptions,
+    getTrainsOptions,
+} from "@megisholavonat/api-client/react-query";
 import { getDelayLevel } from "@megisholavonat/core/delay";
 import type { DelayReasonCode } from "@megisholavonat/core/delayReasons";
+import { trainDisplay } from "@megisholavonat/core/display";
 import { useQuery } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useMemo } from "react";
 import { SheetClose } from "@/components/sheet/BottomSheet";
 import { StationHistoryLink } from "@/components/stats/HistoryLinks";
 import { BackButton } from "@/components/train/TrainParts";
@@ -14,8 +24,9 @@ import { DelayChip } from "@/components/ui/Delay";
 import { PlatformBadge } from "@/components/ui/Platform";
 import { ReasonLabel } from "@/components/ui/Reason";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
+import { useNow } from "@/hooks/useNow";
 import { usePredictedPlatforms } from "@/hooks/usePredictedPlatforms";
-import { trainNumber } from "@/lib/train";
+import { trainNumber, usuallyLate } from "@/lib/train";
 import { cn } from "@/lib/utils";
 
 export type BoardKind = "departures" | "arrivals";
@@ -40,6 +51,66 @@ function useBoard(stationId: string, kind: BoardKind) {
     });
     const predicted = usePredictedPlatforms(stationId);
     return { board, predicted };
+}
+
+/** The map's trains by vehicle id, from the feed the map already polls. */
+function useLiveTrains(): Map<string, TrainFeatureProperties> {
+    const feed = useQuery({ ...getTrainsOptions(), staleTime: Infinity });
+    return useMemo(
+        () =>
+            new Map(
+                (feed.data?.features ?? []).map((f) => [
+                    f.properties.vehicleId,
+                    f.properties,
+                ]),
+            ),
+        [feed.data],
+    );
+}
+
+/**
+ * Train number -> "usually late" here, from the same request as the
+ * predicted platforms (no request per row).
+ */
+function useUsuallyLate(stationId: string): Map<string, "late" | "veryLate"> {
+    const platforms = useQuery({
+        ...getStationPlatformsOptions({ path: { stationId } }),
+        staleTime: 60 * 60 * 1000,
+        retry: false,
+    });
+    return useMemo(() => {
+        const map = new Map<string, "late" | "veryLate">();
+        for (const typical of platforms.data?.typicalDelays ?? []) {
+            const level = usuallyLate(typical);
+            if (level) map.set(typical.trainNumber, level);
+        }
+        return map;
+    }, [platforms.data]);
+}
+
+/**
+ * What a row shows for its delay. A train on the map shows what its marker
+ * shows (grey "+7?" for old data, nothing while it waits to depart); one
+ * that is not on the map shows the board's realtime delay, if any.
+ */
+function rowDelay(
+    entry: BoardEntry,
+    train: TrainFeatureProperties | undefined,
+    now: Date,
+): { delay: number; stale: boolean } | null {
+    if (entry.canceled) return null;
+    if (train) {
+        const display = trainDisplay(train, now);
+        if (display.state === "running" || display.state === "stale") {
+            return {
+                delay: display.delay ?? 0,
+                stale: display.state === "stale",
+            };
+        }
+        return null;
+    }
+    const live = entry.realtime || entry.delaySource === "gps";
+    return live ? { delay: entry.delayMinutes, stale: false } : null;
 }
 
 export function KindSwitch({
@@ -81,12 +152,19 @@ function BoardRow({
     entry,
     kind,
     predictedPlatform,
+    train,
+    usually,
+    now,
     onSelectTrain,
     wide,
 }: {
     entry: BoardEntry;
     kind: BoardKind;
     predictedPlatform: string | null;
+    /** The train on the map, when it is there */
+    train: TrainFeatureProperties | undefined;
+    usually: "late" | "veryLate" | undefined;
+    now: Date;
     onSelectTrain: (vehicleId: string) => void;
     wide: boolean;
 }) {
@@ -98,20 +176,34 @@ function BoardRow({
             : entry.headsign
         : "";
     const platform = entry.platform ?? predictedPlatform;
-    const live = entry.realtime || entry.delaySource === "gps";
+    const shown = rowDelay(entry, train, now);
+    const level = shown && !shown.stale ? getDelayLevel(shown.delay) : null;
     // The cause only next to a live delay that is actually late
-    const level = getDelayLevel(entry.delayMinutes);
     const reason =
-        live && !entry.canceled && level !== "onTime" && entry.reason?.code
+        level && level !== "onTime" && entry.reason?.code
             ? (entry.reason.code as DelayReasonCode)
+            : null;
+    // "Usually late" in plain words, only before the train departs
+    const usuallyText =
+        !shown &&
+        !entry.canceled &&
+        usually &&
+        entry.scheduledTime * 1000 > now.getTime()
+            ? t(usually === "veryLate" ? "usually_very_late" : "usually_late")
             : null;
     const chip = entry.canceled ? (
         <span className="inline-flex h-5 items-center rounded-full bg-delay-severe-tint px-1.5 text-caption font-bold text-delay-severe">
             {t("canceled")}
         </span>
-    ) : live ? (
-        <DelayChip delay={entry.delayMinutes} />
+    ) : shown ? (
+        <DelayChip delay={shown.delay} stale={shown.stale} />
     ) : null;
+    const note =
+        reason && level ? (
+            <ReasonLabel code={reason} level={level} />
+        ) : usuallyText ? (
+            <span className="truncate text-delay-slight">{usuallyText}</span>
+        ) : null;
     const content = (
         <>
             <div
@@ -131,22 +223,25 @@ function BoardRow({
                 {chip}
             </div>
             <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span className="truncate text-headline">{place}</span>
-                {wide && reason && (
-                    <ReasonLabel
-                        code={reason}
-                        level={level}
-                        className="text-sm"
-                    />
+                <span
+                    className={cn(
+                        "truncate text-headline",
+                        entry.canceled && "text-ink-2",
+                    )}
+                >
+                    {place}
+                </span>
+                {wide && note && (
+                    <span className="flex min-w-0 text-sm">{note}</span>
                 )}
                 {!wide && (
                     <span className="flex min-w-0 items-center gap-1 text-sm text-ink-2">
                         <RouteGlyph routeShortName={entry.routeShortName} />
-                        <span className="tnum">{number}</span>
-                        {reason && (
+                        <span className="tnum shrink-0">{number}</span>
+                        {note && (
                             <>
                                 <span aria-hidden>·</span>
-                                <ReasonLabel code={reason} level={level} />
+                                {note}
                             </>
                         )}
                     </span>
@@ -168,18 +263,26 @@ function BoardRow({
             </span>
         </>
     );
-    const className =
-        "flex w-full items-center gap-3 border-b border-line py-3 text-left last:border-b-0";
-    return entry.vehicleId ? (
-        <button
-            type="button"
-            className={cn(className, "cursor-pointer hover:bg-surface-2/60")}
-            onClick={() => entry.vehicleId && onSelectTrain(entry.vehicleId)}
-        >
-            {content}
-        </button>
-    ) : (
-        <div className={className}>{content}</div>
+    const className = "flex w-full items-center gap-3 py-3 text-left";
+    return (
+        <li className="border-b border-line last:border-b-0">
+            {entry.vehicleId ? (
+                <button
+                    type="button"
+                    className={cn(
+                        className,
+                        "cursor-pointer hover:bg-surface-2/60",
+                    )}
+                    onClick={() =>
+                        entry.vehicleId && onSelectTrain(entry.vehicleId)
+                    }
+                >
+                    {content}
+                </button>
+            ) : (
+                <div className={className}>{content}</div>
+            )}
+        </li>
     );
 }
 
@@ -197,6 +300,9 @@ function BoardList({
     const t = useTranslations("Station");
     const tStates = useTranslations("States");
     const { board, predicted } = useBoard(station.id, kind);
+    const live = useLiveTrains();
+    const usually = useUsuallyLate(station.id);
+    const now = new Date(useNow());
     if (board.isPending) {
         return (
             <div className="flex flex-col gap-5 py-3" aria-hidden>
@@ -230,7 +336,7 @@ function BoardList({
         return <p className="py-8 text-center text-ink-2">{t("empty")}</p>;
     }
     return (
-        <div className="flex flex-col">
+        <ul className="flex flex-col">
             {entries.map((entry) => (
                 <BoardRow
                     key={`${entry.tripId}-${entry.serviceDate}`}
@@ -239,11 +345,16 @@ function BoardList({
                     predictedPlatform={
                         predicted.get(trainNumber(entry.tripShortName)) ?? null
                     }
+                    train={
+                        entry.vehicleId ? live.get(entry.vehicleId) : undefined
+                    }
+                    usually={usually.get(trainNumber(entry.tripShortName))}
+                    now={now}
                     onSelectTrain={onSelectTrain}
                     wide={wide}
                 />
             ))}
-        </div>
+        </ul>
     );
 }
 
