@@ -34,15 +34,16 @@ async def get_rankings(
             ge=1,
             description=(
                 "Minimum samples to be ranked; defaults to 100 for stations, "
-                "300 for lines and 15 for trains"
+                "30 for lines and 15 for trains"
             ),
         ),
     ] = None,
 ) -> Rankings:
     """
     Stations, lines (S10, Z30, H5, ...) or trains ranked by on-time share (at
-    most 5 minutes late), then by median delay. Stations and lines count every
-    stop passage; trains count one arrival per run, at its last recorded stop.
+    most 5 minutes late), then by median delay. Stations count every stop
+    passage; lines and trains count one arrival per run, at its final stop (or
+    the last stop recorded before it).
     """
     threshold = (
         min_samples if min_samples is not None else insights.DEFAULT_MIN_SAMPLES[kind]
