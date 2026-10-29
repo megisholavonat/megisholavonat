@@ -30,9 +30,12 @@ export function usePlannerState() {
 /** Opens the planner: a round button next to the search. */
 export function PlannerButton({
     onClick,
+    onIntent,
     className,
 }: {
     onClick: () => void;
+    /** A tap or click is coming: start loading the planner */
+    onIntent?: () => void;
     className?: string;
 }) {
     const t = useTranslations("Journey");
@@ -40,6 +43,9 @@ export function PlannerButton({
         <button
             type="button"
             onClick={onClick}
+            onPointerEnter={onIntent}
+            onPointerDown={onIntent}
+            onFocus={onIntent}
             aria-label={t("open")}
             title={t("open")}
             className={cn(
