@@ -6,13 +6,22 @@ import { Platform } from "react-native";
 // once by the API, so it lives in the Keychain / Keystore.
 
 const KEY = "device-credentials";
+/** Readable while the phone is locked too (a launch from an alert) */
+const OPTIONS: SecureStore.SecureStoreOptions = {
+    keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK,
+};
 
 let credentials: string | null | undefined;
 let registering: Promise<string> | null = null;
 
+/**
+ * The stored credentials, or null when there are none. A failed read
+ * throws and is tried again next time: taking it for "no device" would
+ * register a second device, and the first one's alerts would keep coming.
+ */
 async function stored(): Promise<string | null> {
     if (credentials === undefined) {
-        credentials = await SecureStore.getItemAsync(KEY).catch(() => null);
+        credentials = await SecureStore.getItemAsync(KEY, OPTIONS);
     }
     return credentials;
 }
@@ -35,8 +44,10 @@ export async function deviceToken(locale: string): Promise<string> {
             throwOnError: true,
         });
         const value = `${data.deviceId}.${data.token}`;
-        await SecureStore.setItemAsync(KEY, value);
+        // The device exists now: use it this session even if it can't be
+        // stored, rather than fail the follow being saved
         credentials = value;
+        await SecureStore.setItemAsync(KEY, value, OPTIONS).catch(() => {});
         return value;
     })().finally(() => {
         registering = null;
@@ -47,7 +58,7 @@ export async function deviceToken(locale: string): Promise<string> {
 /** Forget a device the API no longer knows (deleted after 180 idle days). */
 async function forgetDevice(): Promise<void> {
     credentials = null;
-    await SecureStore.deleteItemAsync(KEY).catch(() => {});
+    await SecureStore.deleteItemAsync(KEY, OPTIONS).catch(() => {});
 }
 
 /** The HTTP status of a failed API call (an AxiosError). */
