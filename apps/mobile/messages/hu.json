@@ -141,7 +141,8 @@
         "unfollow": "Követés leállítása",
         "error": "Nem sikerült menteni",
         "channel": "Vonatriasztások",
-        "stop_time": "{name} {time}"
+        "stop_time": "{name} {time}",
+        "live_activity": "Élő tevékenység"
     },
     "Journey": {
         "title": "Útvonal",

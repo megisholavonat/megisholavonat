@@ -185,6 +185,7 @@ export async function saveFollow({
         vehicleId: train.vehicleId,
         delayThresholdMin: draft.delayThresholdMin,
         notifyPlatformChange: draft.notifyPlatformChange,
+        liveActivity: draft.liveActivity,
     };
     putFollow(follow, existing?.id);
     void registerPush(locale);

@@ -18,6 +18,7 @@ import {
 import { useFollowedVehicleIds, useLiveFollows } from "../follow/live";
 import { runningNumbers, upcoming } from "../follow/model";
 import { useFollows } from "../follow/store";
+import { useLiveActivities } from "../live/useLiveActivities";
 import { feedState } from "../map/feedState";
 import { ConsentCard, FeedStateCard, StaleBanner } from "../map/HomeCards";
 import { MapChrome } from "../map/MapChrome";
@@ -66,6 +67,8 @@ export default function MapScreen() {
         ...r,
         live: live.get(r.follow.id),
     }));
+    // The lock screen and the home screen widget show the same runs
+    useLiveActivities(commute, follows, now);
 
     // Line disruptions: a chip above the search bar while there are any
     const disruptions = useDisruptions();
