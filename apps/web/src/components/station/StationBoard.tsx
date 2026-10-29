@@ -92,10 +92,12 @@ function useUsuallyLate(stationId: string): Map<string, "late" | "veryLate"> {
 /**
  * What a row shows for its delay. A train on the map shows what its marker
  * shows (grey "+7?" for old data, nothing while it waits to depart); one
- * that is not on the map shows the board's realtime delay, if any.
+ * that is not on the map shows the board's realtime delay, if any, and only
+ * a late one before it is due to leave.
  */
 function rowDelay(
     entry: BoardEntry,
+    kind: BoardKind,
     train: TrainFeatureProperties | undefined,
     now: Date,
 ): { delay: number; stale: boolean } | null {
@@ -111,7 +113,13 @@ function rowDelay(
         return null;
     }
     const live = entry.realtime || entry.delaySource === "gps";
-    return live ? { delay: entry.delayMinutes, stale: false } : null;
+    if (!live) return null;
+    // A departure still ahead with no delay may well be waiting to leave
+    // ("pontos" would claim it is running): plain time unless it is late
+    const ahead =
+        kind === "departures" && entry.scheduledTime * 1000 > now.getTime();
+    if (ahead && entry.delayMinutes <= 0) return null;
+    return { delay: entry.delayMinutes, stale: false };
 }
 
 export function KindSwitch({
@@ -136,7 +144,7 @@ export function KindSwitch({
                     aria-selected={kind === k}
                     onClick={() => onChange(k)}
                     className={cn(
-                        "h-9 cursor-pointer rounded-[8px] px-4 text-sm transition-colors",
+                        "relative h-9 cursor-pointer rounded-[8px] px-4 text-sm transition-colors before:absolute before:inset-x-0 before:-inset-y-1",
                         kind === k
                             ? "bg-surface font-semibold text-ink shadow-sm"
                             : "text-ink-2",
@@ -177,7 +185,7 @@ function BoardRow({
             : entry.headsign
         : "";
     const platform = entry.platform ?? predictedPlatform;
-    const shown = rowDelay(entry, train, now);
+    const shown = rowDelay(entry, kind, train, now);
     const level = shown && !shown.stale ? getDelayLevel(shown.delay) : null;
     // The cause only next to a live delay that is actually late
     const reason =

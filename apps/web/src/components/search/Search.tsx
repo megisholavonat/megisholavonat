@@ -94,7 +94,7 @@ export const SearchField = forwardRef<
     return (
         <div
             className={cn(
-                "flex h-11 min-w-0 items-center gap-2.5 rounded-full bg-surface-2 px-4",
+                "focus-field flex h-11 min-w-0 items-center gap-2.5 rounded-full bg-surface-2 px-4",
                 className,
             )}
         >
@@ -152,13 +152,18 @@ export function useSearchState(
         setActive(0);
     };
     const results = useSearch(query, trains);
-    const items: Item[] = [
-        ...results.stations.map((station) => ({
-            kind: "station" as const,
-            station,
-        })),
-        ...results.trains.map((train) => ({ kind: "train" as const, train })),
-    ];
+    const stationItems: Item[] = results.stations.map((station) => ({
+        kind: "station" as const,
+        station,
+    }));
+    const trainItems: Item[] = results.trains.map((train) => ({
+        kind: "train" as const,
+        train,
+    }));
+    // A number is most likely a train: trains first, then stations
+    const items: Item[] = results.trainsFirst
+        ? [...trainItems, ...stationItems]
+        : [...stationItems, ...trainItems];
     const select = (item: Item) => {
         setQuery("");
         if (item.kind === "station") handlers.onSelectStation(item.station);
@@ -360,7 +365,10 @@ function Results({ state }: { state: ReturnType<typeof useSearchState> }) {
             </p>
         );
     }
-    const stationCount = results.stations.length;
+    // The divider between the two groups
+    const firstGroup = results.trainsFirst
+        ? results.trains.length
+        : results.stations.length;
     return (
         <div
             id="search-results"
@@ -376,7 +384,7 @@ function Results({ state }: { state: ReturnType<typeof useSearchState> }) {
                             : `t-${item.train.vehicleId}`
                     }
                     className={cn(
-                        i === stationCount &&
+                        i === firstGroup &&
                             i > 0 &&
                             "mt-1 border-t border-line pt-1",
                     )}
