@@ -4,10 +4,11 @@ import {
     DELAY_REASONS,
     type DelayReasonCode,
 } from "@megisholavonat/core/delayReasons";
+import { formatValidityDate } from "@megisholavonat/core/time";
 import * as WebBrowser from "expo-web-browser";
 import { useState } from "react";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
-import { useFormatter, useLocale, useTranslations } from "use-intl";
+import { useLocale, useTranslations } from "use-intl";
 import { type AppTheme, useAppTheme } from "../theme/ThemeProvider";
 import { Icon, type IconName, isIconName } from "../ui/Icon";
 import { MNR2007_FONT } from "./RouteIcon";
@@ -80,18 +81,13 @@ export function ReasonLine({
 function AlertCard({ alert }: { alert: Alert }) {
     const theme = useAppTheme();
     const t = useTranslations("Train");
-    const format = useFormatter();
+    const locale = useLocale();
     const [expanded, setExpanded] = useState(false);
     const text = alert.alertDescriptionText.trim();
     // About three lines at the sheet's width; longer texts open on tap
     const truncated = text.length > LONG_ALERT_CHARS;
     const range = (seconds: number) =>
-        format.dateTime(new Date(seconds * 1000), {
-            month: "short",
-            day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-        });
+        formatValidityDate(seconds, locale, true);
     const validity =
         alert.effectiveStartDate > 0 && alert.effectiveEndDate > 0
             ? t("valid", {

@@ -2,10 +2,12 @@ import {
     getTrainDetailsOptions,
     getTrainStationHistoryOptions,
 } from "@megisholavonat/api-client/react-query";
+import { beforeDeparture } from "@megisholavonat/core/stops";
 import {
     formatSecondsAsTime,
     serviceDayStart,
 } from "@megisholavonat/core/time";
+import { trainNumber } from "@megisholavonat/core/trainName";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -18,7 +20,7 @@ import {
     getNotificationPermission,
     requestNotificationPermission,
 } from "../notifications";
-import { beforeDeparture, isUsuallyLate, trainTitle } from "../train/trainData";
+import { isUsuallyLate, trainTitle } from "../train/trainData";
 import {
     createBody,
     defaultDraft,
@@ -28,7 +30,6 @@ import {
     stopOptions,
     THRESHOLDS_MIN,
     toggleWeekday,
-    trainNumber,
     WEEKDAYS,
     withFrom,
 } from "./model";

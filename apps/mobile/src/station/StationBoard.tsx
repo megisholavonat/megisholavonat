@@ -3,10 +3,11 @@ import {
     getStationBoardOptions,
     getStationPlatformsOptions,
 } from "@megisholavonat/api-client/react-query";
+import { formatClock } from "@megisholavonat/core/time";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { useFormatter, useTranslations } from "use-intl";
+import { useTranslations } from "use-intl";
 import { StationDisruptions } from "../disruptions/DisruptionViews";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { reasonTone } from "../train/delayDisplay";
@@ -155,11 +156,7 @@ function BoardRowView({
     const theme = useAppTheme();
     const t = useTranslations("Station");
     const td = useTranslations("Disruptions");
-    const format = useFormatter();
-    const time = format.dateTime(new Date(row.time * 1000), {
-        hour: "2-digit",
-        minute: "2-digit",
-    });
+    const time = formatClock(row.time);
     const place =
         kind === "arrivals" && row.place
             ? t("from", { name: row.place })

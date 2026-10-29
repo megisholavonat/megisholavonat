@@ -5,6 +5,7 @@ import {
     environment,
     labelsHidden,
 } from "@expo/ui/swift-ui/modifiers";
+import { BUDAPEST_TZ } from "@megisholavonat/core/time";
 import { useTranslations } from "use-intl";
 import { liquidGlass } from "../ui/platform";
 import type { TimeFieldProps } from "./TimeField.types";
@@ -26,7 +27,7 @@ export function TimeField({ value, onChange }: TimeFieldProps) {
                     // phone still set to home time
                     modifiers={[
                         labelsHidden(),
-                        environment("timeZone", "Europe/Budapest"),
+                        environment("timeZone", BUDAPEST_TZ),
                     ]}
                 />
                 <Spacer />

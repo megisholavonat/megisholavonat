@@ -3,6 +3,9 @@ import {
     getTrainStationHistoryOptions,
 } from "@megisholavonat/api-client/react-query";
 import { trainDisplay } from "@megisholavonat/core/display";
+import { beforeDeparture } from "@megisholavonat/core/stops";
+import { formatClock } from "@megisholavonat/core/time";
+import { trainNumber } from "@megisholavonat/core/trainName";
 import { useQuery } from "@tanstack/react-query";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useFormatter, useTranslations } from "use-intl";
@@ -12,7 +15,6 @@ import { reasonTone } from "../train/delayDisplay";
 import { RouteIcon } from "../train/RouteIcon";
 import { ReasonLine } from "../train/TrainInfo";
 import {
-    beforeDeparture,
     isUsuallyLate,
     mainAlert,
     predictedPlatform,
@@ -26,7 +28,6 @@ import {
     type LocalFollow,
     type Run,
     recentRunDate,
-    trainNumber,
 } from "./model";
 
 const STATION_DATA_STALE_MS = 6 * 3600_000;
@@ -96,10 +97,7 @@ function CommuteRow({
             : run.dayOffset === 1
               ? t("tomorrow")
               : format.dateTime(new Date(run.departure), { weekday: "short" });
-    const time = format.dateTime(new Date(run.departure), {
-        hour: "2-digit",
-        minute: "2-digit",
-    });
+    const time = formatClock(run.departure / 1000);
 
     // The same state as the train's marker and sheet: no delay while it
     // waits to depart or has arrived

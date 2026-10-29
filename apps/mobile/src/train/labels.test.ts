@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { routeLabel, splitTripName } from "./labels";
+import { routeLabel } from "./labels";
 
 describe("routeLabel", () => {
     it("maps an MNR2007 entity to its glyph and route name", () => {
@@ -22,21 +22,5 @@ describe("routeLabel", () => {
     it("returns null for empty input", () => {
         expect(routeLabel("")).toBeNull();
         expect(routeLabel(null)).toBeNull();
-    });
-});
-
-describe("splitTripName", () => {
-    it("separates the train number from its name", () => {
-        expect(splitTripName("6248 személyvonat")).toEqual({
-            number: "6248",
-            name: "személyvonat",
-        });
-    });
-
-    it("keeps names without a leading number intact", () => {
-        expect(splitTripName("Tokaj InterCity")).toEqual({
-            number: null,
-            name: "Tokaj InterCity",
-        });
     });
 });

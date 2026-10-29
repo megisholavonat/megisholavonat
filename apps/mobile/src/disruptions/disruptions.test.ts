@@ -1,7 +1,7 @@
 import type { Disruption } from "@megisholavonat/api-client";
 import { describe, expect, it } from "vitest";
 import type { LocalFollow } from "../follow/model";
-import { fullTexts, interestsOf, validityFormat } from "./disruptions";
+import { fullTexts, interestsOf } from "./disruptions";
 
 const follow = {
     tripShortName: "36810 személyvonat",
@@ -26,13 +26,6 @@ describe("interestsOf", () => {
         expect(interestsOf([follow])).toEqual([
             { trainNumber: "36810", stationIds: ["005515875", "005514175"] },
         ]);
-    });
-});
-
-describe("validityFormat", () => {
-    it("shows days for a long disruption and times within a day", () => {
-        expect(validityFormat(base).hour).toBeUndefined();
-        expect(validityFormat({ ...base, end: 3600 }).hour).toBe("2-digit");
     });
 });
 

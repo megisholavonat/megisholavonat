@@ -29,14 +29,3 @@ export function routeLabel(routeShortName?: string | null): RouteLabel {
     const name = getMavRouteName(routeShortName);
     return name ? { kind: "text", text: name } : null;
 }
-
-/** Splits "6248 személyvonat" into the train number and the rest. */
-export function splitTripName(tripShortName: string): {
-    number: string | null;
-    name: string;
-} {
-    const trimmed = tripShortName.trim();
-    const match = trimmed.match(/^(\d+)\s*(.*)$/);
-    if (!match?.[1]) return { number: null, name: trimmed };
-    return { number: match[1], name: match[2] ?? "" };
-}
