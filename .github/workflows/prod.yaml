@@ -37,6 +37,17 @@ jobs:
             file: apps/api/Dockerfile
             platform: linux/arm64
             runner: ubuntu-24.04-arm
+          # Delay forecast trainer: the `trainer` stage of the API Dockerfile
+          - name: api-trainer
+            file: apps/api/Dockerfile
+            target: trainer
+            platform: linux/amd64
+            runner: ubuntu-latest
+          - name: api-trainer
+            file: apps/api/Dockerfile
+            target: trainer
+            platform: linux/arm64
+            runner: ubuntu-24.04-arm
 
     steps:
       - name: Checkout repository
@@ -65,6 +76,7 @@ jobs:
         with:
           context: .
           file: ${{ matrix.file }}
+          target: ${{ matrix.target }}
           push: true
           platforms: ${{ matrix.platform }}
           tags: |
@@ -87,6 +99,7 @@ jobs:
         include:
           - name: web
           - name: api
+          - name: api-trainer
 
     steps:
       - name: Set up Docker Buildx
