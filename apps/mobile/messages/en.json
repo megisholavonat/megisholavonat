@@ -20,7 +20,10 @@
         "source_down": "MÁV data isn't coming in",
         "source_down_since": "Since {time}",
         "offline": "Can't reach the server",
-        "stale_banner": "No fresh data for {minutes} min"
+        "stale_banner": "No fresh data for {minutes} min",
+        "my_commute": "My commute",
+        "follow_cta": "Follow your train",
+        "tomorrow": "tomorrow"
     },
     "Consent": {
         "question": "Share anonymous statistics?",
@@ -70,5 +73,32 @@
         "railway_data_value": "© OpenRailwayMap",
         "railway_data": "Railway layer",
         "source": "GitHub"
+    },
+    "Follow": {
+        "title": "Follow",
+        "follow": "Follow",
+        "following": "Following",
+        "save": "Save",
+        "cancel": "Cancel",
+        "days": "Days",
+        "today_only": "Today only",
+        "day_1": "M",
+        "day_2": "T",
+        "day_3": "W",
+        "day_4": "T",
+        "day_5": "F",
+        "day_6": "S",
+        "day_7": "S",
+        "board": "Board at",
+        "alight": "Get off at",
+        "alerts": "Alerts",
+        "delay": "Delay",
+        "threshold": "> {minutes} min",
+        "platform": "Platform",
+        "notifications_off": "Notifications are off",
+        "unfollow": "Stop following",
+        "error": "Couldn't save",
+        "channel": "Train alerts",
+        "stop_time": "{name} {time}"
     }
 }

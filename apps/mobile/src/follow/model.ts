@@ -317,3 +317,14 @@ export function parseFollows(json: string | null | undefined): LocalFollow[] {
         return [];
     }
 }
+
+/** The follow of the train in `details`, if any. */
+export function findFollowFor(
+    follows: readonly LocalFollow[],
+    details: VehiclePositionWithDelay,
+): LocalFollow | null {
+    return (
+        follows.find((f) => isRunOf(f, details.trip.serviceDate, details)) ??
+        null
+    );
+}
