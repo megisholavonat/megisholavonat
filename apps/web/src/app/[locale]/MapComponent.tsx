@@ -1909,6 +1909,7 @@ export default function MapComponent({
                     data={sourceData("base")}
                     cluster
                     clusterRadius={CLUSTER_RADIUS}
+                    clusterMinPoints={MAP_MARKS.clusterMinPoints}
                     clusterMaxZoom={CLUSTER_MAX_ZOOM}
                 >
                     {baseMarkerLayers()}

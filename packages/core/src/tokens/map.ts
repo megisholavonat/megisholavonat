@@ -205,8 +205,13 @@ export const MAP_MARKS = {
     delayTextSize: 12,
     /** Gap between a mark's edge and its "+N" (px) */
     delayTextGap: 2,
-    /** Overlapping trains merge into a neutral count bubble */
-    clusterRadius: 10,
+    /**
+     * Trains merge into a neutral count bubble only where they truly pile up
+     * (a terminus, a busy junction): within this many px, at least
+     * clusterMinPoints of them. Two passing trains stay two marks.
+     */
+    clusterRadius: 8,
+    clusterMinPoints: 3,
 } as const satisfies { size: ZoomStops; [key: string]: unknown };
 
 /** The mark's diameter at `zoom`, as the map interpolates it. */
