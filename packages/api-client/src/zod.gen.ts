@@ -428,6 +428,7 @@ export const zStopTimeWithCounty = z.object({
     realtimeArrival: z.int(),
     scheduledDeparture: z.int(),
     realtimeDeparture: z.int(),
+    realtimeState: z.string().nullish(),
     stop: zStopWithCounty
 });
 
@@ -479,6 +480,13 @@ export const zTrainFeatureProperties = z.object({
     distanceToNextStop: z.number().nullish(),
     lastUpdated: z.int(),
     isStale: z.boolean().optional().default(false),
+    activity: z.enum([
+        'running',
+        'beforeDeparture',
+        'arrived',
+        'offRoute',
+        'cancelled'
+    ]).nullish(),
     reason: zDelayReason.nullish()
 });
 
@@ -712,7 +720,14 @@ export const zVehiclePositionWithDelay = z.object({
     trainPosition: z.number(),
     totalRouteDistance: z.number(),
     processedStops: z.array(zProcessedStop),
-    vehicleProgress: zVehicleProgress
+    vehicleProgress: zVehicleProgress,
+    activity: z.enum([
+        'running',
+        'beforeDeparture',
+        'arrived',
+        'offRoute',
+        'cancelled'
+    ]).nullish()
 });
 
 /**
