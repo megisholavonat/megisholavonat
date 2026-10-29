@@ -26,10 +26,10 @@ import {
     Check,
     ChevronDown,
     ChevronLeft,
-    ChevronRight,
     Info,
     Share,
     Star,
+    TrainFront,
     X,
 } from "lucide-react";
 import { useReducedMotion } from "motion/react";
@@ -172,7 +172,11 @@ function TimeText({
     );
 }
 
-/** "Szolnok 17:28 ~~17:05~~": the next stop with its expected time. */
+/**
+ * "Szolnok 17:28 ~~17:05~~": the next stop with its expected time. At the
+ * first stop it is the departure ("ind. 22:40"); a passed stop is where the
+ * train arrived ("érkezett 01:20", actual time, never an estimate).
+ */
 export function NextStopLine({
     stop,
     stale,
@@ -180,14 +184,25 @@ export function NextStopLine({
     stop: StopView;
     stale: boolean;
 }) {
+    const t = useTranslations("Train");
     const { timing } = stop;
     const late = timing.delay >= 1;
+    const prefix = stop.passed
+        ? t("arrived_at")
+        : stop.index === 0
+          ? t("departs_at")
+          : null;
     return (
         <span className="flex min-w-0 items-baseline gap-1.5 text-headline">
             <span className="truncate">{stop.name}</span>
+            {prefix && (
+                <span className="shrink-0 text-caption font-normal text-ink-2">
+                    {prefix}
+                </span>
+            )}
             <TimeText
                 seconds={timing.expected}
-                estimated={stale || timing.estimated}
+                estimated={!stop.passed && (stale || timing.estimated)}
                 level={null}
                 className="shrink-0"
             />
@@ -662,13 +677,18 @@ export function StopList({
     const t = useTranslations("Train");
     const reduce = useReducedMotion();
     const fraction = useLiveFraction(view);
-    const { position } = view;
+    const { position, standingAt } = view;
+    // The half sheet lists the stops ahead, from the one the train stands at
     const stops = upcomingOnly
-        ? view.stops.filter((s) => !s.passed).slice(0, 4)
+        ? view.stops
+              .filter((s) => !s.passed || s.index === standingAt)
+              .slice(0, 4)
         : view.stops;
     const shown = new Set(stops.map((s) => s.index));
-    // The position row sits between the last and the next stop
+    // The position row sits between the last and the next stop; a train
+    // standing at a stop is drawn on it instead, with no gap in the rail
     const showNow =
+        standingAt == null &&
         position.fromIndex >= 0 &&
         shown.has(position.toIndex) &&
         (upcomingOnly || shown.has(position.fromIndex));
@@ -684,6 +704,9 @@ export function StopList({
     const [glideFor, setGlideFor] = useState<typeof layout>(null);
     const shape = `${stops.map((s) => s.index).join(",")}|${showNow}`;
 
+    // Measured relative to the list, so moving the list (a sheet sliding or
+    // resizing) changes nothing; only a new size re-measures, once a frame,
+    // and an unchanged layout keeps its state (no re-render, no glide reset)
     // biome-ignore lint/correctness/useExhaustiveDependencies: re-measure when the rows change
     useLayoutEffect(() => {
         const list = listRef.current;
@@ -693,15 +716,32 @@ export function StopList({
             const ys = new Map<number, number>();
             for (const [index, el] of dots.current) {
                 const r = el.getBoundingClientRect();
-                ys.set(index, r.top + r.height / 2 - top);
+                ys.set(index, Math.round(r.top + r.height / 2 - top));
             }
             const now = nowRef.current?.getBoundingClientRect();
-            setLayout({ dots: ys, nowTop: now ? now.top - top : null });
+            const next = {
+                dots: ys,
+                nowTop: now ? Math.round(now.top - top) : null,
+            };
+            setLayout((prev) => (prev && sameLayout(prev, next) ? prev : next));
         };
         measure();
-        const observer = new ResizeObserver(measure);
+        let frame = 0;
+        let size = `${list.offsetWidth}x${list.offsetHeight}`;
+        const observer = new ResizeObserver(() => {
+            const now = `${list.offsetWidth}x${list.offsetHeight}`;
+            if (now === size || frame) return;
+            size = now;
+            frame = requestAnimationFrame(() => {
+                frame = 0;
+                measure();
+            });
+        });
         observer.observe(list);
-        return () => observer.disconnect();
+        return () => {
+            observer.disconnect();
+            cancelAnimationFrame(frame);
+        };
     }, [shape]);
 
     // Glide between position updates only, never on (re)layout
@@ -732,12 +772,20 @@ export function StopList({
                     : upcomingOnly && layout.nowTop != null
                       ? layout.nowTop + MARKER_GAP
                       : undefined;
+            const standingY =
+                standingAt != null ? layout.dots.get(standingAt) : undefined;
             const train =
-                position.fromIndex < 0
-                    ? firstY
-                    : fromY != null && toY != null
-                      ? fromY + Math.max(0, toY - MARKER_GAP - fromY) * fraction
-                      : null;
+                standingY != null
+                    ? standingY
+                    : position.fromIndex < 0
+                      ? firstY
+                      : fromY != null && toY != null
+                        ? fromY +
+                          Math.max(0, toY - MARKER_GAP - fromY) * fraction
+                        : // Past the final stop: arrived, on its dot
+                          toY == null && fromDot != null
+                          ? fromDot
+                          : null;
             if (train != null) {
                 const top =
                     upcomingOnly && layout.nowTop != null
@@ -808,6 +856,7 @@ export function StopList({
                                 stop={stop}
                                 stops={view.stops}
                                 stale={view.stale}
+                                here={stop.index === standingAt}
                                 dotRef={setDot(stop.index)}
                             />
                         </li>
@@ -850,6 +899,17 @@ export function StopList({
     );
 }
 
+function sameLayout(
+    a: { dots: Map<number, number>; nowTop: number | null },
+    b: { dots: Map<number, number>; nowTop: number | null },
+): boolean {
+    if (a.nowTop !== b.nowTop || a.dots.size !== b.dots.size) return false;
+    for (const [index, y] of a.dots) {
+        if (b.dots.get(index) !== y) return false;
+    }
+    return true;
+}
+
 /** "még 8 km · 112 km/h" beside the marker; placed in the list's frame. */
 function PositionLabel({
     place,
@@ -878,6 +938,12 @@ function PositionLabel({
     );
 }
 
+/**
+ * MNR2007 glyphs that are a bare letter rather than a pictogram, saying
+ * nothing a rider needs: 339 is an "O" for "Országos vonat".
+ */
+const HIDDEN_SERVICES = new Set([339]);
+
 /** Services valid at a stop (or the whole trip), each explained on tap. */
 function ServiceList({
     services,
@@ -888,10 +954,11 @@ function ServiceList({
     stops: StopView[];
     className?: string;
 }) {
-    if (services.length === 0) return null;
+    const shown = services.filter((s) => !HIDDEN_SERVICES.has(s.fontCode));
+    if (shown.length === 0) return null;
     return (
         <span className={cn("flex flex-wrap gap-1", className)}>
-            {services.map((service) => {
+            {shown.map((service) => {
                 const from = stops[service.fromStopIndex]?.name;
                 const till = stops[service.tillStopIndex]?.name;
                 const range =
@@ -931,11 +998,14 @@ function StopRow({
     stop,
     stops,
     stale,
+    here,
     dotRef,
 }: {
     stop: StopView;
     stops: StopView[];
     stale: boolean;
+    /** The train stands at this stop */
+    here: boolean;
     dotRef: (el: HTMLSpanElement | null) => void;
 }) {
     const t = useTranslations("Train");
@@ -946,7 +1016,7 @@ function StopRow({
     const name = (
         <span
             className={cn(
-                "block truncate text-left text-[15px] leading-[22px]",
+                "line-clamp-2 text-left text-[15px] leading-[22px] break-words",
                 stop.passed ? "text-ink-2" : "text-ink",
                 strong && "font-semibold",
             )}
@@ -983,6 +1053,11 @@ function StopRow({
                     </TapTip>
                 ) : (
                     name
+                )}
+                {here && (
+                    <span className="text-caption font-bold text-ink">
+                        {t("standing_here")}
+                    </span>
                 )}
                 <ServiceList
                     services={stop.services}
@@ -1061,18 +1136,19 @@ export function VehicleDetails({ view }: { view: TrainView }) {
         <div className="rounded-md bg-surface-2">
             <button
                 type="button"
-                className="flex w-full cursor-pointer items-center gap-2 px-3 py-3 text-[15px] font-semibold"
+                className="flex min-h-11 w-full cursor-pointer items-center gap-2 px-3 text-left text-[15px] font-semibold text-ink"
                 onClick={() => setOpen(!open)}
                 aria-expanded={open}
             >
-                <ChevronRight
+                <TrainFront className="size-4" aria-hidden />
+                <span className="flex-1">{t("vehicle")}</span>
+                <ChevronDown
                     className={cn(
-                        "size-4 transition-transform",
-                        open && "rotate-90",
+                        "size-4 text-ink-2 transition-transform motion-reduce:transition-none",
+                        open && "rotate-180",
                     )}
                     aria-hidden
                 />
-                {t("vehicle")}
             </button>
             {open && (
                 <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 px-3 pb-3 text-sm">
