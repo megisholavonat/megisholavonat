@@ -56,6 +56,9 @@ MAX_OFF_ROUTE_M = 500
 MAX_RECORD_LAG_S = 10 * 60
 # Delays beyond this are data errors
 MAX_ABS_DELAY_S = 6 * 3600
+# When placing a terminus arrival between two reports (see `_arrival_delay`),
+# a longer gap between them counts as this long
+MAX_ARRIVAL_GAP_S = 10 * 60
 
 WATERMARK_TTL_S = 2 * 24 * 3600
 
@@ -135,13 +138,39 @@ def passed_stop_index(location: dict[str, Any]) -> int | None:
     return int(last_idx if at_end or beyond >= PASSED_MARGIN_DEG else last_idx - 1)
 
 
+def _arrival_delay(
+    location: dict[str, Any], delay_s: int, previous_report_at: int | None
+) -> int:
+    """
+    Delay at the terminus. A train reported standing there arrived some time
+    after the trip's previous report, so its delay at the report overstates the
+    arrival delay by however long it has been standing (the feed reports about
+    once a minute, so ~40 s on average). Without anything better to go on, it
+    is taken to have arrived halfway between the two reports. A train reported
+    still moving has not arrived yet; its delay stands.
+    """
+    last_updated: int = location["lastUpdated"]
+    if (
+        location.get("speed")
+        or previous_report_at is None
+        or previous_report_at >= last_updated
+    ):
+        return delay_s
+    gap = min(last_updated - previous_report_at, MAX_ARRIVAL_GAP_S)
+    return delay_s - gap // 2
+
+
 def detect_passages(
-    location: dict[str, Any], watermark: int | None
+    location: dict[str, Any],
+    watermark: int | None,
+    previous_report_at: int | None = None,
 ) -> tuple[list[Passage], int | None]:
     """
     Return the stops this observation newly shows as passed, and the new
     watermark (highest stoptime index known to be passed, or None).
-    `watermark` is the value from the previous observation of the same trip.
+    `watermark` is the value from the previous observation of the same trip,
+    `previous_report_at` the `lastUpdated` of the trip's previous report
+    (see `_arrival_delay`).
     """
     trip = location.get("trip") or {}
     trip_id = trip.get("gtfsId")
@@ -192,7 +221,8 @@ def detect_passages(
         station = station_id(stop)
         sched_arr = st.get("scheduledArrival")
         sched_dep = st.get("scheduledDeparture")
-        reference = sched_arr if i == final_idx else sched_dep
+        is_final = i == final_idx
+        reference = sched_arr if is_final else sched_dep
         if reference is None or schedule_now - reference > MAX_RECORD_LAG_S:
             continue
 
@@ -209,7 +239,11 @@ def detect_passages(
                     "station_id": station,
                     "scheduled_arrival_s": sched_arr,
                     "scheduled_departure_s": sched_dep,
-                    "delay_s": delay_s,
+                    "delay_s": (
+                        _arrival_delay(location, delay_s, previous_report_at)
+                        if is_final
+                        else delay_s
+                    ),
                     "otp_arrival_delay_s": _otp_delay(
                         st.get("realtimeArrival"), sched_arr
                     ),
@@ -237,27 +271,40 @@ def detect_passages(
 # --- Watermarks ---
 
 
-class WatermarkStore(Protocol):
-    async def get_many(self, keys: Iterable[TripKey]) -> dict[TripKey, int]: ...
+@dataclass(frozen=True)
+class TripState:
+    """What the recorder remembers about a trip between runs."""
 
-    async def set_many(self, values: dict[TripKey, int]) -> None: ...
+    # Highest stoptime index known to be passed
+    watermark: int | None = None
+    # `lastUpdated` of the latest report seen
+    reported_at: int | None = None
+
+
+class WatermarkStore(Protocol):
+    async def get_many(self, keys: Iterable[TripKey]) -> dict[TripKey, TripState]: ...
+
+    async def set_many(self, values: dict[TripKey, TripState]) -> None: ...
 
 
 class MemoryWatermarks:
     """In-process watermarks, for offline replays."""
 
     def __init__(self) -> None:
-        self.values: dict[TripKey, int] = {}
+        self.values: dict[TripKey, TripState] = {}
 
-    async def get_many(self, keys: Iterable[TripKey]) -> dict[TripKey, int]:
+    async def get_many(self, keys: Iterable[TripKey]) -> dict[TripKey, TripState]:
         return {k: self.values[k] for k in keys if k in self.values}
 
-    async def set_many(self, values: dict[TripKey, int]) -> None:
+    async def set_many(self, values: dict[TripKey, TripState]) -> None:
         self.values.update(values)
 
 
 class RedisWatermarks:
-    """One Redis hash per service date: trip gtfsId -> highest passed index."""
+    """
+    Two Redis hashes per service date, trip gtfsId -> highest passed index and
+    trip gtfsId -> time of its latest report.
+    """
 
     def __init__(self, redis: Redis) -> None:
         self.redis = redis
@@ -266,21 +313,36 @@ class RedisWatermarks:
     def _key(service_date: str) -> str:
         return add_key(f"history-watermarks:{service_date}")
 
-    async def get_many(self, keys: Iterable[TripKey]) -> dict[TripKey, int]:
+    @staticmethod
+    def _reports_key(service_date: str) -> str:
+        return add_key(f"history-reports:{service_date}")
+
+    async def get_many(self, keys: Iterable[TripKey]) -> dict[TripKey, TripState]:
         dates = {d for d, _ in keys}
-        result: dict[TripKey, int] = {}
+        result: dict[TripKey, TripState] = {}
         for d in dates:
-            raw = await self.redis.hgetall(self._key(d))  # type: ignore[misc]
-            result.update({(d, trip): int(v) for trip, v in raw.items()})
+            marks = await self.redis.hgetall(self._key(d))  # type: ignore[misc]
+            reports = await self.redis.hgetall(self._reports_key(d))  # type: ignore[misc]
+            for trip in marks.keys() | reports.keys():
+                wm, at = marks.get(trip), reports.get(trip)
+                result[(d, trip)] = TripState(
+                    watermark=None if wm is None else int(wm),
+                    reported_at=None if at is None else int(at),
+                )
         return result
 
-    async def set_many(self, values: dict[TripKey, int]) -> None:
-        by_date: dict[str, dict[str, int]] = {}
-        for (d, trip), v in values.items():
-            by_date.setdefault(d, {})[trip] = v
-        for d, mapping in by_date.items():
-            await self.redis.hset(self._key(d), mapping=mapping)  # type: ignore[misc]
-            await self.redis.expire(self._key(d), WATERMARK_TTL_S)
+    async def set_many(self, values: dict[TripKey, TripState]) -> None:
+        marks: dict[str, dict[str, int]] = {}
+        reports: dict[str, dict[str, int]] = {}
+        for (d, trip), state in values.items():
+            if state.watermark is not None:
+                marks.setdefault(d, {})[trip] = state.watermark
+            if state.reported_at is not None:
+                reports.setdefault(d, {})[trip] = state.reported_at
+        for key, by_date in ((self._key, marks), (self._reports_key, reports)):
+            for d, mapping in by_date.items():
+                await self.redis.hset(key(d), mapping=mapping)  # type: ignore[misc]
+                await self.redis.expire(key(d), WATERMARK_TTL_S)
 
 
 # --- Partitions ---
@@ -417,12 +479,19 @@ async def record_locations(
     current = await watermarks.get_many(keys)
 
     passages: list[Passage] = []
-    updates: dict[TripKey, int] = {}
+    updates: dict[TripKey, TripState] = {}
     for key, loc in zip(keys, locations, strict=True):
-        found, new_wm = detect_passages(loc, updates.get(key, current.get(key)))
+        state = updates.get(key) or current.get(key) or TripState()
+        found, new_wm = detect_passages(loc, state.watermark, state.reported_at)
         passages.extend(found)
-        if new_wm is not None and new_wm != current.get(key):
-            updates[key] = new_wm
+        reported_at = loc.get("lastUpdated")
+        if state.reported_at is not None and (
+            reported_at is None or reported_at < state.reported_at
+        ):
+            reported_at = state.reported_at
+        new_state = TripState(watermark=new_wm, reported_at=reported_at)
+        if new_state != current.get(key, TripState()):
+            updates[key] = new_state
 
     inserted = await store_passages(session, passages)
     # Only after the rows are committed, so a failed insert is retried next run
