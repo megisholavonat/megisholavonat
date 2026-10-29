@@ -5,7 +5,6 @@ import {
     delaySummary,
     delaySummaryPath,
     delaySummarySentence,
-    delaySummaryShareText,
     delaySummaryUrl,
     huDayOn,
     isRunDate,
@@ -281,12 +280,6 @@ describe("copy", () => {
                 NOW,
             ),
         ).toBe("The 7:15 Szolnok → Budapest-Nyugati: no delay measured today");
-    });
-
-    it("says whose measurement it is", () => {
-        expect(
-            delaySummaryShareText("hu", delaySummary(run([1, 4, 23])), NOW),
-        ).toMatch(/\(Mégis hol a vonat\? GPS-mérés\)$/);
     });
 
     it("picks the article and suffix by the time", () => {

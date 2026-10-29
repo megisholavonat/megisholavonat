@@ -310,7 +310,18 @@
         "walk": "{m} min walk",
         "on_map": "Show on the map",
         "empty": "No journeys found",
-        "same_station": "Pick two different stations"
+        "same_station": "Pick two different stations",
+        "any_budapest": "Budapest (any station)",
+        "any_budapest_hint": "From whichever station suits the journey",
+        "any_budapest_hint_to": "To whichever station suits the journey",
+        "from_station": "from {station}",
+        "to_station": "to {station}",
+        "city_ticket": "Local transit needs its own ticket or pass",
+        "city_metro": "metro",
+        "city_tram": "tram",
+        "city_trolleybus": "trolleybus",
+        "city_bus": "bus",
+        "city_rail": "HÉV"
     },
     "Shell": {
         "train_gone": "This train is no longer running",

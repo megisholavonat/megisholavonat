@@ -342,8 +342,6 @@ export const MARKER = {
     },
     /** Shape by vehicle type: trains are round pills, HÉV is square-ish */
     radius: { train: RADII.pill, hev: 5, hevDot: 4 },
-    /** Direction of travel: a small triangle before the label */
-    directionArrow: { width: 8, height: 7 },
     selected: {
         gap: 2,
         ringWidth: 3,

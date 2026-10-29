@@ -7,7 +7,12 @@ import {
     type Outline,
     STALE_COLORS,
 } from "@megisholavonat/core/tokens";
-import { MAP_MARKS } from "@megisholavonat/core/tokens/map";
+import {
+    MAP_DIRECTION_ARROW,
+    MAP_FOLLOW_STAR,
+    MAP_MARKS,
+    MAP_STATION_MARK,
+} from "@megisholavonat/core/tokens/map";
 
 // The train marks' sprites: their ids, shapes and paint, shared by the map
 // layers and scripts/map-sprites.mjs, which draws them into assets/map/ as
@@ -43,6 +48,14 @@ export const ringId = (s: ColorScheme, shape: MarkShape) =>
     `mhav-${s}-ring-${shape}`;
 export const chipId = (s: ColorScheme, level: MarkLevel) =>
     `mhav-${s}-chip-${level}`;
+/** The selected train's direction of travel, pointing up */
+export const arrowId = (s: ColorScheme) => `mhav-${s}-arrow`;
+/** A followed train's star badge */
+export const followId = (s: ColorScheme) => `mhav-${s}-follow`;
+/** The chosen station: `clear` under the trains, `ring` above the bubbles */
+export type StationPart = "clear" | "ring";
+export const stationId = (s: ColorScheme, part: StationPart) =>
+    `mhav-${s}-station-${part}`;
 
 /** Every sprite id, in a stable order */
 export function spriteIds(): string[] {
@@ -53,9 +66,24 @@ export function spriteIds(): string[] {
             ids.push(ringId(s, shape));
         }
         for (const level of CHIP_LEVELS) ids.push(chipId(s, level));
+        ids.push(
+            arrowId(s),
+            followId(s),
+            stationId(s, "clear"),
+            stationId(s, "ring"),
+        );
     }
     return ids;
 }
+
+/** The direction arrow (MAP_DIRECTION_ARROW): a dart with a surface halo */
+export const ARROW = MAP_DIRECTION_ARROW;
+
+/** The follow star's sprite size (css px): the badge plus its rim */
+export const FOLLOW_SIZE = MARKER.followBadge.size + MAP_FOLLOW_STAR.rim * 2;
+
+/** The chosen station's sprites are this wide (css px) */
+export const STATION_SIZE = MAP_STATION_MARK.fade * 2;
 
 /** The sprites' reference diameter (css px): icon-size is size / this */
 export const SPRITE_SIZE = MAP_MARKS.spriteSize;

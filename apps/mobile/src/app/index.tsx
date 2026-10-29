@@ -1,4 +1,5 @@
 import { LocationManager, type MapRef } from "@maplibre/maplibre-react-native";
+import type { TrainFeatureProperties } from "@megisholavonat/api-client";
 import { getTrainsOptions } from "@megisholavonat/api-client/react-query";
 import { POLL_INTERVAL_MS } from "@megisholavonat/core/constants";
 import { sortDisruptions } from "@megisholavonat/core/disruptions";
@@ -21,11 +22,13 @@ import { runningNumbers, upcoming } from "../follow/model";
 import { useFollows } from "../follow/store";
 import { useLiveActivities } from "../live/useLiveActivities";
 import { feedState } from "../map/feedState";
+import { noteMapTap } from "../map/focus";
 import { ConsentCard, FeedStateCard, StaleBanner } from "../map/HomeCards";
 import { useHomeAnalytics } from "../map/homeAnalytics";
 import { MapChrome } from "../map/MapChrome";
 import { MapLegend } from "../map/MapLegend";
 import { markerCollection } from "../map/markers";
+import { StackList } from "../map/StackList";
 import { TrainMap } from "../map/TrainMap";
 import { useSettings } from "../settings/SettingsProvider";
 import { useAppTheme } from "../theme/ThemeProvider";
@@ -39,6 +42,8 @@ export default function MapScreen() {
     const { settings, update, askConsent } = useSettings();
     const mapRef = useRef<MapRef>(null);
     const [following, setFollowing] = useState(false);
+    /** Trains still piled up at full zoom, listed to pick one */
+    const [stack, setStack] = useState<TrainFeatureProperties[] | null>(null);
 
     const {
         data: trains,
@@ -118,6 +123,7 @@ export default function MapScreen() {
                 showRailways={settings.detailedRailwayMap}
                 followUser={following}
                 onFollowUserChange={setFollowing}
+                onStack={setStack}
                 mapRef={mapRef}
             />
             <MapChrome
@@ -162,6 +168,19 @@ export default function MapScreen() {
                 >
                     <StaleBanner minutes={state.staleMinutes} />
                 </View>
+            ) : null}
+            {stack ? (
+                <StackList
+                    trains={stack}
+                    now={now}
+                    onSelect={(vehicleId) => {
+                        setStack(null);
+                        // On the map already: no flight, as on the web
+                        noteMapTap(vehicleId);
+                        openTrain(vehicleId);
+                    }}
+                    onClose={() => setStack(null)}
+                />
             ) : null}
         </View>
     );

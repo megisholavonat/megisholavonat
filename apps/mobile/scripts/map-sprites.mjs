@@ -35,6 +35,19 @@ registerHooks({
 const sprites = await import("../src/map/sprites.ts");
 const { COLORS } = await import("@megisholavonat/core/tokens");
 const {
+    MAP_FOLLOW_STAR,
+    MAP_STATION_MARK,
+    directionArrowBox,
+    directionArrowPaint,
+    directionArrowPoints,
+} = await import("@megisholavonat/core/tokens/map");
+const {
+    ARROW,
+    FOLLOW_SIZE,
+    STATION_SIZE,
+    arrowId,
+    followId,
+    stationId,
     CHIP,
     CHIP_LEVELS,
     HEV_CORNER,
@@ -360,6 +373,140 @@ function chip(scheme, level) {
     };
 }
 
+/** Even-odd point in polygon: for the (concave) star */
+function inside(points) {
+    return (x, y) => {
+        let hit = false;
+        for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
+            const [xi, yi] = points[i];
+            const [xj, yj] = points[j];
+            if (
+                yi > y !== yj > y &&
+                x < ((xj - xi) * (y - yi)) / (yj - yi) + xi
+            ) {
+                hit = !hit;
+            }
+        }
+        return hit;
+    };
+}
+
+/** Distance (css px) from a point to a polygon's outline, round at corners */
+function edgeDistance(points) {
+    return (x, y) => {
+        let best = Number.POSITIVE_INFINITY;
+        for (let i = 0; i < points.length; i++) {
+            const [ax, ay] = points[i];
+            const [bx, by] = points[(i + 1) % points.length];
+            const dx = bx - ax;
+            const dy = by - ay;
+            const t = Math.max(
+                0,
+                Math.min(
+                    1,
+                    ((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy),
+                ),
+            );
+            best = Math.min(best, Math.hypot(x - ax - dx * t, y - ay - dy * t));
+        }
+        return best;
+    };
+}
+
+/**
+ * Direction of travel: an ink dart pointing up with a surface halo, as the
+ * web draws it (MAP_DIRECTION_ARROW)
+ */
+function arrow(scheme) {
+    const points = directionArrowPoints();
+    const inDart = inside(points);
+    const edge = edgeDistance(points);
+    const paint = directionArrowPaint(scheme);
+    const box = directionArrowBox();
+    return {
+        w: box.w,
+        h: box.h,
+        paint: over([
+            { color: parseColor(paint.fill), covers: inDart },
+            {
+                color: parseColor(paint.halo),
+                covers: (x, y) => edge(x, y) < ARROW.halo,
+            },
+        ]),
+    };
+}
+
+/** Followed train: a small ink disc with a surface star and rim */
+function follow(scheme) {
+    const { outer, inner, dy } = MAP_FOLLOW_STAR;
+    const star = [];
+    for (let i = 0; i < 10; i++) {
+        const r = i % 2 === 0 ? outer : inner;
+        const a = -Math.PI / 2 + (i * Math.PI) / 5;
+        star.push([r * Math.cos(a), dy + r * Math.sin(a)]);
+    }
+    const inStar = inside(star);
+    const surface = parseColor(COLORS[scheme].surface);
+    const disc = FOLLOW_SIZE / 2 - MAP_FOLLOW_STAR.rim;
+    return {
+        w: FOLLOW_SIZE,
+        h: FOLLOW_SIZE,
+        paint: over([
+            { color: surface, covers: inStar },
+            {
+                color: parseColor(COLORS[scheme].ink),
+                covers: (x, y) => Math.hypot(x, y) < disc,
+            },
+            {
+                color: surface,
+                covers: (x, y) => Math.hypot(x, y) < FOLLOW_SIZE / 2,
+            },
+        ]),
+    };
+}
+
+/**
+ * The chosen station. `clear`: the map colour, opaque to MAP_STATION_MARK
+ * .clear and fading out by .fade, under the trains. `ring`: a soft ink halo,
+ * a surface disc and an ink ring.
+ */
+function station(scheme, part) {
+    const { clear, fade, halo, ring: r } = MAP_STATION_MARK;
+    const map = parseColor(COLORS[scheme].map);
+    const ink = parseColor(COLORS[scheme].ink);
+    if (part === "clear") {
+        return {
+            w: STATION_SIZE,
+            h: STATION_SIZE,
+            paint: (x, y) => {
+                const d = Math.hypot(x, y);
+                if (d >= fade) return null;
+                const a = d <= clear ? 1 : 1 - (d - clear) / (fade - clear);
+                return [map[0], map[1], map[2], a];
+            },
+        };
+    }
+    return {
+        w: STATION_SIZE,
+        h: STATION_SIZE,
+        paint: over([
+            {
+                color: ink,
+                covers: (x, y) =>
+                    Math.abs(Math.hypot(x, y) - r.radius) < r.width / 2,
+            },
+            {
+                color: parseColor(COLORS[scheme].surface),
+                covers: (x, y) => Math.hypot(x, y) < r.radius,
+            },
+            {
+                color: [ink[0], ink[1], ink[2], halo.opacity],
+                covers: (x, y) => Math.hypot(x, y) < halo.radius,
+            },
+        ]),
+    };
+}
+
 // --- output ---------------------------------------------------------------
 
 const drawn = [];
@@ -376,6 +523,12 @@ for (const scheme of SCHEMES) {
     for (const level of CHIP_LEVELS) {
         drawn.push([chipId(scheme, level), chip(scheme, level)]);
     }
+    drawn.push(
+        [arrowId(scheme), arrow(scheme)],
+        [followId(scheme), follow(scheme)],
+        [stationId(scheme, "clear"), station(scheme, "clear")],
+        [stationId(scheme, "ring"), station(scheme, "ring")],
+    );
 }
 
 const ids = drawn.map(([id]) => id);

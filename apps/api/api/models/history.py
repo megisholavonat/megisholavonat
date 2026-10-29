@@ -16,9 +16,6 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from api.models.base import Base
 
-# A train counts as on time when it is at most this late
-ON_TIME_THRESHOLD_S = 5 * 60
-
 
 class Stop(Base):
     __tablename__ = "stops"

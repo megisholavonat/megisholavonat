@@ -26,20 +26,22 @@ from redis.asyncio import Redis
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.core.cache import cached_optional_model
 from api.core.graphql import UpstreamError, query_graphql
 from api.core.logging_config import get_logger
 from api.core.queries import RUN_TRIP_QUERY
 from api.core.redis import add_key
 from api.schemas.alerts import DelayReason
 from api.schemas.runs import RunStop, RunSummary
+from api.services.history_sql import TRAIN_NUMBER
 from api.util.route_names import route_name
 from api.util.stop import station_id
-from api.util.time import BUDAPEST_TZ, get_seconds_since_day, service_day_start
+from api.util.time import DAY_S, get_seconds_since_day, service_day_start, today
 from api.util.trip import seconds_into_service_day
+from api.util.trip import train_number as number_of
 
 logger = get_logger(__name__)
 
-DAY_S = 24 * 3600
 # An observation more than this far from its service date's clock belongs to
 # the neighbouring service date (see the module docstring)
 SHIFT_AFTER_S = 12 * 3600
@@ -53,11 +55,6 @@ MAX_AGE_DAYS = 400
 CACHE_TTL_FINISHED_S = 6 * 3600
 CACHE_TTL_LIVE_S = 60
 UPSTREAM_TIMEOUT_S = 8.0
-
-
-def today() -> date:
-    """Today in Budapest (tests replace it)."""
-    return datetime.now(BUDAPEST_TZ).date()
 
 
 @dataclass
@@ -103,7 +100,7 @@ async def _observed_runs(
     """Recorded runs of the train on OTP service dates next to `day`."""
     result = await session.execute(
         text(
-            """
+            f"""
             SELECT o.service_date, o.trip_gtfs_id, o.stop_sequence,
                    o.trip_short_name, o.route_short_name, o.station_id,
                    s.name, o.scheduled_arrival_s, o.scheduled_departure_s,
@@ -111,7 +108,7 @@ async def _observed_runs(
             FROM stop_delay_observations o
             LEFT JOIN stops s ON s.gtfs_id = o.stop_id
             WHERE o.service_date BETWEEN :start AND :end
-              AND split_part(o.trip_short_name, ' ', 1) = :train
+              AND {TRAIN_NUMBER} = :train
             ORDER BY o.service_date, o.trip_gtfs_id, o.stop_sequence
             """
         ),
@@ -259,7 +256,7 @@ async def _from_observations(run: _Run, now: float) -> RunSummary:
         ]
         complete = False
     return _summary(
-        train_number=first.trip_short_name.split(" ", 1)[0],
+        train_number=number_of(first.trip_short_name),
         trip_short_name=first.trip_short_name,
         route_short_name=first.route_short_name,
         day=run.effective_date,
@@ -295,7 +292,7 @@ async def _from_live(
         location = json.loads(value)
         trip = location.get("trip") or {}
         name: str = trip.get("tripShortName") or ""
-        if name.split(" ", 1)[0] != train_number:
+        if number_of(name) != train_number:
             continue
         at = location.get("lastUpdated") or now
         effective = _live_effective_date(trip, at)
@@ -336,6 +333,7 @@ async def build_run_summary(
 
 def in_range(day: date) -> bool:
     """Whether a run on `day` can be on record: not in the future or too old."""
+    # `today` is looked up here, so tests can replace it on this module
     current = today()
     return current - timedelta(days=MAX_AGE_DAYS) <= day <= current + timedelta(days=1)
 
@@ -348,21 +346,10 @@ async def run_summary(
     from_station: str | None = None,
 ) -> RunSummary | None:
     """`build_run_summary`, cached in Redis; a finished run for longer."""
-    key = add_key(f"history:run:{train_number}:{day.isoformat()}:{from_station or ''}")
-    try:
-        cached = await redis.get(key)
-    except Exception as e:
-        logger.warning(f"Cache read failed for {key}: {e}")
-        cached = None
-    if cached:
-        return RunSummary.model_validate_json(cached)
-
-    summary = await build_run_summary(session, redis, train_number, day, from_station)
-    if summary is None:
-        return None
-    ttl = CACHE_TTL_FINISHED_S if summary.finished else CACHE_TTL_LIVE_S
-    try:
-        await redis.set(key, summary.model_dump_json(), ex=ttl)
-    except Exception as e:
-        logger.warning(f"Cache write failed for {key}: {e}")
-    return summary
+    return await cached_optional_model(
+        redis,
+        f"history:run:{train_number}:{day.isoformat()}:{from_station or ''}",
+        RunSummary,
+        lambda s: CACHE_TTL_FINISHED_S if s.finished else CACHE_TTL_LIVE_S,
+        lambda: build_run_summary(session, redis, train_number, day, from_station),
+    )

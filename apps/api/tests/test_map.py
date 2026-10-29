@@ -320,7 +320,7 @@ async def test_stations_are_built_from_index_and_history(
     graphql_route(otp).mock(
         return_value=httpx.Response(200, json=load_fixture("otp-stations.json"))
     )
-    yesterday = map_layers.service_date_today() - timedelta(days=1)
+    yesterday = map_layers.today() - timedelta(days=1)
     db_session.add(_agg(yesterday, "005501289", "IC", 42))
     await db_session.flush()
 

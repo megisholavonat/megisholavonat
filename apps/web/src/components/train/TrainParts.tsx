@@ -52,7 +52,7 @@ import { TapTip } from "@/components/ui/TapTip";
 import { findFollow, useFollows } from "@/hooks/useFollows";
 import { useNow } from "@/hooks/useNow";
 import { track } from "@/lib/analytics";
-import { trainShareData } from "@/lib/shareTrain";
+import { shareLink, trainShareData } from "@/lib/share";
 import {
     arrivalIsEstimate,
     destinationOf,
@@ -369,23 +369,15 @@ export function TrainActions({
     const [copied, setCopied] = useState(false);
     const locale = useLocale() as Locale;
     const share = async () => {
-        const { title, text, url } = trainShareData(view, locale);
-        const method = "share" in navigator ? "native" : "copy";
-        const sent = (completed: boolean) =>
-            track("share_clicked", { target: "train", method, completed });
-        try {
-            if (navigator.share) {
-                await navigator.share({ title, text, url });
-                sent(true);
-                return;
-            }
-            await navigator.clipboard.writeText(url);
-            sent(true);
+        const result = await shareLink(trainShareData(view, locale));
+        track("share_clicked", {
+            target: "train",
+            method: result === "copied" ? "copy" : "native",
+            completed: result !== null,
+        });
+        if (result === "copied") {
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
-        } catch {
-            // Share sheet dismissed
-            sent(false);
         }
     };
     return (

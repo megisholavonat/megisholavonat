@@ -148,3 +148,68 @@ describe("markerCollection", () => {
         });
     });
 });
+
+describe("markerCollection options", () => {
+    const mixed = () =>
+        feed(
+            { id: "t", delay: 2, ago: 10, type: "train" },
+            { id: "h", delay: 2, ago: 10, type: "hev" },
+            { id: "tt", delay: 2, ago: 10, type: "tramtrain" },
+        );
+
+    it("shows only the vehicle types the settings keep", () => {
+        const ids = (filter: {
+            train: boolean;
+            hev: boolean;
+            tramtrain: boolean;
+        }) =>
+            markerCollection(mixed(), "light", now, new Set(), {
+                filter,
+            }).features.map((f) => f.properties.vehicleId);
+        expect(ids({ train: true, hev: true, tramtrain: true })).toEqual([
+            "t",
+            "h",
+            "tt",
+        ]);
+        expect(ids({ train: false, hev: true, tramtrain: false })).toEqual([
+            "h",
+        ]);
+    });
+
+    it("takes the open train's fresher delay from its details", () => {
+        const fc = markerCollection(
+            feed({ id: "t", delay: 2, ago: 60 }),
+            "light",
+            now,
+            new Set(),
+            {
+                details: {
+                    vehicleId: "t",
+                    delay: 23,
+                    lastUpdated: nowS - 5,
+                    activity: "running",
+                } as never,
+            },
+        );
+        expect(fc.features[0]?.properties).toMatchObject({
+            label: "+23",
+            delay: 23,
+        });
+    });
+
+    it("gives moving trains a heading for the arrow, not old data", () => {
+        const fc = markerCollection(
+            feed(
+                { id: "live", delay: 2, ago: 10 },
+                { id: "old", delay: 2, ago: 7 * 60 },
+            ),
+            "light",
+            now,
+        );
+        expect(fc.features.map((f) => f.properties.moving)).toEqual([
+            true,
+            false,
+        ]);
+        expect(fc.features[0]?.properties.heading).toBe(0);
+    });
+});

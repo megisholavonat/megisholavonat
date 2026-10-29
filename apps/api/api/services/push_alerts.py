@@ -69,16 +69,14 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 
-from api.core.cache import cached_model
 from api.core.config import settings
 from api.core.logging_config import get_logger
 from api.core.redis import add_key
 from api.models.devices import Device, Follow, NotificationState, PushToken
-from api.schemas.insights import StationPlatforms
-from api.services import insights
+from api.services import platforms
 from api.services.commute import resolve_commute_trip
 from api.services.devices import RECEIPTS_KEY, device_key
-from api.services.history import MAX_OFF_ROUTE_M, passed_stop_index
+from api.services.history import passed_stop_index
 from api.services.push_copy import (
     Alert,
     AlertKind,
@@ -95,8 +93,10 @@ from api.services.push_senders import (
     Outcome,
     SendResult,
 )
-from api.util.stop import station_id, station_id_from_gtfs_id
-from api.util.time import BUDAPEST_TZ, service_day_start
+from api.util.history_constants import DEFAULT_HISTORY_DAYS, MAX_OFF_ROUTE_M
+from api.util.stop import platform_from_gtfs_id, station_id, station_id_from_gtfs_id
+from api.util.time import BUDAPEST_TZ, DAY_S, service_day_start
+from api.util.trip import train_number as number_of
 
 logger = get_logger(__name__)
 
@@ -104,11 +104,6 @@ DELAY_REALERT_STEP_MIN = 5
 QUIET_INTERVAL = timedelta(minutes=5)
 TRAIN_AHEAD_MIN_DELAY_MIN = 15
 TRAIN_AHEAD_WINDOW_S = 60 * 60
-# A commute's usual platform stands in for the schedule only if this share of
-# its passages over the last PLATFORM_HISTORY_DAYS used it
-PLATFORM_MIN_CONFIDENCE = 0.8
-PLATFORM_HISTORY_DAYS = 28
-PLATFORM_CACHE_TTL_S = 6 * 3600
 
 # A Live Activity shows as stale if no update arrives for this long
 LIVE_ACTIVITY_STALE_S = 10 * 60
@@ -131,7 +126,6 @@ RECEIPT_DELAY_S = 15 * 60
 RECEIPT_MAX_AGE_S = 24 * 3600
 
 DELIVERED = (Outcome.OK, Outcome.SKIPPED)
-DAY_S = 24 * 3600
 
 
 def receipts_key() -> str:
@@ -301,18 +295,10 @@ def _find_station(
     return None
 
 
-def platform_of_stop(gtfs_id: str) -> str | None:
-    """`1:005501024_14` -> `14`: the platform a platform-level stop stands for."""
-    local = gtfs_id.split(":", 1)[-1]
-    _, sep, platform = local.partition("_")
-    return (platform or None) if sep else None
-
-
 def train_label(trip: dict[str, Any]) -> str:
     """'S70' for numbered lines, else category and number, e.g. 'IC 559'."""
     route = ((trip.get("route") or {}).get("shortName") or "").strip()
-    parts = (trip.get("tripShortName") or "").split()
-    number = parts[0] if parts else ""
+    number = number_of((trip.get("tripShortName") or "").strip())
     if route and any(c.isdigit() for c in route):
         return route
     return f"{route} {number}".strip()
@@ -545,7 +531,7 @@ def track_trip(
     if follow.from_stop_id:
         found = _find_station(stoptimes, station_id_from_gtfs_id(follow.from_stop_id))
         board = found or 0
-        scheduled_platform = platform_of_stop(follow.from_stop_id)
+        scheduled_platform = platform_from_gtfs_id(follow.from_stop_id)
     alight = None
     if follow.to_stop_id:
         alight = _find_station(
@@ -591,17 +577,11 @@ async def usual_platform(
     The platform a train usually uses at a station (the platform prediction
     of the history API), if confident enough; else None.
     """
-    platforms = await cached_model(
-        redis,
-        f"alerts:usual-platform:{station}:{train_number}",
-        StationPlatforms,
-        PLATFORM_CACHE_TTL_S,
-        lambda: insights.station_platforms(
-            session, station, train_number, PLATFORM_HISTORY_DAYS
-        ),
+    predicted = await platforms.station_platforms(
+        session, redis, station, train_number, DEFAULT_HISTORY_DAYS
     )
-    for p in platforms.predictions:
-        if p.trainNumber == train_number and p.confidence >= PLATFORM_MIN_CONFIDENCE:
+    for p in predicted.predictions:
+        if p.trainNumber == train_number and p.confident:
             return p.platform
     return None
 
@@ -616,7 +596,7 @@ async def _with_usual_platforms(
     result = []
     for follow, obs in observed:
         state = states.get((follow.id, obs.service_date))
-        number = (follow.trip_short_name.split() or [""])[0]
+        number = number_of(follow.trip_short_name.strip())
         if (
             follow.kind == "commute"
             and follow.from_station_id

@@ -134,7 +134,13 @@ export default function SearchScreen() {
         router.back();
         router.push({
             pathname: "/station/[stationId]",
-            params: { stationId: station.id, name: station.name },
+            params: {
+                stationId: station.id,
+                name: station.name,
+                // The map flies there before the board loads
+                lat: String(station.lat),
+                lon: String(station.lon),
+            },
         });
     };
     const openTrain = (vehicleId: string) => {

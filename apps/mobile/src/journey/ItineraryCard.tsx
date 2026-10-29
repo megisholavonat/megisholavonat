@@ -1,9 +1,15 @@
 import type {
+    CityLeg,
     Itinerary,
     Transfer,
     TransitLeg,
     WalkLeg,
 } from "@megisholavonat/api-client";
+import {
+    alightingElsewhere,
+    boardingElsewhere,
+    legChain,
+} from "@megisholavonat/core/planner";
 import * as WebBrowser from "expo-web-browser";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useFormatter, useTranslations } from "use-intl";
@@ -13,6 +19,7 @@ import { RouteIcon } from "../train/RouteIcon";
 import { trainTitle } from "../train/trainData";
 import { DelayChip, PlatformBadge } from "../ui/ds";
 import { Icon } from "../ui/Icon";
+import { CityChip } from "./CityChip";
 import {
     durationParts,
     type RiskKind,
@@ -60,10 +67,15 @@ export function RiskLabel({
 /** One journey: times, duration and trains; tap for its legs. */
 export function ItineraryCard({
     itinerary,
+    fromId,
+    toId,
     expanded,
     onToggle,
 }: {
     itinerary: Itinerary;
+    /** The stations asked for, to tell when a train uses another one */
+    fromId?: string;
+    toId?: string;
     expanded: boolean;
     onToggle: () => void;
 }) {
@@ -76,6 +88,18 @@ export function ItineraryCard({
     const risk = worstRisk(itinerary.transfers);
     const duration = durationParts(itinerary.durationMinutes);
     const canceled = trains.some((leg) => leg.canceled);
+    const chain = legChain(itinerary);
+    const byCity = chain.some((leg) => leg.type === "city");
+    const elsewhere = [
+        boardingElsewhere(itinerary, fromId),
+        alightingElsewhere(itinerary, toId),
+    ];
+    const elsewhereText = [
+        elsewhere[0] && t("from_station", { station: elsewhere[0] }),
+        elsewhere[1] && t("to_station", { station: elsewhere[1] }),
+    ]
+        .filter(Boolean)
+        .join(" · ");
 
     return (
         <View
@@ -122,9 +146,9 @@ export function ItineraryCard({
                     </Text>
                 </View>
                 <View style={styles.chain}>
-                    {trains.map((leg, index) => (
+                    {chain.map((leg, index) => (
                         <View
-                            key={`${leg.tripId}@${leg.scheduledDeparture}`}
+                            key={`${leg.type}@${leg.scheduledDeparture}@${leg.type === "city" ? leg.line : leg.tripId}`}
                             style={styles.link}
                         >
                             {index > 0 ? (
@@ -134,19 +158,25 @@ export function ItineraryCard({
                                     color={theme.colors.ink2}
                                 />
                             ) : null}
-                            <RouteIcon
-                                routeShortName={leg.routeShortName}
-                                color={theme.colors.ink}
-                                size={18}
-                            />
-                            <Text
-                                style={[
-                                    styles.number,
-                                    { color: theme.colors.ink },
-                                ]}
-                            >
-                                {leg.trainNumber}
-                            </Text>
+                            {leg.type === "city" ? (
+                                <CityChip leg={leg} />
+                            ) : (
+                                <>
+                                    <RouteIcon
+                                        routeShortName={leg.routeShortName}
+                                        color={theme.colors.ink}
+                                        size={18}
+                                    />
+                                    <Text
+                                        style={[
+                                            styles.number,
+                                            { color: theme.colors.ink },
+                                        ]}
+                                    >
+                                        {leg.trainNumber}
+                                    </Text>
+                                </>
+                            )}
                         </View>
                     ))}
                     <Text style={[styles.meta, { color: theme.colors.ink2 }]}>
@@ -157,6 +187,26 @@ export function ItineraryCard({
                               })}
                     </Text>
                 </View>
+                {elsewhereText ? (
+                    // The train leaves from (arrives at) another station
+                    // than the one picked: say which
+                    <View style={styles.elsewhere}>
+                        <Icon
+                            name="location"
+                            size={14}
+                            color={theme.colors.ink}
+                        />
+                        <Text
+                            style={[
+                                styles.elsewhereText,
+                                { color: theme.colors.ink },
+                            ]}
+                            numberOfLines={1}
+                        >
+                            {elsewhereText}
+                        </Text>
+                    </View>
+                ) : null}
                 {risk && risk !== "safe" ? <RiskLabel kind={risk} /> : null}
             </Pressable>
             {expanded ? (
@@ -171,6 +221,8 @@ export function ItineraryCard({
                             <RideStep key={step.key} leg={step.leg} />
                         ) : step.kind === "walk" ? (
                             <WalkStep key={step.key} leg={step.leg} />
+                        ) : step.kind === "city" ? (
+                            <CityStep key={step.key} leg={step.leg} />
                         ) : (
                             <TransferStep
                                 key={step.key}
@@ -203,6 +255,17 @@ export function ItineraryCard({
                             color={theme.colors.ink}
                         />
                     </Pressable>
+                    {/* The MÁV ticket covers the trains only */}
+                    {byCity ? (
+                        <Text
+                            style={[
+                                styles.riskText,
+                                { color: theme.colors.ink2 },
+                            ]}
+                        >
+                            {t("city_ticket")}
+                        </Text>
+                    ) : null}
                 </View>
             ) : null}
         </View>
@@ -292,6 +355,62 @@ function RideStep({ leg }: { leg: TransitLeg }) {
     );
 }
 
+/** A metro, tram or bus ride: where it leaves and stops, and its line. */
+function CityStep({ leg }: { leg: CityLeg }) {
+    const theme = useAppTheme();
+    const clock = useClock();
+    const stopRow = (time: number, station: string) => (
+        <View style={styles.stopRow}>
+            <View style={styles.timeCell}>
+                <Text
+                    style={[
+                        styles.cityTime,
+                        theme.tabularNums,
+                        { color: theme.colors.ink2 },
+                    ]}
+                >
+                    {clock(time)}
+                </Text>
+            </View>
+            <Text
+                style={[
+                    styles.cityStop,
+                    styles.flex,
+                    { color: theme.colors.ink2 },
+                ]}
+                numberOfLines={1}
+            >
+                {station}
+            </Text>
+        </View>
+    );
+    return (
+        <View style={styles.ride}>
+            {stopRow(leg.scheduledDeparture, leg.fromStop.name)}
+            <View
+                style={[
+                    styles.train,
+                    {
+                        borderLeftColor: theme.colors.line,
+                        borderStyle: "dotted",
+                    },
+                ]}
+            >
+                <CityChip leg={leg} />
+                {leg.headsign ? (
+                    <Text
+                        style={[styles.trainText, { color: theme.colors.ink2 }]}
+                        numberOfLines={1}
+                    >
+                        {`→ ${leg.headsign}`}
+                    </Text>
+                ) : null}
+            </View>
+            {stopRow(leg.scheduledArrival, leg.toStop.name)}
+        </View>
+    );
+}
+
 function TransferStep({ transfer }: { transfer: Transfer }) {
     const theme = useAppTheme();
     const t = useTranslations("Journey");
@@ -355,6 +474,10 @@ const styles = StyleSheet.create({
     number: { fontSize: 14, fontWeight: "700" },
     meta: { fontSize: 14, marginLeft: 6 },
     risk: { flexDirection: "row", alignItems: "center", gap: 8 },
+    elsewhere: { flexDirection: "row", alignItems: "center", gap: 4 },
+    elsewhereText: { fontSize: 13, fontWeight: "600", flexShrink: 1 },
+    cityTime: { fontSize: 14, fontWeight: "600" },
+    cityStop: { fontSize: 14 },
     dot: { width: 10, height: 10, borderRadius: 5 },
     riskText: { fontSize: 14, flexShrink: 1 },
     riskWord: { fontWeight: "700" },

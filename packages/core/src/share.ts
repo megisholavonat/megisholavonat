@@ -1,6 +1,7 @@
 /**
- * Share links and the short texts that go with them, for the web share
- * button, the native share sheet and the link previews (og tags).
+ * Share links and the short texts of their link previews (og title and
+ * description). Sharing sends the link alone, never a prefilled message:
+ * the preview carries what the train or station is doing.
  */
 
 import { getDelayLevel, roundMinutes } from "./delay";
@@ -101,7 +102,7 @@ export interface TrainShareInfo {
     next: { name: string; time: string; estimated?: boolean } | null;
 }
 
-/** "A 10-es vonat 9 percet késik, Debrecen ≈02:06" */
+/** "A 10-es vonat 9 percet késik, Debrecen ≈02:06": a train link's description */
 export function trainShareText(locale: Locale, info: TrainShareInfo): string {
     const state = info.status ?? (info.waiting ? "waiting" : "running");
     const onTime = getDelayLevel(info.delay) === "onTime";
@@ -164,6 +165,14 @@ export function departureText(
               : "on time"
           : `+${roundMinutes(departure.delay ?? 0)}`;
     return `${plain} ${status}`;
+}
+
+/**
+ * A station link's preview title: "Szolnok – indulások élőben", so the
+ * card says what the link opens even where the site name is not shown.
+ */
+export function stationShareTitle(locale: Locale, name: string): string {
+    return `${name} – ${locale === "hu" ? "indulások élőben" : "live departures"}`;
 }
 
 /** "Indulások: 04:00 Miskolc-Tiszai pontos · 04:10 Szolnok +3" */

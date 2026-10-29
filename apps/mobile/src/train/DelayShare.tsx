@@ -2,16 +2,16 @@ import { getRunSummaryOptions } from "@megisholavonat/api-client/react-query";
 import {
     type DelaySummary,
     delaySummary,
-    delaySummaryShareText,
     delaySummaryUrl,
     type RunStops,
 } from "@megisholavonat/core/delaySummary";
 import { useQuery } from "@tanstack/react-query";
-import { Platform, Pressable, Share, StyleSheet, Text } from "react-native";
+import { Platform, Pressable, StyleSheet, Text } from "react-native";
 import { useLocale, useTranslations } from "use-intl";
 import { WEB_URL } from "../config";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { Icon } from "../ui/Icon";
+import { shareLink } from "../ui/shareLink";
 
 export interface DelayShareTarget {
     number: string;
@@ -46,10 +46,13 @@ function useDelayCard(target: DelayShareTarget | null): DelaySummary | null {
     return card.outcome === "unknown" ? null : card;
 }
 
-/** The native share sheet with the card link and its sentence. */
+/**
+ * The native share sheet with the card link alone: no prefilled message,
+ * the link's preview (the card image, its sentence) tells the delay.
+ */
 function useShare(target: DelayShareTarget | null, card: DelaySummary | null) {
     const locale = useLocale();
-    const t = useTranslations("Train");
+    const t = useTranslations("DelayCard");
     return () => {
         if (!target || !card) return;
         const url = delaySummaryUrl(
@@ -59,13 +62,7 @@ function useShare(target: DelayShareTarget | null, card: DelaySummary | null) {
             target.date,
             target.stops,
         );
-        const text = delaySummaryShareText(locale, card);
-        // iOS shares the URL as a link; Android only takes text
-        Share.share(
-            Platform.OS === "ios"
-                ? { message: text, url }
-                : { message: t("share_text", { train: text, url }) },
-        );
+        shareLink({ title: t("title"), url }).catch(() => undefined);
     };
 }
 

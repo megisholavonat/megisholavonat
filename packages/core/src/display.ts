@@ -256,3 +256,38 @@ export function staleNote(
         onTime: getDelayLevel(display.delay) === "onTime",
     };
 }
+
+/**
+ * A train's list entry with the delay and state of its details, which poll
+ * faster than the list: the open train's marker and its sheet show the same.
+ */
+export function withDetails<
+    T extends {
+        vehicleId: string;
+        delay?: number | null;
+        lastUpdated: number;
+        activity?: TrainActivity | null;
+    },
+>(
+    props: T,
+    details:
+        | Pick<
+              VehiclePositionWithDelay,
+              "vehicleId" | "delay" | "lastUpdated" | "activity"
+          >
+        | undefined,
+): T {
+    if (
+        !details ||
+        details.vehicleId !== props.vehicleId ||
+        details.lastUpdated < props.lastUpdated
+    ) {
+        return props;
+    }
+    return {
+        ...props,
+        delay: details.delay,
+        lastUpdated: details.lastUpdated,
+        activity: details.activity ?? props.activity,
+    } as T;
+}

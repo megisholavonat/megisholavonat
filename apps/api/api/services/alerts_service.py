@@ -1,16 +1,18 @@
 """Active rail disruptions from the upstream alert feed."""
 
-import json
 import time
 from typing import Any
 
+from pydantic import RootModel
 from redis.asyncio import Redis
 
+from api.core.cache import cached_model
 from api.core.graphql import query_graphql
 from api.core.queries import ALERTS_QUERY
 from api.core.redis import add_key
 from api.schemas.alerts import AlertRoute, AlertStation, AlertTrip, RailAlert
 from api.services.station_index import RAIL_FEED
+from api.util.stop import station_id_from_gtfs_id
 
 ALERTS_TTL = 2 * 60  # seconds
 
@@ -18,8 +20,15 @@ ALERTS_TTL = 2 * 60  # seconds
 RAIL_MODES = {"RAIL", "SUBURBAN_RAILWAY", "TRAMTRAIN", "RAIL_REPLACEMENT_BUS"}
 
 
+ALERTS_KEY = "rail-alerts"
+
+
+class RailAlerts(RootModel[list[RailAlert]]):
+    pass
+
+
 def alerts_cache_key() -> str:
-    return add_key("rail-alerts")
+    return add_key(ALERTS_KEY)
 
 
 def _feed_of(gtfs_id: str | None) -> str | None:
@@ -71,7 +80,7 @@ def _station_of(stop: dict[str, Any]) -> AlertStation | None:
     if gtfs_id is None or _feed_of(gtfs_id) != RAIL_FEED:
         return None
     # "1:005501024_3" (platform) and "1:005501024" (station) -> "005501024"
-    uic = gtfs_id.partition(":")[2].partition("_")[0]
+    uic = station_id_from_gtfs_id(gtfs_id)
     return AlertStation(id=uic, name=parent.get("name") or stop.get("name") or uic)
 
 
@@ -126,22 +135,17 @@ def is_active(alert: dict[str, Any], now: float) -> bool:
 
 async def get_rail_alerts(redis: Redis) -> list[RailAlert]:
     """Active rail alerts, newest first, cached for ALERTS_TTL seconds."""
-    cached = await redis.get(alerts_cache_key())
-    if cached is not None:
-        return [RailAlert.model_validate(a) for a in json.loads(cached)]
 
-    data = await query_graphql(ALERTS_QUERY, {"feeds": [RAIL_FEED]})
-    now = time.time()
-    alerts = [
-        to_rail_alert(a)
-        for a in data.get("alerts") or []
-        if is_active(a, now) and is_rail_alert(a)
-    ]
-    alerts.sort(key=lambda a: (-(a.start or 0), a.id))
+    async def build() -> RailAlerts:
+        data = await query_graphql(ALERTS_QUERY, {"feeds": [RAIL_FEED]})
+        now = time.time()
+        alerts = [
+            to_rail_alert(a)
+            for a in data.get("alerts") or []
+            if is_active(a, now) and is_rail_alert(a)
+        ]
+        alerts.sort(key=lambda a: (-(a.start or 0), a.id))
+        return RailAlerts(alerts)
 
-    await redis.set(
-        alerts_cache_key(),
-        json.dumps([a.model_dump() for a in alerts]),
-        ex=ALERTS_TTL,
-    )
-    return alerts
+    cached = await cached_model(redis, ALERTS_KEY, RailAlerts, ALERTS_TTL, build)
+    return cached.root

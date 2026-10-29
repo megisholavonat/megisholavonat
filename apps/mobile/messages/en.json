@@ -22,7 +22,8 @@
         "stale_banner": "No fresh data for {minutes} min",
         "my_commute": "My commute",
         "follow_cta": "Follow your train",
-        "tomorrow": "tomorrow"
+        "tomorrow": "tomorrow",
+        "cluster": "{count} trains here"
     },
     "Legend": {
         "label": "Delay legend",
@@ -74,7 +75,6 @@
         "delay_minutes": "{delay} min",
         "not_found": "This train is no longer on the map",
         "passed": "passed",
-        "share_text": "{train} · {url}",
         "departs": "departs {time}",
         "arrived": "arrived",
         "early": "early",
@@ -120,6 +120,13 @@
         "dynamic_color": "Dynamic colours",
         "map": "Map",
         "detailed_railway_map": "Detailed railway map",
+        "station_names": "Station names",
+        "station_names_opacity": "Opacity",
+        "animation": "Animation",
+        "vehicles": "Vehicles",
+        "trains": "Trains",
+        "hev": "HÉV",
+        "tramtrain": "TramTrain",
         "analytics": "Anonymous statistics",
         "privacy": "Privacy",
         "map_data": "Map data",
@@ -186,7 +193,16 @@
         "canceled": "Cancelled",
         "ticket": "Ticket",
         "empty": "No journeys at this time",
-        "error": "Can't plan a journey right now"
+        "error": "Can't plan a journey right now",
+        "any_budapest": "Budapest (any station)",
+        "from_station": "from {station}",
+        "to_station": "to {station}",
+        "city_ticket": "Local transit needs its own ticket or pass",
+        "city_metro": "metro",
+        "city_tram": "tram",
+        "city_trolleybus": "trolleybus",
+        "city_bus": "bus",
+        "city_rail": "HÉV"
     },
     "Trains": {
         "title": "Trains",
@@ -195,6 +211,7 @@
         "empty": "No trains running now"
     },
     "DelayCard": {
+        "title": "Delay summary",
         "share": "Share the delay",
         "share_so_far": "Share the delay so far"
     }

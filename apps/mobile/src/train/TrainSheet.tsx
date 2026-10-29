@@ -15,25 +15,14 @@ import {
     delayTile,
     staleNote,
 } from "@megisholavonat/core/display";
-import {
-    shareUrl,
-    trainShareStatus,
-    trainShareText,
-} from "@megisholavonat/core/share";
+import { shareUrl } from "@megisholavonat/core/share";
 import { ticketUrl } from "@megisholavonat/core/ticket";
 import { formatSecondsAsTime } from "@megisholavonat/core/time";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import { type ReactNode, useEffect, useMemo } from "react";
-import {
-    Platform,
-    ScrollView,
-    Share,
-    StyleSheet,
-    Text,
-    View,
-} from "react-native";
+import { ScrollView, Share, StyleSheet, Text, View } from "react-native";
 import { useLocale, useTranslations } from "use-intl";
 import { track } from "../analytics";
 import { WEB_URL } from "../config";
@@ -46,6 +35,7 @@ import { PlatformBadge, Skeleton, StateBlock } from "../ui/ds";
 import { Icon } from "../ui/Icon";
 import { RollingText } from "../ui/motion";
 import { SheetHandle } from "../ui/SheetHandle";
+import { shareLink } from "../ui/shareLink";
 import { useNow } from "../ui/useNow";
 import { DelayShareRow } from "./DelayShare";
 import { reasonTone, shownDisplay } from "./delayDisplay";
@@ -59,7 +49,6 @@ import {
     predictedPlatform,
     type StopRow,
     serviceGroups,
-    shareStop,
     sortedAlerts,
     stopRows,
     trainStop,
@@ -202,28 +191,13 @@ export function TrainSheet({
     const tone = display ? reasonTone(display.delay, stale) : null;
 
     const onShare = () => {
-        // Same link and text as the web share button
+        // The link alone, as the web share button: its preview tells the
+        // delay and the next stop
         const url = shareUrl(WEB_URL, locale, { vehicleId });
-        const stop = notYetDeparted ? first : next;
-        // A delay only while running, as the sheet shows it
-        const shown = display ? trainShareStatus(display) : null;
-        const status =
-            shown === "running" && notYetDeparted ? "waiting" : shown;
         const name = title
-            ? trainShareText(locale, {
-                  number: title.number,
-                  delay: Math.max(0, display?.delay ?? 0),
-                  waiting: notYetDeparted,
-                  status: status ?? undefined,
-                  next: shareStop(stop),
-              })
+            ? [title.number, title.destination].filter(Boolean).join(" → ")
             : "";
-        // iOS shares the URL as a link; Android only takes text
-        Share.share(
-            Platform.OS === "ios"
-                ? { message: name, url }
-                : { message: t("share_text", { train: name, url }) },
-        )
+        shareLink({ title: name, url })
             .then(({ action }) =>
                 track("share_clicked", {
                     target: "train",

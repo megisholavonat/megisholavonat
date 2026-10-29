@@ -22,7 +22,8 @@
         "stale_banner": "{minutes} perce nincs friss adat",
         "my_commute": "Ingázásom",
         "follow_cta": "Kövesd a vonatodat",
-        "tomorrow": "holnap"
+        "tomorrow": "holnap",
+        "cluster": "{count} vonat itt"
     },
     "Legend": {
         "label": "Késés jelmagyarázat",
@@ -74,7 +75,6 @@
         "delay_minutes": "{delay} perc",
         "not_found": "Ez a vonat már nem látszik a térképen",
         "passed": "elhaladt",
-        "share_text": "{train} · {url}",
         "departs": "indul {time}",
         "arrived": "megérkezett",
         "early": "korán",
@@ -120,6 +120,13 @@
         "dynamic_color": "Dinamikus színek",
         "map": "Térkép",
         "detailed_railway_map": "Részletes vasúti térkép",
+        "station_names": "Állomásnevek",
+        "station_names_opacity": "Átlátszóság",
+        "animation": "Animáció",
+        "vehicles": "Járművek",
+        "trains": "Vonat",
+        "hev": "HÉV",
+        "tramtrain": "TramTrain",
         "analytics": "Névtelen statisztika",
         "privacy": "Adatvédelem",
         "map_data": "Térképadatok",
@@ -186,7 +193,16 @@
         "canceled": "Törölve",
         "ticket": "Jegy",
         "empty": "Nincs találat erre az időre",
-        "error": "Most nem sikerült útvonalat tervezni"
+        "error": "Most nem sikerült útvonalat tervezni",
+        "any_budapest": "Budapest (bármely állomás)",
+        "from_station": "{station} állomásról",
+        "to_station": "{station} állomásra",
+        "city_ticket": "A helyi járatokhoz külön jegy vagy bérlet kell",
+        "city_metro": "metró",
+        "city_tram": "villamos",
+        "city_trolleybus": "troli",
+        "city_bus": "busz",
+        "city_rail": "HÉV"
     },
     "Trains": {
         "title": "Vonatok",
@@ -195,6 +211,7 @@
         "empty": "Most nem jár vonat"
     },
     "DelayCard": {
+        "title": "Késés-összefoglaló",
         "share": "Megosztom a késést",
         "share_so_far": "Késés megosztása eddig"
     }

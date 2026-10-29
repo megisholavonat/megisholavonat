@@ -1,5 +1,9 @@
-import type { TrainFeatureCollection } from "@megisholavonat/api-client";
-import { delayLabel } from "@megisholavonat/core/display";
+import type {
+    TrainFeatureCollection,
+    TrainFeatureProperties,
+    VehiclePositionWithDelay,
+} from "@megisholavonat/api-client";
+import { delayLabel, withDetails } from "@megisholavonat/core/display";
 import { staleness } from "@megisholavonat/core/stale";
 import {
     type ColorScheme,
@@ -51,8 +55,25 @@ export interface MarkerProperties {
     delay: number;
     /** Larger delays draw on top, followed trains above all */
     sort: number;
-    /** A followed train: never faded, with an ink badge and its chip */
+    /** A followed train: never faded, with a star badge and its chip */
     followed: boolean;
+    /** Degrees, for the selected train's direction arrow */
+    heading: number;
+    /** Has a direction worth showing: not old data, not standing idle */
+    moving: boolean;
+}
+
+/** Which vehicle types the map shows (the settings' filters) */
+export interface VehicleFilter {
+    train: boolean;
+    hev: boolean;
+    tramtrain: boolean;
+}
+
+const ALL: VehicleFilter = { train: true, hev: true, tramtrain: true };
+
+function shown(type: TrainFeatureProperties["type"], filter: VehicleFilter) {
+    return filter[type] ?? true;
 }
 
 const SORT: Record<MarkLevel, number> = {
@@ -69,10 +90,25 @@ export function markerCollection(
     scheme: ColorScheme,
     now: Date = new Date(),
     followed: ReadonlySet<string> = new Set(),
+    {
+        filter = ALL,
+        details,
+    }: {
+        filter?: VehicleFilter;
+        /** The open train's details: they poll faster than the feed */
+        details?: VehiclePositionWithDelay;
+    } = {},
 ): GeoJSON.FeatureCollection<GeoJSON.Point, MarkerProperties> {
     const features: GeoJSON.Feature<GeoJSON.Point, MarkerProperties>[] = [];
     for (const feature of trains?.features ?? []) {
-        const p = feature.properties;
+        if (!shown(feature.properties.type, filter)) continue;
+        const p =
+            details?.vehicleId === feature.properties.vehicleId
+                ? {
+                      ...withDetails(feature.properties, details),
+                      dwellStopIndex: details.dwellStopIndex,
+                  }
+                : feature.properties;
         if (staleness(p.lastUpdated, now) === "hidden") continue;
         // Same rule as the sheet (the open train's feature carries its dwell)
         const display = shownDisplay(p, now);
@@ -120,6 +156,8 @@ export function markerCollection(
                 delay,
                 sort: SORT[level] + (isFollowed ? 10 : 0),
                 followed: isFollowed,
+                heading: p.heading ?? 0,
+                moving: level !== "stale" && level !== "inactive",
             },
         });
     }

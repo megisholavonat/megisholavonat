@@ -5,7 +5,23 @@ import { track } from "../analytics";
 import { SOURCE_URL, WEB_URL } from "../config";
 import { useDeleteData } from "../privacy/useDeleteData";
 import { useSettings } from "./SettingsProvider";
-import type { LanguagePreference, ThemePreference } from "./settings";
+import {
+    type LanguagePreference,
+    type Settings,
+    STATION_NAMES_OPACITY,
+    stationNamesOpacity,
+    type ThemePreference,
+} from "./settings";
+
+/** The map's switches, each with its name in the `settings_changed` event */
+const MAP_SWITCHES = {
+    showStationNames: "station_names",
+    animateVehicles: "animate_vehicles",
+    showTrains: "trains",
+    showHev: "hev",
+    showTramTrains: "tram_trains",
+} as const satisfies Partial<Record<keyof Settings, string>>;
+export type MapSwitch = keyof typeof MAP_SWITCHES;
 
 const OSM_COPYRIGHT = "https://www.openstreetmap.org/copyright";
 const ORM_COPYRIGHT = "https://www.openrailwaymap.org/";
@@ -70,6 +86,24 @@ export function useSettingsRows() {
             });
             update({ detailedRailwayMap });
         },
+        setMapSwitch: (key: MapSwitch, on: boolean) => {
+            track("settings_changed", {
+                key: MAP_SWITCHES[key],
+                value: on ? "on" : "off",
+            });
+            update({ [key]: on });
+        },
+        opacityRange: STATION_NAMES_OPACITY,
+        /** While dragging the map follows; the event waits for the end */
+        setStationNamesOpacity: (value: number) =>
+            update({
+                stationNamesOpacity: stationNamesOpacity(
+                    value,
+                    settings.stationNamesOpacity,
+                ),
+            }),
+        commitStationNamesOpacity: () =>
+            track("settings_changed", { key: "station_names_opacity" }),
         setAnalytics: (granted: boolean) => {
             track(
                 "consent_decided",

@@ -1,5 +1,11 @@
 import type { Station } from "@megisholavonat/api-client";
 import { searchStationsOptions } from "@megisholavonat/api-client/react-query";
+import {
+    ANY_BUDAPEST,
+    collapseTwinStations,
+    isAnyBudapest,
+    matchesBudapest,
+} from "@megisholavonat/core/planner";
 import { useQuery } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -39,7 +45,15 @@ export default function PickStationScreen() {
         enabled: debounced.length >= 2,
         placeholderData: (previous) => previous,
     });
-    const list: Station[] = debounced.length >= 2 ? (stations.data ?? []) : [];
+    const list: Station[] =
+        debounced.length >= 2
+            ? [
+                  // First: the trains may leave from any of its stations
+                  ...(matchesBudapest(debounced) ? [ANY_BUDAPEST] : []),
+                  // The tram-train stop in front of a station is the station
+                  ...collapseTwinStations(stations.data ?? []),
+              ]
+            : [];
 
     const pick = (station: Station) => {
         planner.pick(field === "to" ? "to" : "from", station);
@@ -101,7 +115,11 @@ export default function PickStationScreen() {
                                 ]}
                             >
                                 <Icon
-                                    name="station"
+                                    name={
+                                        isAnyBudapest(station)
+                                            ? "location"
+                                            : "station"
+                                    }
                                     size={22}
                                     color={theme.colors.ink2}
                                 />
@@ -113,21 +131,24 @@ export default function PickStationScreen() {
                                     ]}
                                     numberOfLines={1}
                                 >
-                                    {highlight(station.name, query).map(
-                                        (part, i) => (
-                                            <Text
-                                                // biome-ignore lint/suspicious/noArrayIndexKey: static split
-                                                key={i}
-                                                style={
-                                                    part.match
-                                                        ? styles.bold
-                                                        : undefined
-                                                }
-                                            >
-                                                {part.text}
-                                            </Text>
-                                        ),
-                                    )}
+                                    {highlight(
+                                        isAnyBudapest(station)
+                                            ? t("any_budapest")
+                                            : station.name,
+                                        query,
+                                    ).map((part, i) => (
+                                        <Text
+                                            // biome-ignore lint/suspicious/noArrayIndexKey: static split
+                                            key={i}
+                                            style={
+                                                part.match
+                                                    ? styles.bold
+                                                    : undefined
+                                            }
+                                        >
+                                            {part.text}
+                                        </Text>
+                                    ))}
                                 </Text>
                             </Pressable>
                         ))}

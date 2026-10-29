@@ -1,0 +1,1949 @@
+{
+ "data": {
+  "plan": {
+   "itineraries": [
+    {
+     "legs": [
+      {
+       "mode": "WALK",
+       "startTime": 1793340002000,
+       "endTime": 1793340180000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 222.86,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest-Déli",
+        "lat": 47.498889,
+        "lon": 19.025,
+        "stop": {
+         "platformCode": "5",
+         "stationUicPricingCode": "005501016"
+        }
+       },
+       "to": {
+        "name": "Budapest, Déli pályaudvar M",
+        "lat": 47.499686,
+        "lon": 19.024208,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "BUS",
+       "startTime": 1793340180000,
+       "endTime": 1793340300000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 820.19,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Széll Kálmán tér M",
+       "from": {
+        "name": "Budapest, Déli pályaudvar M",
+        "lat": 47.499686,
+        "lon": 19.024208,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Széll Kálmán tér M",
+        "lat": 47.506647,
+        "lon": 19.023912,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": {
+        "gtfsId": "BKK:2210",
+        "shortName": "221",
+        "longName": null,
+        "color": "009EE3",
+        "textColor": "FFFFFF"
+       },
+       "trip": {
+        "gtfsId": "BKK:D227147956",
+        "tripShortName": null,
+        "departureStoptime": {
+         "scheduledDeparture": 24240
+        }
+       },
+       "intermediateStops": []
+      },
+      {
+       "mode": "WALK",
+       "startTime": 1793340300000,
+       "endTime": 1793340437000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 141.25,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest, Széll Kálmán tér M",
+        "lat": 47.506647,
+        "lon": 19.023912,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Széll Kálmán tér M",
+        "lat": 47.507258,
+        "lon": 19.025182,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "TRAM",
+       "startTime": 1793340660000,
+       "endTime": 1793341200000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 2923.49,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Újbuda-központ M",
+       "from": {
+        "name": "Budapest, Széll Kálmán tér M",
+        "lat": 47.507258,
+        "lon": 19.025182,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Nyugati pályaudvar M",
+        "lat": 47.509922,
+        "lon": 19.056658,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": {
+        "gtfsId": "BKK:3046",
+        "shortName": "4-6",
+        "longName": null,
+        "color": "FFD800",
+        "textColor": "000000"
+       },
+       "trip": {
+        "gtfsId": "BKK:D2396111960",
+        "tripShortName": null,
+        "departureStoptime": {
+         "scheduledDeparture": 25860
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "BKK:F00308"
+        },
+        {
+         "gtfsId": "BKK:F00199"
+        },
+        {
+         "gtfsId": "BKK:F00189"
+        },
+        {
+         "gtfsId": "BKK:F00142"
+        },
+        {
+         "gtfsId": "BKK:F00926"
+        }
+       ]
+      },
+      {
+       "mode": "WALK",
+       "startTime": 1793341200000,
+       "endTime": 1793341336000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 141.64,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest, Nyugati pályaudvar M",
+        "lat": 47.509922,
+        "lon": 19.056658,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest-Nyugati",
+        "lat": 47.510833,
+        "lon": 19.0575,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510033"
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793341800000,
+       "endTime": 1793343360000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 33307.05,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Kiel Hbf",
+       "from": {
+        "name": "Budapest-Nyugati",
+        "lat": 47.510833,
+        "lon": 19.0575,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510033"
+        }
+       },
+       "to": {
+        "name": "Vác",
+        "lat": 47.782778,
+        "lon": 19.133056,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510447"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E35337184",
+        "shortName": "<span class=\"MNR2007\">&#480;</span>",
+        "longName": "RJ HUNGÁRIA",
+        "color": "FEFEFE",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:35355215",
+        "tripShortName": "174 HUNGÁRIA railjet",
+        "departureStoptime": {
+         "scheduledDeparture": 27000
+        }
+       },
+       "intermediateStops": []
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "WALK",
+       "startTime": 1793340819000,
+       "endTime": 1793341080000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 283.89,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest-Déli",
+        "lat": 47.498889,
+        "lon": 19.025,
+        "stop": {
+         "platformCode": "5",
+         "stationUicPricingCode": "005501016"
+        }
+       },
+       "to": {
+        "name": "Budapest, Déli pályaudvar M",
+        "lat": 47.501106,
+        "lon": 19.024177,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "TRAM",
+       "startTime": 1793341080000,
+       "endTime": 1793341350000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 915.02,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Bécsi út / Vörösvári út",
+       "from": {
+        "name": "Budapest, Déli pályaudvar M",
+        "lat": 47.501106,
+        "lon": 19.024177,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Széna tér",
+        "lat": 47.508491,
+        "lon": 19.027319,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": {
+        "gtfsId": "BKK:3170",
+        "shortName": "17",
+        "longName": null,
+        "color": "FFD800",
+        "textColor": "000000"
+       },
+       "trip": {
+        "gtfsId": "BKK:D201704119",
+        "tripShortName": null,
+        "departureStoptime": {
+         "scheduledDeparture": 24420
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "BKK:036678"
+        }
+       ]
+      },
+      {
+       "mode": "TRAM",
+       "startTime": 1793341500000,
+       "endTime": 1793341980000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 2700.96,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Újbuda-központ M",
+       "from": {
+        "name": "Budapest, Széna tér",
+        "lat": 47.508491,
+        "lon": 19.027319,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Nyugati pályaudvar M",
+        "lat": 47.509922,
+        "lon": 19.056658,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": {
+        "gtfsId": "BKK:3046",
+        "shortName": "4-6",
+        "longName": null,
+        "color": "FFD800",
+        "textColor": "000000"
+       },
+       "trip": {
+        "gtfsId": "BKK:D2396111990",
+        "tripShortName": null,
+        "departureStoptime": {
+         "scheduledDeparture": 26640
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "BKK:F00199"
+        },
+        {
+         "gtfsId": "BKK:F00189"
+        },
+        {
+         "gtfsId": "BKK:F00142"
+        },
+        {
+         "gtfsId": "BKK:F00926"
+        }
+       ]
+      },
+      {
+       "mode": "WALK",
+       "startTime": 1793341980000,
+       "endTime": 1793342116000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 141.64,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest, Nyugati pályaudvar M",
+        "lat": 47.509922,
+        "lon": 19.056658,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest-Nyugati",
+        "lat": 47.510833,
+        "lon": 19.0575,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510033"
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793342700000,
+       "endTime": 1793345100000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 33246.37,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Vác",
+       "from": {
+        "name": "Budapest-Nyugati",
+        "lat": 47.510833,
+        "lon": 19.0575,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510033"
+        }
+       },
+       "to": {
+        "name": "Vác",
+        "lat": 47.782778,
+        "lon": 19.133056,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510447"
+        }
+       },
+       "route": {
+        "gtfsId": "1:V2955_106",
+        "shortName": "<span class=\"MNR2007\">&#363;</span>",
+        "longName": "S70",
+        "color": "FFFFFF",
+        "textColor": "00A0E3"
+       },
+       "trip": {
+        "gtfsId": "1:35872185",
+        "tripShortName": "2442 személyvonat",
+        "departureStoptime": {
+         "scheduledDeparture": 27900
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005510082_0"
+        },
+        {
+         "gtfsId": "1:005510132_0"
+        },
+        {
+         "gtfsId": "1:005510140_0"
+        },
+        {
+         "gtfsId": "1:005540758_0"
+        },
+        {
+         "gtfsId": "1:005510371_0"
+        },
+        {
+         "gtfsId": "1:005510397_0"
+        },
+        {
+         "gtfsId": "1:005510405_0"
+        },
+        {
+         "gtfsId": "1:005510413_0"
+        },
+        {
+         "gtfsId": "1:005510421_0"
+        },
+        {
+         "gtfsId": "1:005510439_0"
+        },
+        {
+         "gtfsId": "1:005540816_0"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "WALK",
+       "startTime": 1793342040000,
+       "endTime": 1793342940000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 1039.31,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest-Déli",
+        "lat": 47.498889,
+        "lon": 19.025,
+        "stop": {
+         "platformCode": "5",
+         "stationUicPricingCode": "005501016"
+        }
+       },
+       "to": {
+        "name": "Budapest, Széll Kálmán tér M",
+        "lat": 47.507258,
+        "lon": 19.025182,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "TRAM",
+       "startTime": 1793342940000,
+       "endTime": 1793343480000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 2923.49,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Újbuda-központ M",
+       "from": {
+        "name": "Budapest, Széll Kálmán tér M",
+        "lat": 47.507258,
+        "lon": 19.025182,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Nyugati pályaudvar M",
+        "lat": 47.509922,
+        "lon": 19.056658,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": {
+        "gtfsId": "BKK:3046",
+        "shortName": "4-6",
+        "longName": null,
+        "color": "FFD800",
+        "textColor": "000000"
+       },
+       "trip": {
+        "gtfsId": "BKK:D2396112055",
+        "tripShortName": null,
+        "departureStoptime": {
+         "scheduledDeparture": 28140
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "BKK:F00308"
+        },
+        {
+         "gtfsId": "BKK:F00199"
+        },
+        {
+         "gtfsId": "BKK:F00189"
+        },
+        {
+         "gtfsId": "BKK:F00142"
+        },
+        {
+         "gtfsId": "BKK:F00926"
+        }
+       ]
+      },
+      {
+       "mode": "WALK",
+       "startTime": 1793343480000,
+       "endTime": 1793343616000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 141.64,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest, Nyugati pályaudvar M",
+        "lat": 47.509922,
+        "lon": 19.056658,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest-Nyugati",
+        "lat": 47.510833,
+        "lon": 19.0575,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510033"
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793344080000,
+       "endTime": 1793345520000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 33307.05,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Szob",
+       "from": {
+        "name": "Budapest-Nyugati",
+        "lat": 47.510833,
+        "lon": 19.0575,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510033"
+        }
+       },
+       "to": {
+        "name": "Vác",
+        "lat": 47.782778,
+        "lon": 19.133056,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510447"
+        }
+       },
+       "route": {
+        "gtfsId": "1:V2921_106",
+        "shortName": "<span class=\"MNR2007\">&#386;</span>",
+        "longName": "Z70",
+        "color": "FECC00",
+        "textColor": "000000"
+       },
+       "trip": {
+        "gtfsId": "1:35872188",
+        "tripShortName": "2342 személyvonat",
+        "departureStoptime": {
+         "scheduledDeparture": 29280
+        }
+       },
+       "intermediateStops": []
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "WALK",
+       "startTime": 1793342259000,
+       "endTime": 1793342520000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 283.89,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest-Déli",
+        "lat": 47.498889,
+        "lon": 19.025,
+        "stop": {
+         "platformCode": "5",
+         "stationUicPricingCode": "005501016"
+        }
+       },
+       "to": {
+        "name": "Budapest, Déli pályaudvar M",
+        "lat": 47.501106,
+        "lon": 19.024177,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "TRAM",
+       "startTime": 1793342520000,
+       "endTime": 1793342640000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 671.27,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Szent János Kórház",
+       "from": {
+        "name": "Budapest, Déli pályaudvar M",
+        "lat": 47.501106,
+        "lon": 19.024177,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Széll Kálmán tér M",
+        "lat": 47.506863,
+        "lon": 19.024178,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": {
+        "gtfsId": "BKK:3590",
+        "shortName": "59",
+        "longName": null,
+        "color": "FFD800",
+        "textColor": "000000"
+       },
+       "trip": {
+        "gtfsId": "BKK:D0913754",
+        "tripShortName": null,
+        "departureStoptime": {
+         "scheduledDeparture": 26880
+        }
+       },
+       "intermediateStops": []
+      },
+      {
+       "mode": "WALK",
+       "startTime": 1793342640000,
+       "endTime": 1793342719000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 91.87,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest, Széll Kálmán tér M",
+        "lat": 47.506863,
+        "lon": 19.024178,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Széll Kálmán tér M",
+        "lat": 47.507258,
+        "lon": 19.025182,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "TRAM",
+       "startTime": 1793342940000,
+       "endTime": 1793343480000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 2923.49,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Újbuda-központ M",
+       "from": {
+        "name": "Budapest, Széll Kálmán tér M",
+        "lat": 47.507258,
+        "lon": 19.025182,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Nyugati pályaudvar M",
+        "lat": 47.509922,
+        "lon": 19.056658,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": {
+        "gtfsId": "BKK:3046",
+        "shortName": "4-6",
+        "longName": null,
+        "color": "FFD800",
+        "textColor": "000000"
+       },
+       "trip": {
+        "gtfsId": "BKK:D2396112055",
+        "tripShortName": null,
+        "departureStoptime": {
+         "scheduledDeparture": 28140
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "BKK:F00308"
+        },
+        {
+         "gtfsId": "BKK:F00199"
+        },
+        {
+         "gtfsId": "BKK:F00189"
+        },
+        {
+         "gtfsId": "BKK:F00142"
+        },
+        {
+         "gtfsId": "BKK:F00926"
+        }
+       ]
+      },
+      {
+       "mode": "WALK",
+       "startTime": 1793343480000,
+       "endTime": 1793343616000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 141.64,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest, Nyugati pályaudvar M",
+        "lat": 47.509922,
+        "lon": 19.056658,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest-Nyugati",
+        "lat": 47.510833,
+        "lon": 19.0575,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510033"
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793344080000,
+       "endTime": 1793345520000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 33307.05,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Szob",
+       "from": {
+        "name": "Budapest-Nyugati",
+        "lat": 47.510833,
+        "lon": 19.0575,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510033"
+        }
+       },
+       "to": {
+        "name": "Vác",
+        "lat": 47.782778,
+        "lon": 19.133056,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510447"
+        }
+       },
+       "route": {
+        "gtfsId": "1:V2921_106",
+        "shortName": "<span class=\"MNR2007\">&#386;</span>",
+        "longName": "Z70",
+        "color": "FECC00",
+        "textColor": "000000"
+       },
+       "trip": {
+        "gtfsId": "1:35872188",
+        "tripShortName": "2342 személyvonat",
+        "departureStoptime": {
+         "scheduledDeparture": 29280
+        }
+       },
+       "intermediateStops": []
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "WALK",
+       "startTime": 1793342220000,
+       "endTime": 1793343120000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 1039.31,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest-Déli",
+        "lat": 47.498889,
+        "lon": 19.025,
+        "stop": {
+         "platformCode": "5",
+         "stationUicPricingCode": "005501016"
+        }
+       },
+       "to": {
+        "name": "Budapest, Széll Kálmán tér M",
+        "lat": 47.507258,
+        "lon": 19.025182,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "TRAM",
+       "startTime": 1793343120000,
+       "endTime": 1793343660000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 2923.49,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Újbuda-központ M",
+       "from": {
+        "name": "Budapest, Széll Kálmán tér M",
+        "lat": 47.507258,
+        "lon": 19.025182,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Nyugati pályaudvar M",
+        "lat": 47.509922,
+        "lon": 19.056658,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": {
+        "gtfsId": "BKK:3046",
+        "shortName": "4-6",
+        "longName": null,
+        "color": "FFD800",
+        "textColor": "000000"
+       },
+       "trip": {
+        "gtfsId": "BKK:D2396112060",
+        "tripShortName": null,
+        "departureStoptime": {
+         "scheduledDeparture": 28320
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "BKK:F00308"
+        },
+        {
+         "gtfsId": "BKK:F00199"
+        },
+        {
+         "gtfsId": "BKK:F00189"
+        },
+        {
+         "gtfsId": "BKK:F00142"
+        },
+        {
+         "gtfsId": "BKK:F00926"
+        }
+       ]
+      },
+      {
+       "mode": "WALK",
+       "startTime": 1793343660000,
+       "endTime": 1793343796000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 141.64,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest, Nyugati pályaudvar M",
+        "lat": 47.509922,
+        "lon": 19.056658,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest-Nyugati",
+        "lat": 47.510833,
+        "lon": 19.0575,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510033"
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793344320000,
+       "endTime": 1793345820000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 33307.05,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Krakow Glowny",
+       "from": {
+        "name": "Budapest-Nyugati",
+        "lat": 47.510833,
+        "lon": 19.0575,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510033"
+        }
+       },
+       "to": {
+        "name": "Vác",
+        "lat": 47.782778,
+        "lon": 19.133056,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510447"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E35355244",
+        "shortName": "<span class=\"MNR2007\">&#467;</span>",
+        "longName": "EC BÁTHORY",
+        "color": "FEFEFE",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:35635503",
+        "tripShortName": "130 BÁTHORY EuroCity",
+        "departureStoptime": {
+         "scheduledDeparture": 29520
+        }
+       },
+       "intermediateStops": []
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "WALK",
+       "startTime": 1793342220000,
+       "endTime": 1793343120000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 1039.31,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest-Déli",
+        "lat": 47.498889,
+        "lon": 19.025,
+        "stop": {
+         "platformCode": "5",
+         "stationUicPricingCode": "005501016"
+        }
+       },
+       "to": {
+        "name": "Budapest, Széll Kálmán tér M",
+        "lat": 47.507258,
+        "lon": 19.025182,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "TRAM",
+       "startTime": 1793343120000,
+       "endTime": 1793343660000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 2923.49,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Újbuda-központ M",
+       "from": {
+        "name": "Budapest, Széll Kálmán tér M",
+        "lat": 47.507258,
+        "lon": 19.025182,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Nyugati pályaudvar M",
+        "lat": 47.509922,
+        "lon": 19.056658,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": {
+        "gtfsId": "BKK:3046",
+        "shortName": "4-6",
+        "longName": null,
+        "color": "FFD800",
+        "textColor": "000000"
+       },
+       "trip": {
+        "gtfsId": "BKK:D2396112060",
+        "tripShortName": null,
+        "departureStoptime": {
+         "scheduledDeparture": 28320
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "BKK:F00308"
+        },
+        {
+         "gtfsId": "BKK:F00199"
+        },
+        {
+         "gtfsId": "BKK:F00189"
+        },
+        {
+         "gtfsId": "BKK:F00142"
+        },
+        {
+         "gtfsId": "BKK:F00926"
+        }
+       ]
+      },
+      {
+       "mode": "WALK",
+       "startTime": 1793343660000,
+       "endTime": 1793343796000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 141.64,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest, Nyugati pályaudvar M",
+        "lat": 47.509922,
+        "lon": 19.056658,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest-Nyugati",
+        "lat": 47.510833,
+        "lon": 19.0575,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510033"
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793344320000,
+       "endTime": 1793345820000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 33307.05,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Warszawa Wschodnia",
+       "from": {
+        "name": "Budapest-Nyugati",
+        "lat": 47.510833,
+        "lon": 19.0575,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510033"
+        }
+       },
+       "to": {
+        "name": "Vác",
+        "lat": 47.782778,
+        "lon": 19.133056,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510447"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E35355244",
+        "shortName": "<span class=\"MNR2007\">&#467;</span>",
+        "longName": "EC BÁTHORY",
+        "color": "FEFEFE",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:35355244",
+        "tripShortName": "130 BÁTHORY EuroCity",
+        "departureStoptime": {
+         "scheduledDeparture": 29520
+        }
+       },
+       "intermediateStops": []
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "WALK",
+       "startTime": 1793342220000,
+       "endTime": 1793343120000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 1039.31,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest-Déli",
+        "lat": 47.498889,
+        "lon": 19.025,
+        "stop": {
+         "platformCode": "5",
+         "stationUicPricingCode": "005501016"
+        }
+       },
+       "to": {
+        "name": "Budapest, Széll Kálmán tér M",
+        "lat": 47.507258,
+        "lon": 19.025182,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "TRAM",
+       "startTime": 1793343120000,
+       "endTime": 1793343660000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 2923.49,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Újbuda-központ M",
+       "from": {
+        "name": "Budapest, Széll Kálmán tér M",
+        "lat": 47.507258,
+        "lon": 19.025182,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Nyugati pályaudvar M",
+        "lat": 47.509922,
+        "lon": 19.056658,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": {
+        "gtfsId": "BKK:3046",
+        "shortName": "4-6",
+        "longName": null,
+        "color": "FFD800",
+        "textColor": "000000"
+       },
+       "trip": {
+        "gtfsId": "BKK:D2396112060",
+        "tripShortName": null,
+        "departureStoptime": {
+         "scheduledDeparture": 28320
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "BKK:F00308"
+        },
+        {
+         "gtfsId": "BKK:F00199"
+        },
+        {
+         "gtfsId": "BKK:F00189"
+        },
+        {
+         "gtfsId": "BKK:F00142"
+        },
+        {
+         "gtfsId": "BKK:F00926"
+        }
+       ]
+      },
+      {
+       "mode": "WALK",
+       "startTime": 1793343660000,
+       "endTime": 1793343796000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 141.64,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest, Nyugati pályaudvar M",
+        "lat": 47.509922,
+        "lon": 19.056658,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest-Nyugati",
+        "lat": 47.510833,
+        "lon": 19.0575,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510033"
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793344320000,
+       "endTime": 1793345820000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 33307.05,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Warszawa Wschodnia",
+       "from": {
+        "name": "Budapest-Nyugati",
+        "lat": 47.510833,
+        "lon": 19.0575,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510033"
+        }
+       },
+       "to": {
+        "name": "Vác",
+        "lat": 47.782778,
+        "lon": 19.133056,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510447"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E35355244",
+        "shortName": "<span class=\"MNR2007\">&#467;</span>",
+        "longName": "EC BÁTHORY",
+        "color": "FEFEFE",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:35355244",
+        "tripShortName": "130 BÁTHORY EuroCity",
+        "departureStoptime": {
+         "scheduledDeparture": 29520
+        }
+       },
+       "intermediateStops": []
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "WALK",
+       "startTime": 1793342220000,
+       "endTime": 1793343120000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 1039.31,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest-Déli",
+        "lat": 47.498889,
+        "lon": 19.025,
+        "stop": {
+         "platformCode": "5",
+         "stationUicPricingCode": "005501016"
+        }
+       },
+       "to": {
+        "name": "Budapest, Széll Kálmán tér M",
+        "lat": 47.507258,
+        "lon": 19.025182,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "TRAM",
+       "startTime": 1793343120000,
+       "endTime": 1793343660000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 2923.49,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Újbuda-központ M",
+       "from": {
+        "name": "Budapest, Széll Kálmán tér M",
+        "lat": 47.507258,
+        "lon": 19.025182,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Nyugati pályaudvar M",
+        "lat": 47.509922,
+        "lon": 19.056658,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": {
+        "gtfsId": "BKK:3046",
+        "shortName": "4-6",
+        "longName": null,
+        "color": "FFD800",
+        "textColor": "000000"
+       },
+       "trip": {
+        "gtfsId": "BKK:D2396112060",
+        "tripShortName": null,
+        "departureStoptime": {
+         "scheduledDeparture": 28320
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "BKK:F00308"
+        },
+        {
+         "gtfsId": "BKK:F00199"
+        },
+        {
+         "gtfsId": "BKK:F00189"
+        },
+        {
+         "gtfsId": "BKK:F00142"
+        },
+        {
+         "gtfsId": "BKK:F00926"
+        }
+       ]
+      },
+      {
+       "mode": "WALK",
+       "startTime": 1793343660000,
+       "endTime": 1793343796000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 141.64,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest, Nyugati pályaudvar M",
+        "lat": 47.509922,
+        "lon": 19.056658,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest-Nyugati",
+        "lat": 47.510833,
+        "lon": 19.0575,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510033"
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793344320000,
+       "endTime": 1793345820000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 33307.05,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Krakow Glowny",
+       "from": {
+        "name": "Budapest-Nyugati",
+        "lat": 47.510833,
+        "lon": 19.0575,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510033"
+        }
+       },
+       "to": {
+        "name": "Vác",
+        "lat": 47.782778,
+        "lon": 19.133056,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510447"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E35355244",
+        "shortName": "<span class=\"MNR2007\">&#467;</span>",
+        "longName": "EC BÁTHORY",
+        "color": "FEFEFE",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:35635503",
+        "tripShortName": "130 BÁTHORY EuroCity",
+        "departureStoptime": {
+         "scheduledDeparture": 29520
+        }
+       },
+       "intermediateStops": []
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "WALK",
+       "startTime": 1793342522000,
+       "endTime": 1793342700000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 222.86,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest-Déli",
+        "lat": 47.498889,
+        "lon": 19.025,
+        "stop": {
+         "platformCode": "5",
+         "stationUicPricingCode": "005501016"
+        }
+       },
+       "to": {
+        "name": "Budapest, Déli pályaudvar M",
+        "lat": 47.499686,
+        "lon": 19.024208,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "BUS",
+       "startTime": 1793342700000,
+       "endTime": 1793342820000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 780.61,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Széll Kálmán tér M [Elsőajtós]",
+       "from": {
+        "name": "Budapest, Déli pályaudvar M",
+        "lat": 47.499686,
+        "lon": 19.024208,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Széll Kálmán tér M",
+        "lat": 47.506404,
+        "lon": 19.024311,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": {
+        "gtfsId": "BKK:1401",
+        "shortName": "140A",
+        "longName": null,
+        "color": "009EE3",
+        "textColor": "FFFFFF"
+       },
+       "trip": {
+        "gtfsId": "BKK:D213693590",
+        "tripShortName": null,
+        "departureStoptime": {
+         "scheduledDeparture": 25920
+        }
+       },
+       "intermediateStops": []
+      },
+      {
+       "mode": "WALK",
+       "startTime": 1793342820000,
+       "endTime": 1793342990000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 181.61,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest, Széll Kálmán tér M",
+        "lat": 47.506404,
+        "lon": 19.024311,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Széll Kálmán tér M",
+        "lat": 47.507258,
+        "lon": 19.025182,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "TRAM",
+       "startTime": 1793343120000,
+       "endTime": 1793343660000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 2923.49,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Újbuda-központ M",
+       "from": {
+        "name": "Budapest, Széll Kálmán tér M",
+        "lat": 47.507258,
+        "lon": 19.025182,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Nyugati pályaudvar M",
+        "lat": 47.509922,
+        "lon": 19.056658,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": {
+        "gtfsId": "BKK:3046",
+        "shortName": "4-6",
+        "longName": null,
+        "color": "FFD800",
+        "textColor": "000000"
+       },
+       "trip": {
+        "gtfsId": "BKK:D2396112060",
+        "tripShortName": null,
+        "departureStoptime": {
+         "scheduledDeparture": 28320
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "BKK:F00308"
+        },
+        {
+         "gtfsId": "BKK:F00199"
+        },
+        {
+         "gtfsId": "BKK:F00189"
+        },
+        {
+         "gtfsId": "BKK:F00142"
+        },
+        {
+         "gtfsId": "BKK:F00926"
+        }
+       ]
+      },
+      {
+       "mode": "WALK",
+       "startTime": 1793343660000,
+       "endTime": 1793343796000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 141.64,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest, Nyugati pályaudvar M",
+        "lat": 47.509922,
+        "lon": 19.056658,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest-Nyugati",
+        "lat": 47.510833,
+        "lon": 19.0575,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510033"
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793344320000,
+       "endTime": 1793345820000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 33307.05,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Warszawa Wschodnia",
+       "from": {
+        "name": "Budapest-Nyugati",
+        "lat": 47.510833,
+        "lon": 19.0575,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510033"
+        }
+       },
+       "to": {
+        "name": "Vác",
+        "lat": 47.782778,
+        "lon": 19.133056,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510447"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E35355244",
+        "shortName": "<span class=\"MNR2007\">&#467;</span>",
+        "longName": "EC BÁTHORY",
+        "color": "FEFEFE",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:35355244",
+        "tripShortName": "130 BÁTHORY EuroCity",
+        "departureStoptime": {
+         "scheduledDeparture": 29520
+        }
+       },
+       "intermediateStops": []
+      }
+     ]
+    }
+   ]
+  }
+ }
+}
