@@ -78,13 +78,13 @@ describe("trainCard", () => {
         for (const [activity, status] of [
             ["cancelled", "cancelled"],
             ["arrived", "arrived"],
-            ["offRoute", "noData"],
+            // Fresh, but off its route: delay unknown, not "no fresh data"
+            ["offRoute", "offRoute"],
         ] as const) {
             const card = trainCard({ ...late, activity }, now);
             expect(card).toMatchObject({ status, delay: 0, next: null });
-            expect(trainShareText("hu", trainShareInfo(card))).not.toMatch(
-                /késés/,
-            );
+            const text = trainShareText("hu", trainShareInfo(card));
+            expect(text).not.toMatch(/percet késik|pontos|friss adat/);
         }
         // No position for 20 minutes
         const old = new Date((late.lastUpdated + 20 * 60) * 1000);
