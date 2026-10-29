@@ -152,6 +152,7 @@ class TrainService:
                 lat,
                 lon,
                 location.get("heading"),
+                location.get("speed"),
             )
 
             processed_location = location.copy()
@@ -165,6 +166,8 @@ class TrainService:
                     "totalRouteDistance": delay_data["totalRouteDistance"],
                     "processedStops": delay_data["processedStops"],
                     "vehicleProgress": delay_data["vehicleProgress"],
+                    # Stop it stands at, if any (not in the schema)
+                    "dwellStopIndex": delay_data["dwellStopIndex"],
                     "routeLengthKm": route.length_km,
                 }
             )
