@@ -3,6 +3,7 @@ import {
     Column,
     SegmentedButton,
     SingleChoiceSegmentedButtonRow,
+    Slider,
     Text,
 } from "@expo/ui/jetpack-compose";
 import { fillMaxWidth } from "@expo/ui/jetpack-compose/modifiers";
@@ -10,7 +11,27 @@ import { StyleSheet } from "react-native";
 import { dynamicColorSupported } from "../theme/dynamicColor";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { ComposeHost } from "../ui/ComposeHost";
-import { useSettingsRows } from "./useSettingsRows";
+import { type MapSwitch, useSettingsRows } from "./useSettingsRows";
+
+/** A list row with a trailing switch; the whole row toggles it. */
+function SwitchRow({
+    label,
+    value,
+    onChange,
+}: {
+    label: string;
+    value: boolean;
+    onChange: (value: boolean) => void;
+}) {
+    return (
+        <ListItem
+            onPress={() => onChange(!value)}
+            trailing={<Switch value={value} onValueChange={onChange} />}
+        >
+            {label}
+        </ListItem>
+    );
+}
 
 /** A labelled Material 3 segmented button row (language, theme). */
 function Choice<T extends string>({
@@ -51,6 +72,16 @@ function Choice<T extends string>({
 export function SettingsScreen() {
     const s = useSettingsRows();
     const theme = useAppTheme();
+    const mapSwitch = (
+        key: MapSwitch,
+        label: "station_names" | "animation" | "trains" | "hev" | "tramtrain",
+    ) => (
+        <SwitchRow
+            label={s.t(label)}
+            value={s.settings[key]}
+            onChange={(on) => s.setMapSwitch(key, on)}
+        />
+    );
     return (
         <ComposeHost style={StyleSheet.absoluteFill}>
             <FieldGroup>
@@ -99,6 +130,38 @@ export function SettingsScreen() {
                     >
                         {s.t("detailed_railway_map")}
                     </ListItem>
+                    {mapSwitch("showStationNames", "station_names")}
+                    {s.settings.showStationNames ? (
+                        <Column verticalArrangement={{ spacedBy: 4 }}>
+                            <Text style={{ typography: "bodyLarge" }}>
+                                {s.t("station_names_opacity")}
+                            </Text>
+                            <Slider
+                                value={s.settings.stationNamesOpacity}
+                                min={s.opacityRange.min}
+                                max={s.opacityRange.max}
+                                // Values between the ends: 5, 10 … 95 %
+                                steps={
+                                    Math.round(
+                                        (s.opacityRange.max -
+                                            s.opacityRange.min) /
+                                            s.opacityRange.step,
+                                    ) - 1
+                                }
+                                onValueChange={s.setStationNamesOpacity}
+                                onValueChangeFinished={
+                                    s.commitStationNamesOpacity
+                                }
+                                modifiers={[fillMaxWidth()]}
+                            />
+                        </Column>
+                    ) : null}
+                    {mapSwitch("animateVehicles", "animation")}
+                </FieldGroup.Section>
+                <FieldGroup.Section title={s.t("vehicles")}>
+                    {mapSwitch("showTrains", "trains")}
+                    {mapSwitch("showHev", "hev")}
+                    {mapSwitch("showTramTrains", "tramtrain")}
                 </FieldGroup.Section>
                 <FieldGroup.Section>
                     <ListItem

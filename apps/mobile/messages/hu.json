@@ -23,7 +23,8 @@
         "stale_banner": "{minutes} perce nincs friss adat",
         "my_commute": "Ingázásom",
         "follow_cta": "Kövesd a vonatodat",
-        "tomorrow": "holnap"
+        "tomorrow": "holnap",
+        "cluster": "{count} vonat itt"
     },
     "Consent": {
         "question": "Névtelen statisztika?",
@@ -110,6 +111,13 @@
         "dynamic_color": "Dinamikus színek",
         "map": "Térkép",
         "detailed_railway_map": "Részletes vasúti térkép",
+        "station_names": "Állomásnevek",
+        "station_names_opacity": "Átlátszóság",
+        "animation": "Animáció",
+        "vehicles": "Járművek",
+        "trains": "Vonat",
+        "hev": "HÉV",
+        "tramtrain": "TramTrain",
         "analytics": "Névtelen statisztika",
         "privacy": "Adatvédelem",
         "map_data": "Térképadatok",
