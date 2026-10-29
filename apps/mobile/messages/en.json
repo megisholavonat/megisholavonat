@@ -52,7 +52,8 @@
         "title": "Search",
         "stations": "Stations",
         "trains": "Trains",
-        "no_results": "No results"
+        "no_results": "No results",
+        "plan": "Plan a journey"
     },
     "Settings": {
         "title": "Settings",
@@ -70,5 +71,29 @@
         "railway_data_value": "© OpenRailwayMap",
         "railway_data": "Railway layer",
         "source": "GitHub"
+    },
+    "Journey": {
+        "title": "Journey",
+        "from": "From",
+        "to": "To",
+        "swap": "Swap",
+        "depart": "Depart",
+        "arrive": "Arrive",
+        "now": "Now",
+        "pick_from": "Where from?",
+        "pick_to": "Where to?",
+        "duration": "{hours, plural, =0 {} other {# h }}{minutes} min",
+        "direct": "direct",
+        "transfers": "{count, plural, =1 {# change} other {# changes}}",
+        "transfer_time": "{minutes} min to change",
+        "walk": "{minutes} min walk",
+        "risk_safe": "Safe",
+        "risk_tight": "Tight",
+        "risk_likely_missed": "Likely missed",
+        "risk_canceled": "Train cancelled",
+        "canceled": "Cancelled",
+        "ticket": "Ticket",
+        "empty": "No journeys at this time",
+        "error": "Can't plan a journey right now"
     }
 }
