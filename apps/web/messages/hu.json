@@ -10,7 +10,8 @@
         "zoom_out": "Kicsinyítés"
     },
     "Sheet": {
-        "resize": "Panel átméretezése"
+        "resize": "Panel átméretezése",
+        "close": "Bezárás"
     },
     "Delay": {
         "on_time": "pontos"
@@ -97,7 +98,9 @@
         "back": "Vissza",
         "results": "Találatok",
         "no_results": "Nincs találat",
-        "station_label": "{station} állomás"
+        "station_label": "{station} állomás",
+        "cancel": "Mégse",
+        "stations": "Állomások"
     },
     "Legend": {
         "label": "Késés jelmagyarázat",

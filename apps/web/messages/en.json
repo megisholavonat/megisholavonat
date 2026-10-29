@@ -10,7 +10,8 @@
         "zoom_out": "Zoom out"
     },
     "Sheet": {
-        "resize": "Resize panel"
+        "resize": "Resize panel",
+        "close": "Close"
     },
     "Delay": {
         "on_time": "on time"
@@ -97,7 +98,9 @@
         "back": "Back",
         "results": "Results",
         "no_results": "No results",
-        "station_label": "{station} station"
+        "station_label": "{station} station",
+        "cancel": "Cancel",
+        "stations": "Stations"
     },
     "Legend": {
         "label": "Delay legend",
