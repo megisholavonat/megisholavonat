@@ -85,10 +85,32 @@ def test_346_forecast_never_before_szolnok_departure() -> None:
     serve.annotate_locations([loc], _Recovering())  # type: ignore[arg-type]
 
     predicted = {s["index"]: s.get("predictedDelay") for s in loc["processedStops"]}
-    assert predicted[cegled_index] == 0
-    # Every ≈ time downstream is at or after its timetable
-    assert all(v >= 0 for v in predicted.values() if v is not None)
-    assert cegled["scheduledArrival"] > szolnok["scheduledDeparture"]
+    # Leaving Szolnok on time, it can gain only its timetable's padding by
+    # Cegléd (24 min), not the ten minutes the model hopes for
+    run = cegled["scheduledDeparture"] - szolnok["scheduledDeparture"]
+    assert run == 24 * 60
+    assert predicted[cegled_index] == -1
+    # No ≈ time downstream is more than a minute or 5% of the run early
+    for stop in loc["processedStops"]:
+        value = predicted.get(stop["index"])
+        st = train["trip"]["stoptimes"][stop["index"]]
+        if value is None or st["scheduledArrival"] is None:
+            continue
+        run = st["scheduledArrival"] - szolnok["scheduledDeparture"]
+        assert value * 60 >= -max(60, 0.05 * run) - 30
+
+
+def test_forecast_lets_a_dwelling_train_gain_padding() -> None:
+    # Away from the stop it stands at, the timetable's padding may make the
+    # train early, as it does at the terminus
+    floor = serve._floor(now_s=1000, sched=4600, dwell_dep=1600, at_dwell_stop=False)
+    at_stop = serve._floor(now_s=1000, sched=1600, dwell_dep=1600, at_dwell_stop=True)
+    late = serve._floor(now_s=2200, sched=4600, dwell_dep=1600, at_dwell_stop=False)
+
+    assert floor == -150  # 5% of the 50 min run
+    assert at_stop == 0
+    # Still standing ten minutes after its departure time
+    assert late == 600 - 150
 
 
 def test_10_waiting_at_zahony_is_on_time() -> None:
