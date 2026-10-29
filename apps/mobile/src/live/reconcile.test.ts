@@ -9,11 +9,19 @@ const fake = vi.hoisted(() => ({
     enabled: true,
     tokens: [] as string[],
     widget: [] as string[],
+    pushToStart: false,
+    startToken: null as string | null,
+    configured: [] as string[],
 }));
 
 vi.mock("../../modules/live-activity", () => ({
     LiveActivity: {
         isEnabled: () => fake.enabled,
+        supportsPushToStart: () => fake.pushToStart,
+        pushToStartToken: async () => fake.startToken,
+        configureApi: async (url: string, auth: string) => {
+            fake.configured.push(`${url} ${auth}`);
+        },
         list: () => fake.running,
         start: async (attributes: { followId: string }) => {
             fake.calls.push(`start ${attributes.followId}`);
@@ -41,14 +49,21 @@ vi.mock("../follow/device", () => ({
         replaced: false,
     }),
     isStatus: () => false,
+    hasDevice: async () => true,
+    deviceToken: async () => "d1",
 }));
+vi.mock("../config", () => ({ API_URL: "https://api.test" }));
 vi.mock("@megisholavonat/api-client", () => ({
     registerPushToken: async ({
         body,
     }: {
-        body: { followId: string; token: string };
+        body: { type: string; followId?: string; token: string };
     }) => {
-        fake.tokens.push(`${body.followId}:${body.token}`);
+        fake.tokens.push(
+            body.type === "liveactivity_start"
+                ? `start:${body.token}`
+                : `${body.followId}:${body.token}`,
+        );
     },
 }));
 
@@ -118,6 +133,53 @@ beforeEach(() => {
     fake.enabled = true;
     fake.tokens = [];
     fake.widget = [];
+    fake.pushToStart = false;
+    fake.startToken = null;
+    fake.configured = [];
+});
+
+describe("push-to-start (iOS 17.2+)", () => {
+    it("registers the token, configures the native side, leaves the start to the API", async () => {
+        const { reconcileActivities } = await import("./useLiveActivities");
+        fake.pushToStart = true;
+        fake.startToken = "5747";
+        const items = [{ follow: follow("f1"), run }];
+        const follows = items.map((i) => i.follow);
+
+        await reconcileActivities(items, follows, "hu", at("15:00"));
+        expect(fake.tokens).toEqual(["start:5747"]);
+        expect(fake.configured).toEqual(["https://api.test d1"]);
+        // 2 hours before: the API starts it 40 minutes before
+        expect(fake.calls).toEqual([]);
+        await reconcileActivities(items, follows, "hu", at("16:30"));
+        expect(fake.calls).toEqual([]);
+        // The push didn't come: the app starts it itself, late
+        await reconcileActivities(items, follows, "hu", at("16:41"));
+        expect(fake.calls).toEqual(["start f1"]);
+        // Registered and configured once
+        expect(fake.tokens).toEqual(["start:5747"]);
+        expect(fake.configured).toHaveLength(1);
+    });
+
+    it("doesn't start one the API already started", async () => {
+        const { reconcileActivities } = await import("./useLiveActivities");
+        fake.pushToStart = true;
+        fake.startToken = "5747";
+        fake.running = [{ id: "a1", followId: "f1", token: "aa" }];
+        const items = [{ follow: follow("f1"), run }];
+        await reconcileActivities(items, [follow("f1")], "hu", at("16:50"));
+        expect(fake.calls).toEqual([]);
+        await new Promise((r) => setTimeout(r, 0));
+        expect(fake.tokens).toEqual(["start:5747", "f1:aa"]);
+    });
+
+    it("starts from the foreground as before without a token", async () => {
+        const { reconcileActivities } = await import("./useLiveActivities");
+        fake.pushToStart = true;
+        const items = [{ follow: follow("f1"), run }];
+        await reconcileActivities(items, [follow("f1")], "hu", at("15:00"));
+        expect(fake.calls).toEqual(["start f1"]);
+    });
 });
 
 describe("reconcileActivities", () => {

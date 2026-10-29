@@ -40,6 +40,12 @@ export interface PushTokenEvent {
 
 interface NativeLiveActivity {
     isEnabled(): boolean;
+    /** iOS 17.2+: the API can start activities by push */
+    supportsPushToStart(): boolean;
+    /** The push-to-start token (hex), once iOS gave one */
+    pushToStartToken(): Promise<string | null>;
+    /** Lets the native side register tokens when JS isn't running */
+    configureApi(url: string, auth: string): Promise<void>;
     list(): RunningActivity[];
     start(
         attributes: ActivityAttributes,
@@ -60,6 +66,10 @@ interface NativeLiveActivity {
     addListener(
         event: "onPushToken",
         listener: (event: PushTokenEvent) => void,
+    ): EventSubscription;
+    addListener(
+        event: "onPushToStartToken",
+        listener: (event: { token: string }) => void,
     ): EventSubscription;
     addListener(
         event: "onEnd",

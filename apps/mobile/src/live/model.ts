@@ -1,4 +1,7 @@
-import type { VehiclePositionWithDelay } from "@megisholavonat/api-client";
+import type {
+    LiveActivitySetup,
+    VehiclePositionWithDelay,
+} from "@megisholavonat/api-client";
 import { serviceDayStart } from "@megisholavonat/core/time";
 import type {
     ActivityAttributes,
@@ -21,6 +24,12 @@ import { stopRows } from "../train/trainData";
 
 /** A Live Activity starts at most this long before the departure */
 export const START_WINDOW_MS = 3 * 3600_000;
+/**
+ * Where the API starts activities by push (iOS 17.2+, from 40 minutes before
+ * departure by default), the app starts one itself only this close to it:
+ * the push was lost, or push-to-start is off on the API
+ */
+export const LOCAL_FALLBACK_MS = 20 * 60_000;
 /** ... and ends this long after the scheduled arrival at the latest */
 const END_AFTER_ARRIVAL_MS = 2 * 3600_000;
 /** An activity not updated for this long shows as stale */
@@ -61,16 +70,58 @@ export function followLink(followId: string): string {
     return `megisholavonat://followed/${encodeURIComponent(followId)}`;
 }
 
-export function activityAttributes(follow: LocalFollow): ActivityAttributes {
+type Shown = Pick<
+    LocalFollow,
+    "tripShortName" | "routeShortName" | "stops" | "from" | "to"
+>;
+
+function titleOf(follow: Shown): string {
     const { number, destination } = followTitle(follow);
+    return destination ? `${number} → ${destination}` : number;
+}
+
+export function activityAttributes(follow: LocalFollow): ActivityAttributes {
     return {
         followId: follow.id,
         badge: badgeOf(follow),
-        title: destination ? `${number} → ${destination}` : number,
+        title: titleOf(follow),
         from: follow.stops[follow.from]?.name ?? "",
         to: follow.stops[follow.to]?.name ?? "",
         url: followLink(follow.id),
     };
+}
+
+/**
+ * What the API needs to start the follow's Live Activity by push (iOS
+ * 17.2+): the same attributes, and the timetable it shows until the train
+ * is live.
+ */
+export function liveActivitySetup(follow: Shown): LiveActivitySetup | null {
+    const board = follow.stops[follow.from];
+    const alight = follow.stops[follow.to];
+    if (!board?.name || !alight?.name) return null;
+    return {
+        badge: badgeOf(follow).slice(0, 16),
+        title: titleOf(follow).slice(0, 128),
+        fromName: board.name.slice(0, 128),
+        toName: alight.name.slice(0, 128),
+        departureS: board.time,
+        arrivalS: alight.time,
+        platform: platformOfStop(board.stopId)?.slice(0, 16) ?? null,
+    };
+}
+
+/**
+ * Whether the app starts a due activity itself: always before iOS 17.2,
+ * else only as a fallback close to departure (LOCAL_FALLBACK_MS), so it
+ * doesn't race the API's start.
+ */
+export function startsLocally(
+    run: Run,
+    now: Date,
+    pushToStart: boolean,
+): boolean {
+    return !pushToStart || run.departure - now.getTime() <= LOCAL_FALLBACK_MS;
 }
 
 /** Before the train is on the map: the timetable at the boarding stop. */

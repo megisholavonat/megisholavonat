@@ -7,9 +7,11 @@ import {
     activityState,
     badgeOf,
     liveActivityDefault,
+    liveActivitySetup,
     liveState,
     platformOfStop,
     scheduledState,
+    startsLocally,
     updateDue,
     wantsActivity,
     widgetRuns,
@@ -204,6 +206,30 @@ describe("when an activity runs", () => {
             false,
         );
         expect(liveActivityDefault([], null, now)).toBe(false);
+    });
+});
+
+describe("push-to-start", () => {
+    it("gives the API what the activity shows before the train is live", () => {
+        expect(liveActivitySetup(follow())).toEqual({
+            badge: "S70",
+            title: "2423 → Vác",
+            fromName: "Újpest",
+            toName: "Vác",
+            departureS: 17 * H + 24 * 60,
+            arrivalS: 18 * H - 60,
+            platform: "2",
+        });
+        expect(liveActivitySetup(follow({ from: 9 }))).toBeNull();
+    });
+
+    it("leaves the start to the API until late", () => {
+        expect(startsLocally(run, at("15:00"), false)).toBe(true);
+        expect(startsLocally(run, at("15:00"), true)).toBe(false);
+        expect(startsLocally(run, at("17:03"), true)).toBe(false);
+        expect(startsLocally(run, at("17:04"), true)).toBe(true);
+        // Already on board
+        expect(startsLocally(run, at("17:30"), true)).toBe(true);
     });
 });
 

@@ -1,5 +1,6 @@
 // Live Activities of followed trains (ActivityKit) and the commute widget's
-// data in the App Group. JS side: modules/live-activity/index.ts.
+// data in the App Group. JS side: modules/live-activity/index.ts. Tokens are
+// watched by LiveActivityObserver, from launch on.
 
 import ActivityKit
 import ExpoModulesCore
@@ -33,28 +34,23 @@ private func decode<T: Decodable>(_ type: T.Type, _ value: [String: Any], _ what
     }
 }
 
-private func hex(_ data: Data) -> String {
-    data.map { String(format: "%02x", $0) }.joined()
-}
-
 private func staleDate(_ seconds: Double?) -> Date? {
     seconds.map { Date(timeIntervalSince1970: $0) }
 }
 
 public class LiveActivityModule: Module {
-    /// Activities whose push token and state are being watched
-    private var watched = Set<String>()
-
     public func definition() -> ModuleDefinition {
         Name("LiveActivity")
 
-        Events("onPushToken", "onEnd")
+        Events("onPushToken", "onEnd", "onPushToStartToken")
 
-        OnCreate {
-            if #available(iOS 16.2, *) {
-                for activity in Activity<TrainActivityAttributes>.activities {
-                    self.watch(activity)
+        OnCreate { [weak self] in
+            Task { @MainActor in
+                let observer = LiveActivityObserver.shared
+                observer.listener = { name, body in
+                    self?.sendEvent(name, body)
                 }
+                observer.start()
             }
         }
 
@@ -64,6 +60,25 @@ public class LiveActivityModule: Module {
                 return ActivityAuthorizationInfo().areActivitiesEnabled
             }
             return false
+        }
+
+        /// The API can start activities by push (iOS 17.2+)
+        Function("supportsPushToStart") { () -> Bool in
+            if #available(iOS 17.2, *) { return true }
+            return false
+        }
+
+        /// The latest push-to-start token, hex, if iOS gave one
+        AsyncFunction("pushToStartToken") { () -> String? in
+            await MainActor.run { LiveActivityObserver.shared.pushToStartToken }
+        }
+
+        /// Where the tokens go when JS isn't running: the API base URL and
+        /// `<deviceId>.<token>`
+        AsyncFunction("configureApi") { (url: String, auth: String) in
+            await MainActor.run {
+                LiveActivityObserver.shared.configure(ApiConfig(url: url, auth: auth))
+            }
         }
 
         /// Running activities: [{ id, followId, token }]
@@ -76,7 +91,7 @@ public class LiveActivityModule: Module {
                             "id": activity.id,
                             "followId": activity.attributes.followId,
                         ]
-                        if let token = activity.pushToken { item["token"] = hex(token) }
+                        if let token = activity.pushToken { item["token"] = hexString(token) }
                         return item
                     }
             }
@@ -93,8 +108,13 @@ public class LiveActivityModule: Module {
                 content: ActivityContent(state: content, staleDate: staleDate(stale)),
                 pushType: .token
             )
-            self.watch(activity)
-            return activity.id
+            let id = activity.id
+            await MainActor.run {
+                if let started = Activity<TrainActivityAttributes>.activities.first(where: { $0.id == id }) {
+                    LiveActivityObserver.shared.watch(started)
+                }
+            }
+            return id
         }
 
         AsyncFunction("update") { (id: String, state: [String: Any], stale: Double?) in
@@ -125,26 +145,6 @@ public class LiveActivityModule: Module {
             if defaults?.string(forKey: commuteKey) == json { return }
             defaults?.set(json, forKey: commuteKey)
             WidgetCenter.shared.reloadAllTimelines()
-        }
-    }
-
-    @available(iOS 16.2, *)
-    private func watch(_ activity: Activity<TrainActivityAttributes>) {
-        guard !watched.contains(activity.id) else { return }
-        watched.insert(activity.id)
-        let id = activity.id
-        let followId = activity.attributes.followId
-        Task { [weak self] in
-            for await token in activity.pushTokenUpdates {
-                self?.sendEvent("onPushToken", ["id": id, "followId": followId, "token": hex(token)])
-            }
-        }
-        Task { [weak self] in
-            for await state in activity.activityStateUpdates where state == .ended || state == .dismissed {
-                self?.watched.remove(id)
-                self?.sendEvent("onEnd", ["id": id, "followId": followId])
-                break
-            }
         }
     }
 }

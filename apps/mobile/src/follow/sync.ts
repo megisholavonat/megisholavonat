@@ -2,10 +2,12 @@ import {
     createFollow,
     deleteFollow,
     type FollowUpdate,
+    type LiveActivitySetup,
     listFollows,
     registerPushToken,
     updateFollow,
 } from "@megisholavonat/api-client";
+import { liveActivitySetup } from "../live/model";
 import { expoPushToken } from "../notifications";
 import { hasDevice, isStatus, withDevice } from "./device";
 import {
@@ -57,6 +59,18 @@ export async function registerPush(locale: string): Promise<void> {
     }
 }
 
+/**
+ * The Live Activity the API starts by push before departure (iOS 17.2+),
+ * when turned on for the follow; null turns it off.
+ */
+function setupOf(
+    train: Pick<LocalFollow, "tripShortName" | "routeShortName" | "stops">,
+    draft: Pick<FollowDraft, "from" | "to"> & { liveActivity?: boolean },
+): LiveActivitySetup | null {
+    if (!draft.liveActivity) return null;
+    return liveActivitySetup({ ...train, from: draft.from, to: draft.to });
+}
+
 async function create(
     locale: string,
     body: NonNullable<ReturnType<typeof createBody>>,
@@ -87,6 +101,7 @@ async function create(
                     delayThresholdMin: body.delayThresholdMin,
                     notifyPlatformChange: body.notifyPlatformChange,
                     alertsEnabled: true,
+                    liveActivity: body.liveActivity ?? null,
                 },
                 throwOnError: true,
             });
@@ -138,8 +153,9 @@ export async function saveFollow({
     existing: LocalFollow | null;
     locale: string;
 }): Promise<LocalFollow> {
-    const body = createBody(train, train.serviceDate, draft);
-    if (!body) throw new Error("Incomplete follow");
+    const created = createBody(train, train.serviceDate, draft);
+    if (!created) throw new Error("Incomplete follow");
+    const body = { ...created, liveActivity: setupOf(train, draft) };
 
     let id: string | null = null;
     if (existing && patchable(existing, body, draft)) {
@@ -147,6 +163,7 @@ export async function saveFollow({
             alertsEnabled: true,
             delayThresholdMin: body.delayThresholdMin,
             notifyPlatformChange: body.notifyPlatformChange,
+            liveActivity: body.liveActivity,
         };
         if (body.kind === "commute") {
             patch.weekdays = body.weekdays;
@@ -215,19 +232,37 @@ export function syncFollows(locale: string): Promise<void> {
             const { data } = await listFollows({ auth, throwOnError: true });
             return data;
         });
-        const known = new Set(remote.map((f) => f.id));
+        const known = new Map(remote.map((f) => [f.id, f]));
         for (const follow of local) {
-            if (known.has(follow.id)) continue;
-            const body = createBody(follow, follow.serviceDate, follow);
+            const liveActivity = setupOf(follow, follow);
+            const found = known.get(follow.id);
+            if (found) {
+                // Follows saved before the API knew Live Activities
+                if (!!found.liveActivity !== !!liveActivity) {
+                    await withDevice(locale, (auth) =>
+                        updateFollow({
+                            auth,
+                            path: { follow_id: follow.id },
+                            body: { liveActivity },
+                            throwOnError: true,
+                        }),
+                    ).catch(() => {});
+                }
+                continue;
+            }
+            const created = createBody(follow, follow.serviceDate, follow);
             try {
-                if (!body) throw new Error("Incomplete follow");
+                if (!created) throw new Error("Incomplete follow");
+                const body = { ...created, liveActivity };
                 putFollow(
                     { ...follow, id: await create(locale, body) },
                     follow.id,
                 );
             } catch (error) {
                 // Too old to follow again: let it go
-                if (isStatus(error, 422) || !body) removeLocalFollow(follow.id);
+                if (isStatus(error, 422) || !created) {
+                    removeLocalFollow(follow.id);
+                }
             }
         }
         // Alerts the app can't show or stop: the user no longer follows them

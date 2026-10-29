@@ -1,7 +1,7 @@
 // The Live Activity of a followed train. This file exists twice, identical:
 // in the widget extension (targets/widgets) and in the app's native module
 // (modules/live-activity/ios); ActivityKit matches the two by type name and
-// shape. A unit test (src/live/attributes.test.ts) keeps them the same.
+// shape. A unit test (src/live/native.test.ts) keeps them the same.
 //
 // ContentState is also what the API pushes (apps/api, push_alerts.py
 // `live_activity_content`). Every field is optional so that a push with a

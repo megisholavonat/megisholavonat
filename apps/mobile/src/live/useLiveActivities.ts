@@ -7,7 +7,8 @@ import {
     LiveActivity,
     type RunningActivity,
 } from "../../modules/live-activity";
-import { isStatus, withDevice } from "../follow/device";
+import { API_URL } from "../config";
+import { deviceToken, hasDevice, isStatus, withDevice } from "../follow/device";
 import type { LiveFollow } from "../follow/live";
 import type { LocalFollow, Run } from "../follow/model";
 import {
@@ -15,6 +16,7 @@ import {
     activityState,
     liveState,
     STALE_MS,
+    startsLocally,
     updateDue,
     wantsActivity,
     widgetRuns,
@@ -25,6 +27,11 @@ import {
 // and near departure (ActivityKit starts them only from the foreground),
 // updates it from the live data, ends it on arrival or unfollow, and hands
 // its push token to the API, which updates it from then on.
+//
+// iOS 17.2+: the API starts them by push (push-to-start token below) about
+// 40 minutes before departure, without the app; the app then starts one
+// itself only as a late fallback (startsLocally). The native side registers
+// the started activity's token (LiveActivityObserver.swift).
 
 type Item = { follow: LocalFollow; run: Run; live?: LiveFollow };
 
@@ -37,6 +44,11 @@ const registered = new Set<string>();
 /** Follows whose activity is being started */
 const starting = new Set<string>();
 let widget: { key: string; at: number } | null = null;
+
+/** The push-to-start token the API has: it starts the activities then */
+let startToken: string | null = null;
+/** `<API URL>|<auth>` handed to the native side */
+let configured: string | null = null;
 
 async function registerToken(
     locale: string,
@@ -58,6 +70,42 @@ async function registerToken(
         // Retried on the next pass, except for a follow the API doesn't know
         if (!isStatus(error, 404)) registered.delete(key);
     }
+}
+
+/** The device's push-to-start token (iOS 17.2+); it replaces the last. */
+async function registerStartToken(
+    locale: string,
+    token: string,
+): Promise<void> {
+    if (startToken === token || !(await hasDevice())) return;
+    try {
+        await withDevice(locale, (auth) =>
+            registerPushToken({
+                auth,
+                body: { type: "liveactivity_start", token },
+                throwOnError: true,
+            }),
+        );
+        startToken = token;
+    } catch {
+        // Retried on the next pass
+    }
+}
+
+/**
+ * The API and the device token for the native side, which registers the
+ * tokens of activities the API started while the app wasn't running.
+ */
+async function configureNative(locale: string): Promise<void> {
+    const native = LiveActivity;
+    if (!native || !(await hasDevice())) return;
+    const auth = await deviceToken(locale);
+    const key = `${API_URL}|${auth}`;
+    if (configured === key) return;
+    configured = key;
+    await native.configureApi(API_URL, auth).catch(() => {
+        configured = null;
+    });
 }
 
 function withoutFinished({
@@ -97,6 +145,13 @@ async function reconcile(
 ): Promise<void> {
     const native = LiveActivity;
     if (!native) return;
+
+    const pushToStart = native.supportsPushToStart();
+    if (pushToStart) {
+        await configureNative(locale);
+        const token = await native.pushToStartToken().catch(() => null);
+        if (token) await registerStartToken(locale, token);
+    }
 
     const running = new Map<string, RunningActivity>();
     for (const activity of native.list())
@@ -145,11 +200,15 @@ async function reconcile(
     }
 
     if (AppState.currentState !== "active" || !native.isEnabled()) return;
+    // With its push-to-start token the API starts them; one it started
+    // shows up in `running` (same follow id) and is not started again
+    const viaPush = pushToStart && startToken !== null;
     for (const item of items) {
         const { follow, run, live } = item;
         if (running.has(follow.id) || starting.has(follow.id)) continue;
         const full = activityState(follow, run, live, now);
         if (!wantsActivity(follow, run, now, full.finished)) continue;
+        if (!startsLocally(run, now, viaPush)) continue;
         const state = withoutFinished(full);
         starting.add(follow.id);
         try {
@@ -197,10 +256,17 @@ export function useLiveActivities(
 
     // Tokens can arrive (or rotate) after the start
     useEffect(() => {
-        const sub = LiveActivity?.addListener("onPushToken", (event) => {
-            void registerToken(locale, event.followId, event.token);
-        });
-        return () => sub?.remove();
+        const subs = [
+            LiveActivity?.addListener("onPushToken", (event) => {
+                void registerToken(locale, event.followId, event.token);
+            }),
+            LiveActivity?.addListener("onPushToStartToken", (event) => {
+                void registerStartToken(locale, event.token);
+            }),
+        ];
+        return () => {
+            for (const sub of subs) sub?.remove();
+        };
     }, [locale]);
 
     // Items are rebuilt every render: the clock's tick (15 s) and a follow
