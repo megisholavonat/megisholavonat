@@ -4,8 +4,8 @@ import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanst
 import type { AxiosError } from 'axios';
 
 import { client } from '../client.gen';
-import { createFollow, deleteDevice, deleteFollow, deletePushToken, getAlerts, getDevice, getPosthogKey, getRankings, getRedisStatus, getStationBoard, getStationPlatforms, getTimeOfDayPunctuality, getTrainDetails, getTrainHistory, getTrains, getTrainStationHistory, listFollows, type Options, planJourneys, registerDevice, registerPushToken, root, rotateDeviceToken, searchStations, updateFollow } from '../sdk.gen';
-import type { CreateFollowData, CreateFollowError, CreateFollowResponse, DeleteDeviceData, DeleteDeviceResponse, DeleteFollowData, DeleteFollowError, DeleteFollowResponse, DeletePushTokenData, DeletePushTokenError, DeletePushTokenResponse, GetAlertsData, GetAlertsResponse, GetDeviceData, GetDeviceResponse, GetPosthogKeyData, GetPosthogKeyResponse, GetRankingsData, GetRankingsError, GetRankingsResponse, GetRedisStatusData, GetRedisStatusResponse, GetStationBoardData, GetStationBoardError, GetStationBoardResponse, GetStationPlatformsData, GetStationPlatformsError, GetStationPlatformsResponse, GetTimeOfDayPunctualityData, GetTimeOfDayPunctualityError, GetTimeOfDayPunctualityResponse, GetTrainDetailsData, GetTrainDetailsError, GetTrainDetailsResponse, GetTrainHistoryData, GetTrainHistoryError, GetTrainHistoryResponse, GetTrainsData, GetTrainsResponse, GetTrainStationHistoryData, GetTrainStationHistoryError, GetTrainStationHistoryResponse, ListFollowsData, ListFollowsResponse, PlanJourneysData, PlanJourneysResponse, RegisterDeviceData, RegisterDeviceError, RegisterDeviceResponse, RegisterPushTokenData, RegisterPushTokenResponse, RootData, RotateDeviceTokenData, RotateDeviceTokenResponse, SearchStationsData, SearchStationsError, SearchStationsResponse, UpdateFollowData, UpdateFollowError, UpdateFollowResponse } from '../types.gen';
+import { createFollow, deleteDevice, deleteFollow, deletePushToken, getAlerts, getDevice, getDisruptions, getPosthogKey, getRankings, getRedisStatus, getStationBoard, getStationPlatforms, getTimeOfDayPunctuality, getTrainDetails, getTrainHistory, getTrains, getTrainStationHistory, listFollows, type Options, planJourneys, registerDevice, registerPushToken, root, rotateDeviceToken, searchStations, updateFollow } from '../sdk.gen';
+import type { CreateFollowData, CreateFollowError, CreateFollowResponse, DeleteDeviceData, DeleteDeviceResponse, DeleteFollowData, DeleteFollowError, DeleteFollowResponse, DeletePushTokenData, DeletePushTokenError, DeletePushTokenResponse, GetAlertsData, GetAlertsResponse, GetDeviceData, GetDeviceResponse, GetDisruptionsData, GetDisruptionsResponse, GetPosthogKeyData, GetPosthogKeyResponse, GetRankingsData, GetRankingsError, GetRankingsResponse, GetRedisStatusData, GetRedisStatusResponse, GetStationBoardData, GetStationBoardError, GetStationBoardResponse, GetStationPlatformsData, GetStationPlatformsError, GetStationPlatformsResponse, GetTimeOfDayPunctualityData, GetTimeOfDayPunctualityError, GetTimeOfDayPunctualityResponse, GetTrainDetailsData, GetTrainDetailsError, GetTrainDetailsResponse, GetTrainHistoryData, GetTrainHistoryError, GetTrainHistoryResponse, GetTrainsData, GetTrainsResponse, GetTrainStationHistoryData, GetTrainStationHistoryError, GetTrainStationHistoryResponse, ListFollowsData, ListFollowsResponse, PlanJourneysData, PlanJourneysResponse, RegisterDeviceData, RegisterDeviceError, RegisterDeviceResponse, RegisterPushTokenData, RegisterPushTokenResponse, RootData, RotateDeviceTokenData, RotateDeviceTokenResponse, SearchStationsData, SearchStationsError, SearchStationsResponse, UpdateFollowData, UpdateFollowError, UpdateFollowResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseURL' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -217,6 +217,29 @@ export const getAlertsOptions = (options?: Options<GetAlertsData>) => queryOptio
         return data;
     },
     queryKey: getAlertsQueryKey(options)
+});
+
+export const getDisruptionsQueryKey = (options?: Options<GetDisruptionsData>) => createQueryKey('getDisruptions', options);
+
+/**
+ * Get Disruptions
+ *
+ * Active line and network disruptions (closures, replacement buses,
+ * engineering works, timetable changes, strikes, weather), with the alerts
+ * about the same event merged. Most severe first, then newest. Per-train
+ * notices such as delay reasons are left out.
+ */
+export const getDisruptionsOptions = (options?: Options<GetDisruptionsData>) => queryOptions<GetDisruptionsResponse, AxiosError<DefaultError>, GetDisruptionsResponse, ReturnType<typeof getDisruptionsQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getDisruptions({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getDisruptionsQueryKey(options)
 });
 
 /**

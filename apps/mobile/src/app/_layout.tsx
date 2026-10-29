@@ -145,6 +145,14 @@ function AppStack() {
                 }}
             />
             <Stack.Screen
+                name="disruptions"
+                options={{
+                    ...header,
+                    title: t("Disruptions.title"),
+                    presentation: ios ? "modal" : "card",
+                }}
+            />
+            <Stack.Screen
                 name="follow"
                 options={{
                     ...header,

@@ -2,6 +2,7 @@
 
 import type { TrainFeatureProperties } from "@megisholavonat/api-client";
 import { useTranslations } from "next-intl";
+import { TrainDisruptions } from "@/components/disruptions/Disruptions";
 import { TrainHistoryLink } from "@/components/stats/HistoryLinks";
 import { DelayTile } from "@/components/ui/Delay";
 import { PlatformBadge } from "@/components/ui/Platform";
@@ -106,6 +107,8 @@ export function TrainPanel({
                         detailed
                     />
                 )}
+                {/* In the header: the stop list scrolls to the train */}
+                {view && <TrainDisruptions view={view} />}
             </div>
             <div
                 ref={listRef}

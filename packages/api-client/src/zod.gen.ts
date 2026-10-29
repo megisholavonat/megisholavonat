@@ -191,6 +191,73 @@ export const zDeviceInfo = z.object({
 });
 
 /**
+ * DisruptionLine
+ *
+ * A line glyph to show, deduplicated across the affected routes
+ */
+export const zDisruptionLine = z.object({
+    shortName: z.string(),
+    name: z.string().nullish(),
+    mode: z.string().nullish()
+});
+
+/**
+ * DisruptionSegment
+ *
+ * The stretch between two stations, as MÁV names it in the text
+ */
+export const zDisruptionSegment = z.object({
+    fromName: z.string(),
+    toName: z.string(),
+    fromId: z.string().nullish(),
+    toId: z.string().nullish()
+});
+
+/**
+ * Disruption
+ *
+ * A line or network disruption: the rail alerts about one event, merged.
+ * Per-train notices (delay reasons, coach changes) are not disruptions;
+ * they stay on the train.
+ */
+export const zDisruption = z.object({
+    id: z.string(),
+    alertIds: z.array(z.string()),
+    effect: z.enum([
+        'no_service',
+        'replacement_bus',
+        'modified_service',
+        'delays',
+        'other'
+    ]),
+    cause: z.enum([
+        'engineering',
+        'accident',
+        'strike',
+        'weather',
+        'technical',
+        'other'
+    ]),
+    severity: z.enum([
+        'high',
+        'medium',
+        'low'
+    ]),
+    scope: z.enum(['line', 'network']),
+    segment: zDisruptionSegment.nullish(),
+    title: z.string(),
+    description: z.string(),
+    details: z.array(z.string()),
+    url: z.string(),
+    start: z.int().nullish(),
+    end: z.int().nullish(),
+    lines: z.array(zDisruptionLine),
+    routes: z.array(zAlertRoute),
+    stations: z.array(zAlertStation),
+    trips: z.array(zAlertTrip)
+});
+
+/**
  * ExpoPushTokenCreate
  *
  * An Expo push token (iOS or Android): alerts about every follow
@@ -874,6 +941,13 @@ export const zPlanJourneysResponse = zJourneyPlan;
  * Successful Response
  */
 export const zGetAlertsResponse = z.array(zRailAlert);
+
+/**
+ * Response Getdisruptions
+ *
+ * Successful Response
+ */
+export const zGetDisruptionsResponse = z.array(zDisruption);
 
 export const zRegisterDeviceBody = zDeviceCreate;
 

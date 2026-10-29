@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useFormatter, useTranslations } from "use-intl";
+import { StationDisruptions } from "../disruptions/DisruptionViews";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { reasonTone } from "../train/delayDisplay";
 import { RouteIcon } from "../train/RouteIcon";
@@ -85,6 +86,7 @@ export function StationBoard({
                 value={kind}
                 onChange={setKind}
             />
+            <StationDisruptions stationId={stationId} />
             {rows ? (
                 rows.length > 0 ? (
                     <View>

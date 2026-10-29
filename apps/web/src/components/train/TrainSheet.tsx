@@ -4,6 +4,7 @@ import type { TrainFeatureProperties } from "@megisholavonat/api-client";
 import { getDelayLevel } from "@megisholavonat/core/delay";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
+import { TrainDisruptions } from "@/components/disruptions/Disruptions";
 import { type Detent, SheetClose } from "@/components/sheet/BottomSheet";
 import { TrainHistoryLink } from "@/components/stats/HistoryLinks";
 import {
@@ -199,6 +200,7 @@ export function TrainSheetBody({
                             detailed
                         />
                     )}
+                    <TrainDisruptions view={view} />
                     {view.punctuality && (
                         <Punctuality punctuality={view.punctuality} />
                     )}
@@ -218,6 +220,7 @@ export function TrainSheetBody({
                             delay={view.display.delay ?? 0}
                         />
                     )}
+                    <TrainDisruptions view={view} />
                     <StopList view={view} upcomingOnly />
                 </>
             )}

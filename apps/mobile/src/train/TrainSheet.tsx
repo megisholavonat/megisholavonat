@@ -29,6 +29,7 @@ import {
 } from "react-native";
 import { useLocale, useTranslations } from "use-intl";
 import { WEB_URL } from "../config";
+import { TrainDisruptions } from "../disruptions/DisruptionViews";
 import { findFollowFor } from "../follow/model";
 import { useFollows } from "../follow/store";
 import { useAppTheme } from "../theme/ThemeProvider";
@@ -345,6 +346,11 @@ export function TrainSheet({
 
             <ServiceList services={services.whole} />
             <AlertList alerts={alerts} />
+            <TrainDisruptions
+                tripId={details?.trip.gtfsId}
+                tripShortName={tripShortName}
+                stationIds={rows.map((r) => r.uic)}
+            />
 
             {details && display ? (
                 <StopList

@@ -19,12 +19,13 @@ def load_fixture(name: str) -> Any:
 def otp_responder(
     boards: dict[tuple[str, str], str] | None = None,
     journeys: dict[tuple[str, str, bool], str] | None = None,
+    alerts: str = "otp-alerts.json",
 ) -> Callable[[httpx.Request], httpx.Response]:
     """
     Dispatch on the operation name. `boards` maps (station gtfsId, kind) to
     a fixture file; unknown stations get `station: null` like upstream.
     `journeys` maps (from, to, arriveBy) to a fixture file; other plans have
-    no itineraries.
+    no itineraries. `alerts` is the alert feed fixture.
     """
     boards = boards or {}
     journeys = journeys or {}
@@ -36,7 +37,7 @@ def otp_responder(
         if "query Stations" in query:
             return httpx.Response(200, json=load_fixture("otp-stations.json"))
         if "query Alerts" in query:
-            return httpx.Response(200, json=load_fixture("otp-alerts.json"))
+            return httpx.Response(200, json=load_fixture(alerts))
         if "query StationBoard" in query:
             kind = "departures" if variables["omitNonPickups"] else "arrivals"
             fixture = boards.get((variables["id"], kind))

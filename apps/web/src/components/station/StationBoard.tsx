@@ -17,6 +17,7 @@ import { useQuery } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
+import { StationDisruptions } from "@/components/disruptions/Disruptions";
 import { SheetClose } from "@/components/sheet/BottomSheet";
 import { StationHistoryLink } from "@/components/stats/HistoryLinks";
 import { BackButton } from "@/components/train/TrainParts";
@@ -396,7 +397,8 @@ export function StationSheetBody({
     onSelectTrain: (vehicleId: string) => void;
 }) {
     return (
-        <div className="px-4 pb-6">
+        <div className="flex flex-col gap-2 px-4 pb-6">
+            <StationDisruptions stationId={station.id} />
             <BoardList
                 station={station}
                 kind={kind}
@@ -459,6 +461,9 @@ export function StationPanel({
                 )}
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto px-4">
+                <div className="pt-3 empty:hidden">
+                    <StationDisruptions stationId={station.id} />
+                </div>
                 <BoardList
                     station={station}
                     kind={kind}

@@ -1,11 +1,15 @@
 import { LocationManager, type MapRef } from "@maplibre/maplibre-react-native";
 import { getTrainsOptions } from "@megisholavonat/api-client/react-query";
 import { POLL_INTERVAL_MS } from "@megisholavonat/core/constants";
+import { sortDisruptions } from "@megisholavonat/core/disruptions";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useMemo, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { DisruptionChip } from "../disruptions/DisruptionViews";
+import { interestsOf } from "../disruptions/disruptions";
+import { useDisruptions } from "../disruptions/useDisruptions";
 import {
     CommuteCard,
     type CommuteItem,
@@ -59,6 +63,16 @@ export default function MapScreen() {
         live: live.get(r.follow.id),
     }));
 
+    // Line disruptions: a chip above the search bar while there are any
+    const disruptions = useDisruptions();
+    const mineDisruptions = useMemo(
+        () =>
+            sortDisruptions(disruptions, interestsOf(follows)).filter(
+                (d) => d.mine,
+            ).length,
+        [disruptions, follows],
+    );
+
     const openTrain = (vehicleId: string) =>
         router.push({ pathname: "/train/[vehicleId]", params: { vehicleId } });
     const openCommute = (item: CommuteItem) => {
@@ -109,6 +123,11 @@ export default function MapScreen() {
                 ) : follows.length === 0 ? (
                     <FollowPrompt onPress={() => router.push("/search")} />
                 ) : null}
+                <DisruptionChip
+                    count={disruptions.length}
+                    mine={mineDisruptions}
+                    onPress={() => router.push("/disruptions")}
+                />
                 <CommuteCard items={commute} onOpen={openCommute} />
             </MapChrome>
             {state.kind === "ok" && state.staleMinutes !== null ? (
