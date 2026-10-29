@@ -32,6 +32,8 @@ export const SPRITE_IMAGES: Record<string, ImageRequireSource> = {
     "mhav-light-follow": require("../../assets/map/mhav-light-follow.png"),
     "mhav-light-station-clear": require("../../assets/map/mhav-light-station-clear.png"),
     "mhav-light-station-ring": require("../../assets/map/mhav-light-station-ring.png"),
+    "mhav-light-stop-square": require("../../assets/map/mhav-light-stop-square.png"),
+    "mhav-light-stop-tramtrain": require("../../assets/map/mhav-light-stop-tramtrain.png"),
     "mhav-dark-onTime-train": require("../../assets/map/mhav-dark-onTime-train.png"),
     "mhav-dark-slight-train": require("../../assets/map/mhav-dark-slight-train.png"),
     "mhav-dark-moderate-train": require("../../assets/map/mhav-dark-moderate-train.png"),
@@ -61,4 +63,6 @@ export const SPRITE_IMAGES: Record<string, ImageRequireSource> = {
     "mhav-dark-follow": require("../../assets/map/mhav-dark-follow.png"),
     "mhav-dark-station-clear": require("../../assets/map/mhav-dark-station-clear.png"),
     "mhav-dark-station-ring": require("../../assets/map/mhav-dark-station-ring.png"),
+    "mhav-dark-stop-square": require("../../assets/map/mhav-dark-stop-square.png"),
+    "mhav-dark-stop-tramtrain": require("../../assets/map/mhav-dark-stop-tramtrain.png"),
 };

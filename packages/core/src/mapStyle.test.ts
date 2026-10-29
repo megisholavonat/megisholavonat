@@ -8,11 +8,19 @@ import {
     basemapStyle,
     NETWORK_SOURCE,
     networkLayer,
+    routePaint,
     STATION_TIER,
+    STATION_TYPE,
     STATIONS_SOURCE,
     stationLayers,
+    stopImageId,
 } from "./mapStyle";
-import { MAP_PALETTE } from "./tokens/map";
+import {
+    MAP_PALETTE,
+    MAP_VIEW,
+    railwayOverlayPaint,
+    railwayTileUrl,
+} from "./tokens/map";
 import { type ColorScheme, DELAY_SCALE } from "./tokens/tokens";
 
 const SCHEMES: ColorScheme[] = ["light", "dark"];
@@ -137,7 +145,7 @@ function evaluate(
 
 describe("station tiers", () => {
     const tier = (props: Record<string, unknown>) =>
-        evaluate(STATION_TIER, { hev: 0, name: "X", ...props });
+        evaluate(STATION_TIER, { type: "rail", hev: 0, name: "X", ...props });
 
     it("ranks by trains a day", () => {
         expect(tier({ perDay: 400 })).toBe(1);
@@ -147,9 +155,116 @@ describe("station tiers", () => {
         expect(tier({ perDay: 0 })).toBe(4);
     });
 
-    it("keeps HÉV and tram-train street stops to city zoom", () => {
-        expect(tier({ perDay: 300, hev: 1, name: "Batthyány tér H" })).toBe(5);
-        expect(tier({ perDay: 120, name: "Szeged, Anna-kút" })).toBe(5);
+    it("keeps HÉV, tram-train and Children's Railway stops to city zoom", () => {
+        expect(tier({ perDay: 300, type: "hev", name: "Batthyány tér" })).toBe(
+            5,
+        );
+        expect(tier({ perDay: 120, type: "tramtrain" })).toBe(5);
+        expect(tier({ perDay: 4, type: "childrens_railway" })).toBe(5);
+        // A railway station is ranked by its trains, whatever its name
+        expect(tier({ perDay: 120, name: "Szeged, Anna-kút" })).toBe(1);
+    });
+
+    it("reads files from before the type, by their HÉV flag", () => {
+        const old = (props: Record<string, unknown>) =>
+            evaluate(STATION_TYPE, props);
+        expect(old({ hev: 1 })).toBe("hev");
+        expect(old({ hev: 0 })).toBe("rail");
+        expect(old({ hev: 0, type: "tramtrain" })).toBe("tramtrain");
+    });
+});
+
+describe("station marks", () => {
+    const { dots } = stationLayers({ scheme: "dark", dim: false });
+    const matches = (layer: (typeof dots)[number], type: string) =>
+        evaluate((layer as { filter: unknown }).filter, {
+            type,
+            hev: 0,
+            name: "X",
+            perDay: 0,
+        });
+    const shape = dots.find((l) => l.id === "mhav-station-shape");
+
+    it("draw HÉV and tram-train stops in their vehicles' shape", () => {
+        expect(shape?.type).toBe("symbol");
+        const layout = shape?.layout as { "icon-image": unknown };
+        const image = (type: string) =>
+            evaluate(layout["icon-image"], { type, hev: 0 }, 13);
+        expect(image("hev")).toBe(stopImageId("dark", "square"));
+        expect(image("tramtrain")).toBe(stopImageId("dark", "tramtrain"));
+        for (const type of ["hev", "tramtrain"]) {
+            expect(shape && matches(shape, type)).toBe(true);
+            const circles = dots.filter((l) => l.type === "circle");
+            expect(circles.some((l) => matches(l, type))).toBe(false);
+        }
+    });
+
+    it("keep railway and Children's Railway stations round", () => {
+        expect(shape && matches(shape, "rail")).toBe(false);
+        expect(shape && matches(shape, "childrens_railway")).toBe(false);
+        expect(
+            dots.filter((l) => l.type === "circle" && matches(l, "rail")),
+        ).toHaveLength(1);
+        expect(
+            dots.filter(
+                (l) => l.type === "circle" && matches(l, "childrens_railway"),
+            ),
+        ).toHaveLength(1);
+    });
+
+    it("grow with the dots they stand for", () => {
+        const layout = shape?.layout as { "icon-size": unknown };
+        const at = (z: number) =>
+            evaluate(layout["icon-size"], { type: "hev" }, z) as number;
+        expect(at(12)).toBeLessThan(at(15));
+        expect(at(15)).toBeCloseTo(10 / 9);
+    });
+});
+
+describe("shared with the app", () => {
+    it("inverts the railway overlay in dark only", () => {
+        expect(railwayOverlayPaint("dark")["raster-hue-rotate"]).toBe(180);
+        expect(railwayOverlayPaint("light")["raster-hue-rotate"]).toBe(
+            undefined,
+        );
+    });
+
+    it("takes the railway tiles through the tile cache when set", () => {
+        expect(railwayTileUrl()).toContain("tiles.openrailwaymap.org");
+        expect(railwayTileUrl("https://cache.example/")).toBe(
+            "https://cache.example/orm/{z}/{x}/{y}.png",
+        );
+    });
+
+    it("keeps one camera range", () => {
+        const [w, s, e, n] = MAP_VIEW.bounds;
+        for (const { center } of Object.values(MAP_VIEW.initial)) {
+            expect(center[0]).toBeGreaterThan(w);
+            expect(center[0]).toBeLessThan(e);
+            expect(center[1]).toBeGreaterThan(s);
+            expect(center[1]).toBeLessThan(n);
+        }
+    });
+
+    it.each(SCHEMES)("%s: the route's layers are valid", (scheme) => {
+        const r = routePaint(scheme);
+        const style = fullStyle(scheme, false);
+        const geo = {
+            type: "geojson" as const,
+            data: { type: "FeatureCollection" as const, features: [] },
+        };
+        style.sources.route = geo;
+        style.layers.push(
+            { id: "c", type: "line", source: "route", ...r.casing },
+            { id: "l", type: "line", source: "route", ...r.line },
+            { id: "s", type: "circle", source: "route", ...r.stops },
+            { id: "t", type: "symbol", source: "route", ...r.stopLabels },
+        );
+        expect(validateStyleMin(style)).toEqual([]);
+        const fill = (passed?: boolean) =>
+            evaluate(r.stops.paint["circle-color"], { passed });
+        expect(fill(true)).not.toEqual(fill(false));
+        expect(fill(undefined)).toEqual(fill(false));
     });
 });
 
@@ -195,6 +310,7 @@ describe("station names", () => {
             const at = (id: string) =>
                 evaluate(filter, {
                     id,
+                    type: tier === 5 ? "hev" : "rail",
                     hev: tier === 5 ? 1 : 0,
                     name: "X",
                     perDay: [400, 50, 20, 0, 0][tier - 1],

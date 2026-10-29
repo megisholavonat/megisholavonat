@@ -5,9 +5,16 @@
 //
 // Images are generated on demand: layers reference ids like
 // `mhav-dark-pill-severe-hev-sel`, and the map's missing-image resolver calls
-// `markerImage(id)`. Stretchable pills grow to fit their "+N" label.
+// `markerImage(id)`. Stretchable pills grow to fit their "+N" label. The
+// HÉV and tram-train stops' marks (`mhav-dark-stop-square`, core
+// stationLayers) are drawn here too.
 
 import type { DelayLevel } from "@megisholavonat/core/delay";
+import {
+    SPRITE_STOP_SHAPES,
+    type SpriteStopShape,
+    stopImageId,
+} from "@megisholavonat/core/mapStyle";
 import {
     COLORS,
     type ColorScheme,
@@ -23,7 +30,12 @@ import {
     MAP_DIRECTION_ARROW,
     MAP_FOLLOW_STAR,
     MAP_MARKS,
+    MAP_PALETTE,
     MAP_STATION_MARK,
+    MAP_STATIONS,
+    MAP_STOPS,
+    stopShapeBody,
+    tramtrainPoints,
 } from "@megisholavonat/core/tokens/map";
 import type { StyleImageMetadata } from "maplibre-gl";
 
@@ -142,7 +154,7 @@ function outlineExtent(outline: Outline): number {
 }
 
 /** Depth of a tram-train's pointed ends, as a share of half its height. */
-const POINT_SHARE = 0.75;
+const POINT_SHARE = MAP_MARKS.tramtrain.point;
 
 function pointDepth(w: number, h: number): number {
     return Math.min((h / 2) * POINT_SHARE, w / 2);
@@ -575,8 +587,42 @@ function follow(scheme: ColorScheme) {
     return data ? { data, meta: { pixelRatio: PIXEL_RATIO } } : null;
 }
 
+/**
+ * A HÉV stop's square or a tram-train stop's pointed mark, in the station
+ * dot's colours with its outline outside the body, as a circle layer's
+ * stroke (MAP_STOPS): the layer scales it with the dots.
+ */
+function stop(scheme: ColorScheme, shape: SpriteStopShape) {
+    const { w, h, r } = stopShapeBody(shape, MAP_STOPS.spriteDiameter);
+    const stroke = MAP_STATIONS.stroke.minor;
+    const margin = stroke + 1;
+    const cw = Math.ceil(w + margin * 2);
+    const ch = Math.ceil(h + margin * 2);
+    const canvas = document.createElement("canvas");
+    canvas.width = cw * PIXEL_RATIO;
+    canvas.height = ch * PIXEL_RATIO;
+    const ctx = context(canvas);
+    if (!ctx) return null;
+    ctx.scale(PIXEL_RATIO, PIXEL_RATIO);
+    ctx.translate(cw / 2, ch / 2);
+    ctx.beginPath();
+    if (shape === "square") ctx.roundRect(-w / 2, -h / 2, w, h, r);
+    else for (const [x, y] of tramtrainPoints(w, h)) ctx.lineTo(x, y);
+    ctx.closePath();
+    // A stroke twice as wide, half of it under the fill: outside the body
+    const palette = MAP_PALETTE[scheme];
+    ctx.lineJoin = "miter";
+    ctx.lineWidth = stroke * 2;
+    ctx.strokeStyle = palette.stationStroke;
+    ctx.stroke();
+    ctx.fillStyle = palette.stationFill;
+    ctx.fill();
+    const data = toImage(canvas);
+    return data ? { data, meta: { pixelRatio: PIXEL_RATIO } } : null;
+}
+
 const ID_PATTERN =
-    /^mhav-(light|dark)-(?:(dot|pill|mark)-(onTime|slight|moderate|severe|stale|inactive)-(train|hev|tramtrain)(-sel)?|(arrow)|station-(clear|ring|label)|(follow)|(cluster))$/;
+    /^mhav-(light|dark)-(?:(dot|pill|mark)-(onTime|slight|moderate|severe|stale|inactive)-(train|hev|tramtrain)(-sel)?|(arrow)|station-(clear|ring|label)|(follow)|(cluster)|stop-(square|tramtrain))$/;
 
 type Sprite = { data: ImageData; meta: Partial<StyleImageMetadata> };
 
@@ -630,6 +676,9 @@ export function markerImageIds(scheme: ColorScheme): string[] {
         stationImageId(scheme, "ring"),
         stationImageId(scheme, "label"),
     );
+    for (const shape of SPRITE_STOP_SHAPES) {
+        ids.push(stopImageId(scheme, shape));
+    }
     return ids;
 }
 
@@ -692,6 +741,7 @@ function drawSprite(id: string): Sprite | null {
     if (match[7]) return station(scheme, match[7] as "clear" | "ring");
     if (match[8]) return follow(scheme);
     if (match[9]) return cluster(scheme);
+    if (match[10]) return stop(scheme, match[10] as SpriteStopShape);
     const kind = match[2];
     const level = match[3] as MarkerLevel;
     const shape = match[4] as MarkerShape;

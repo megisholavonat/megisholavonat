@@ -169,8 +169,9 @@ export interface StationTier {
 
 /**
  * Station names by trains a day: the busiest from country zoom, the rest as
- * the map comes closer. HÉV and tram-train street stops (tier 5, "Szeged,
- * Anna-kút") only at city zoom.
+ * the map comes closer. Stops that are not railway stations (tier 5: HÉV,
+ * tram-train, Children's Railway) see many trains but are city stops: they
+ * show at city zoom only.
  */
 export const MAP_STATIONS = {
     tiers: [
@@ -184,7 +185,96 @@ export const MAP_STATIONS = {
     shortNameZoom: 10,
     labelSize: { major: [12, 14], minor: [11, 12.5] },
     haloWidth: 1.6,
-} as const satisfies { tiers: readonly StationTier[]; [key: string]: unknown };
+    /**
+     * A station dot's radius (css px) by zoom: the busiest (tier 1), the
+     * other major ones (tier 2) and the rest; and its outline
+     */
+    dot: {
+        top: [
+            [6, 2.5],
+            [12, 4.5],
+            [15, 6],
+        ],
+        major: [
+            [6, 2],
+            [12, 4.5],
+            [15, 6],
+        ],
+        minor: [
+            [6, 2],
+            [12, 3.5],
+            [15, 5],
+        ],
+    },
+    stroke: { major: 1.5, minor: 1.2 },
+} as const satisfies {
+    tiers: readonly StationTier[];
+    dot: Record<"top" | "major" | "minor", ZoomStops>;
+    [key: string]: unknown;
+};
+
+/** The shape of a station's mark */
+export type StopShape = "circle" | "square" | "tramtrain";
+
+/**
+ * A station's mark by kind of stop, in the shape of its vehicles' marks
+ * (MAP_MARKS): round railway stations, square HÉV stops, pointed tram-train
+ * stops, each at the area of the dot it stands for, in the dot's colours.
+ * The Children's Railway runs trains, drawn round: its stations are round
+ * too (as its icon in lists), named at city zoom like the other city lines.
+ * Squares and tram-train shapes are sprites drawn `spriteDiameter` across
+ * (css px: the minor dot at about z14) with the minor dot's outline; the
+ * layer scales them with the dot.
+ */
+export const MAP_STOPS = {
+    shape: {
+        rail: "circle",
+        hev: "square",
+        tramtrain: "tramtrain",
+        childrens_railway: "circle",
+    },
+    spriteDiameter: 9,
+} as const satisfies {
+    shape: Record<string, StopShape>;
+    [key: string]: unknown;
+};
+
+/**
+ * A stop shape's body `d` px across, at the circle's area (MAP_MARKS): its
+ * width, height and corner radius (a tram-train's ends are pointed).
+ */
+export function stopShapeBody(
+    shape: StopShape,
+    d: number,
+): { w: number; h: number; r: number } {
+    if (shape === "square") {
+        const side = d * MAP_MARKS.hevSide;
+        return { w: side, h: side, r: side * MAP_MARKS.hevCorner };
+    }
+    if (shape === "tramtrain") {
+        const { width, height } = MAP_MARKS.tramtrain;
+        return { w: d * width, h: d * height, r: 0 };
+    }
+    return { w: d, h: d, r: d / 2 };
+}
+
+/**
+ * A tram-train body's outline, `w`×`h` around its centre, clockwise on
+ * screen: a hexagon with pointed ends
+ */
+export function tramtrainPoints(w: number, h: number): [number, number][] {
+    const p = Math.min((h / 2) * MAP_MARKS.tramtrain.point, w / 2);
+    const hw = w / 2;
+    const hh = h / 2;
+    return [
+        [-hw + p, -hh],
+        [hw - p, -hh],
+        [hw, 0],
+        [hw - p, hh],
+        [-hw + p, hh],
+        [-hw, 0],
+    ];
+}
 
 /** A selected train in focus: everything but its route steps back. */
 export const MAP_FOCUS = {
@@ -215,7 +305,10 @@ export const MAP_MARKS = {
      * tram-train's width and height, as shares of the diameter
      */
     hevSide: 0.9,
-    tramtrain: { width: 1.2, height: 0.84 },
+    /** A HÉV square's corner radius, as a share of its side */
+    hevCorner: 0.25,
+    /** A tram-train's pointed ends: `point` × half its height deep */
+    tramtrain: { width: 1.2, height: 0.84, point: 0.75 },
     /** "+N" beside unselected late trains, from this zoom only */
     delayTextMinZoom: 12,
     delayTextSize: 12,
@@ -315,3 +408,68 @@ export function directionArrowBox(): { w: number; h: number } {
     const { width, height, halo } = MAP_DIRECTION_ARROW;
     return { w: width + (halo + 1) * 2, h: height + (halo + 1) * 2 };
 }
+
+/**
+ * The opt-in OpenRailwayMap overlay: its tiles (through our tile cache at
+ * `cachePath` when one is set) and the zoom from which it writes out
+ * station names (its z11 tiles are picked from 10.5 on): our own names and
+ * a route's stop names end there, so a station is never named twice.
+ */
+export const MAP_RAILWAY_OVERLAY = {
+    tiles: "https://a.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png",
+    cachePath: "/orm",
+    attribution:
+        '<a href="https://www.openrailwaymap.org/">© OpenRailwayMap</a>',
+    namesMinZoom: 10.5,
+} as const;
+
+/**
+ * The overlay's raster paint. In dark its tiles are inverted (brightness
+ * swapped, hue turned back), so its dark-blue station names turn light and
+ * stay readable; mostly desaturated, so tram and metro lines read as grey,
+ * not magenta; and not too bright, so a dense yard is no pale slab. In light
+ * softer pink and lilac too: no loud purple lines. Both renderers support
+ * these properties.
+ */
+export function railwayOverlayPaint(scheme: ColorScheme): {
+    "raster-opacity": number;
+    "raster-saturation": number;
+    "raster-brightness-min"?: number;
+    "raster-brightness-max"?: number;
+    "raster-hue-rotate"?: number;
+} {
+    return scheme === "dark"
+        ? {
+              "raster-opacity": 0.55,
+              "raster-brightness-min": 0.48,
+              "raster-brightness-max": 0.2,
+              "raster-hue-rotate": 180,
+              "raster-saturation": -0.75,
+          }
+        : { "raster-opacity": 0.75, "raster-saturation": -0.4 };
+}
+
+/** The overlay's tiles, through the tile cache when one is set */
+export function railwayTileUrl(tileCacheUrl?: string | null): string {
+    if (!tileCacheUrl) return MAP_RAILWAY_OVERLAY.tiles;
+    const base = tileCacheUrl.replace(/\/$/, "");
+    return `${base}${MAP_RAILWAY_OVERLAY.cachePath}/{z}/{x}/{y}.png`;
+}
+
+/**
+ * The camera's limits, the same on the web and in the app. Where it opens
+ * differs on purpose: the web opens on Budapest at city zoom, where most
+ * visitors' trains run, and flies on to the visitor once location is
+ * allowed; the app asks for location only from its locate button, so it
+ * opens on the whole country, every train at a glance.
+ */
+export const MAP_VIEW = {
+    /** [west, south, east, north]: Hungary and its neighbours */
+    bounds: [5.5, 43, 30, 52.5],
+    minZoom: 5,
+    maxZoom: 19,
+    initial: {
+        web: { center: [19.045, 47.499], zoom: 13 },
+        app: { center: [19.4, 47.17], zoom: 6 },
+    },
+} as const;
