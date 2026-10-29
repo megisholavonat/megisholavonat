@@ -58,7 +58,7 @@ const TINT_SHARE: Record<DelayLevel, number> = {
     severe: 0.14,
 };
 
-function tint(level: DelayLevel): string {
+export function tint(level: DelayLevel): string {
     const hex = SCALE[level].fill.slice(1);
     const share = TINT_SHARE[level];
     const mix = (i: number) =>
@@ -101,7 +101,9 @@ const loadIcon = cachedLoad(() =>
     ),
 );
 
-async function render(node: (icon: string) => ReactElement): Promise<Response> {
+export async function render(
+    node: (icon: string) => ReactElement,
+): Promise<Response> {
     const [fonts, icon] = await Promise.all([loadFonts(), loadIcon()]);
     return new ImageResponse(node(icon), {
         ...OG_SIZE,
@@ -112,7 +114,7 @@ async function render(node: (icon: string) => ReactElement): Promise<Response> {
     });
 }
 
-function Frame({
+export function Frame({
     icon,
     locale,
     children,
@@ -178,7 +180,7 @@ function Frame({
     );
 }
 
-function Glyph({
+export function Glyph({
     glyph,
     color,
     size,
@@ -203,7 +205,7 @@ function Glyph({
     );
 }
 
-const ellipsis = {
+export const ellipsis = {
     overflow: "hidden",
     whiteSpace: "nowrap",
     textOverflow: "ellipsis",

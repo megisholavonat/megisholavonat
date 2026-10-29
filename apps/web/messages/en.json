@@ -306,5 +306,16 @@
         "train_gone": "This train is no longer running",
         "station_unknown": "No such station",
         "skip_to_search": "Skip to search"
+    },
+    "DelayCard": {
+        "title": "Delay summary",
+        "share": "Share the delay",
+        "share_so_far": "Share the delay so far",
+        "copied": "Link copied",
+        "open_map": "Live on the map",
+        "history": "Earlier runs",
+        "image_alt": "Delay card: {sentence}",
+        "not_found": "No such run",
+        "not_found_hint": "We have no measured run of this train on that day."
     }
 }

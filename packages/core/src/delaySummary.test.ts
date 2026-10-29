@@ -11,6 +11,7 @@ import {
     isRunDate,
     isStationId,
     isTrainNumber,
+    recentRun,
     runDate,
     runDay,
     summaryLevel,
@@ -228,7 +229,7 @@ describe("copy", () => {
                 NOW,
             ),
         ).toBe(
-            "A 7:15-ös Szolnok → Budapest-Nyugati ma eddig 12 percet késett",
+            "A 7:15-ös Szolnok → Budapest-Nyugati eddig 12 percet késett",
         );
         expect(
             delaySummarySentence(
@@ -311,5 +312,25 @@ describe("copy", () => {
             "30-án",
         ]);
         expect(clockTime(7 * H + 5 * 60)).toBe("7:05");
+    });
+});
+
+describe("recentRun", () => {
+    const schedule = { weekdays: [1, 2, 3, 4, 5], departureS: 7 * H + 15 * 60 };
+
+    it("is today's run once it has left", () => {
+        expect(recentRun(schedule, NOW)?.date).toBe("2026-10-29");
+    });
+
+    it("is none before it leaves", () => {
+        expect(
+            recentRun(schedule, new Date("2026-10-29T05:00:00Z")),
+        ).toBeNull();
+    });
+
+    it("is none long after", () => {
+        expect(
+            recentRun(schedule, new Date("2026-10-29T22:00:00Z")),
+        ).toBeNull();
     });
 });

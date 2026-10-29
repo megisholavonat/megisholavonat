@@ -306,5 +306,16 @@
         "train_gone": "Ez a vonat már nem közlekedik",
         "station_unknown": "Nincs ilyen állomás",
         "skip_to_search": "Ugrás a keresésre"
+    },
+    "DelayCard": {
+        "title": "Késés-összefoglaló",
+        "share": "Megosztom a késést",
+        "share_so_far": "Késés megosztása eddig",
+        "copied": "Link másolva",
+        "open_map": "Élőben a térképen",
+        "history": "Korábbi menetek",
+        "image_alt": "Késéskártya: {sentence}",
+        "not_found": "Nincs ilyen menet",
+        "not_found_hint": "Ennek a vonatnak ezen a napon nincs mért menete."
     }
 }

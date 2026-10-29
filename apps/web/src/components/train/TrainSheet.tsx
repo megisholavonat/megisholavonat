@@ -7,6 +7,7 @@ import { useEffect, useRef } from "react";
 import { TrainDisruptions } from "@/components/disruptions/Disruptions";
 import { type Detent, SheetClose } from "@/components/sheet/BottomSheet";
 import { TrainHistoryLink } from "@/components/stats/HistoryLinks";
+import { TrainDelayShare } from "@/components/train/DelayShare";
 import {
     formatDelay,
     levelOf,
@@ -213,6 +214,7 @@ export function TrainSheetBody({
                     )}
                     <ServiceGlyphs view={view} />
                     <StopList view={view} />
+                    <TrainDelayShare view={view} />
                     <TrainHistoryLink
                         tripShortName={view.vehicle.trip.tripShortName}
                     />
@@ -221,6 +223,8 @@ export function TrainSheetBody({
             ) : (
                 <>
                     <TrainActions view={view} onFollow={onFollow} />
+                    {/* Arrived: sharing how late it was is what is left */}
+                    {view.arrived && <TrainDelayShare view={view} />}
                     {view.reason && (
                         <ReasonBanner
                             reason={view.reason}

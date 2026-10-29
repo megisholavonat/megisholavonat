@@ -6,7 +6,12 @@
  */
 
 import type { RunSummary } from "@megisholavonat/api-client";
-import { tripRun } from "./commute";
+import {
+    type CommuteSchedule,
+    nextOccurrence,
+    type Occurrence,
+    tripRun,
+} from "./commute";
 import { type DelayLevel, getDelayLevel } from "./delay";
 import type { DelayReasonCode } from "./delayReasons";
 import type { Locale } from "./i18n";
@@ -358,11 +363,11 @@ export function delaySummarySentence(
         switch (card.outcome) {
             case "late":
                 return card.soFar
-                    ? `${subject} ${day} eddig ${n} percet késett`
+                    ? `${subject} eddig ${n} percet késett`
                     : `${subject} ${day} ${n} percet késett`;
             case "onTime":
                 return card.soFar
-                    ? `${subject} ${day} eddig pontos`
+                    ? `${subject} eddig pontos`
                     : `${subject} ${day} pontosan érkezett`;
             case "cancelled":
                 return `${subject} ${day} elmaradt`;
@@ -377,11 +382,11 @@ export function delaySummarySentence(
     switch (card.outcome) {
         case "late":
             return card.soFar
-                ? `${subject} has been ${n} min late so far ${day}`
+                ? `${subject} has been ${n} min late so far`
                 : `${subject} was ${n} min late ${day}`;
         case "onTime":
             return card.soFar
-                ? `${subject} has been on time so far ${day}`
+                ? `${subject} has been on time so far`
                 : `${subject} was on time ${day}`;
         case "cancelled":
             return `${subject} was cancelled ${day}`;
@@ -408,4 +413,20 @@ export function delaySummaryShareText(
             ? "Mégis hol a vonat? GPS-mérés"
             : "Mégis hol a vonat? GPS measurement";
     return `${delaySummarySentence(locale, card, now)} (${source})`;
+}
+
+/** A followed run can be shared this long after it left its boarding stop. */
+export const SHARE_RUN_WITHIN_S = 12 * 3600;
+
+/**
+ * The run of a followed train that has left most recently, within
+ * SHARE_RUN_WITHIN_S: the one whose delay a commuter may want to share.
+ * Null before the first run of the day leaves.
+ */
+export function recentRun(
+    schedule: CommuteSchedule,
+    now: Date = new Date(),
+): Occurrence | null {
+    const run = nextOccurrence(schedule, now, SHARE_RUN_WITHIN_S);
+    return run && run.departure <= now.getTime() / 1000 ? run : null;
 }

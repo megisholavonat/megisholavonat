@@ -3,6 +3,7 @@
 import { formatSecondsAsTime } from "@megisholavonat/core/time";
 import { Star } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import { CommuteDelayShare } from "@/components/train/DelayShare";
 import { DelayChip, levelOf } from "@/components/ui/Delay";
 import { PlatformBadge } from "@/components/ui/Platform";
 import { ReasonLabel } from "@/components/ui/Reason";
@@ -86,10 +87,10 @@ function Row({
             type="button"
             onClick={() => onOpen(row)}
             className={cn(
-                "flex w-full cursor-pointer items-center gap-3 text-left",
+                "flex w-full min-w-0 cursor-pointer items-center gap-3 text-left",
                 compact
                     ? "min-h-11 rounded-md px-2 py-1.5 hover:bg-surface-2"
-                    : "min-h-13 border-b border-line py-2 last:border-b-0",
+                    : "min-h-13 py-2",
             )}
         >
             <RouteGlyph
@@ -154,16 +155,24 @@ export function CommuteList({
     return (
         <section aria-label={t("my_commute")} className="flex flex-col">
             {visible.map((row) => (
-                <Row
+                <div
                     key={row.follow.id}
-                    row={row}
-                    compact={compact}
-                    onOpen={(r) =>
-                        r.live?.vehicleId
-                            ? onOpenTrain(r.live.vehicleId)
-                            : onEdit(r.follow)
-                    }
-                />
+                    className={cn(
+                        "flex items-center gap-1",
+                        !compact && "border-b border-line last:border-b-0",
+                    )}
+                >
+                    <Row
+                        row={row}
+                        compact={compact}
+                        onOpen={(r) =>
+                            r.live?.vehicleId
+                                ? onOpenTrain(r.live.vehicleId)
+                                : onEdit(r.follow)
+                        }
+                    />
+                    <CommuteDelayShare follow={row.follow} />
+                </div>
             ))}
         </section>
     );
