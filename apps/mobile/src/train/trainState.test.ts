@@ -4,6 +4,7 @@ import type {
 } from "@megisholavonat/api-client";
 import { trainDisplay } from "@megisholavonat/core/display";
 import { describe, expect, it } from "vitest";
+import { shownDisplay } from "./delayDisplay";
 import { patchFeed } from "./trainState";
 
 const now = new Date("2026-08-14T08:00:00Z");
@@ -69,5 +70,26 @@ describe("patchFeed", () => {
         if (!marker) throw new Error("no feature");
         expect(trainDisplay(marker, now)).toEqual(trainDisplay(arrived, now));
         expect(trainDisplay(marker, now).state).toBe("idle");
+    });
+
+    it("agrees on an early train only when the API says it stands at a stop", () => {
+        // 2 min early, 0 km/h, the same position update as the feed
+        const stopped = { ...fresh, delay: -2, speed: 0, lastUpdated: ago(70) };
+        const dwelling = { ...stopped, dwellStopIndex: 3 };
+        const list = () => feed(feature("1:1", ago(70)));
+
+        // Stopped at a signal: early on both, the feed is left as it is
+        const unchanged = list();
+        expect(patchFeed(unchanged, stopped)).toBe(unchanged);
+        const plain = unchanged.features[0]?.properties;
+        if (!plain) throw new Error("no feature");
+        expect(shownDisplay({ ...plain, delay: -2 }, now).delay).toBe(-2);
+        expect(shownDisplay(stopped, now).delay).toBe(-2);
+
+        // Standing at a stop: the same-age details bring the dwell along
+        const marker = patchFeed(list(), dwelling)?.features[0]?.properties;
+        if (!marker) throw new Error("no feature");
+        expect(shownDisplay(marker, now)).toEqual(shownDisplay(dwelling, now));
+        expect(shownDisplay(marker, now).delay).toBe(0);
     });
 });

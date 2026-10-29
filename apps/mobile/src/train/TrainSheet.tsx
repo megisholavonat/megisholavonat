@@ -9,7 +9,6 @@ import {
     getTrainsOptions,
 } from "@megisholavonat/api-client/react-query";
 import { tripRun } from "@megisholavonat/core/commute";
-import { trainDisplay } from "@megisholavonat/core/display";
 import {
     shareUrl,
     trainShareStatus,
@@ -44,8 +43,8 @@ import { useNow } from "../ui/useNow";
 import {
     type DelayTileModel,
     delayTile,
-    notEarlyWhileStanding,
     reasonTone,
+    shownDisplay,
 } from "./delayDisplay";
 import { RouteIcon } from "./RouteIcon";
 import { StopList } from "./StopList";
@@ -120,12 +119,7 @@ export function TrainSheet({
     // the map marker
     const input = details ?? feature;
     const where = details ? trainStop(details) : null;
-    const display = input
-        ? notEarlyWhileStanding(
-              trainDisplay(input, now),
-              where?.standing != null || input.speed === 0,
-          )
-        : null;
+    const display = input ? shownDisplay(input, now) : null;
     const running = display?.state === "running";
     const stale = display?.state === "stale";
 
