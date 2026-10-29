@@ -1,0 +1,812 @@
+{
+  "vehicleId": "1:1141",
+  "lat": 47.6594353,
+  "lon": 19.0728416,
+  "heading": 21,
+  "speed": 0,
+  "lastUpdated": 1793239128,
+  "trip": {
+    "gtfsId": "1:36381329",
+    "serviceDate": "2026-10-29",
+    "tripShortName": "H8000 HÉV",
+    "route": {
+      "mode": "SUBURBAN_RAILWAY",
+      "textColor": "900166",
+      "shortName": "<span class=\"MNR2007\">&#440;</span>",
+      "longName": "H5"
+    },
+    "tripGeometry": {
+      "points": "_y}`HgsesBqe@c@iDd@_HOi@A_BX}NvCiIh@aDCgFc@wB_@aOkEwHaBsHgBgGeDkHcFuK{JuCsC{BsCs@u@eBgAcA[eG_AwBEmNZgIl@qFHqIMsB[}H}BgCO{FHqAPcC|@wFvDmItFqAl@mEp@uAAmCe@qCsAyBmAiV_H_TyFuGyAqBOgDJgAPiG|AuJnAuDIiEm@k\\eC{DR_Bf@sBlAgWpS_CfAoATqAF_AMiBw@_BcAs_@wWsAwBmDaE{ToOgNqJiX}P_Bi@{KaAsQyAkDBwAPmDdAyJjE_NtEuAt@yDrDm@p@gCpCiLjS_MrToBpCaBbBaGjD}LrCiLrDmG`CaYhKsO~FsRbK}CzBiGvJsJxS{AzCyA|AyBt@aCLaASmAs@cAoAaA_C]qBI_CJcCbA_PEcFOqBq@gF_Maq@o@wHIwE^sn@]uH{DmRsC_GaGcIwe@il@kMmR"
+    },
+    "stoptimes": [
+      {
+        "stopPosition": 1,
+        "scheduledArrival": 780,
+        "realtimeArrival": 780,
+        "scheduledDeparture": 780,
+        "realtimeDeparture": 780,
+        "stop": {
+          "gtfsId": "1:003609001_2",
+          "stationUicPricingCode": "003609001",
+          "name": "Batthyány tér H",
+          "lat": 47.506776,
+          "lon": 19.039318,
+          "platformCode": "2",
+          "county": "Budapest"
+        }
+      },
+      {
+        "stopPosition": 2,
+        "scheduledArrival": 900,
+        "realtimeArrival": 900,
+        "scheduledDeparture": 900,
+        "realtimeDeparture": 960,
+        "stop": {
+          "gtfsId": "1:003609019_A",
+          "stationUicPricingCode": "003609019",
+          "name": "Margit híd, budai hídfő H",
+          "lat": 47.515376,
+          "lon": 19.03938,
+          "platformCode": "A",
+          "county": "Budapest"
+        }
+      },
+      {
+        "stopPosition": 3,
+        "scheduledArrival": 1020,
+        "realtimeArrival": 2820,
+        "scheduledDeparture": 1020,
+        "realtimeDeparture": 2820,
+        "stop": {
+          "gtfsId": "1:003609043_A",
+          "stationUicPricingCode": "003609043",
+          "name": "Szépvölgyi út H",
+          "lat": 47.527605,
+          "lon": 19.040045,
+          "platformCode": "A",
+          "county": "Budapest"
+        }
+      },
+      {
+        "stopPosition": 4,
+        "scheduledArrival": 1140,
+        "realtimeArrival": 2940,
+        "scheduledDeparture": 1140,
+        "realtimeDeparture": 2940,
+        "stop": {
+          "gtfsId": "1:003609050_A",
+          "stationUicPricingCode": "003609050",
+          "name": "Tímár utca H",
+          "lat": 47.533964,
+          "lon": 19.044643,
+          "platformCode": "A",
+          "county": "Budapest"
+        }
+      },
+      {
+        "stopPosition": 5,
+        "scheduledArrival": 1260,
+        "realtimeArrival": 3060,
+        "scheduledDeparture": 1260,
+        "realtimeDeparture": 3060,
+        "stop": {
+          "gtfsId": "1:003609068_A",
+          "stationUicPricingCode": "003609068",
+          "name": "Szentlélek tér H",
+          "lat": 47.539636,
+          "lon": 19.047161,
+          "platformCode": "A",
+          "county": "Budapest"
+        }
+      },
+      {
+        "stopPosition": 6,
+        "scheduledArrival": 1380,
+        "realtimeArrival": 3180,
+        "scheduledDeparture": 1380,
+        "realtimeDeparture": 3180,
+        "stop": {
+          "gtfsId": "1:003609118_A",
+          "stationUicPricingCode": "003609118",
+          "name": "Filatorigát H",
+          "lat": 47.551903,
+          "lon": 19.046243,
+          "platformCode": "A",
+          "county": "Budapest"
+        }
+      },
+      {
+        "stopPosition": 7,
+        "scheduledArrival": 1500,
+        "realtimeArrival": 3300,
+        "scheduledDeparture": 1500,
+        "realtimeDeparture": 3300,
+        "stop": {
+          "gtfsId": "1:003609084_3",
+          "stationUicPricingCode": "003609084",
+          "name": "Kaszásdűlő H",
+          "lat": 47.556774,
+          "lon": 19.045253,
+          "platformCode": "3",
+          "county": "Budapest"
+        }
+      },
+      {
+        "stopPosition": 8,
+        "scheduledArrival": 1620,
+        "realtimeArrival": 3420,
+        "scheduledDeparture": 1620,
+        "realtimeDeparture": 3420,
+        "stop": {
+          "gtfsId": "1:003609100_A",
+          "stationUicPricingCode": "003609100",
+          "name": "Aquincum H",
+          "lat": 47.567255,
+          "lon": 19.048728,
+          "platformCode": "A",
+          "county": "Budapest"
+        }
+      },
+      {
+        "stopPosition": 9,
+        "scheduledArrival": 1740,
+        "realtimeArrival": 3540,
+        "scheduledDeparture": 1740,
+        "realtimeDeparture": 3540,
+        "stop": {
+          "gtfsId": "1:003609159_A",
+          "stationUicPricingCode": "003609159",
+          "name": "Rómaifürdő H",
+          "lat": 47.575685,
+          "lon": 19.048568,
+          "platformCode": "A",
+          "county": "Budapest"
+        }
+      },
+      {
+        "stopPosition": 10,
+        "scheduledArrival": 1860,
+        "realtimeArrival": 3660,
+        "scheduledDeparture": 1860,
+        "realtimeDeparture": 3660,
+        "stop": {
+          "gtfsId": "1:003609175_A",
+          "stationUicPricingCode": "003609175",
+          "name": "Csillaghegy H",
+          "lat": 47.58611,
+          "lon": 19.045005,
+          "platformCode": "A",
+          "county": "Budapest"
+        }
+      },
+      {
+        "stopPosition": 11,
+        "scheduledArrival": 2040,
+        "realtimeArrival": 3840,
+        "scheduledDeparture": 2100,
+        "realtimeDeparture": 3900,
+        "stop": {
+          "gtfsId": "1:003609183_1",
+          "stationUicPricingCode": "003609183",
+          "name": "Békásmegyer H",
+          "lat": 47.598091,
+          "lon": 19.054599,
+          "platformCode": "1",
+          "county": "Budapest"
+        }
+      },
+      {
+        "stopPosition": 12,
+        "scheduledArrival": 2280,
+        "realtimeArrival": 4080,
+        "scheduledDeparture": 2280,
+        "realtimeDeparture": 4080,
+        "stop": {
+          "gtfsId": "1:003609126_3",
+          "stationUicPricingCode": "003609126",
+          "name": "Budakalász H",
+          "lat": 47.616165,
+          "lon": 19.05492,
+          "platformCode": "3",
+          "county": "Pest"
+        }
+      },
+      {
+        "stopPosition": 13,
+        "scheduledArrival": 2400,
+        "realtimeArrival": 4200,
+        "scheduledDeparture": 2400,
+        "realtimeDeparture": 4200,
+        "stop": {
+          "gtfsId": "1:003609191_A",
+          "stationUicPricingCode": "003609191",
+          "name": "Budakalász, Lenfonó H",
+          "lat": 47.621778,
+          "lon": 19.046752,
+          "platformCode": "A",
+          "county": "Pest"
+        }
+      },
+      {
+        "stopPosition": 14,
+        "scheduledArrival": 2520,
+        "realtimeArrival": 4320,
+        "scheduledDeparture": 2520,
+        "realtimeDeparture": 4320,
+        "stop": {
+          "gtfsId": "1:003609209_A",
+          "stationUicPricingCode": "003609209",
+          "name": "Szentistvántelep H",
+          "lat": 47.629301,
+          "lon": 19.043159,
+          "platformCode": "A",
+          "county": "Pest"
+        }
+      },
+      {
+        "stopPosition": 15,
+        "scheduledArrival": 2640,
+        "realtimeArrival": 4440,
+        "scheduledDeparture": 2700,
+        "realtimeDeparture": 4500,
+        "stop": {
+          "gtfsId": "1:003609134_3",
+          "stationUicPricingCode": "003609134",
+          "name": "Pomáz H",
+          "lat": 47.643188,
+          "lon": 19.032032,
+          "platformCode": "3",
+          "county": "Pest"
+        }
+      },
+      {
+        "stopPosition": 16,
+        "scheduledArrival": 2940,
+        "realtimeArrival": 4740,
+        "scheduledDeparture": 2940,
+        "realtimeDeparture": 4740,
+        "stop": {
+          "gtfsId": "1:003609217_A",
+          "stationUicPricingCode": "003609217",
+          "name": "Pannóniatelep H",
+          "lat": 47.652191,
+          "lon": 19.064901,
+          "platformCode": "A",
+          "county": "Pest"
+        }
+      },
+      {
+        "stopPosition": 17,
+        "scheduledArrival": 3120,
+        "realtimeArrival": 4920,
+        "scheduledDeparture": 3120,
+        "realtimeDeparture": 4920,
+        "stop": {
+          "gtfsId": "1:003609142_3",
+          "stationUicPricingCode": "003609142",
+          "name": "Szentendre H",
+          "lat": 47.661038,
+          "lon": 19.075607,
+          "platformCode": "3",
+          "county": "Pest"
+        }
+      }
+    ],
+    "wheelchairAccessible": "NO_INFORMATION",
+    "bikesAllowed": "ALLOWED",
+    "infoServices": [
+      {
+        "name": "A vonat 2. osztályú kocsikkal közlekedik",
+        "fromStopIndex": 0,
+        "tillStopIndex": 16,
+        "fontCharSet": "MNR2007",
+        "fontCode": 222,
+        "displayable": true
+      },
+      {
+        "name": "Országbérlettel igénybe vehető",
+        "fromStopIndex": 0,
+        "tillStopIndex": 16,
+        "fontCharSet": "MNR2007",
+        "fontCode": 557,
+        "displayable": true
+      },
+      {
+        "name": "A piktogrammal jelölt kocsikban kerékpár szállítható (kocsinként legfeljebb 4 db).",
+        "fromStopIndex": 0,
+        "tillStopIndex": 16,
+        "fontCharSet": "MNR2007",
+        "fontCode": 213,
+        "displayable": true
+      },
+      {
+        "name": "WIFI/Internet szolgáltatást biztosítunk a kijelölt kocsikon.",
+        "fromStopIndex": 0,
+        "tillStopIndex": 16,
+        "fontCharSet": "MNR2007",
+        "fontCode": 333,
+        "displayable": true
+      },
+      {
+        "name": "Budapest-bérlettel igénybe vehető.",
+        "fromStopIndex": 0,
+        "tillStopIndex": 10,
+        "fontCharSet": "MNR2007",
+        "fontCode": 249,
+        "displayable": true
+      }
+    ],
+    "alerts": []
+  },
+  "delay": 127,
+  "trainPosition": 0.20764831794382727,
+  "totalRouteDistance": 0.2107067632323983,
+  "processedStops": [
+    {
+      "id": "Batthyány tér H",
+      "gtfsId": "1:003609001_2",
+      "index": 0,
+      "originalCoords": [
+        19.039318,
+        47.506776
+      ],
+      "distanceAlongRoute": 0,
+      "stopTimeInfo": {
+        "stopPosition": 1,
+        "scheduledArrival": 780,
+        "realtimeArrival": 780,
+        "scheduledDeparture": 780,
+        "realtimeDeparture": 780,
+        "stop": {
+          "gtfsId": "1:003609001_2",
+          "stationUicPricingCode": "003609001",
+          "name": "Batthyány tér H",
+          "lat": 47.506776,
+          "lon": 19.039318,
+          "platformCode": "2",
+          "county": "Budapest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Margit híd, budai hídfő H",
+      "gtfsId": "1:003609019_A",
+      "index": 1,
+      "originalCoords": [
+        19.03938,
+        47.515376
+      ],
+      "distanceAlongRoute": 0.00788359141230379,
+      "stopTimeInfo": {
+        "stopPosition": 2,
+        "scheduledArrival": 900,
+        "realtimeArrival": 900,
+        "scheduledDeparture": 900,
+        "realtimeDeparture": 960,
+        "stop": {
+          "gtfsId": "1:003609019_A",
+          "stationUicPricingCode": "003609019",
+          "name": "Margit híd, budai hídfő H",
+          "lat": 47.515376,
+          "lon": 19.03938,
+          "platformCode": "A",
+          "county": "Budapest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Szépvölgyi út H",
+      "gtfsId": "1:003609043_A",
+      "index": 2,
+      "originalCoords": [
+        19.040045,
+        47.527605
+      ],
+      "distanceAlongRoute": 0.02051021898259773,
+      "stopTimeInfo": {
+        "stopPosition": 3,
+        "scheduledArrival": 1020,
+        "realtimeArrival": 2820,
+        "scheduledDeparture": 1020,
+        "realtimeDeparture": 2820,
+        "stop": {
+          "gtfsId": "1:003609043_A",
+          "stationUicPricingCode": "003609043",
+          "name": "Szépvölgyi út H",
+          "lat": 47.527605,
+          "lon": 19.040045,
+          "platformCode": "A",
+          "county": "Budapest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Tímár utca H",
+      "gtfsId": "1:003609050_A",
+      "index": 3,
+      "originalCoords": [
+        19.044643,
+        47.533964
+      ],
+      "distanceAlongRoute": 0.028396407525060362,
+      "stopTimeInfo": {
+        "stopPosition": 4,
+        "scheduledArrival": 1140,
+        "realtimeArrival": 2940,
+        "scheduledDeparture": 1140,
+        "realtimeDeparture": 2940,
+        "stop": {
+          "gtfsId": "1:003609050_A",
+          "stationUicPricingCode": "003609050",
+          "name": "Tímár utca H",
+          "lat": 47.533964,
+          "lon": 19.044643,
+          "platformCode": "A",
+          "county": "Budapest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Szentlélek tér H",
+      "gtfsId": "1:003609068_A",
+      "index": 4,
+      "originalCoords": [
+        19.047161,
+        47.539636
+      ],
+      "distanceAlongRoute": 0.03502079663993002,
+      "stopTimeInfo": {
+        "stopPosition": 5,
+        "scheduledArrival": 1260,
+        "realtimeArrival": 3060,
+        "scheduledDeparture": 1260,
+        "realtimeDeparture": 3060,
+        "stop": {
+          "gtfsId": "1:003609068_A",
+          "stationUicPricingCode": "003609068",
+          "name": "Szentlélek tér H",
+          "lat": 47.539636,
+          "lon": 19.047161,
+          "platformCode": "A",
+          "county": "Budapest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Filatorigát H",
+      "gtfsId": "1:003609118_A",
+      "index": 5,
+      "originalCoords": [
+        19.046243,
+        47.551903
+      ],
+      "distanceAlongRoute": 0.047895771615727424,
+      "stopTimeInfo": {
+        "stopPosition": 6,
+        "scheduledArrival": 1380,
+        "realtimeArrival": 3180,
+        "scheduledDeparture": 1380,
+        "realtimeDeparture": 3180,
+        "stop": {
+          "gtfsId": "1:003609118_A",
+          "stationUicPricingCode": "003609118",
+          "name": "Filatorigát H",
+          "lat": 47.551903,
+          "lon": 19.046243,
+          "platformCode": "A",
+          "county": "Budapest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Kaszásdűlő H",
+      "gtfsId": "1:003609084_3",
+      "index": 6,
+      "originalCoords": [
+        19.045253,
+        47.556774
+      ],
+      "distanceAlongRoute": 0.053339704233741715,
+      "stopTimeInfo": {
+        "stopPosition": 7,
+        "scheduledArrival": 1500,
+        "realtimeArrival": 3300,
+        "scheduledDeparture": 1500,
+        "realtimeDeparture": 3300,
+        "stop": {
+          "gtfsId": "1:003609084_3",
+          "stationUicPricingCode": "003609084",
+          "name": "Kaszásdűlő H",
+          "lat": 47.556774,
+          "lon": 19.045253,
+          "platformCode": "3",
+          "county": "Budapest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Aquincum H",
+      "gtfsId": "1:003609100_A",
+      "index": 7,
+      "originalCoords": [
+        19.048728,
+        47.567255
+      ],
+      "distanceAlongRoute": 0.06454993514271065,
+      "stopTimeInfo": {
+        "stopPosition": 8,
+        "scheduledArrival": 1620,
+        "realtimeArrival": 3420,
+        "scheduledDeparture": 1620,
+        "realtimeDeparture": 3420,
+        "stop": {
+          "gtfsId": "1:003609100_A",
+          "stationUicPricingCode": "003609100",
+          "name": "Aquincum H",
+          "lat": 47.567255,
+          "lon": 19.048728,
+          "platformCode": "A",
+          "county": "Budapest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Rómaifürdő H",
+      "gtfsId": "1:003609159_A",
+      "index": 8,
+      "originalCoords": [
+        19.048568,
+        47.575685
+      ],
+      "distanceAlongRoute": 0.07315541427406902,
+      "stopTimeInfo": {
+        "stopPosition": 9,
+        "scheduledArrival": 1740,
+        "realtimeArrival": 3540,
+        "scheduledDeparture": 1740,
+        "realtimeDeparture": 3540,
+        "stop": {
+          "gtfsId": "1:003609159_A",
+          "stationUicPricingCode": "003609159",
+          "name": "Rómaifürdő H",
+          "lat": 47.575685,
+          "lon": 19.048568,
+          "platformCode": "A",
+          "county": "Budapest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Csillaghegy H",
+      "gtfsId": "1:003609175_A",
+      "index": 9,
+      "originalCoords": [
+        19.045005,
+        47.58611
+      ],
+      "distanceAlongRoute": 0.0852689027807562,
+      "stopTimeInfo": {
+        "stopPosition": 10,
+        "scheduledArrival": 1860,
+        "realtimeArrival": 3660,
+        "scheduledDeparture": 1860,
+        "realtimeDeparture": 3660,
+        "stop": {
+          "gtfsId": "1:003609175_A",
+          "stationUicPricingCode": "003609175",
+          "name": "Csillaghegy H",
+          "lat": 47.58611,
+          "lon": 19.045005,
+          "platformCode": "A",
+          "county": "Budapest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Békásmegyer H",
+      "gtfsId": "1:003609183_1",
+      "index": 10,
+      "originalCoords": [
+        19.054599,
+        47.598091
+      ],
+      "distanceAlongRoute": 0.10068955434713862,
+      "stopTimeInfo": {
+        "stopPosition": 11,
+        "scheduledArrival": 2040,
+        "realtimeArrival": 3840,
+        "scheduledDeparture": 2100,
+        "realtimeDeparture": 3900,
+        "stop": {
+          "gtfsId": "1:003609183_1",
+          "stationUicPricingCode": "003609183",
+          "name": "Békásmegyer H",
+          "lat": 47.598091,
+          "lon": 19.054599,
+          "platformCode": "1",
+          "county": "Budapest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Budakalász H",
+      "gtfsId": "1:003609126_3",
+      "index": 11,
+      "originalCoords": [
+        19.05492,
+        47.616165
+      ],
+      "distanceAlongRoute": 0.12108671013514458,
+      "stopTimeInfo": {
+        "stopPosition": 12,
+        "scheduledArrival": 2280,
+        "realtimeArrival": 4080,
+        "scheduledDeparture": 2280,
+        "realtimeDeparture": 4080,
+        "stop": {
+          "gtfsId": "1:003609126_3",
+          "stationUicPricingCode": "003609126",
+          "name": "Budakalász H",
+          "lat": 47.616165,
+          "lon": 19.05492,
+          "platformCode": "3",
+          "county": "Pest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Budakalász, Lenfonó H",
+      "gtfsId": "1:003609191_A",
+      "index": 12,
+      "originalCoords": [
+        19.046752,
+        47.621778
+      ],
+      "distanceAlongRoute": 0.1310178801363637,
+      "stopTimeInfo": {
+        "stopPosition": 13,
+        "scheduledArrival": 2400,
+        "realtimeArrival": 4200,
+        "scheduledDeparture": 2400,
+        "realtimeDeparture": 4200,
+        "stop": {
+          "gtfsId": "1:003609191_A",
+          "stationUicPricingCode": "003609191",
+          "name": "Budakalász, Lenfonó H",
+          "lat": 47.621778,
+          "lon": 19.046752,
+          "platformCode": "A",
+          "county": "Pest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Szentistvántelep H",
+      "gtfsId": "1:003609209_A",
+      "index": 13,
+      "originalCoords": [
+        19.043159,
+        47.629301
+      ],
+      "distanceAlongRoute": 0.13944041707123733,
+      "stopTimeInfo": {
+        "stopPosition": 14,
+        "scheduledArrival": 2520,
+        "realtimeArrival": 4320,
+        "scheduledDeparture": 2520,
+        "realtimeDeparture": 4320,
+        "stop": {
+          "gtfsId": "1:003609209_A",
+          "stationUicPricingCode": "003609209",
+          "name": "Szentistvántelep H",
+          "lat": 47.629301,
+          "lon": 19.043159,
+          "platformCode": "A",
+          "county": "Pest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Pomáz H",
+      "gtfsId": "1:003609134_3",
+      "index": 14,
+      "originalCoords": [
+        19.032032,
+        47.643188
+      ],
+      "distanceAlongRoute": 0.15785560758991388,
+      "stopTimeInfo": {
+        "stopPosition": 15,
+        "scheduledArrival": 2640,
+        "realtimeArrival": 4440,
+        "scheduledDeparture": 2700,
+        "realtimeDeparture": 4500,
+        "stop": {
+          "gtfsId": "1:003609134_3",
+          "stationUicPricingCode": "003609134",
+          "name": "Pomáz H",
+          "lat": 47.643188,
+          "lon": 19.032032,
+          "platformCode": "3",
+          "county": "Pest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Pannóniatelep H",
+      "gtfsId": "1:003609217_A",
+      "index": 15,
+      "originalCoords": [
+        19.064901,
+        47.652191
+      ],
+      "distanceAlongRoute": 0.19693102980995592,
+      "stopTimeInfo": {
+        "stopPosition": 16,
+        "scheduledArrival": 2940,
+        "realtimeArrival": 4740,
+        "scheduledDeparture": 2940,
+        "realtimeDeparture": 4740,
+        "stop": {
+          "gtfsId": "1:003609217_A",
+          "stationUicPricingCode": "003609217",
+          "name": "Pannóniatelep H",
+          "lat": 47.652191,
+          "lon": 19.064901,
+          "platformCode": "A",
+          "county": "Pest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Szentendre H",
+      "gtfsId": "1:003609142_3",
+      "index": 16,
+      "originalCoords": [
+        19.075607,
+        47.661038
+      ],
+      "distanceAlongRoute": 0.2107067632323983,
+      "stopTimeInfo": {
+        "stopPosition": 17,
+        "scheduledArrival": 3120,
+        "realtimeArrival": 4920,
+        "scheduledDeparture": 3120,
+        "realtimeDeparture": 4920,
+        "stop": {
+          "gtfsId": "1:003609142_3",
+          "stationUicPricingCode": "003609142",
+          "name": "Szentendre H",
+          "lat": 47.661038,
+          "lon": 19.075607,
+          "platformCode": "3",
+          "county": "Pest"
+        }
+      },
+      "predictedDelay": 127
+    }
+  ],
+  "vehicleProgress": {
+    "lastStop": "Pannóniatelep H",
+    "nextStop": "Szentendre H",
+    "lastStopIndex": 15,
+    "nextStopIndex": 16,
+    "progress": 0.7779831247613694
+  }
+}

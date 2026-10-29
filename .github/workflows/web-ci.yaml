@@ -47,3 +47,56 @@ jobs:
       - name: Check and test
         # The mobile app has its own workflow (mobile-ci.yaml) on a newer Node.
         run: pnpm turbo check test --filter=!@megisholavonat/api --filter=!@megisholavonat/mobile
+
+  e2e:
+    name: End-to-end (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Read the Playwright version
+        id: playwright
+        run: echo "version=$(pnpm --filter @megisholavonat/web exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+
+      - name: Cache the Playwright browser
+        id: browser-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}-chromium
+
+      - name: Install Chromium
+        if: steps.browser-cache.outputs.cache-hit != 'true'
+        run: pnpm --filter @megisholavonat/web exec playwright install --with-deps chromium
+
+      - name: Install Chromium's system libraries
+        if: steps.browser-cache.outputs.cache-hit == 'true'
+        run: pnpm --filter @megisholavonat/web exec playwright install-deps chromium
+
+      - name: Build and run the e2e suite
+        run: pnpm turbo e2e --filter=@megisholavonat/web
+
+      - name: Upload the report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            apps/web/e2e/report
+            apps/web/e2e/test-results
+          retention-days: 7

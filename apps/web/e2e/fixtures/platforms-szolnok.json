@@ -1,0 +1,92 @@
+{
+  "stationId": "005513748",
+  "stationName": "Szolnok",
+  "window": {
+    "start": "2026-09-30",
+    "end": "2026-10-29",
+    "days": 30
+  },
+  "predictions": [
+    {
+      "trainNumber": "8",
+      "tripShortName": "8 RUTHENIA gyorsvonat",
+      "routeShortName": "<span class=\"MNR2007\">&#473;</span>",
+      "lineName": "Gy",
+      "platform": "10",
+      "confidence": 1,
+      "n": 1
+    },
+    {
+      "trainNumber": "347",
+      "tripShortName": "347 DACIA - RUTHENIA EuroCity",
+      "routeShortName": "<span class=\"MNR2007\">&#467;</span>",
+      "lineName": "EC",
+      "platform": "10",
+      "confidence": 1,
+      "n": 1
+    },
+    {
+      "trainNumber": "586",
+      "tripShortName": "586 TOKAJ InterCity",
+      "routeShortName": "<span class=\"MNR2007\">&#474;</span>",
+      "lineName": "IC",
+      "platform": "8",
+      "confidence": 1,
+      "n": 1
+    },
+    {
+      "trainNumber": "2648",
+      "tripShortName": "2648 személyvonat",
+      "routeShortName": "<span class=\"MNR2007\">&#360;</span>",
+      "lineName": "S50",
+      "platform": "8",
+      "confidence": 1,
+      "n": 1
+    },
+    {
+      "trainNumber": "3361",
+      "tripShortName": "3361 személyvonat",
+      "routeShortName": "<span class=\"MNR2007\">&#484;</span>",
+      "lineName": "Sz",
+      "platform": "3",
+      "confidence": 1,
+      "n": 1
+    },
+    {
+      "trainNumber": "5751",
+      "tripShortName": "5751 személyvonat",
+      "routeShortName": "<span class=\"MNR2007\">&#379;</span>",
+      "lineName": "S820",
+      "platform": "11",
+      "confidence": 1,
+      "n": 1
+    },
+    {
+      "trainNumber": "6088",
+      "tripShortName": "6088 CÍVIS InterRégió",
+      "routeShortName": "<span class=\"MNR2007\">&#477;</span>",
+      "lineName": "IR",
+      "platform": "4",
+      "confidence": 1,
+      "n": 1
+    },
+    {
+      "trainNumber": "6098",
+      "tripShortName": "6098 CÍVIS InterRégió",
+      "routeShortName": "<span class=\"MNR2007\">&#477;</span>",
+      "lineName": "IR",
+      "platform": "4",
+      "confidence": 1,
+      "n": 1
+    },
+    {
+      "trainNumber": "35721",
+      "tripShortName": "35721 személyvonat",
+      "routeShortName": "<span class=\"MNR2007\">&#484;</span>",
+      "lineName": "Sz",
+      "platform": "3",
+      "confidence": 1,
+      "n": 1
+    }
+  ]
+}
