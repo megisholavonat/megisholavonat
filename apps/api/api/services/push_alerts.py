@@ -61,7 +61,7 @@ from api.models.devices import Device, Follow, NotificationState, PushToken
 from api.schemas.insights import StationPlatforms
 from api.services import insights
 from api.services.commute import resolve_commute_trip
-from api.services.devices import device_key
+from api.services.devices import RECEIPTS_KEY, device_key
 from api.services.history import MAX_OFF_ROUTE_M, passed_stop_index
 from api.services.push_copy import (
     Alert,
@@ -113,9 +113,10 @@ def receipts_key() -> str:
     """
     Sorted set of pending Expo tickets, `<ticket id>|<push token id>`.
     Deliberately one global key rather than per device (`device_key`): it
-    holds only ticket and token ids, and entries are dropped within a day.
+    holds only ticket and token ids, and entries are dropped within a day
+    (or when the device is erased).
     """
-    return add_key("push:expo-receipts")
+    return add_key(RECEIPTS_KEY)
 
 
 def live_activity_key(device_id: uuid.UUID, token_id: uuid.UUID) -> str:

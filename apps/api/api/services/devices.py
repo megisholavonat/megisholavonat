@@ -6,7 +6,7 @@ from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 from redis.asyncio import Redis
-from sqlalchemy import delete
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.core.config import settings
@@ -22,6 +22,8 @@ TRIP_FOLLOW_KEEP_DAYS = 2
 NOTIFICATION_STATE_KEEP_DAYS = 2
 # A Live Activity runs for at most 8 hours, then lingers up to 4 more
 LIVE_ACTIVITY_TOKEN_MAX_AGE = timedelta(hours=12)
+# Sorted set of pending Expo tickets, `<ticket id>|<push token id>`
+RECEIPTS_KEY = "push:expo-receipts"
 
 
 def device_key(device_id: uuid.UUID, suffix: str) -> str:
@@ -45,10 +47,31 @@ async def erase_device(
     session: AsyncSession, redis: Redis, device_id: uuid.UUID
 ) -> None:
     """Delete a device and everything about it (GDPR erasure). Commits."""
-    # Follows and their notification state go with it (ON DELETE CASCADE)
+    token_ids = {
+        str(t)
+        for t in await session.scalars(
+            select(PushToken.id).where(PushToken.device_id == device_id)
+        )
+    }
+    # Follows, push tokens and alert state go with it (ON DELETE CASCADE)
     await session.execute(delete(Device).where(Device.id == device_id))
     await session.commit()
     await delete_device_keys(redis, [device_id])
+    await drop_receipts(redis, token_ids)
+
+
+async def drop_receipts(redis: Redis, token_ids: set[str]) -> None:
+    """Pending Expo tickets of these push tokens (the receipts sorted set)."""
+    if not token_ids:
+        return
+    key = add_key(RECEIPTS_KEY)
+    stale = [
+        member
+        async for member, _ in redis.zscan_iter(key)
+        if member.partition("|")[2] in token_ids
+    ]
+    if stale:
+        await redis.zrem(key, *stale)
 
 
 async def run_housekeeping(
