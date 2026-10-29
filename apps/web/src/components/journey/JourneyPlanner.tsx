@@ -866,7 +866,7 @@ function RideBlock({
                         className="-mx-1.5 flex min-w-0 cursor-pointer items-center gap-1.5 rounded-sm px-1.5 py-0.5 hover:bg-surface-2"
                     >
                         {train}
-                        <span className="size-1.5 shrink-0 animate-pulse rounded-full bg-delay-on-time-fill" />
+                        <span className="size-1.5 shrink-0 motion-safe:animate-pulse rounded-full bg-delay-on-time-fill" />
                     </button>
                 ) : (
                     <span className="flex min-w-0 items-center gap-1.5">

@@ -79,7 +79,7 @@ export function TrainPanel({
                         {next ? (
                             <NextStopLine stop={next} stale={shown.stale} />
                         ) : (
-                            <span className="h-5 w-40 animate-pulse rounded-sm bg-surface-2" />
+                            <span className="h-5 w-40 motion-safe:animate-pulse rounded-sm bg-surface-2" />
                         )}
                         {view?.usuallyLate && (
                             <span className="text-caption text-delay-slight">
