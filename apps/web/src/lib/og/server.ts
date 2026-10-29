@@ -1,4 +1,5 @@
 import type {
+    RunSummary,
     StationBoard,
     VehiclePositionWithDelay,
 } from "@megisholavonat/api-client";
@@ -70,4 +71,30 @@ export function fetchBoard(stationId: string): Promise<StationBoard | null> {
     return getJson(
         `/v1/stations/${encodeURIComponent(stationId)}/departures?kind=departures&limit=4`,
     );
+}
+
+/**
+ * One run of a train (validated number and date), for its delay card: null
+ * when the API has no such run, undefined when it could not be asked.
+ */
+export async function fetchRun(
+    number: string,
+    date: string,
+    from?: string | null,
+): Promise<RunSummary | null | undefined> {
+    const query = from ? `?from=${encodeURIComponent(from)}` : "";
+    try {
+        const response = await fetch(
+            `${apiUrl()}/v1/history/runs/${encodeURIComponent(number)}/${date}${query}`,
+            {
+                next: { revalidate: PREVIEW_MAX_AGE },
+                signal: AbortSignal.timeout(6000),
+            },
+        );
+        if (response.status === 404 || response.status === 422) return null;
+        if (!response.ok) return undefined;
+        return (await response.json()) as RunSummary;
+    } catch {
+        return undefined;
+    }
 }

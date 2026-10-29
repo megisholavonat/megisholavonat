@@ -1126,6 +1126,86 @@
         }
       }
     },
+    "/v1/history/runs/{trainNumber}/{serviceDate}": {
+      "get": {
+        "tags": [
+          "history"
+        ],
+        "summary": "Get Run Summary",
+        "description": "One run of a train: its recorded delay at each stop, for sharing",
+        "operationId": "getRunSummary",
+        "parameters": [
+          {
+            "name": "trainNumber",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9A-Za-z]{1,12}$",
+              "description": "e.g. 10 for 10 TRANSCARPATHIA",
+              "title": "Trainnumber"
+            },
+            "description": "e.g. 10 for 10 TRANSCARPATHIA"
+          },
+          {
+            "name": "serviceDate",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "description": "The day the run's stoptimes count from: the date it leaves its origin",
+              "title": "Servicedate"
+            },
+            "description": "The day the run's stoptimes count from: the date it leaves its origin"
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[0-9]{1,12}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "UIC code of the boarding station; finds a run leaving it after midnight by the date of boarding",
+              "title": "From"
+            },
+            "description": "UIC code of the boarding station; finds a run leaving it after midnight by the date of boarding"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunSummary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such run on record"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/rankings": {
       "get": {
         "tags": [
@@ -3021,6 +3101,143 @@
         ],
         "title": "Route",
         "description": "Route information"
+      },
+      "RunStop": {
+        "properties": {
+          "stationId": {
+            "type": "string",
+            "title": "Stationid"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "scheduledArrivalS": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scheduledarrivals"
+          },
+          "scheduledDepartureS": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scheduleddepartures"
+          },
+          "delayMin": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delaymin"
+          },
+          "cancelled": {
+            "type": "boolean",
+            "title": "Cancelled",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "stationId",
+          "name"
+        ],
+        "title": "RunStop",
+        "description": "A stop of the run, with our GPS-derived delay where it was recorded"
+      },
+      "RunSummary": {
+        "properties": {
+          "trainNumber": {
+            "type": "string",
+            "title": "Trainnumber"
+          },
+          "tripShortName": {
+            "type": "string",
+            "title": "Tripshortname"
+          },
+          "routeShortName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Routeshortname"
+          },
+          "lineName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linename"
+          },
+          "serviceDate": {
+            "type": "string",
+            "format": "date",
+            "title": "Servicedate"
+          },
+          "stops": {
+            "items": {
+              "$ref": "#/components/schemas/RunStop"
+            },
+            "type": "array",
+            "title": "Stops"
+          },
+          "complete": {
+            "type": "boolean",
+            "title": "Complete"
+          },
+          "cancelled": {
+            "type": "boolean",
+            "title": "Cancelled"
+          },
+          "finished": {
+            "type": "boolean",
+            "title": "Finished"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DelayReason"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "trainNumber",
+          "tripShortName",
+          "serviceDate",
+          "stops",
+          "complete",
+          "cancelled",
+          "finished"
+        ],
+        "title": "RunSummary",
+        "description": "One run of a train on one service date, from the delay history (and the\ntimetable for the stops the recorder did not see)"
       },
       "Station": {
         "properties": {

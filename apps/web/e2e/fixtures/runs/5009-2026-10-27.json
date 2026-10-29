@@ -1,0 +1,192 @@
+{
+  "trainNumber": "5009",
+  "tripShortName": "5009 sebesvonat",
+  "routeShortName": "<span class=\"MNR2007\">&#482;</span>",
+  "lineName": "S",
+  "serviceDate": "2026-10-27",
+  "stops": [
+    {
+      "stationId": "005511387",
+      "name": "Miskolc-Tiszai",
+      "scheduledArrivalS": 12300,
+      "scheduledDepartureS": 12300,
+      "delayMin": 1.7,
+      "cancelled": false
+    },
+    {
+      "stationId": "005511361",
+      "name": "Nyékládháza",
+      "scheduledArrivalS": 12840,
+      "scheduledDepartureS": 12900,
+      "delayMin": 3.6,
+      "cancelled": false
+    },
+    {
+      "stationId": "005511353",
+      "name": "Emőd",
+      "scheduledArrivalS": 13200,
+      "scheduledDepartureS": 13260,
+      "delayMin": 4.6,
+      "cancelled": false
+    },
+    {
+      "stationId": "005511346",
+      "name": "Csincse",
+      "scheduledArrivalS": 13560,
+      "scheduledDepartureS": 13560,
+      "delayMin": 5.3,
+      "cancelled": false
+    },
+    {
+      "stationId": "005511338",
+      "name": "Mezőkeresztes-Mezőnyárád",
+      "scheduledArrivalS": 13920,
+      "scheduledDepartureS": 13980,
+      "delayMin": 7.0,
+      "cancelled": false
+    },
+    {
+      "stationId": "005511320",
+      "name": "Mezőkövesd felső",
+      "scheduledArrivalS": 14280,
+      "scheduledDepartureS": 14280,
+      "delayMin": 8.8,
+      "cancelled": false
+    },
+    {
+      "stationId": "005511312",
+      "name": "Mezőkövesd",
+      "scheduledArrivalS": 14400,
+      "scheduledDepartureS": 14460,
+      "delayMin": 10.2,
+      "cancelled": false
+    },
+    {
+      "stationId": "005511304",
+      "name": "Szihalom",
+      "scheduledArrivalS": 14820,
+      "scheduledDepartureS": 14820,
+      "delayMin": 11.8,
+      "cancelled": false
+    },
+    {
+      "stationId": "005511296",
+      "name": "Füzesabony",
+      "scheduledArrivalS": 15180,
+      "scheduledDepartureS": 15240,
+      "delayMin": 18.6,
+      "cancelled": false
+    },
+    {
+      "stationId": "005511288",
+      "name": "Kál-Kápolna",
+      "scheduledArrivalS": 15720,
+      "scheduledDepartureS": 15780,
+      "delayMin": 19.4,
+      "cancelled": false
+    },
+    {
+      "stationId": "005511270",
+      "name": "Nagyút",
+      "scheduledArrivalS": 16200,
+      "scheduledDepartureS": 16260,
+      "delayMin": 22.6,
+      "cancelled": false
+    },
+    {
+      "stationId": "005511262",
+      "name": "Ludas",
+      "scheduledArrivalS": 16500,
+      "scheduledDepartureS": 16560,
+      "delayMin": 23.0,
+      "cancelled": false
+    },
+    {
+      "stationId": "005511254",
+      "name": "Karácsond",
+      "scheduledArrivalS": 16740,
+      "scheduledDepartureS": 16740,
+      "delayMin": 23.8,
+      "cancelled": false
+    },
+    {
+      "stationId": "005511247",
+      "name": "Adács",
+      "scheduledArrivalS": 17040,
+      "scheduledDepartureS": 17040,
+      "delayMin": 25.6,
+      "cancelled": false
+    },
+    {
+      "stationId": "005511239",
+      "name": "Vámosgyörk",
+      "scheduledArrivalS": 17340,
+      "scheduledDepartureS": 17400,
+      "delayMin": 25.3,
+      "cancelled": false
+    },
+    {
+      "stationId": "005511205",
+      "name": "Hatvan",
+      "scheduledArrivalS": 18240,
+      "scheduledDepartureS": 18660,
+      "delayMin": 22.9,
+      "cancelled": false
+    },
+    {
+      "stationId": "005511197",
+      "name": "Tura",
+      "scheduledArrivalS": 19020,
+      "scheduledDepartureS": 19020,
+      "delayMin": 25.6,
+      "cancelled": false
+    },
+    {
+      "stationId": "005511163",
+      "name": "Aszód",
+      "scheduledArrivalS": 19320,
+      "scheduledDepartureS": 19380,
+      "delayMin": 25.9,
+      "cancelled": false
+    },
+    {
+      "stationId": "005511155",
+      "name": "Bag",
+      "scheduledArrivalS": 19500,
+      "scheduledDepartureS": 19500,
+      "delayMin": 26.4,
+      "cancelled": false
+    },
+    {
+      "stationId": "005511148",
+      "name": "Máriabesnyő",
+      "scheduledArrivalS": 19920,
+      "scheduledDepartureS": 19920,
+      "delayMin": 28.0,
+      "cancelled": false
+    },
+    {
+      "stationId": "005511130",
+      "name": "Gödöllő",
+      "scheduledArrivalS": 20100,
+      "scheduledDepartureS": 20160,
+      "delayMin": 28.8,
+      "cancelled": false
+    },
+    {
+      "stationId": "005510017",
+      "name": "Budapest-Keleti",
+      "scheduledArrivalS": 21900,
+      "scheduledDepartureS": 21900,
+      "delayMin": null,
+      "cancelled": false
+    }
+  ],
+  "complete": true,
+  "cancelled": false,
+  "finished": true,
+  "reason": {
+    "code": "track",
+    "label": "Pálya állapota"
+  }
+}

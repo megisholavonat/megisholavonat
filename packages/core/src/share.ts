@@ -26,7 +26,7 @@ export function shareUrl(
 const ONES = ["", "es", "es", "as", "es", "ös", "os", "es", "as", "es"];
 const TENS = ["", "es", "as", "as", "es", "es", "as", "es", "as", "es"];
 
-function huSuffix(n: number): string {
+export function huSuffix(n: number): string {
     if (n === 0) return "s";
     if (n % 10 !== 0) return ONES[n % 10] ?? "es";
     if (n % 100 !== 0) return TENS[(n / 10) % 10] ?? "es";
@@ -35,7 +35,7 @@ function huSuffix(n: number): string {
 }
 
 /** Whether the spoken number starts with a vowel (egy, öt, ezer...). */
-function huVowelStart(n: number): boolean {
+export function huVowelStart(n: number): boolean {
     let lead = n;
     while (lead >= 1000) lead = Math.floor(lead / 1000);
     if (n >= 1000 && lead === 1) return true; // ezer

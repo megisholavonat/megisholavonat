@@ -182,5 +182,9 @@
         "sort_delay": "Késés",
         "sort_number": "Szám",
         "empty": "Most nem jár vonat"
+    },
+    "DelayCard": {
+        "share": "Megosztom a késést",
+        "share_so_far": "Késés megosztása eddig"
     }
 }
