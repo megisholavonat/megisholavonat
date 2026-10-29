@@ -8,6 +8,7 @@ import {
     DELAY_REASON_TEXTS,
     normalizeAlertText,
 } from "@megisholavonat/core/delayReasons";
+import type { Locale } from "@megisholavonat/core/i18n";
 import { formatSecondsAsTime } from "@megisholavonat/core/time";
 import {
     formatUICCode,
