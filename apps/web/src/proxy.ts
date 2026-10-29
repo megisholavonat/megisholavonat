@@ -18,6 +18,8 @@ export default function proxy(request: NextRequest): NextResponse {
     return intl(new NextRequest(request, { headers }));
 }
 
+// Never /.well-known/: the app link files must come back as they are, not
+// redirected to a locale
 export const config = {
-    matcher: "/((?!api|_next|relay-OfoJ|.*\\..*).*)",
+    matcher: "/((?!api|_next|relay-OfoJ|\\.well-known|.*\\..*).*)",
 };

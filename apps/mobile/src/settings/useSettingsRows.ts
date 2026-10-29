@@ -1,7 +1,7 @@
 import type { Locale } from "@megisholavonat/core/i18n";
 import * as WebBrowser from "expo-web-browser";
-import { useTranslations } from "use-intl";
-import { SOURCE_URL } from "../config";
+import { useLocale, useTranslations } from "use-intl";
+import { SOURCE_URL, WEB_URL } from "../config";
 import { useSettings } from "./SettingsProvider";
 import type { LanguagePreference, ThemePreference } from "./settings";
 
@@ -18,6 +18,7 @@ const LANGUAGE_NAMES: Record<Locale, string> = {
 export function useSettingsRows() {
     const t = useTranslations("Settings");
     const { settings, update } = useSettings();
+    const locale = useLocale();
 
     const languages: { value: string; label: string }[] = [
         { value: "system", label: t("system") },
@@ -51,5 +52,7 @@ export function useSettingsRows() {
         openMapData: () => WebBrowser.openBrowserAsync(OSM_COPYRIGHT),
         openRailwayData: () => WebBrowser.openBrowserAsync(ORM_COPYRIGHT),
         openSource: () => WebBrowser.openBrowserAsync(SOURCE_URL),
+        openPrivacy: () =>
+            WebBrowser.openBrowserAsync(`${WEB_URL}/${locale}/privacy`),
     };
 }
