@@ -31,17 +31,16 @@ test("P3: an early train shows a signed number", async ({ page }) => {
 });
 
 test("P4: a stale train marks its delay as uncertain", async ({ page }) => {
-    knownGap("P4: on-time delays drop the stale '?'");
     const region = await openTrain(page, "stale", "peek");
     await expect(delayNumber(region)).toHaveText(/\?/);
 });
 
 test("P4: an inactive HÉV does not show a live delay", async ({ page }) => {
-    knownGap("P4: the sheet ignores the feed's inactive flag");
     const region = await openTrain(page, "hev", "peek");
     await expect(region).toContainText("H8000");
-    // The feed calls it stale or inactive: no solid "+127"
-    await expect(delayNumber(region)).not.toHaveText(/^\s*\+\s?127\s*$/);
+    // Standing at its terminus: no delay at all, the tile shows "–"
+    await expect(region.getByText("–", { exact: true }).first()).toBeVisible();
+    await expect(region.getByText(/\+\s?127/)).toHaveCount(0);
 });
 
 test("P1: the delay reason says it is the cause of the delay", async ({

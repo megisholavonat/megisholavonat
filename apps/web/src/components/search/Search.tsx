@@ -20,7 +20,7 @@ import {
     useRef,
     useState,
 } from "react";
-import { DelayChip } from "@/components/ui/Delay";
+import { TrainDelay } from "@/components/ui/Delay";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
 import { trainName, trainNumber } from "@/lib/train";
 import { cn } from "@/lib/utils";
@@ -238,7 +238,7 @@ function ResultRow({
                     </span>
                 )}
             </span>
-            <DelayChip delay={train.delay} stale={!!train.isStale} />
+            <TrainDelay train={train} chip />
         </button>
     );
 }

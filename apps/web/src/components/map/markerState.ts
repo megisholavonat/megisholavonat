@@ -1,17 +1,15 @@
-import type { TrainFeatureProperties } from "@megisholavonat/api-client";
+import { STALE_HIDE_AFTER_S } from "@megisholavonat/core/constants";
 import {
-    STALE_GREY_AFTER_S,
-    STALE_HIDE_AFTER_S,
-} from "@megisholavonat/core/constants";
-import { getDelayLevel } from "@megisholavonat/core/delay";
-import { MARKER } from "@megisholavonat/core/tokens";
+    type TrainDisplayInput,
+    trainDisplay,
+} from "@megisholavonat/core/display";
 import type { MarkerLevel } from "./markerImages";
 
 /**
  * - live: running, with a delay
  * - stale: no position update for over 5 min; hollow, dashed, "6′"
- * - inactive: waiting to depart, arrived or off its route; a grey dot with
- *   no delay, since ours only means something on the way
+ * - inactive: waiting to depart, arrived, off its route or cancelled; a grey
+ *   dot with no delay, since ours only means something on the way
  * - hidden: no update for over 30 min
  */
 export type MarkerState = "live" | "stale" | "inactive" | "hidden";
@@ -21,50 +19,30 @@ export interface MarkerDisplay {
     level: MarkerLevel;
     /** "+7", the data's age "6′", or nothing */
     label: string;
+    /** The delay the train sheet shows too, or null for none */
+    delay: number | null;
     minutesSinceUpdate: number;
 }
 
 /**
- * How a train looks on the map. The one place that reads the feed's state:
- * today's `isStale` is "no update for 5 min OR not running its trip", so a
- * fresh `lastUpdated` tells an inactive train from a stale one. Swap this for
- * the API's explicit state when it lands.
+ * How a train looks on the map: core's trainDisplay, the same delay and
+ * state as its sheet, mapped onto the marker's shapes.
  */
 export function markerDisplay(
-    props: Pick<TrainFeatureProperties, "isStale" | "lastUpdated" | "delay">,
+    props: TrainDisplayInput,
     nowS: number,
 ): MarkerDisplay {
-    const age = Math.max(0, nowS - props.lastUpdated);
-    const minutesSinceUpdate = Math.floor(age / 60);
-    if (age > STALE_HIDE_AFTER_S) {
-        return {
-            state: "hidden",
-            level: "stale",
-            label: "",
-            minutesSinceUpdate,
-        };
+    const display = trainDisplay(props, new Date(nowS * 1000));
+    const { label, delay, minutesSinceUpdate } = display;
+    const base = { label, delay, minutesSinceUpdate };
+    if (nowS - props.lastUpdated > STALE_HIDE_AFTER_S) {
+        return { ...base, state: "hidden", level: "stale", label: "" };
     }
-    if (age > STALE_GREY_AFTER_S) {
-        return {
-            state: "stale",
-            level: "stale",
-            label: MARKER.label.stale(minutesSinceUpdate),
-            minutesSinceUpdate,
-        };
+    if (display.state === "running") {
+        return { ...base, state: "live", level: display.level };
     }
-    if (props.isStale) {
-        return {
-            state: "inactive",
-            level: "inactive",
-            label: "",
-            minutesSinceUpdate,
-        };
+    if (display.outdated) {
+        return { ...base, state: "stale", level: "stale" };
     }
-    const level = getDelayLevel(props.delay);
-    return {
-        state: "live",
-        level,
-        label: level === "onTime" ? "" : MARKER.label.delayed(props.delay),
-        minutesSinceUpdate,
-    };
+    return { ...base, state: "inactive", level: "inactive" };
 }

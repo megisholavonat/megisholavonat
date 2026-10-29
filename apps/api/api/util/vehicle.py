@@ -1,6 +1,6 @@
 import math
 import time
-from typing import Any
+from typing import Any, Literal
 
 import polyline  # type: ignore[import-untyped]
 from shapely.geometry import LineString, Point
@@ -8,8 +8,9 @@ from shapely.geometry import LineString, Point
 from api.util.trip import seconds_into_service_day
 
 # The rules below are a port of packages/core/src/vehicle.ts (isStale,
-# isActive, isFarFromRoute). Keep both in sync: the map colours trains by the
-# server-computed flag, the train panel by the client-side functions. Both read
+# trainActivity, isFarFromRoute). Keep both in sync. The API sends `activity`
+# with every train; clients combine it with the age of the position through
+# core's trainDisplay, so the map and the train sheet agree. Both read
 # the clock through the service-date resolution in api/util/trip.py, ported
 # to packages/core/src/time.ts as `secondsIntoServiceDay`.
 
@@ -24,6 +25,14 @@ FAR_FROM_ROUTE_KM = 2
 NEAR_STATION_M = 1000
 # Long routes are sampled down to about this many points
 MAX_ROUTE_POINTS = 1000
+# Faster than this (m/s, about 7 km/h) near its terminus a train still runs
+MOVING_MPS = 2.0
+
+# What the train is doing, by its position and schedule. Only "running"
+# trains show a live delay. Mirrors core's TrainActivity.
+TrainActivity = Literal[
+    "running", "beforeDeparture", "arrived", "offRoute", "cancelled"
+]
 
 # Earth radius used by turf.distance
 _EARTH_RADIUS_M = 6_371_008.8
@@ -122,21 +131,36 @@ def is_far_from_route(vehicle_position: dict[str, Any]) -> bool:
     return distance_m > FAR_FROM_ROUTE_KM * 1000
 
 
-def is_active(vehicle_position: dict[str, Any], now: float | None = None) -> bool:
+def _remaining_cancelled(vehicle_position: dict[str, Any]) -> bool:
+    """Every stop from the next one on is cancelled."""
+    stops = (vehicle_position.get("trip") or {}).get("stoptimes") or []
+    progress = vehicle_position.get("vehicleProgress") or {}
+    next_index = progress.get("nextStopIndex") or 0
+    ahead = stops[next_index:] or stops[-1:]
+    return bool(ahead) and all(s.get("realtimeState") == "CANCELED" for s in ahead)
+
+
+def activity(
+    vehicle_position: dict[str, Any], now: float | None = None
+) -> TrainActivity:
     """
-    Whether the train is actually running its trip: not far off its route, not
-    waiting at its origin before departure, and not at its destination.
-    Mirrors core's `isActive`; `now` replaces the client's wall clock.
+    Whether the train is actually running its trip: not cancelled, not far off
+    its route, not waiting at its origin before departure, and not standing at
+    its destination. Mirrors core's `trainActivity`; `now` replaces the
+    client's wall clock.
     """
     if now is None:
         now = time.time()
     trip = vehicle_position.get("trip") or {}
     stops = trip.get("stoptimes") or []
     if not stops:
-        return True
+        return "running"
+
+    if _remaining_cancelled(vehicle_position):
+        return "cancelled"
 
     if is_far_from_route(vehicle_position):
-        return False
+        return "offRoute"
 
     lat: float = vehicle_position.get("lat", 0.0)
     lon: float = vehicle_position.get("lon", 0.0)
@@ -154,14 +178,25 @@ def is_active(vehicle_position: dict[str, Any], now: float | None = None) -> boo
         if departure is None:
             departure = first_stop.get("scheduledDeparture")
         if departure is not None and current_time < departure:
-            return False  # At the departure station but not left yet
+            return "beforeDeparture"  # At the departure station but not left yet
 
+    # Near the destination and no longer moving. A train still pulling in at
+    # speed is running: the last kilometre takes a minute or two.
     last = stops[-1].get("stop") or {}
-    return not (
-        last.get("lat") is not None
+    moving = (vehicle_position.get("speed") or 0) > MOVING_MPS
+    if (
+        not moving
+        and last.get("lat") is not None
         and last.get("lon") is not None
         and _distance_m(lat, lon, last["lat"], last["lon"]) <= NEAR_STATION_M
-    )  # Near or at the destination
+    ):
+        return "arrived"
+    return "running"
+
+
+def is_active(vehicle_position: dict[str, Any], now: float | None = None) -> bool:
+    """Running its trip (see `activity`). Mirrors core's `isActive`."""
+    return activity(vehicle_position, now) == "running"
 
 
 def is_stale_or_inactive(
