@@ -19,6 +19,7 @@ import { AppThemeProvider, useAppTheme } from "../theme/ThemeProvider";
 import { MNR2007_FONT } from "../train/RouteIcon";
 import { liquidGlass } from "../ui/platform";
 import { useAnalytics } from "../useAnalytics";
+import "../live/eraseHook";
 
 SplashScreen.preventAutoHideAsync();
 
