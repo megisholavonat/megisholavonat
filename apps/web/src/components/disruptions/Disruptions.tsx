@@ -135,6 +135,31 @@ function LineGlyphs({ disruption }: { disruption: Disruption }) {
     );
 }
 
+/** A web address in MÁV's text ("Részletek: mavinform.hu") */
+const WEB_ADDRESS =
+    /\b((?:https?:\/\/)?(?:www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:hu|eu|com|org|at)(?:\/[^\s),;]*[^\s),;.])?)/gi;
+
+/** MÁV's text with its web addresses as links. */
+export function Linked({ text }: { text: string }) {
+    const parts = text.split(WEB_ADDRESS);
+    return parts.map((part, i) =>
+        i % 2 === 1 ? (
+            <a
+                // biome-ignore lint/suspicious/noArrayIndexKey: parts of one fixed text
+                key={i}
+                href={/^https?:/i.test(part) ? part : `https://${part}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-ink underline underline-offset-2"
+            >
+                {part}
+            </a>
+        ) : (
+            part
+        ),
+    );
+}
+
 /** MÁV's text, the other notices of the event and the source link. */
 function FullText({ disruption }: { disruption: Disruption }) {
     const t = useTranslations("Disruptions");
@@ -143,7 +168,7 @@ function FullText({ disruption }: { disruption: Disruption }) {
         <div className="flex flex-col gap-2 text-sm">
             {[disruption.description, ...disruption.details].map((text) => (
                 <p key={text} className="whitespace-pre-line text-ink-2">
-                    {text.replace(/\n{2,}/g, "\n").trim()}
+                    <Linked text={text.replace(/\n{2,}/g, "\n").trim()} />
                 </p>
             ))}
             <a
@@ -211,8 +236,16 @@ export function DisruptionItem({
                     )}
                     aria-hidden
                 />
+                {/* The title always sits beside the icon; the lines, the
+                    "yours" badge and the validity follow on one row under
+                    it, so every item has the same left edge */}
                 <span className="flex min-w-0 flex-1 flex-col gap-1">
-                    {(disruption.lines.length > 0 || mine) && (
+                    <span className="text-[15px] leading-5 font-semibold text-ink">
+                        {title(disruption)}
+                    </span>
+                    {(disruption.lines.length > 0 ||
+                        mine ||
+                        meta.length > 0) && (
                         <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
                             <LineGlyphs disruption={disruption} />
                             {mine && (
@@ -220,14 +253,11 @@ export function DisruptionItem({
                                     {t("mine")}
                                 </span>
                             )}
-                        </span>
-                    )}
-                    <span className="text-[15px] leading-5 font-semibold text-ink">
-                        {title(disruption)}
-                    </span>
-                    {meta.length > 0 && (
-                        <span className="tnum text-caption text-ink-2">
-                            {meta.join(" · ")}
+                            {meta.length > 0 && (
+                                <span className="tnum text-caption text-ink-2">
+                                    {meta.join(" · ")}
+                                </span>
+                            )}
                         </span>
                     )}
                 </span>

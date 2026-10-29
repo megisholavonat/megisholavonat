@@ -319,3 +319,33 @@ export function predictedPlatform(
 export function delayLevel(delay: number, stale = false): DelayLevel | "stale" {
     return stale ? "stale" : getDelayLevel(delay);
 }
+
+/** What deciding on "≈" needs of a stop */
+export interface EstimateStop {
+    index: number;
+    passed: boolean;
+    timing: { estimated: boolean };
+}
+
+/**
+ * A stop's time is our estimate ("≈"): ahead and estimated, or ahead of a
+ * train without live data. A departure from the first stop is the
+ * timetable's (or MÁV's) time, and a passed stop's time is actual.
+ */
+export function isEstimate(stop: EstimateStop, stale: boolean): boolean {
+    if (stop.passed) return false;
+    return stop.timing.estimated || (stale && stop.index > 0);
+}
+
+/**
+ * The arrival time shown for a stop. Standing there, the train has arrived:
+ * the arrival is actual (no "≈"), and only the departure is still ahead.
+ */
+export function arrivalIsEstimate(
+    stop: EstimateStop,
+    stale: boolean,
+    standingHere: boolean,
+): boolean {
+    if (standingHere && stop.index > 0) return false;
+    return isEstimate(stop, stale);
+}

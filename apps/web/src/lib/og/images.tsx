@@ -25,6 +25,7 @@ const TEXT = {
         onTime: "pontos",
         waiting: "indulásra vár",
         noData: "nincs friss adat",
+        offRoute: "nincs élő késés",
         next: "Következő megálló",
         departs: "Indul",
         departures: "Indulások",
@@ -40,6 +41,7 @@ const TEXT = {
         onTime: "on time",
         waiting: "waiting to depart",
         noData: "no fresh data",
+        offRoute: "no live delay",
         next: "Next stop",
         departs: "Departs",
         departures: "Departures",
@@ -372,6 +374,7 @@ export function trainImage(card: TrainCard, locale: Locale) {
         waiting: t.waiting,
         cancelled: t.canceled,
         arrived: t.arrived,
+        offRoute: t.offRoute,
         noData: t.noData,
     }[card.status];
     const big = running
