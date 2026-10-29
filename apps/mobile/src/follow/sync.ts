@@ -59,6 +59,11 @@ export async function registerPush(locale: string): Promise<void> {
     }
 }
 
+/** Registers the push token again next time (after data deletion). */
+export function resetPushRegistration(): void {
+    registeredPush = null;
+}
+
 /**
  * The Live Activity the API starts by push before departure (iOS 17.2+),
  * when turned on for the follow; null turns it off.

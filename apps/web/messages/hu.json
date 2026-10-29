@@ -204,7 +204,9 @@
         "contact": "Kapcsolat",
         "punctuality": "Pontosság",
         "license": "Licenc",
-        "open_source": "Az alkalmazás nyílt forráskódú. Hibát, ötletet és segítséget a GitHubon várunk."
+        "open_source": "Az alkalmazás nyílt forráskódú. Hibát, ötletet és segítséget a GitHubon várunk.",
+        "clear_data": "Mentett adatok törlése",
+        "clear_data_confirm": "Törlöd a böngészőben mentett követett vonatokat, legutóbbi állomásokat, beállításokat és a statisztikai hozzájárulásodat?"
     },
     "Consent": {
         "title": "Használati statisztika?",
@@ -309,5 +311,16 @@
         "train_gone": "Ez a vonat már nem közlekedik",
         "station_unknown": "Nincs ilyen állomás",
         "skip_to_search": "Ugrás a keresésre"
+    },
+    "DelayCard": {
+        "title": "Késés-összefoglaló",
+        "share": "Megosztom a késést",
+        "share_so_far": "Késés megosztása eddig",
+        "copied": "Link másolva",
+        "open_map": "Élőben a térképen",
+        "history": "Korábbi menetek",
+        "image_alt": "Késéskártya: {sentence}",
+        "not_found": "Nincs ilyen menet",
+        "not_found_hint": "Ennek a vonatnak ezen a napon nincs mért menete."
     }
 }

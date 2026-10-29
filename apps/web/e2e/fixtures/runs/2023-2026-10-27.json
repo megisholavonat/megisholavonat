@@ -1,0 +1,189 @@
+{
+  "trainNumber": "2023",
+  "tripShortName": "2023 személyvonat",
+  "routeShortName": "<span class=\"MNR2007\">&#365;</span>",
+  "lineName": "S72",
+  "serviceDate": "2026-10-27",
+  "stops": [
+    {
+      "stationId": "005501511",
+      "name": "Esztergom",
+      "scheduledArrivalS": 21360,
+      "scheduledDepartureS": 21360,
+      "delayMin": null,
+      "cancelled": false
+    },
+    {
+      "stationId": "005501503",
+      "name": "Esztergom-Kertváros",
+      "scheduledArrivalS": 21600,
+      "scheduledDepartureS": 21660,
+      "delayMin": null,
+      "cancelled": false
+    },
+    {
+      "stationId": "005501495",
+      "name": "Dorog",
+      "scheduledArrivalS": 21840,
+      "scheduledDepartureS": 21900,
+      "delayMin": null,
+      "cancelled": false
+    },
+    {
+      "stationId": "005501487",
+      "name": "Leányvár",
+      "scheduledArrivalS": 22140,
+      "scheduledDepartureS": 22200,
+      "delayMin": null,
+      "cancelled": false
+    },
+    {
+      "stationId": "005540261",
+      "name": "Piliscsév",
+      "scheduledArrivalS": 22320,
+      "scheduledDepartureS": 22320,
+      "delayMin": null,
+      "cancelled": false
+    },
+    {
+      "stationId": "005501461",
+      "name": "Pilisjászfalu",
+      "scheduledArrivalS": 22500,
+      "scheduledDepartureS": 22560,
+      "delayMin": null,
+      "cancelled": false
+    },
+    {
+      "stationId": "005501457",
+      "name": "Magdolnavölgy",
+      "scheduledArrivalS": 22680,
+      "scheduledDepartureS": 22680,
+      "delayMin": null,
+      "cancelled": false
+    },
+    {
+      "stationId": "005501453",
+      "name": "Piliscsaba",
+      "scheduledArrivalS": 22800,
+      "scheduledDepartureS": 22860,
+      "delayMin": null,
+      "cancelled": false
+    },
+    {
+      "stationId": "005501446",
+      "name": "Klotildliget",
+      "scheduledArrivalS": 22980,
+      "scheduledDepartureS": 22980,
+      "delayMin": null,
+      "cancelled": false
+    },
+    {
+      "stationId": "005546052",
+      "name": "Szabadságliget",
+      "scheduledArrivalS": 23460,
+      "scheduledDepartureS": 23460,
+      "delayMin": null,
+      "cancelled": false
+    },
+    {
+      "stationId": "005501438",
+      "name": "Pilisvörösvár",
+      "scheduledArrivalS": 23580,
+      "scheduledDepartureS": 23640,
+      "delayMin": null,
+      "cancelled": false
+    },
+    {
+      "stationId": "005501433",
+      "name": "Vörösvárbánya",
+      "scheduledArrivalS": 23760,
+      "scheduledDepartureS": 23760,
+      "delayMin": null,
+      "cancelled": false
+    },
+    {
+      "stationId": "005501428",
+      "name": "Szélhegy",
+      "scheduledArrivalS": 23880,
+      "scheduledDepartureS": 23880,
+      "delayMin": null,
+      "cancelled": false
+    },
+    {
+      "stationId": "005501420",
+      "name": "Solymár",
+      "scheduledArrivalS": 24000,
+      "scheduledDepartureS": 24060,
+      "delayMin": null,
+      "cancelled": false
+    },
+    {
+      "stationId": "005501412",
+      "name": "Üröm",
+      "scheduledArrivalS": 24240,
+      "scheduledDepartureS": 24240,
+      "delayMin": null,
+      "cancelled": false
+    },
+    {
+      "stationId": "005501408",
+      "name": "Aranyvölgy",
+      "scheduledArrivalS": 24360,
+      "scheduledDepartureS": 24360,
+      "delayMin": null,
+      "cancelled": false
+    },
+    {
+      "stationId": "005501404",
+      "name": "Óbuda",
+      "scheduledArrivalS": 24420,
+      "scheduledDepartureS": 24480,
+      "delayMin": null,
+      "cancelled": false
+    },
+    {
+      "stationId": "005540253",
+      "name": "Aquincum",
+      "scheduledArrivalS": 24600,
+      "scheduledDepartureS": 24660,
+      "delayMin": null,
+      "cancelled": false
+    },
+    {
+      "stationId": "005510207",
+      "name": "Újpest",
+      "scheduledArrivalS": 24840,
+      "scheduledDepartureS": 24900,
+      "delayMin": null,
+      "cancelled": false
+    },
+    {
+      "stationId": "005510124",
+      "name": "Angyalföld",
+      "scheduledArrivalS": 24960,
+      "scheduledDepartureS": 25020,
+      "delayMin": null,
+      "cancelled": false
+    },
+    {
+      "stationId": "005510082",
+      "name": "Rákosrendező",
+      "scheduledArrivalS": 25260,
+      "scheduledDepartureS": 25320,
+      "delayMin": null,
+      "cancelled": false
+    },
+    {
+      "stationId": "005510033",
+      "name": "Budapest-Nyugati",
+      "scheduledArrivalS": 25680,
+      "scheduledDepartureS": 25680,
+      "delayMin": null,
+      "cancelled": false
+    }
+  ],
+  "complete": true,
+  "cancelled": false,
+  "finished": true,
+  "reason": null
+}

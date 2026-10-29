@@ -4,8 +4,8 @@ import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanst
 import type { AxiosError } from 'axios';
 
 import { client } from '../client.gen';
-import { createFollow, deleteDevice, deleteFollow, deletePushToken, getAlerts, getDevice, getDisruptions, getPosthogKey, getRankings, getRedisStatus, getStationBoard, getStationPlatforms, getTimeOfDayPunctuality, getTrainDetails, getTrainHistory, getTrains, getTrainStationHistory, listFollows, type Options, planJourneys, registerDevice, registerPushToken, root, rotateDeviceToken, searchStations, updateFollow } from '../sdk.gen';
-import type { CreateFollowData, CreateFollowError, CreateFollowResponse, DeleteDeviceData, DeleteDeviceResponse, DeleteFollowData, DeleteFollowError, DeleteFollowResponse, DeletePushTokenData, DeletePushTokenError, DeletePushTokenResponse, GetAlertsData, GetAlertsResponse, GetDeviceData, GetDeviceResponse, GetDisruptionsData, GetDisruptionsResponse, GetPosthogKeyData, GetPosthogKeyResponse, GetRankingsData, GetRankingsError, GetRankingsResponse, GetRedisStatusData, GetRedisStatusResponse, GetStationBoardData, GetStationBoardError, GetStationBoardResponse, GetStationPlatformsData, GetStationPlatformsError, GetStationPlatformsResponse, GetTimeOfDayPunctualityData, GetTimeOfDayPunctualityError, GetTimeOfDayPunctualityResponse, GetTrainDetailsData, GetTrainDetailsError, GetTrainDetailsResponse, GetTrainHistoryData, GetTrainHistoryError, GetTrainHistoryResponse, GetTrainsData, GetTrainsResponse, GetTrainStationHistoryData, GetTrainStationHistoryError, GetTrainStationHistoryResponse, ListFollowsData, ListFollowsResponse, PlanJourneysData, PlanJourneysResponse, RegisterDeviceData, RegisterDeviceError, RegisterDeviceResponse, RegisterPushTokenData, RegisterPushTokenResponse, RootData, RotateDeviceTokenData, RotateDeviceTokenResponse, SearchStationsData, SearchStationsError, SearchStationsResponse, UpdateFollowData, UpdateFollowError, UpdateFollowResponse } from '../types.gen';
+import { createFollow, deleteDevice, deleteFollow, deletePushToken, getAlerts, getDevice, getDisruptions, getPosthogKey, getRankings, getRedisStatus, getRunSummary, getStationBoard, getStationPlatforms, getTimeOfDayPunctuality, getTrainDetails, getTrainHistory, getTrains, getTrainStationHistory, listFollows, type Options, planJourneys, registerDevice, registerPushToken, root, rotateDeviceToken, searchStations, updateFollow } from '../sdk.gen';
+import type { CreateFollowData, CreateFollowError, CreateFollowResponse, DeleteDeviceData, DeleteDeviceResponse, DeleteFollowData, DeleteFollowError, DeleteFollowResponse, DeletePushTokenData, DeletePushTokenError, DeletePushTokenResponse, GetAlertsData, GetAlertsResponse, GetDeviceData, GetDeviceResponse, GetDisruptionsData, GetDisruptionsResponse, GetPosthogKeyData, GetPosthogKeyResponse, GetRankingsData, GetRankingsError, GetRankingsResponse, GetRedisStatusData, GetRedisStatusResponse, GetRunSummaryData, GetRunSummaryError, GetRunSummaryResponse, GetStationBoardData, GetStationBoardError, GetStationBoardResponse, GetStationPlatformsData, GetStationPlatformsError, GetStationPlatformsResponse, GetTimeOfDayPunctualityData, GetTimeOfDayPunctualityError, GetTimeOfDayPunctualityResponse, GetTrainDetailsData, GetTrainDetailsError, GetTrainDetailsResponse, GetTrainHistoryData, GetTrainHistoryError, GetTrainHistoryResponse, GetTrainsData, GetTrainsResponse, GetTrainStationHistoryData, GetTrainStationHistoryError, GetTrainStationHistoryResponse, ListFollowsData, ListFollowsResponse, PlanJourneysData, PlanJourneysResponse, RegisterDeviceData, RegisterDeviceError, RegisterDeviceResponse, RegisterPushTokenData, RegisterPushTokenResponse, RootData, RotateDeviceTokenData, RotateDeviceTokenResponse, SearchStationsData, SearchStationsError, SearchStationsResponse, UpdateFollowData, UpdateFollowError, UpdateFollowResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseURL' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -495,6 +495,26 @@ export const getStationPlatformsOptions = (options: Options<GetStationPlatformsD
         return data;
     },
     queryKey: getStationPlatformsQueryKey(options)
+});
+
+export const getRunSummaryQueryKey = (options: Options<GetRunSummaryData>) => createQueryKey('getRunSummary', options);
+
+/**
+ * Get Run Summary
+ *
+ * One run of a train: its recorded delay at each stop, for sharing
+ */
+export const getRunSummaryOptions = (options: Options<GetRunSummaryData>) => queryOptions<GetRunSummaryResponse, AxiosError<GetRunSummaryError>, GetRunSummaryResponse, ReturnType<typeof getRunSummaryQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getRunSummary({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getRunSummaryQueryKey(options)
 });
 
 export const getRankingsQueryKey = (options?: Options<GetRankingsData>) => createQueryKey('getRankings', options);

@@ -1,14 +1,16 @@
 """Delay history endpoints: typical delays and platform prediction"""
 
+from datetime import date
 from typing import Annotated
 
-from fastapi import APIRouter, Path, Query
+from fastapi import APIRouter, HTTPException, Path, Query
 
 from api.core.cache import cached_model
 from api.core.db import SessionDep
 from api.core.redis import RedisDep
 from api.schemas.insights import StationPlatforms, TrainHistory, TrainStationHistory
-from api.services import insights
+from api.schemas.runs import RunSummary
+from api.services import insights, run_summary
 
 router = APIRouter(prefix="/history", tags=["history"])
 
@@ -76,3 +78,47 @@ async def get_station_platforms(
         CACHE_TTL_S,
         lambda: insights.station_platforms(session, station_id, train_number, days),
     )
+
+
+@router.get(
+    "/runs/{trainNumber}/{serviceDate}",
+    responses={404: {"description": "No such run on record"}},
+)
+async def get_run_summary(
+    train_number: Annotated[
+        str,
+        Path(
+            alias="trainNumber",
+            pattern=r"^[0-9A-Za-z]{1,12}$",
+            description="e.g. 10 for 10 TRANSCARPATHIA",
+        ),
+    ],
+    service_date: Annotated[
+        date,
+        Path(
+            alias="serviceDate",
+            description="The day the run's stoptimes count from: the date it "
+            "leaves its origin",
+        ),
+    ],
+    session: SessionDep,
+    redis: RedisDep,
+    from_station: Annotated[
+        str | None,
+        Query(
+            alias="from",
+            pattern=r"^[0-9]{1,12}$",
+            description="UIC code of the boarding station; finds a run "
+            "leaving it after midnight by the date of boarding",
+        ),
+    ] = None,
+) -> RunSummary:
+    """One run of a train: its recorded delay at each stop, for sharing"""
+    if not run_summary.in_range(service_date):
+        raise HTTPException(status_code=404, detail="Run not found")
+    summary = await run_summary.run_summary(
+        session, redis, train_number, service_date, from_station
+    )
+    if summary is None:
+        raise HTTPException(status_code=404, detail="Run not found")
+    return summary

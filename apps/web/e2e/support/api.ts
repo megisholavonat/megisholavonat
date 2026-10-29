@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { gunzipSync } from "node:zlib";
 import type { Page, Request, Route } from "@playwright/test";
@@ -227,6 +227,15 @@ export async function mockApi(page: Page, baseURL: string) {
         }
         if (path === `/v1/history/stations/${STATIONS.szolnok.id}/platforms`) {
             return json(route, fixture("platforms-szolnok.json"));
+        }
+        const run = path.match(
+            /^\/v1\/history\/runs\/([0-9A-Za-z]+)\/(\d{4}-\d{2}-\d{2})$/,
+        );
+        if (run) {
+            const file = join(FIXTURES, "runs", `${run[1]}-${run[2]}.json`);
+            return existsSync(file)
+                ? json(route, JSON.parse(readFileSync(file, "utf8")))
+                : json(route, { detail: "Run not found" }, 404);
         }
         if (path === "/v1/posthog") return json(route, { key: "phc_e2e" });
         if (path === "/v1/alerts") return json(route, []);
