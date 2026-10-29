@@ -1,7 +1,7 @@
 import type { VehiclePositionWithDelay } from "@megisholavonat/api-client";
 import * as turf from "@turf/turf";
-import { STALE_GREY_AFTER_S } from "./constants";
 import { decodePolyline } from "./polyline";
+import { staleness } from "./stale";
 import { getSecondsSinceDay, secondsIntoServiceDay } from "./time";
 
 // The API ports isStale / isActive / isFarFromRoute to flag stale trains in
@@ -78,10 +78,7 @@ export function isStale(
     vehiclePosition: VehiclePositionWithDelay,
     now: Date = new Date(),
 ): boolean {
-    const secondsSinceUpdate =
-        now.getTime() / 1000 - vehiclePosition.lastUpdated;
-
-    return secondsSinceUpdate > STALE_GREY_AFTER_S;
+    return staleness(vehiclePosition.lastUpdated, now) !== "fresh";
 }
 
 export function dataAppearsFalsified(

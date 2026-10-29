@@ -1,56 +1,58 @@
-import { StyleSheet, Text, View } from "react-native";
+import { type ColorValue, StyleSheet, Text } from "react-native";
 import { routeLabel } from "./labels";
+
+// The only place that knows about the MNR2007 font. It is embedded for now
+// but not licensed for a store release: swapping in our own route badges
+// means replacing this component (and the font registration that uses
+// MNR2007_FONT in the root layout), nothing else.
 
 /** Font family registered with expo-font in the root layout. */
 export const MNR2007_FONT = "MNR2007";
 
+/** MÁV route glyph in the text colour (design: "a glifa a szöveg színét veszi fel"). */
 export function RouteIcon({
     routeShortName,
-    textColor,
+    color,
+    size = 22,
 }: {
     routeShortName?: string | null;
-    /** Route colour from the API, hex without '#'. */
-    textColor?: string | null;
+    color: ColorValue;
+    size?: number;
 }) {
     const label = routeLabel(routeShortName);
     if (!label) return null;
 
-    const color = textColor ? `#${textColor}` : "#000000";
-
+    if (label.kind === "glyph") {
+        return (
+            <Text
+                style={[
+                    styles.glyph,
+                    { color, fontSize: size, lineHeight: size * 1.15 },
+                ]}
+                accessibilityRole="image"
+                accessibilityLabel={label.name ?? undefined}
+                allowFontScaling={false}
+            >
+                {label.glyph}
+            </Text>
+        );
+    }
     return (
-        <View
-            style={styles.badge}
-            accessibilityRole="image"
-            accessibilityLabel={
-                label.kind === "glyph" ? (label.name ?? undefined) : label.text
-            }
+        <Text
+            style={[styles.text, { color, fontSize: size * 0.68 }]}
+            numberOfLines={1}
         >
-            {label.kind === "glyph" ? (
-                <Text style={[styles.glyph, { color }]}>{label.glyph}</Text>
-            ) : (
-                <Text style={[styles.text, { color }]}>{label.text}</Text>
-            )}
-        </View>
+            {label.text}
+        </Text>
     );
 }
 
 const styles = StyleSheet.create({
-    badge: {
-        backgroundColor: "#FFFFFF",
-        borderRadius: 8,
-        minWidth: 48,
-        height: 32,
-        paddingHorizontal: 6,
-        alignItems: "center",
-        justifyContent: "center",
-    },
     glyph: {
         fontFamily: MNR2007_FONT,
-        fontSize: 22,
         includeFontPadding: false,
     },
     text: {
-        fontSize: 15,
-        fontWeight: "700",
+        fontWeight: "800",
     },
 });

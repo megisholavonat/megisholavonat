@@ -8,6 +8,7 @@ import type { ReactNode } from "react";
 import { IntlProvider } from "use-intl";
 import en from "../messages/en.json";
 import hu from "../messages/hu.json";
+import { useSettings } from "./settings/SettingsProvider";
 
 const MESSAGES = { hu, en } satisfies Record<Locale, typeof hu>;
 
@@ -29,8 +30,14 @@ export function useDeviceLocale(): Locale {
     return (match?.languageCode as Locale | undefined) ?? DEFAULT_LOCALE;
 }
 
+/** The language setting, else the device language. */
+export function useAppLocale(): Locale {
+    const device = useDeviceLocale();
+    return useSettings().settings.language ?? device;
+}
+
 export function I18nProvider({ children }: { children: ReactNode }) {
-    const locale = useDeviceLocale();
+    const locale = useAppLocale();
     return (
         <IntlProvider
             locale={locale}
