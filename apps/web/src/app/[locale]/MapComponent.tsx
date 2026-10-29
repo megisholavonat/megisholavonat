@@ -63,6 +63,7 @@ import {
     type Map as MaplibreMap,
     type Marker as MaplibreMarker,
     type Popup as MaplibrePopup,
+    type SymbolLayerSpecification,
     setWorkerUrl,
 } from "maplibre-gl";
 import { useReducedMotion } from "motion/react";
@@ -186,6 +187,55 @@ const SEL = {
     follow: "marker-sel-follow",
 } as const;
 const CLUSTER = { bubble: "marker-cluster" } as const;
+/**
+ * Station names step aside for trains: each side close to the dot, then
+ * each a step further out, wherever no train (its ROOM) or other name is
+ */
+const NAMES_ANCHORS = [
+    ["left", [0.6, 0]],
+    ["right", [-0.6, 0]],
+    ["top", [0, 0.6]],
+    ["bottom", [0, -0.6]],
+    ["left", [1.4, 0]],
+    ["right", [-1.4, 0]],
+    ["top", [0, 1.4]],
+    ["bottom", [0, -1.4]],
+].flat();
+/**
+ * Where no place is free, from city zoom a name still shows at its first
+ * place, under the trains: "cooperative" lets it overlap the trains' room
+ * (and, rarely, another station name), never a place name
+ */
+const NAMES_OVERLAP = [
+    "step",
+    ["zoom"],
+    "never",
+    MAP_MARKS.delayTextMinZoom,
+    "cooperative",
+] as unknown as ExpressionSpecification;
+type SymbolLayout = NonNullable<SymbolLayerSpecification["layout"]>;
+/** A station-name layout that steps aside for trains (NAMES_ANCHORS) */
+function dodgingTrains(layout: unknown): SymbolLayout {
+    const {
+        "text-variable-anchor": _anchors,
+        "text-radial-offset": _offset,
+        ...rest
+    } = layout as SymbolLayout;
+    return {
+        ...rest,
+        "text-variable-anchor-offset": NAMES_ANCHORS as never,
+        "text-overlap": NAMES_OVERLAP as never,
+    };
+}
+/**
+ * Invisible copies of the unselected marks and bubbles, over the station
+ * names and under the route: they hold the trains' room, so names and
+ * "+N" numbers step aside for them (see baseMarkerLayers)
+ */
+const ROOM = {
+    marks: "marker-dot-room",
+    bubbles: "marker-cluster-room",
+} as const;
 
 const EMPTY: FeatureCollection = { type: "FeatureCollection", features: [] };
 
@@ -512,8 +562,9 @@ const MARK_ICON_SIZE = [
 ] as unknown as ExpressionSpecification;
 /**
  * From the zoom "+N" appears, marks take part in collision (still always
- * drawn), so a number never covers a mark. Further out they stay out of it,
- * so trains never push station names away at country zoom.
+ * drawn), so a number never covers a mark. Further out they stay out of it.
+ * Unselected marks only through their invisible room (ROOM): a station
+ * name steps aside for it, or where it can't, draws under the train.
  */
 const MARK_IGNORE_PLACEMENT = [
     "step",
@@ -521,6 +572,17 @@ const MARK_IGNORE_PLACEMENT = [
     true,
     MAP_MARKS.delayTextMinZoom,
     false,
+] as unknown as ExpressionSpecification;
+const IS_CLUSTER: ExpressionSpecification = ["has", "point_count"];
+/** A count bubble's size: larger for bigger piles */
+const CLUSTER_ICON_SIZE = [
+    "step",
+    ["get", "point_count"],
+    1,
+    10,
+    24 / CLUSTER_SIZE,
+    50,
+    30 / CLUSTER_SIZE,
 ] as unknown as ExpressionSpecification;
 /** Late trains say by how much, stale ones how old their data is */
 const HAS_DELAY_TEXT: ExpressionSpecification = [
@@ -575,6 +637,18 @@ export interface MapInsets {
     left: number;
 }
 
+/**
+ * The theme on <html> before the provider has resolved it: a language
+ * switch remounts the provider, but the page keeps its class, so the map is
+ * built in the theme on screen rather than in light first
+ */
+function domTheme(): string | undefined {
+    if (typeof document === "undefined") return undefined;
+    return document.documentElement.classList.contains("dark")
+        ? "dark"
+        : undefined;
+}
+
 export default function MapComponent({
     trains,
     selectedId,
@@ -602,7 +676,8 @@ export default function MapComponent({
 }) {
     const settings = useSettings();
     const { resolvedTheme } = useTheme();
-    const scheme: ColorScheme = resolvedTheme === "dark" ? "dark" : "light";
+    const scheme: ColorScheme =
+        (resolvedTheme ?? domTheme()) === "dark" ? "dark" : "light";
     const locale = useLocale();
     const t = useTranslations("Map");
     // The style the map is created with; later themes go through setStyle
@@ -1105,16 +1180,20 @@ export default function MapComponent({
     );
 
     /**
-     * Unselected trains: a mark, and from zoom 12 "+N" beside late ones. The
-     * numbers sit in a layer under the marks: MapLibre places upper layers
-     * first, so every mark is in the collision index before any number, and a
-     * number goes right, left, above or below its mark where it covers no
-     * mark (or other number) at all, else it stays out. Bigger delays first.
+     * Unselected trains: a mark, and from zoom 12 "+N" beside late ones.
+     * MapLibre places upper layers first. The marks themselves stay out of
+     * collision; an invisible copy of every mark (ROOM) above the station
+     * names joins it instead. Station names then take a side clear of
+     * trains, or show under them where none is (NAMES_OVERLAP). The numbers
+     * come last: a number goes right, left, above or below its mark where it
+     * covers no mark, station name or other number, else it stays out.
+     * Bigger delays first.
      */
     const baseMarkerLayers = () => [
         <Layer
             key="delay"
             id={DELAY_TEXT}
+            beforeId={SLOTS.names}
             type="symbol"
             minzoom={MAP_MARKS.delayTextMinZoom}
             filter={["all", NOT_CLUSTER, HAS_DELAY_TEXT]}
@@ -1141,11 +1220,35 @@ export default function MapComponent({
             }}
         />,
         <Layer
+            key="mark-room"
+            id={ROOM.marks}
+            beforeId={SLOTS.route}
+            type="symbol"
+            filter={NOT_CLUSTER}
+            layout={markLayout}
+            paint={{ "icon-opacity": 0 }}
+        />,
+        <Layer
+            key="bubble-room"
+            id={ROOM.bubbles}
+            beforeId={SLOTS.route}
+            type="symbol"
+            filter={IS_CLUSTER}
+            layout={{
+                "icon-image": clusterImageId(scheme),
+                "icon-size": CLUSTER_ICON_SIZE,
+                "icon-padding": 0,
+                "icon-allow-overlap": true,
+                "icon-ignore-placement": MARK_IGNORE_PLACEMENT,
+            }}
+            paint={{ "icon-opacity": 0 }}
+        />,
+        <Layer
             key="mark"
             id={LAYER_IDS.TRAIN_DOT}
             type="symbol"
             filter={NOT_CLUSTER}
-            layout={markLayout}
+            layout={{ ...markLayout, "icon-ignore-placement": true }}
             paint={{
                 "icon-opacity": othersOpacity,
                 "icon-opacity-transition": fade,
@@ -1293,19 +1396,23 @@ export default function MapComponent({
         else map.once("style.load", () => setMapLoaded(true));
     }, []);
 
-    // A theme switch swaps the basemap in place: the transform carries the
-    // app's sources and layers (and their draw order) over to the new style,
-    // so the camera, the selection and the layer order all stay
-    const appliedSchemeRef = useRef(scheme);
+    // A theme or language switch swaps the basemap in place: the transform
+    // carries the app's sources and layers (and their draw order) over to
+    // the new style, so the camera, the selection and the layer order all
+    // stay. The ref holds what the map was built with: a switch that lands
+    // before the map exists (a language switch remounts the map while the
+    // theme is still resolving) is applied once it is ready, not dropped
+    const appliedStyleRef = useRef(`${scheme}:${locale}`);
     useEffect(() => {
         const map = mapRef.current?.getMap();
-        if (!map || appliedSchemeRef.current === scheme) return;
-        appliedSchemeRef.current = scheme;
+        const key = `${scheme}:${locale}`;
+        if (!map || !mapLoaded || appliedStyleRef.current === key) return;
+        appliedStyleRef.current = key;
         map.setStyle(mapStyle(scheme, locale), {
             diff: true,
             transformStyle: basemapTransform(),
         });
-    }, [scheme, locale]);
+    }, [scheme, locale, mapLoaded]);
 
     // On the dark map the overlay's tiles are inverted (and hue-rotated back),
     // so its dark-blue station names turn light and stay readable; mostly
@@ -1350,8 +1457,21 @@ export default function MapComponent({
                 dim: focused,
                 fadeMs: railFade,
                 labelOpacity: settings.stationNamesOpacity,
+                // The selected station is named in its box
+                namedElsewhere: station?.id ?? null,
+                // The overlay names stations itself from this zoom
+                labelMaxZoom: settings.showRailwayOverlay
+                    ? RAILWAY_NAMES_MIN_ZOOM
+                    : undefined,
             }),
-        [scheme, focused, railFade, settings.stationNamesOpacity],
+        [
+            scheme,
+            focused,
+            railFade,
+            settings.stationNamesOpacity,
+            settings.showRailwayOverlay,
+            station?.id,
+        ],
     );
 
     const markerLayerIds = useMemo(
@@ -1715,7 +1835,7 @@ export default function MapComponent({
                         <Layer
                             key={layer.id}
                             {...layer}
-                            beforeId={SLOTS.route}
+                            beforeId={SLOTS.trainText}
                         />
                     ))}
                     {settings.showStationNames &&
@@ -1723,7 +1843,8 @@ export default function MapComponent({
                             <Layer
                                 key={layer.id}
                                 {...layer}
-                                beforeId={SLOTS.route}
+                                layout={dodgingTrains(layer.layout)}
+                                beforeId={SLOTS.trainRoom}
                             />
                         ))}
                 </Source>
@@ -1801,21 +1922,14 @@ export default function MapComponent({
                         id={CLUSTER.bubble}
                         beforeId={LAYER_IDS.TRAIN_DOT}
                         type="symbol"
-                        filter={["has", "point_count"]}
+                        filter={IS_CLUSTER}
                         layout={{
                             "icon-image": clusterImageId(scheme),
-                            "icon-size": [
-                                "step",
-                                ["get", "point_count"],
-                                1,
-                                10,
-                                24 / CLUSTER_SIZE,
-                                50,
-                                30 / CLUSTER_SIZE,
-                            ],
+                            "icon-size": CLUSTER_ICON_SIZE,
                             "icon-padding": 0,
                             "icon-allow-overlap": true,
-                            "icon-ignore-placement": MARK_IGNORE_PLACEMENT,
+                            // Its room is held by ROOM.bubbles
+                            "icon-ignore-placement": true,
                             "text-field": ["get", "point_count_abbreviated"],
                             "text-font": [...MAP_FONTS.bold],
                             "text-size": 12,
