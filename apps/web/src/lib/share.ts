@@ -1,5 +1,5 @@
 import type { Locale } from "@megisholavonat/core/i18n";
-import { shareUrl } from "@megisholavonat/core/share";
+import { shareUrl } from "@megisholavonat/core/links";
 import type { TrainView } from "@/components/train/useTrainView";
 import { destinationOf, trainNumber } from "@/lib/train";
 

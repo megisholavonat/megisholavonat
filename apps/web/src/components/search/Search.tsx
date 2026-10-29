@@ -17,7 +17,6 @@ import {
     ArrowDown,
     ArrowRight,
     ArrowUp,
-    ChevronLeft,
     ChevronRight,
     Search as SearchIcon,
     TrainFront,
@@ -35,6 +34,7 @@ import {
     StationTypeIcon,
     StationTypeLabel,
 } from "@/components/station/StationType";
+import { BackButton } from "@/components/ui/Button";
 import { DelayChip } from "@/components/ui/Delay";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
 import { useNow } from "@/hooks/useNow";
@@ -552,15 +552,7 @@ function AllTrains({
                 )}
             >
                 <div className="flex items-center gap-2">
-                    <button
-                        type="button"
-                        onClick={onBack}
-                        aria-label={t("back")}
-                        title={t("back")}
-                        className="-ml-2 flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-ink hover:bg-surface-2"
-                    >
-                        <ChevronLeft className="size-5" aria-hidden />
-                    </button>
+                    <BackButton label={t("back")} onClick={onBack} />
                     <h3 className="min-w-0 flex-1 truncate text-headline font-semibold">
                         {t("all_trains")}
                     </h3>
@@ -877,7 +869,7 @@ export function SheetSearchHeader({
                 <button
                     type="button"
                     onClick={onCancel}
-                    className="h-11 shrink-0 cursor-pointer px-1 text-[15px] font-semibold text-ink"
+                    className="h-11 shrink-0 cursor-pointer px-1 text-subhead font-semibold text-ink"
                 >
                     {t("cancel")}
                 </button>

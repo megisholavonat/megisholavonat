@@ -1,4 +1,4 @@
-import { shareUrl } from "@megisholavonat/core/share";
+import { shareUrl } from "@megisholavonat/core/links";
 import { describe, expect, it } from "vitest";
 import { WEB_URL } from "../config";
 import { webLinkPath } from "./webLink";
@@ -42,7 +42,7 @@ describe("webLinkPath", () => {
             ),
         ).toBe("/journey?from=budapest&to=005501289&time=2026-10-30T07%3A00");
         expect(webLinkPath(`${WEB_URL}/en?to=005517228&arriveBy=1`)).toBe(
-            "/journey?to=005517228&arriveBy=1",
+            "/journey?to=005517228",
         );
         expect(webLinkPath(`${WEB_URL}/hu?time=2026-10-30T07:00`)).toBe("/");
     });

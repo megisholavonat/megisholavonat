@@ -1,6 +1,6 @@
 import type { Locale } from "@megisholavonat/core/i18n";
+import { ogImagePath, shareUrl } from "@megisholavonat/core/links";
 import {
-    shareUrl,
     stationShareText,
     stationShareTitle,
     trainShareText,
@@ -18,19 +18,6 @@ export type Preview =
     | { kind: "none" };
 
 export const OG_SIZE = { width: 1200, height: 630 } as const;
-
-/** Which preview a page URL asks for: `?vehicleId=` wins over `?station=`. */
-export function previewTarget(
-    search: string | URLSearchParams,
-): { vehicleId: string } | { station: string } | null {
-    const params =
-        typeof search === "string" ? new URLSearchParams(search) : search;
-    const vehicleId = params.get("vehicleId")?.trim();
-    if (vehicleId) return { vehicleId };
-    const station = params.get("station")?.trim();
-    if (station) return { station };
-    return null;
-}
 
 /** "10 TRANSCARPATHIA → Záhony" */
 export function trainTitle(
@@ -54,14 +41,14 @@ export function previewImagePath(
     preview: Preview,
     now: Date,
 ): string {
-    const stamp = `?v=${Math.floor(now.getTime() / 60_000)}`;
+    const stamp = Math.floor(now.getTime() / 60_000);
     switch (preview.kind) {
         case "train":
-            return `/${locale}/og/train/${encodeURIComponent(preview.vehicleId)}${stamp}`;
+            return ogImagePath(locale, { vehicleId: preview.vehicleId }, stamp);
         case "station":
-            return `/${locale}/og/station/${encodeURIComponent(preview.stationId)}${stamp}`;
+            return ogImagePath(locale, { station: preview.stationId }, stamp);
         default:
-            return `/${locale}/og`;
+            return ogImagePath(locale, null);
     }
 }
 
@@ -160,7 +147,7 @@ export function subpageMetadata({
     missing = false,
 }: SubpageInput): Metadata {
     const image = {
-        url: `/${locale}/og`,
+        url: ogImagePath(locale as Locale, null),
         ...OG_SIZE,
         type: "image/png",
         alt: appTitle,

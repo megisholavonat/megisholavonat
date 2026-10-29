@@ -2,8 +2,8 @@ import {
     isRunDate,
     isStationId,
     isTrainNumber,
-    type RunStops,
 } from "@megisholavonat/core/delaySummary";
+import type { RunStops } from "@megisholavonat/core/links";
 import { decodeParam } from "@/lib/utils";
 
 export interface RunParams {

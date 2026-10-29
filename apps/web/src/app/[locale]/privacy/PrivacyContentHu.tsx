@@ -490,7 +490,7 @@ export default function PrivacyContentHu() {
                 azonosítót a böngésződből vagy a telefonodról, és visszaállunk a
                 névtelen mérésre.
             </p>
-            <div className="not-prose rounded-xl border border-border bg-card p-4">
+            <div className="not-prose rounded-md border border-line p-4">
                 <AnalyticsConsentSwitch />
             </div>
 

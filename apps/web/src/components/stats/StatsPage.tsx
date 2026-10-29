@@ -6,15 +6,17 @@ import {
     getTimeOfDayPunctualityOptions,
 } from "@megisholavonat/api-client/react-query";
 import type { Locale } from "@megisholavonat/core/i18n";
+import { stationHref, trainPath } from "@megisholavonat/core/links";
 import { getMavRouteName } from "@megisholavonat/core/mavRoutes";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
+import { PageHeader } from "@/components/seo/PageHeader";
+import { PageMain } from "@/components/seo/PageMain";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
 import { useTrackView } from "@/lib/analyticsEvents";
-import { stationHref, trainPath } from "@/lib/seo/paths";
 import { trainName } from "@/lib/train";
 import { cn } from "@/lib/utils";
 import { HourChart, overallShare } from "./HourChart";
@@ -28,7 +30,6 @@ import {
     of10,
     RowsSkeleton,
     Segmented,
-    StatsHeader,
     TenBar,
     useDays,
 } from "./StatsParts";
@@ -103,7 +104,7 @@ function RankingRow({
         </>
     );
     const className =
-        "flex min-h-12 w-full items-center gap-2.5 py-2 text-[15px] text-ink";
+        "flex min-h-12 w-full items-center gap-2.5 py-2 text-subhead text-ink";
     return (
         <li className="border-b border-line last:border-b-0">
             {href ? (
@@ -200,7 +201,7 @@ function NetworkByHour({ days }: { days: number }) {
                 <LoadError onRetry={() => void query.refetch()} />
             ) : overall ? (
                 <>
-                    <div className="flex items-center gap-3 text-[15px]">
+                    <div className="flex items-center gap-3 text-subhead">
                         <TenBar share={overall.share} size="lg" />
                         <Of10Text share={overall.share} />
                     </div>
@@ -221,16 +222,12 @@ export function StatsPage() {
     const t = useTranslations("Stats");
     const days = useDays();
     return (
-        <main className="mx-auto flex min-h-dvh max-w-5xl flex-col gap-4 px-4 pt-[calc(env(safe-area-inset-top)+12px)] pb-[max(env(safe-area-inset-bottom),24px)] lg:pt-8">
-            <StatsHeader
-                title={t("title")}
-                caption={t("window", { days })}
-                fallbackHref="/"
-            />
+        <PageMain width="wide">
+            <PageHeader title={t("title")} caption={t("window", { days })} />
             <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-4 lg:grid-flow-dense lg:grid-cols-[minmax(0,1fr)_400px]">
                 <NetworkByHour days={days} />
                 <Rankings days={days} />
             </div>
-        </main>
+        </PageMain>
     );
 }

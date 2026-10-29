@@ -14,6 +14,7 @@ import {
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { AppIcon } from "@/components/ui/AppIcon";
+import { buttonClass } from "@/components/ui/Button";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { useTheme } from "@/components/ui/ThemeProvider";
@@ -529,9 +530,14 @@ export function SettingsDialog({
                                     type="button"
                                     onClick={() => setView("main")}
                                     aria-label={t("back")}
-                                    className="pressable -ml-2 flex h-10 cursor-pointer items-center justify-center overflow-hidden rounded-full hover:bg-surface"
+                                    title={t("back")}
+                                    // On the canvas: the surface, as the close button
+                                    className={buttonClass(
+                                        "back",
+                                        "overflow-hidden bg-surface hover:bg-surface-2",
+                                    )}
                                     initial={{ opacity: 0, width: 0 }}
-                                    animate={{ opacity: 1, width: 40 }}
+                                    animate={{ opacity: 1, width: 36 }}
                                     exit={{ opacity: 0, width: 0 }}
                                     transition={{
                                         duration: reduceMotion ? 0 : 0.24,
@@ -539,7 +545,7 @@ export function SettingsDialog({
                                     }}
                                 >
                                     <ChevronLeft
-                                        className="size-6 shrink-0"
+                                        className="size-5 shrink-0"
                                         aria-hidden
                                     />
                                 </motion.button>

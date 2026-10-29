@@ -234,6 +234,14 @@ export const TYPE_SCALE = {
         ios: "headline",
         android: "titleMedium",
     },
+    /** Secondary lines and dense rows: board rows, stop lists, buttons */
+    subhead: {
+        fontSize: 15,
+        lineHeight: 20,
+        fontWeight: 400,
+        ios: "subheadline",
+        android: "bodyMedium",
+    },
     body: {
         fontSize: 16,
         lineHeight: 22,
@@ -267,6 +275,18 @@ export const SPACING = {
 
 /** Minimum touch target, also for map markers. */
 export const TOUCH_TARGET = 44;
+
+/**
+ * Web buttons: pills (primary, secondary) and round icon buttons are one
+ * touch target tall; the back button is the design's smaller 36 px square
+ * with a touch-target-sized hit area around it.
+ */
+export const BUTTON = {
+    height: TOUCH_TARGET,
+    paddingX: 20,
+    icon: TOUCH_TARGET,
+    back: 36,
+} as const;
 
 export const RADII = {
     sm: 6,

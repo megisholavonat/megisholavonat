@@ -3,7 +3,7 @@ import type {
     StationBoard,
     VehiclePositionWithDelay,
 } from "@megisholavonat/api-client";
-import { SITE_URL } from "@megisholavonat/core/share";
+import { SITE_URL } from "@megisholavonat/core/links";
 
 /** Request header the proxy copies the page's query string into. */
 export const SEARCH_HEADER = "x-mhav-search";

@@ -11,9 +11,13 @@ import type {
     TrainHistory,
     VehiclePositionWithDelay,
 } from "@megisholavonat/api-client";
+import {
+    parseStationSegment,
+    stationSegment,
+    stationSlug,
+} from "@megisholavonat/core/links";
 import { apiUrl } from "@/lib/og/server";
 import { trainNumber } from "@/lib/train";
-import { parseStationSegment, stationSegment, stationSlug } from "./paths";
 
 /** Seconds each kind of data is reused for */
 export const REVALIDATE = {

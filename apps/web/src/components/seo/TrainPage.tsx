@@ -3,6 +3,7 @@
 
 import type { TrainRouteStation } from "@megisholavonat/api-client";
 import type { Locale } from "@megisholavonat/core/i18n";
+import { mapPath, stationHref, trainPath } from "@megisholavonat/core/links";
 import { trainShareText } from "@megisholavonat/core/share";
 import { formatSecondsAsTime } from "@megisholavonat/core/time";
 import Link from "next/link";
@@ -20,16 +21,10 @@ import { trainCard, trainShareInfo } from "@/lib/og/model";
 import { siteUrl } from "@/lib/og/server";
 import type { TrainPageData } from "@/lib/seo/data";
 import { breadcrumbs, trainSubject } from "@/lib/seo/metadata";
-import { stationHref, trainPath } from "@/lib/seo/paths";
 import { stationIdOf, trainName } from "@/lib/train";
-import {
-    Breadcrumb,
-    Glyph,
-    JsonLd,
-    MapLink,
-    PageMain,
-    Section,
-} from "./PageParts";
+import { PageHeader } from "./PageHeader";
+import { PageMain } from "./PageMain";
+import { Glyph, JsonLd, MapLink, Section } from "./PageParts";
 import { TrackPageView } from "./TrackPageView";
 
 /** A stop's share is told from as many runs as the rankings need */
@@ -126,11 +121,14 @@ export async function TrainPage({
     const origin = siteUrl();
     const url = `${origin}${trainPath(locale, number)}`;
     const title = name ? `${number} ${name}` : trainSubject(locale, number);
-    const mapHref = vehicle
-        ? `/${locale}?vehicleId=${encodeURIComponent(vehicle.vehicleId)}`
-        : first?.id
-          ? `/${locale}?station=${encodeURIComponent(first.id)}`
-          : `/${locale}`;
+    const mapHref = mapPath(
+        locale,
+        vehicle
+            ? { vehicleId: vehicle.vehicleId }
+            : first?.id
+              ? { station: first.id }
+              : null,
+    );
 
     return (
         <PageMain>
@@ -164,36 +162,35 @@ export async function TrainPage({
                     breadcrumbs([
                         {
                             name: tHome("app_title"),
-                            url: `${origin}/${locale}`,
+                            url: `${origin}${mapPath(locale)}`,
                         },
                         { name: title, url },
                     ]),
                 ]}
             />
-            <Breadcrumb
-                home={tHome("app_title")}
-                homeHref={`/${locale}`}
+            <PageHeader
                 current={t("train")}
+                titleClassName="flex min-w-0 items-center gap-2"
+                title={
+                    <>
+                        <Glyph
+                            routeShortName={routeShortName}
+                            className="text-2xl"
+                        />
+                        <span className="tnum">{number}</span>
+                        {name && <span className="truncate">{name}</span>}
+                    </>
+                }
+                caption={
+                    first && last && first !== last
+                        ? `${first.name} – ${last.name}`
+                        : undefined
+                }
             />
-            <header className="flex flex-col gap-1">
-                <h1 className="flex min-w-0 items-center gap-2 text-title font-bold">
-                    <Glyph
-                        routeShortName={routeShortName}
-                        className="text-2xl"
-                    />
-                    <span className="tnum">{number}</span>
-                    {name && <span className="truncate">{name}</span>}
-                </h1>
-                {first && last && first !== last && (
-                    <p className="text-[15px] text-ink-2">
-                        {first.name} – {last.name}
-                    </p>
-                )}
-            </header>
             <MapLink href={mapHref} label={t("map_link")} />
             <Section title={t("now")}>
                 {card ? (
-                    <p className="flex items-center gap-2 text-[15px]">
+                    <p className="flex items-center gap-2 text-subhead">
                         {card.status === "running" && (
                             <DelayChip delay={card.delay} />
                         )}
@@ -202,7 +199,9 @@ export async function TrainPage({
                         </span>
                     </p>
                 ) : (
-                    <p className="text-[15px] text-ink-2">{t("not_running")}</p>
+                    <p className="text-subhead text-ink-2">
+                        {t("not_running")}
+                    </p>
                 )}
             </Section>
             <Section
@@ -215,7 +214,7 @@ export async function TrainPage({
             >
                 {final?.onTimeShare != null ? (
                     <>
-                        <p className="text-[15px]">
+                        <p className="text-subhead">
                             <Of10Text
                                 share={final.onTimeShare}
                                 station={final.stationName}
@@ -249,7 +248,7 @@ export async function TrainPage({
                                 <li
                                     // biome-ignore lint/suspicious/noArrayIndexKey: a route may pass a station twice
                                     key={`${stop.id ?? stop.name}-${i}`}
-                                    className="flex min-h-11 items-center gap-3 border-b border-line py-1.5 text-[15px] last:border-b-0"
+                                    className="flex min-h-11 items-center gap-3 border-b border-line py-1.5 text-subhead last:border-b-0"
                                 >
                                     <span className="tnum w-11 shrink-0 text-ink-2">
                                         {stop.time}

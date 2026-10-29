@@ -16,6 +16,7 @@ import { ON_TIME_MAX_MIN } from "./constants";
 import { type DelayLevel, getDelayLevel, roundMinutes } from "./delay";
 import type { DelayReasonCode } from "./delayReasons";
 import type { Locale } from "./i18n";
+import type { RunStops } from "./links";
 import { huSuffix, huVowelStart } from "./share";
 import {
     budapestDate,
@@ -23,9 +24,6 @@ import {
     shiftDate,
     type TripTimes,
 } from "./time";
-
-/** Path segment of the card page, in both locales (the link is stable). */
-export const DELAY_SUMMARY_SEGMENT = "kesesek";
 
 /** The measurement note every card and page carries. */
 export const MEASUREMENT_NOTE: Record<Locale, string> = {
@@ -58,40 +56,6 @@ export function isRunDate(value: string): boolean {
         date.getUTCMonth() === mo - 1 &&
         date.getUTCDate() === d
     );
-}
-
-/** The boarding and alighting stations a card is about (UIC codes). */
-export interface RunStops {
-    from?: string | null;
-    to?: string | null;
-}
-
-/** "/hu/kesesek/2614/2026-10-29?from=005513748&to=005510033" */
-export function delaySummaryPath(
-    locale: Locale,
-    number: string,
-    date: string,
-    stops: RunStops = {},
-): string {
-    // Station ids are digits only: nothing to encode
-    const search = [
-        isStationId(stops.from) ? `from=${stops.from}` : null,
-        isStationId(stops.to) ? `to=${stops.to}` : null,
-    ]
-        .filter(Boolean)
-        .join("&");
-    return `/${locale}/${DELAY_SUMMARY_SEGMENT}/${encodeURIComponent(number)}/${date}${search ? `?${search}` : ""}`;
-}
-
-/** The card link on `origin` (the site's own, never a request header). */
-export function delaySummaryUrl(
-    origin: string,
-    locale: Locale,
-    number: string,
-    date: string,
-    stops: RunStops = {},
-): string {
-    return `${origin.replace(/\/$/, "")}${delaySummaryPath(locale, number, date, stops)}`;
 }
 
 /**

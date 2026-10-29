@@ -1,8 +1,9 @@
 import type { Locale } from "@megisholavonat/core/i18n";
+import { mapTarget } from "@megisholavonat/core/links";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { getTranslations } from "next-intl/server";
-import { buildMetadata, type Preview, previewTarget } from "@/lib/og/metadata";
+import { buildMetadata, type Preview } from "@/lib/og/metadata";
 import { stationCard, trainCard } from "@/lib/og/model";
 import {
     fetchBoard,
@@ -14,7 +15,7 @@ import {
 /** The preview a page query asks for; none when it is unknown or fails. */
 async function previewOf(search: string): Promise<Preview> {
     try {
-        const target = previewTarget(search);
+        const target = mapTarget(new URLSearchParams(search));
         if (target && "vehicleId" in target) {
             const vehicle = await fetchTrain(target.vehicleId);
             if (vehicle) {

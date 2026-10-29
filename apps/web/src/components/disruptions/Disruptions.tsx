@@ -249,7 +249,7 @@ export function DisruptionItem({
                     "yours" badge and the validity follow on one row under
                     it, so every item has the same left edge */}
                 <span className="flex min-w-0 flex-1 flex-col gap-1">
-                    <span className="text-[15px] leading-5 font-semibold text-ink">
+                    <span className="text-subhead leading-5 font-semibold text-ink">
                         {title(disruption)}
                     </span>
                     {(disruption.lines.length > 0 ||

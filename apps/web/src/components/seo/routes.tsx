@@ -2,6 +2,12 @@
 // and English paths (/hu/allomas/…, /en/station/…).
 
 import type { Locale } from "@megisholavonat/core/i18n";
+import {
+    ogImagePath,
+    type PageKind,
+    stationPath,
+    trainPath,
+} from "@megisholavonat/core/links";
 import { huTrainSubject } from "@megisholavonat/core/share";
 import { stationType } from "@megisholavonat/core/stationType";
 import type { Metadata } from "next";
@@ -13,7 +19,6 @@ import { routing } from "@/i18n/routing";
 import { siteUrl } from "@/lib/og/server";
 import { fetchTrainPage, lookupStation } from "@/lib/seo/data";
 import { seoMetadata, trainSubject } from "@/lib/seo/metadata";
-import { type PageKind, stationPath, trainPath } from "@/lib/seo/paths";
 import { trainName } from "@/lib/train";
 import { decodeParam } from "@/lib/utils";
 import { StationPage } from "./StationPage";
@@ -77,7 +82,7 @@ export function stationRoute(expected: Locale) {
                 type: stationType(found.station),
             }),
             description: t("station_description", { station: name }),
-            image: `/${locale}/og/station/${encodeURIComponent(found.station.id)}`,
+            image: ogImagePath(locale, { station: found.station.id }),
             imageAlt: name,
         });
     }
@@ -146,9 +151,10 @@ export function trainRoute(expected: Locale) {
             segment: number,
             title: t("train_title", { train }),
             description: t("train_description", { subject: lead, route }),
-            image: data.vehicle
-                ? `/${locale}/og/train/${encodeURIComponent(data.vehicle.vehicleId)}`
-                : `/${locale}/og`,
+            image: ogImagePath(
+                locale,
+                data.vehicle ? { vehicleId: data.vehicle.vehicleId } : null,
+            ),
             imageAlt: train,
         });
     }

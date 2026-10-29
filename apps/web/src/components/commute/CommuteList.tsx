@@ -38,7 +38,7 @@ function Status({ row }: { row: CommuteRow }) {
     const { live } = row;
     if (live?.canceled) {
         return (
-            <span className="text-[15px] font-bold text-delay-severe">
+            <span className="text-subhead font-bold text-delay-severe">
                 {tStation("canceled")}
             </span>
         );
@@ -112,7 +112,7 @@ function Row({
                 className="text-lg"
             />
             <span className="flex min-w-0 flex-1 flex-col">
-                <span className="truncate text-[15px] font-semibold text-ink">
+                <span className="truncate text-subhead font-semibold text-ink">
                     {follow.fromName}{" "}
                     {/* The departure from the boarding stop, which the
                         sheet tells by its arrival: say which it is */}
@@ -216,7 +216,7 @@ export function FollowHint({ onClick }: { onClick: () => void }) {
         <button
             type="button"
             onClick={onClick}
-            className="flex h-11 cursor-pointer items-center justify-center gap-2 rounded-full bg-surface-2 text-[15px] font-semibold text-ink"
+            className="flex h-11 cursor-pointer items-center justify-center gap-2 rounded-full bg-surface-2 text-subhead font-semibold text-ink"
         >
             <Star className="size-4.5" aria-hidden />
             {t("follow_your_train")}

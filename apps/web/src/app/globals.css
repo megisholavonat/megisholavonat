@@ -53,6 +53,8 @@
     --text-headline: var(--mhav-text-headline);
     --text-headline--line-height: var(--mhav-text-headline-line-height);
     --text-headline--font-weight: var(--mhav-text-headline-font-weight);
+    --text-subhead: var(--mhav-text-subhead);
+    --text-subhead--line-height: var(--mhav-text-subhead-line-height);
     --text-body: var(--mhav-text-body);
     --text-body--line-height: var(--mhav-text-body-line-height);
     --text-caption: var(--mhav-text-caption);

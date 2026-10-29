@@ -3,6 +3,7 @@
 
 import type { BoardEntry, StationBoard } from "@megisholavonat/api-client";
 import type { Locale } from "@megisholavonat/core/i18n";
+import { mapPath, stationPath, trainPath } from "@megisholavonat/core/links";
 import { stationType } from "@megisholavonat/core/stationType";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
@@ -20,16 +21,10 @@ import { departureDelay, formatClock } from "@/lib/og/model";
 import { siteUrl } from "@/lib/og/server";
 import { fetchStationBoard, fetchTimeOfDay } from "@/lib/seo/data";
 import { breadcrumbs } from "@/lib/seo/metadata";
-import { stationPath, trainPath } from "@/lib/seo/paths";
 import { trainName, trainNumber } from "@/lib/train";
-import {
-    Breadcrumb,
-    Glyph,
-    JsonLd,
-    MapLink,
-    PageMain,
-    Section,
-} from "./PageParts";
+import { PageHeader } from "./PageHeader";
+import { PageMain } from "./PageMain";
+import { Glyph, JsonLd, MapLink, Section } from "./PageParts";
 import { TrackPageView } from "./TrackPageView";
 
 type Kind = "departures" | "arrivals";
@@ -112,7 +107,7 @@ async function BoardRow({
                 </span>
             </span>
             <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span className="truncate text-[15px] font-semibold">
+                <span className="truncate text-subhead font-semibold">
                     {place}
                 </span>
                 <span className="flex min-w-0 items-center gap-1 text-sm text-ink-2">
@@ -244,25 +239,23 @@ export async function StationPage({
                     breadcrumbs([
                         {
                             name: tHome("app_title"),
-                            url: `${origin}/${locale}`,
+                            url: `${origin}${mapPath(locale)}`,
                         },
                         { name: station.name, url },
                     ]),
                 ]}
             />
-            <Breadcrumb
-                home={tHome("app_title")}
-                homeHref={`/${locale}`}
+            <PageHeader
                 current={t("station", { type: stationType(station) })}
+                title={station.name}
             />
-            <h1 className="text-title font-bold">{station.name}</h1>
             <MapLink
-                href={`/${locale}?station=${encodeURIComponent(station.id)}`}
+                href={mapPath(locale, { station: station.id })}
                 label={t("map_link")}
             />
             {problems.length > 0 && (
                 <Section title={t("disruptions")}>
-                    <ul className="flex flex-col gap-1 text-[15px]">
+                    <ul className="flex flex-col gap-1 text-subhead">
                         {problems.map((entry) => {
                             const number = trainNumber(entry.tripShortName);
                             return (
@@ -315,7 +308,7 @@ export async function StationPage({
             >
                 {hours && overall && overall.n >= MIN_SAMPLES.stations ? (
                     <>
-                        <div className="flex items-center gap-3 text-[15px]">
+                        <div className="flex items-center gap-3 text-subhead">
                             <TenBar share={overall.share} size="lg" />
                             <Of10Text share={overall.share} />
                         </div>

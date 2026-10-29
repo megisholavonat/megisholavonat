@@ -1,8 +1,13 @@
-import { LOCALES } from "@megisholavonat/core/i18n";
+import { LOCALES, type Locale } from "@megisholavonat/core/i18n";
+import {
+    localeAlternates,
+    mapPath,
+    pageAlternates,
+    statsPath,
+} from "@megisholavonat/core/links";
 import type { MetadataRoute } from "next";
 import { siteUrl } from "@/lib/og/server";
 import { directorySegments, fetchDirectory } from "@/lib/seo/data";
-import { pageAlternates } from "@/lib/seo/paths";
 
 // Rendered per request from the API's directory, which the data cache keeps
 // for a day: a build without the API still lists the stations later
@@ -16,30 +21,28 @@ export const dynamic = "force-dynamic";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const origin = siteUrl();
     const directory = await fetchDirectory();
-    const both = (path: string) =>
+    const entries = (
+        languages: Record<Locale, string>,
+        extra: Partial<MetadataRoute.Sitemap[number]> = {},
+    ) =>
         LOCALES.map((locale) => ({
-            url: `${origin}/${locale}${path}`,
-            alternates: {
-                languages: Object.fromEntries(
-                    LOCALES.map((l) => [l, `${origin}/${l}${path}`]),
-                ),
-            },
-        }));
-    const pages = (kind: "station" | "train", key: string) => {
-        const languages = pageAlternates(origin, kind, key);
-        return LOCALES.map((locale) => ({
             url: languages[locale],
-            changeFrequency: "hourly" as const,
+            ...extra,
             alternates: {
                 languages: Object.fromEntries(
                     LOCALES.map((l) => [l, languages[l]]),
                 ),
             },
         }));
-    };
+    const both = (path: (locale: Locale) => string) =>
+        entries(localeAlternates(origin, path));
+    const pages = (kind: "station" | "train", key: string) =>
+        entries(pageAlternates(origin, kind, key), {
+            changeFrequency: "hourly",
+        });
     return [
-        ...both(""),
-        ...both("/stats"),
+        ...both((locale) => mapPath(locale)),
+        ...both(statsPath),
         ...directorySegments(directory.stations).flatMap((segment) =>
             pages("station", segment),
         ),

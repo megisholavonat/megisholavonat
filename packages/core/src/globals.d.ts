@@ -8,3 +8,9 @@ declare const console: {
 // Timers too (the analytics debounce).
 declare function setTimeout(handler: () => void, ms?: number): unknown;
 declare function clearTimeout(handle: unknown): void;
+
+// Query strings (links.ts tests; every runtime we target has it).
+declare class URLSearchParams {
+    constructor(init?: string);
+    get(name: string): string | null;
+}

@@ -1,66 +1,58 @@
-// Server-rendered building blocks of the station and train pages.
+// Building blocks of the pages beside the map (station, train, delay card,
+// stats, privacy, not found), with PageMain (the column) and PageHeader
+// (where the page sits, the way back).
 
 import { getMavRouteName } from "@megisholavonat/core/mavRoutes";
-import { ChevronRight, Map as MapIcon } from "lucide-react";
+import { Map as MapIcon, SearchX } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { AppIcon } from "@/components/ui/AppIcon";
+import { Button } from "@/components/ui/Button";
 import { glyphText } from "@/lib/og/model";
 import { jsonLd } from "@/lib/seo/metadata";
 import { cn } from "@/lib/utils";
 import { mnr2007 } from "@/util/fonts";
-
-export function PageMain({ children }: { children: ReactNode }) {
-    return (
-        <main className="mx-auto flex min-h-dvh max-w-3xl flex-col gap-4 px-4 pt-[calc(env(safe-area-inset-top)+16px)] pb-[max(env(safe-area-inset-bottom),32px)] lg:pt-10">
-            {children}
-        </main>
-    );
-}
-
-/** "Mégis hol a vonat? › Állomás": where the page sits, linked home. */
-export function Breadcrumb({
-    home,
-    homeHref,
-    current,
-}: {
-    home: string;
-    homeHref: string;
-    current: string;
-}) {
-    return (
-        <nav aria-label="Breadcrumb" className="text-sm text-ink-2">
-            <ol className="flex min-w-0 items-center gap-1">
-                <li className="shrink-0">
-                    <Link
-                        href={homeHref}
-                        className="-mx-1 flex items-center gap-2 rounded-sm px-1 py-2 whitespace-nowrap hover:text-ink hover:underline"
-                    >
-                        <AppIcon size={20} />
-                        {home}
-                    </Link>
-                </li>
-                <li aria-hidden className="shrink-0">
-                    <ChevronRight className="size-3.5" />
-                </li>
-                <li aria-current="page" className="min-w-0 truncate">
-                    {current}
-                </li>
-            </ol>
-        </nav>
-    );
-}
+import { PageMain } from "./PageMain";
 
 /** The page's main action: the live map, on this station or train. */
 export function MapLink({ href, label }: { href: string; label: string }) {
     return (
-        <Link
-            href={href}
-            className="pressable flex h-12 items-center justify-center gap-2 self-stretch rounded-full bg-action px-6 text-[15px] font-semibold text-on-action sm:self-start"
+        <Button
+            variant="primary"
+            asChild
+            className="self-stretch sm:self-start"
         >
-            <MapIcon className="size-5" aria-hidden />
-            {label}
-        </Link>
+            <Link href={href}>
+                <MapIcon className="size-5" aria-hidden />
+                {label}
+            </Link>
+        </Button>
+    );
+}
+
+/** Nothing to show here (an unknown train, station or run): where to go. */
+export function EmptyPage({
+    title,
+    hint,
+    action,
+}: {
+    title: string;
+    hint: string;
+    action: { href: string; label: string };
+}) {
+    return (
+        <PageMain
+            width="narrow"
+            className="items-center justify-center gap-3 text-center"
+        >
+            <span className="flex size-12 items-center justify-center rounded-full bg-surface-2 text-ink-2">
+                <SearchX className="size-6" aria-hidden />
+            </span>
+            <h1 className="text-title font-bold">{title}</h1>
+            <p className="max-w-xs text-ink-2">{hint}</p>
+            <Button variant="secondary" asChild className="mt-2">
+                <Link href={action.href}>{action.label}</Link>
+            </Button>
+        </PageMain>
     );
 }
 

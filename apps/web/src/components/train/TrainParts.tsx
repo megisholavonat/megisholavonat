@@ -26,7 +26,6 @@ import {
     ArrowUpRight,
     Check,
     ChevronDown,
-    ChevronLeft,
     Info,
     Share,
     Star,
@@ -36,6 +35,7 @@ import {
 import { useReducedMotion } from "motion/react";
 import { useLocale, useTranslations } from "next-intl";
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Button, BackButton as UiBackButton } from "@/components/ui/Button";
 import {
     DelayTile,
     type Level,
@@ -79,18 +79,15 @@ export function IconButton({
     className?: string;
 }) {
     return (
-        <button
-            type="button"
+        <Button
+            variant="icon"
             onClick={onClick}
             aria-label={label}
             title={label}
-            className={cn(
-                "pressable flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-full bg-surface-2 text-ink hover:bg-line",
-                className,
-            )}
+            className={className}
         >
             {children}
-        </button>
+        </Button>
     );
 }
 
@@ -105,15 +102,7 @@ export function CloseButton({ onClick }: { onClick: () => void }) {
 
 export function BackButton({ onClick }: { onClick: () => void }) {
     const t = useTranslations("Train");
-    return (
-        <IconButton
-            label={t("back")}
-            onClick={onClick}
-            className="size-9 rounded-md"
-        >
-            <ChevronLeft className="size-5" aria-hidden />
-        </IconButton>
-    );
+    return <UiBackButton label={t("back")} onClick={onClick} />;
 }
 
 /** "Ŭ 10 → Záhony": glyph, number and destination. */
@@ -288,7 +277,7 @@ export function TrainSummary({
                     routeShortName={routeShortName}
                     tripShortName={tripShortName}
                     destination={vehicle ? destinationOf(vehicle) : null}
-                    className="text-[15px] font-medium"
+                    className="text-subhead font-medium"
                 />
                 {view?.next ? (
                     <NextStopLine
@@ -382,23 +371,18 @@ export function TrainActions({
     };
     return (
         <div className="flex gap-2">
-            <button
-                type="button"
+            <Button
+                variant={followed ? "secondary" : "primary"}
                 onClick={onFollow}
                 aria-pressed={followed}
-                className={cn(
-                    "flex h-11 flex-1 cursor-pointer items-center justify-center gap-2 rounded-full px-4 text-[15px] font-semibold",
-                    followed
-                        ? "bg-surface-2 text-ink hover:bg-line"
-                        : "bg-action text-on-action",
-                )}
+                className="flex-1"
             >
                 <Star
                     className={cn("size-4.5", followed && "fill-current")}
                     aria-hidden
                 />
                 {followed ? tFollow("following") : tFollow("follow")}
-            </button>
+            </Button>
             <IconButton
                 label={copied ? t("copied") : t("share")}
                 onClick={share}
@@ -409,15 +393,16 @@ export function TrainActions({
                     <Share className="size-5" aria-hidden />
                 )}
             </IconButton>
-            <a
-                href={view.ticketUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex h-11 shrink-0 items-center justify-center gap-1 rounded-full bg-surface-2 px-4 text-[15px] font-semibold text-ink transition-colors hover:bg-line"
-            >
-                {t("ticket")}
-                <ArrowUpRight className="size-4" aria-hidden />
-            </a>
+            <Button variant="secondary" asChild className="gap-1">
+                <a
+                    href={view.ticketUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    {t("ticket")}
+                    <ArrowUpRight className="size-4" aria-hidden />
+                </a>
+            </Button>
         </div>
     );
 }
@@ -1070,7 +1055,7 @@ function StopRow({
     const name = (
         <span
             className={cn(
-                "line-clamp-2 text-left text-[15px] leading-[22px] break-words",
+                "line-clamp-2 text-left text-subhead leading-[22px] break-words",
                 stop.passed ? "text-ink-2" : "text-ink",
                 strong && "font-semibold",
             )}
@@ -1142,7 +1127,7 @@ function StopRow({
                     estimated={arrivalEstimated}
                     level={level}
                     className={cn(
-                        "text-[15px] leading-[22px] font-semibold",
+                        "text-subhead leading-[22px] font-semibold",
                         stop.passed && "opacity-80",
                     )}
                 />
@@ -1207,7 +1192,7 @@ export function VehicleDetails({ view }: { view: TrainView }) {
         <div className="rounded-md bg-surface-2">
             <button
                 type="button"
-                className="flex min-h-11 w-full cursor-pointer items-center gap-2 px-3 text-left text-[15px] font-semibold text-ink"
+                className="flex min-h-11 w-full cursor-pointer items-center gap-2 px-3 text-left text-subhead font-semibold text-ink"
                 onClick={() => setOpen(!open)}
                 aria-expanded={open}
             >

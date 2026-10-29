@@ -4,6 +4,7 @@
 
 import type { DelayLevel } from "../delay";
 import {
+    BUTTON,
     COLORS,
     type ColorScheme,
     DELAY_SCALE,
@@ -103,6 +104,9 @@ export function staticCssVariables(): CssVariables {
     }
     for (const [name, easing] of Object.entries(EASING)) {
         vars[`--mhav-ease-${kebab(name)}`] = easing.css;
+    }
+    for (const [name, px] of Object.entries(BUTTON)) {
+        vars[`--mhav-button-${kebab(name)}`] = `${px}px`;
     }
     vars["--mhav-duration-sheet"] = `${MOTION.sheet.duration}ms`;
     vars["--mhav-duration-delay-change"] = `${MOTION.delayChange.duration}ms`;

@@ -224,7 +224,6 @@
     "PrivacyPage": {
         "description": "What data the app handles, and what for.",
         "title": "Privacy notice",
-        "back_to_map": "Back to the map",
         "last_updated": "Last updated: {date}"
     },
     "Follow": {
@@ -250,7 +249,6 @@
     },
     "Stats": {
         "title": "Punctuality",
-        "back": "Back",
         "window": "Last {days} days",
         "runs": "{runs} runs",
         "rankings": "Rankings",
@@ -277,7 +275,6 @@
         "few_data": "little data",
         "no_data": "Not enough data yet",
         "no_data_hint": "We are still collecting runs. Check back in a few days.",
-        "show_on_map": "Show on map",
         "description": "How punctual trains are: lines, trains and stations over the last 28 days.",
         "train_description": "How punctual {subject} is at each stop, from the last 28 days of runs.",
         "station_description": "{station}: how punctual trains are by time of day, over the last 28 days.",
@@ -356,7 +353,6 @@
         "share": "Share the delay",
         "share_so_far": "Share the delay so far",
         "copied": "Link copied",
-        "open_map": "Live on the map",
         "open_station": "{station} departures on the map",
         "history": "Earlier runs",
         "image_alt": "Delay card: {sentence}",

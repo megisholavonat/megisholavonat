@@ -201,3 +201,30 @@ test("SEO-9: the breadcrumb's home link stays on one line beside the logo", asyn
     // One line of 14px text in its 8px padding, not two
     expect(box?.height).toBeLessThan(40);
 });
+
+test("the page header goes back to the map as it was left", async ({
+    page,
+}) => {
+    const sheet = await openTrain(page, "delayed", "full");
+    const map = page.url();
+    await sheet.getByRole("link", { name: t.Train.history }).click();
+    await expect(page).toHaveURL("/hu/vonat/8");
+    const length = await page.evaluate(() => history.length);
+    await page
+        .getByRole("navigation", { name: "Breadcrumb" })
+        .getByRole("link", { name: t.Home.app_title })
+        .click();
+    // Back in history with the train still open, not a fresh map on top
+    await expect(page).toHaveURL(map);
+    await expect(trainRegion(page)).toBeVisible();
+    expect(await page.evaluate(() => history.length)).toBe(length);
+});
+
+test("opened directly, the page header opens the map", async ({ page }) => {
+    await page.goto("/hu/vonat/8");
+    await page
+        .getByRole("navigation", { name: "Breadcrumb" })
+        .getByRole("link", { name: t.Home.app_title })
+        .click();
+    await expect(page).toHaveURL("/hu");
+});

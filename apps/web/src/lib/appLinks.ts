@@ -1,3 +1,5 @@
+import { MAP_PARAMS, MAP_PATHS } from "@megisholavonat/core/links";
+
 /**
  * The files that let a shared train or station link open the native app
  * (iOS Universal Links, Android App Links), served under /.well-known/.
@@ -18,10 +20,6 @@ export const ANDROID_CERT_FINGERPRINTS = [
     "REPLACE_WITH_EAS_SHA256_FINGERPRINT",
 ];
 
-/** Share links: /{hu|en}?vehicleId=… or ?station=… (shareUrl in core). */
-const SHARE_PATHS = ["/", "/hu", "/en"];
-const SHARE_PARAMS = ["vehicleId", "station"];
-
 export const appleAppSiteAssociation = {
     applinks: {
         details: [
@@ -33,8 +31,9 @@ export const appleAppSiteAssociation = {
                         "/": path,
                         exclude: true,
                     })),
-                    ...SHARE_PATHS.flatMap((path) =>
-                        SHARE_PARAMS.map((param) => ({
+                    // Share links: /{hu|en}?vehicleId=… or ?station=…
+                    ...MAP_PATHS.flatMap((path) =>
+                        MAP_PARAMS.map((param) => ({
                             "/": path,
                             "?": { [param]: "?*" },
                         })),

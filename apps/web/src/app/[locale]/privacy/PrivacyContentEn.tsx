@@ -459,7 +459,7 @@ export default function PrivacyContentEn() {
                 the app) at any time. If you turn it off, we delete the stored
                 ID from your browser or phone and go back to anonymous counting.
             </p>
-            <div className="not-prose rounded-xl border border-border bg-card p-4">
+            <div className="not-prose rounded-md border border-line p-4">
                 <AnalyticsConsentSwitch />
             </div>
 
