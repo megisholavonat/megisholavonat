@@ -11,6 +11,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
 import { getTranslations } from "next-intl/server";
+import { Breadcrumb, PageMain } from "@/components/seo/PageParts";
 import { routing } from "@/i18n/routing";
 import { OG_SIZE } from "@/lib/og/metadata";
 import { type RunParams, runParams } from "@/lib/og/runParams";
@@ -134,13 +135,16 @@ export default async function Page({
     const { locale, run, card } = await load(params, searchParams);
     if (!run || !card) notFound();
     const t = await getTranslations({ locale, namespace: "DelayCard" });
+    const tHome = await getTranslations({ locale, namespace: "Home" });
     const sentence = delaySummarySentence(locale, card);
     const map = await mapLink(locale, run.number, card.from.stationId);
     return (
-        <main className="mx-auto flex min-h-dvh max-w-2xl flex-col gap-5 px-4 py-8">
-            <p className="text-caption font-semibold tracking-wide text-ink-2 uppercase">
-                {t("title")}
-            </p>
+        <PageMain>
+            <Breadcrumb
+                home={tHome("app_title")}
+                homeHref={`/${locale}`}
+                current={t("title")}
+            />
             <h1 className="text-title font-bold text-balance">{sentence}</h1>
             {/* biome-ignore lint/performance/noImgElement: the share card itself, drawn by the og route */}
             <img
@@ -172,6 +176,6 @@ export default async function Page({
                     {t("history")}
                 </a>
             </div>
-        </main>
+        </PageMain>
     );
 }
