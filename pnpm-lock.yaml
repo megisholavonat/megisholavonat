@@ -302,6 +302,9 @@ importers:
         specifier: ^3.7.2
         version: 3.7.2
     devDependencies:
+      '@maplibre/maplibre-gl-style-spec':
+        specifier: ^26.5.0
+        version: 26.5.0
       '@types/geojson':
         specifier: ^7946.0.16
         version: 7946.0.16
