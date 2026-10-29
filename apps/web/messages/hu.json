@@ -146,5 +146,26 @@
         "title": "Adatvédelmi tájékoztató",
         "back_to_map": "Vissza a térképhez",
         "last_updated": "Utolsó frissítés: {date}"
+    },
+    "Follow": {
+        "follow": "Követés",
+        "following": "Követed",
+        "follow_your_train": "Kövesd a vonatodat",
+        "my_commute": "Ingázásom",
+        "days": "Napok",
+        "boarding": "Felszállás",
+        "save": "Mentés",
+        "unfollow": "Követés leállítása",
+        "today_only": "Csak ma",
+        "tomorrow": "holnap",
+        "usually_late": "általában késik",
+        "usually_very_late": "általában sokat késik",
+        "day_1": "H",
+        "day_2": "K",
+        "day_3": "Sze",
+        "day_4": "Cs",
+        "day_5": "P",
+        "day_6": "Szo",
+        "day_7": "V"
     }
 }

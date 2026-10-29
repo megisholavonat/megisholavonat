@@ -146,5 +146,26 @@
         "title": "Privacy notice",
         "back_to_map": "Back to the map",
         "last_updated": "Last updated: {date}"
+    },
+    "Follow": {
+        "follow": "Follow",
+        "following": "Following",
+        "follow_your_train": "Follow your train",
+        "my_commute": "My commute",
+        "days": "Days",
+        "boarding": "Boarding",
+        "save": "Save",
+        "unfollow": "Stop following",
+        "today_only": "Today only",
+        "tomorrow": "tomorrow",
+        "usually_late": "usually late",
+        "usually_very_late": "usually very late",
+        "day_1": "M",
+        "day_2": "T",
+        "day_3": "W",
+        "day_4": "T",
+        "day_5": "F",
+        "day_6": "S",
+        "day_7": "S"
     }
 }

@@ -8,6 +8,7 @@ import { PlatformBadge } from "@/components/ui/Platform";
 import { destinationOf } from "@/lib/train";
 import {
     CloseButton,
+    FollowIconButton,
     Punctuality,
     ReasonBanner,
     ServiceGlyphs,
@@ -27,12 +28,14 @@ export function TrainSheet({
     detent,
     onDetentChange,
     onClose,
+    onFollow,
 }: {
     view: TrainView | null;
     fallback: TrainFeatureProperties | null;
     detent: Detent;
     onDetentChange: (detent: Detent) => void;
     onClose: () => void;
+    onFollow: () => void;
 }) {
     const t = useTranslations("Train");
     const next = view?.next;
@@ -51,6 +54,7 @@ export function TrainSheet({
                     stale={view.stale}
                     className="text-headline"
                 />
+                <FollowIconButton view={view} onFollow={onFollow} />
                 <CloseButton onClick={onClose} />
             </div>
         ) : (
@@ -102,7 +106,7 @@ export function TrainSheet({
                     </>
                 ) : (
                     <>
-                        <TrainActions view={view} />
+                        <TrainActions view={view} onFollow={onFollow} />
                         {view.reason && (
                             <ReasonBanner
                                 reason={view.reason}

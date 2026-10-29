@@ -24,10 +24,12 @@ export function TrainPanel({
     view,
     fallback,
     onClose,
+    onFollow,
 }: {
     view: TrainView | null;
     fallback: TrainFeatureProperties | null;
     onClose: () => void;
+    onFollow: () => void;
 }) {
     const t = useTranslations("Train");
     const vehicle = view?.vehicle;
@@ -91,7 +93,7 @@ export function TrainPanel({
                         />
                     )}
                 </div>
-                {view && <TrainActions view={view} />}
+                {view && <TrainActions view={view} onFollow={onFollow} />}
                 {view?.reason && (
                     <ReasonBanner
                         reason={view.reason}
