@@ -107,6 +107,7 @@ export function SettingsScreen() {
                         isOn={s.settings.analytics === "granted"}
                         onIsOnChange={s.setAnalytics}
                     />
+                    <ValueRow label={s.t("privacy")} onPress={s.openPrivacy} />
                 </Section>
                 <Section>
                     <ValueRow

@@ -77,6 +77,7 @@ import {
     TrainSheetHeader,
 } from "@/components/train/TrainSheet";
 import { useTrainView } from "@/components/train/useTrainView";
+import { useFocusReturn } from "@/hooks/useFocusReturn";
 import { type Follow, useFollows } from "@/hooks/useFollows";
 import { useIsDesktop } from "@/hooks/useIsMobile";
 import { useMapTitle } from "@/hooks/useMapTitle";
@@ -445,6 +446,8 @@ function MapScreen() {
     const feed = feedState(trains, trainsQuery.isError, trainsQuery.isPending);
 
     const [selectedId, setSelectedId] = useState<string | null>(null);
+    // Closing the train puts focus back on the row that opened it
+    useFocusReturn(selectedId);
     const [stationId, setStationId] = useState<string | null>(null);
     const [pickedStation, setPickedStation] = useState<Station | null>(null);
     const [boardKind, setBoardKind] = useState<BoardKind>("departures");
@@ -507,6 +510,11 @@ function MapScreen() {
           : disruptionsOpen
             ? "disruptions"
             : null;
+
+    /** The layers as last rendered, for a popstate that lands before the
+     * effect below has mirrored them */
+    const navRef = useRef<Nav>({ vehicleId: null, station: null, overlay });
+    navRef.current = { vehicleId: selectedId, station: stationId, overlay };
 
     // Mirror the layers in the URL and the history (shareable; back closes
     // the top one; the consent prompt watches ?vehicleId for a closed panel)
@@ -692,7 +700,17 @@ function MapScreen() {
     clearQueryRef.current = sheetSearch.setQuery;
     useEffect(() => {
         const onPop = () => {
-            backPendingRef.current = false;
+            if (backPendingRef.current) {
+                // The back this page started to close a layer. The layers
+                // on screen are already right, and another may have closed
+                // while it was under way (Esc twice): the URL is behind
+                // them, so bring it along instead of reopening that one
+                backPendingRef.current = false;
+                const wanted = navRef.current;
+                if (wanted.overlay !== "search") clearQueryRef.current("");
+                syncHistory(wanted, backPendingRef);
+                return;
+            }
             const nav = currentNav();
             setSelectedId(nav.vehicleId);
             setStationId(nav.station);

@@ -81,3 +81,9 @@ python_version = "3.13"
 warn_return_any = true
 disallow_incomplete_defs = true
 plugins = ['pydantic.mypy']
+
+[tool.uv]
+# taskiq 0.12 reloads on watchdog 5+ read events (closed_no_write), which
+# makes `taskiq worker --reload` restart in a loop. Fixed in taskiq 0.13,
+# which needs taskiq-redis 1.2 and redis 8.
+constraint-dependencies = ["watchdog<5"]

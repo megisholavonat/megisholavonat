@@ -111,6 +111,7 @@
         "map": "Map",
         "railways": "Railway lines",
         "analytics": "Anonymous statistics",
+        "privacy": "Privacy",
         "map_data": "Map data",
         "map_data_value": "© OpenStreetMap",
         "railway_data_value": "© OpenRailwayMap",

@@ -112,6 +112,9 @@ export function SettingsScreen() {
                     >
                         {s.t("analytics")}
                     </ListItem>
+                    <ListItem onPress={s.openPrivacy}>
+                        {s.t("privacy")}
+                    </ListItem>
                 </FieldGroup.Section>
                 <FieldGroup.Section>
                     <ListItem

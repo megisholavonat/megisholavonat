@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { LuArrowLeft } from "react-icons/lu";
 import PrivacyContentEn from "@/app/[locale]/privacy/PrivacyContentEn";
 import PrivacyContentHu from "@/app/[locale]/privacy/PrivacyContentHu";
+import { AppIcon } from "@/components/ui/AppIcon";
 import { Link } from "@/i18n/navigation";
+import { subpageMetadata } from "@/lib/og/metadata";
+import { siteUrl } from "@/lib/og/server";
 
 /** Update together with the notice text (and CONSENT_VERSION if needed). */
-const LAST_UPDATED = new Date("2026-10-28");
+const LAST_UPDATED = new Date("2026-10-29");
 
 export async function generateMetadata({
     params,
@@ -18,7 +20,14 @@ export async function generateMetadata({
     const t = await getTranslations({ locale, namespace: "PrivacyPage" });
     const tHome = await getTranslations({ locale, namespace: "Home" });
     return {
-        title: `${t("title")} | ${tHome("app_title")}`,
+        ...subpageMetadata({
+            locale,
+            origin: siteUrl(),
+            appTitle: tHome("app_title"),
+            path: "/privacy",
+            title: t("title"),
+            description: t("description"),
+        }),
         alternates: {
             languages: {
                 hu: "https://megisholavonat.info/hu/privacy",
@@ -51,7 +60,7 @@ export default async function PrivacyPage({
                 </Link>
 
                 <div className="mt-6 flex items-center gap-3">
-                    <Image src="/icon1.png" alt="" width={32} height={32} />
+                    <AppIcon size={32} />
                     <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
                         {t("title")}
                     </h1>

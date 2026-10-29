@@ -83,6 +83,7 @@ async function expectLayerOrder(page: Page) {
             const at = (id: string) => ids.indexOf(id);
             const order = [
                 "railway-layer",
+                "slot-railway",
                 "slot-route",
                 "polyline-layer",
                 "slot-stops",

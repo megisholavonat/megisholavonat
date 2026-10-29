@@ -3,6 +3,7 @@ from typing import Any
 
 import fakeredis
 import httpx
+import pytest
 import respx
 
 from api.core.redis import add_key
@@ -210,6 +211,58 @@ async def test_gps_delay_replaces_otp_delay_for_live_trains(
     trips = [e["tripShortName"].split()[0] for e in response.json()["entries"]]
     assert trips[:2] == ["341", "201"]
     assert trips.count("201") == 1
+
+
+@pytest.mark.parametrize("activity", ["offRoute", "arrived", "cancelled"])
+async def test_no_gps_delay_for_trains_the_map_shows_none_for(
+    client: httpx.AsyncClient,
+    otp: respx.MockRouter,
+    redis: fakeredis.FakeAsyncRedis,
+    activity: str,
+) -> None:
+    # QA n-C: 604 off its route read "+5" on the Szolnok board while the map
+    # and the train sheet showed no delay
+    graphql_route(otp).mock(side_effect=otp_responder(BOARDS))
+    live = load_fixture("live-trains-kelenfold.json")
+    for train in live:
+        train["activity"] = activity
+    await _store_live_trains(redis, live)
+
+    response = await client.get(
+        f"/v1/stations/{KELENFOLD}/departures", params={"limit": 10}
+    )
+
+    entries = response.json()["entries"]
+    by_trip = {e["tripId"]: e for e in entries}
+    intercity = by_trip["1:36231459"]  # 201 InterCity
+    # As a row without a live train: OTP's realtime delay
+    assert intercity["delaySource"] == "otp"
+    assert intercity["delayMinutes"] == 11
+    assert intercity["expectedTime"] == intercity["scheduledTime"] + 11 * 60
+    # Still the train on the map, and still one row
+    assert intercity["vehicleId"] == "1:915506300507"
+    assert [e["tripShortName"].split()[0] for e in entries].count("201") == 1
+
+
+async def test_running_and_waiting_trains_keep_their_gps_delay(
+    client: httpx.AsyncClient,
+    otp: respx.MockRouter,
+    redis: fakeredis.FakeAsyncRedis,
+) -> None:
+    graphql_route(otp).mock(side_effect=otp_responder(BOARDS))
+    live = load_fixture("live-trains-kelenfold.json")
+    live[0]["activity"] = "running"
+    live[1]["activity"] = "beforeDeparture"
+    await _store_live_trains(redis, live)
+
+    response = await client.get(
+        f"/v1/stations/{KELENFOLD}/departures", params={"limit": 10}
+    )
+
+    by_number = {e["tripShortName"].split()[0]: e for e in response.json()["entries"]}
+    assert by_number["201"]["delaySource"] == "gps"
+    assert by_number["201"]["delayMinutes"] == 9
+    assert by_number["341"]["delaySource"] == "gps"
 
 
 async def test_gps_delay_never_moves_departures_earlier(

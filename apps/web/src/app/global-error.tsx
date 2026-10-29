@@ -2,9 +2,9 @@
 
 import { themeCss } from "@megisholavonat/core/tokens/web";
 import { Inter } from "next/font/google";
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect } from "react";
+import { AppIcon } from "@/components/ui/AppIcon";
 import "@/app/globals.css";
 
 const inter = Inter({
@@ -28,14 +28,7 @@ export default function GlobalError({
             </head>
             <body className="min-h-screen bg-canvas font-sans text-ink antialiased">
                 <div className="flex min-h-screen flex-col items-center justify-center gap-6 px-6 py-12">
-                    <Image
-                        src="/icon1.png"
-                        alt="Mégis hol a vonat?"
-                        width={72}
-                        height={72}
-                        className="rounded-2xl shadow-md"
-                        priority
-                    />
+                    <AppIcon size={72} />
                     <div className="max-w-md text-center">
                         <h1 className="text-title">
                             Valami hiba történt / Something went wrong

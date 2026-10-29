@@ -90,6 +90,8 @@ def _transit_leg(leg: dict[str, Any], live_index: dict[str, Any]) -> TransitLeg:
     )
     if live is not None:
         vehicle_id = live.vehicleId
+    # As on boards: no live delay off route, arrived or cancelled
+    if live is not None and live.has_delay:
         delay_source = "gps"
         realtime = True
         # Trains do not leave early; a negative GPS delay before departure
@@ -213,8 +215,8 @@ def merge_duplicate_itineraries(itineraries: list[Itinerary]) -> list[Itinerary]
     OTP lists one physical train as several trips (e.g. "79 ... InterCity" and
     "79 ... gyorsvonat", or the portions "606" and "638" of a split train), and
     returns an itinerary for every combination, sometimes twice. As on the
-    station boards, keep one per schedule, preferring trains live on our map,
-    then running ones, then realtime data.
+    station boards, keep one per schedule, preferring trains live on our map (with
+    a live delay, then without), then running ones, then realtime data.
     """
 
     def key(itinerary: Itinerary) -> tuple[tuple[str, int, str, int], ...]:
@@ -228,10 +230,11 @@ def merge_duplicate_itineraries(itineraries: list[Itinerary]) -> list[Itinerary]
             for leg in _rides(itinerary)
         )
 
-    def rank(itinerary: Itinerary) -> tuple[int, bool, int]:
+    def rank(itinerary: Itinerary) -> tuple[int, int, bool, int]:
         rides = _rides(itinerary)
         return (
             sum(leg.delaySource == "gps" for leg in rides),
+            sum(leg.vehicleId is not None for leg in rides),
             not any(leg.canceled for leg in rides),
             sum(leg.realtime for leg in rides),
         )

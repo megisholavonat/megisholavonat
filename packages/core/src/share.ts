@@ -53,13 +53,16 @@ export function huTrainSubject(number: string): string {
 
 /**
  * What a shared train is doing. Only a running train has a delay to tell;
- * the others say why not, as the map and the sheet do.
+ * the others say why not, as the map and the sheet do. `offRoute`: its
+ * position is fresh, but off its trip's route, so its delay is unknown;
+ * `noData`: no fresh position.
  */
 export type TrainShareStatus =
     | "running"
     | "waiting"
     | "cancelled"
     | "arrived"
+    | "offRoute"
     | "noData";
 
 /** The share status of a train by its `trainDisplay`. */
@@ -74,7 +77,9 @@ export function trainShareStatus(display: TrainDisplay): TrainShareStatus {
                 ? "waiting"
                 : display.activity === "arrived"
                   ? "arrived"
-                  : "noData";
+                  : display.activity === "offRoute" && !display.outdated
+                    ? "offRoute"
+                    : "noData";
         default:
             return "noData";
     }
@@ -110,6 +115,7 @@ export function trainShareText(locale: Locale, info: TrainShareInfo): string {
                   waiting: `${subject} indulásra vár`,
                   cancelled: `${subject} törölve`,
                   arrived: `${subject} megérkezett`,
+                  offRoute: `${subject} késése most nem ismert`,
                   noData: `${subject}ról nincs friss adat`,
               }[state]
             : {
@@ -117,6 +123,7 @@ export function trainShareText(locale: Locale, info: TrainShareInfo): string {
                   waiting: `${subject} is waiting to depart`,
                   cancelled: `${subject} is cancelled`,
                   arrived: `${subject} has arrived`,
+                  offRoute: `${subject}'s delay is unknown right now`,
                   noData: `No fresh data on train ${info.number}`,
               }[state];
     // The next stop's expected time goes with the delay: only for a train

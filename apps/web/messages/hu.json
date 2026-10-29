@@ -97,6 +97,7 @@
         "position": "A vonat helyzete"
     },
     "Station": {
+        "scheduled_time": "menetrend szerint",
         "board": "Menetrendi tábla",
         "board_of": "{station} indulási és érkezési táblája",
         "departures": "Indulás",
@@ -148,7 +149,8 @@
         "slight": "5+",
         "moderate": "15+",
         "severe": "60+",
-        "stale": "nincs adat · áll",
+        "stale": "perce nincs friss adat",
+        "inactive": "nincs élő késés",
         "title": "Késés",
         "minutes": "perc"
     },
@@ -217,6 +219,7 @@
         "description": "Részletes statisztika egy véletlenszerű azonosítóval (PostHog, EU-s szerver). Kikapcsolva csak a napi látogatószámot mérjük, sütik és tárolt azonosító nélkül, és töröljük a böngésződből a PostHog adatait."
     },
     "PrivacyPage": {
+        "description": "Milyen adatot kezel az alkalmazás, és mire.",
         "title": "Adatvédelmi tájékoztató",
         "back_to_map": "Vissza a térképhez",
         "last_updated": "Utolsó frissítés: {date}"

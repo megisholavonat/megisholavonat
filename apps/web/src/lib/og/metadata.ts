@@ -123,3 +123,58 @@ export function buildMetadata({
         },
     };
 }
+
+export interface SubpageInput {
+    locale: string;
+    origin: string;
+    appTitle: string;
+    /** The page's path under the locale, "/privacy" */
+    path: string;
+    title: string;
+    description: string;
+    /** No such page: kept out of search engines */
+    missing?: boolean;
+}
+
+/**
+ * A page of its own (stats, privacy): its own title and og:url, the app's
+ * card, and the same title separator as the map ("Pontosság · Mégis hol a
+ * vonat?").
+ */
+export function subpageMetadata({
+    locale,
+    origin,
+    appTitle,
+    path,
+    title,
+    description,
+    missing = false,
+}: SubpageInput): Metadata {
+    const image = {
+        url: `/${locale}/og`,
+        ...OG_SIZE,
+        type: "image/png",
+        alt: appTitle,
+    };
+    return {
+        metadataBase: new URL(origin),
+        title: documentTitle(appTitle, title),
+        description,
+        ...(missing ? { robots: { index: false } } : {}),
+        openGraph: {
+            type: "website",
+            siteName: appTitle,
+            locale: locale === "hu" ? "hu_HU" : "en_GB",
+            url: `${origin}/${locale}${path}`,
+            title,
+            description,
+            images: [image],
+        },
+        twitter: {
+            card: "summary_large_image",
+            title,
+            description,
+            images: [image],
+        },
+    };
+}

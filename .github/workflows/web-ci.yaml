@@ -51,7 +51,7 @@ jobs:
   e2e:
     name: End-to-end (Playwright)
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     steps:
       - name: Checkout repository
@@ -88,11 +88,18 @@ jobs:
         if: steps.browser-cache.outputs.cache-hit == 'true'
         run: pnpm --filter @megisholavonat/web exec playwright install-deps chromium
 
-      - name: Build and run the e2e suite
-        run: pnpm turbo e2e --filter=@megisholavonat/web
+      - name: Build the web app
+        run: pnpm turbo build --filter=@megisholavonat/web
+
+      # Turbo groups a task's output on CI and prints it when the task ends;
+      # streamed, each test shows up as it finishes. The build above is a
+      # cache hit here
+      - name: Run the e2e suite
+        timeout-minutes: 10
+        run: pnpm turbo e2e --filter=@megisholavonat/web --log-order=stream --output-logs=full
 
       - name: Upload the report
-        if: failure()
+        if: failure() || cancelled()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
