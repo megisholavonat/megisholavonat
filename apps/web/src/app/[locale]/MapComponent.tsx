@@ -63,6 +63,7 @@ import {
     type Map as MaplibreMap,
     type Marker as MaplibreMarker,
     type Popup as MaplibrePopup,
+    type SymbolLayerSpecification,
     setWorkerUrl,
 } from "maplibre-gl";
 import { useReducedMotion } from "motion/react";
@@ -187,9 +188,49 @@ const SEL = {
 } as const;
 const CLUSTER = { bubble: "marker-cluster" } as const;
 /**
- * Invisible copies of the unselected marks and bubbles, under the station
- * names: they hold the trains' room for the "+N" numbers only (see
- * baseMarkerLayers)
+ * Station names step aside for trains: each side close to the dot, then
+ * each a step further out, wherever no train (its ROOM) or other name is
+ */
+const NAMES_ANCHORS = [
+    ["left", [0.6, 0]],
+    ["right", [-0.6, 0]],
+    ["top", [0, 0.6]],
+    ["bottom", [0, -0.6]],
+    ["left", [1.4, 0]],
+    ["right", [-1.4, 0]],
+    ["top", [0, 1.4]],
+    ["bottom", [0, -1.4]],
+].flat();
+/**
+ * Where no place is free, from city zoom a name still shows at its first
+ * place, under the trains: "cooperative" lets it overlap the trains' room
+ * (and, rarely, another station name), never a place name
+ */
+const NAMES_OVERLAP = [
+    "step",
+    ["zoom"],
+    "never",
+    MAP_MARKS.delayTextMinZoom,
+    "cooperative",
+] as unknown as ExpressionSpecification;
+type SymbolLayout = NonNullable<SymbolLayerSpecification["layout"]>;
+/** A station-name layout that steps aside for trains (NAMES_ANCHORS) */
+function dodgingTrains(layout: unknown): SymbolLayout {
+    const {
+        "text-variable-anchor": _anchors,
+        "text-radial-offset": _offset,
+        ...rest
+    } = layout as SymbolLayout;
+    return {
+        ...rest,
+        "text-variable-anchor-offset": NAMES_ANCHORS as never,
+        "text-overlap": NAMES_OVERLAP as never,
+    };
+}
+/**
+ * Invisible copies of the unselected marks and bubbles, over the station
+ * names and under the route: they hold the trains' room, so names and
+ * "+N" numbers step aside for them (see baseMarkerLayers)
  */
 const ROOM = {
     marks: "marker-dot-room",
@@ -522,8 +563,8 @@ const MARK_ICON_SIZE = [
 /**
  * From the zoom "+N" appears, marks take part in collision (still always
  * drawn), so a number never covers a mark. Further out they stay out of it.
- * Unselected marks only through their invisible room (ROOM), placed after
- * the station names, so trains draw over a name but never push it away.
+ * Unselected marks only through their invisible room (ROOM): a station
+ * name steps aside for it, or where it can't, draws under the train.
  */
 const MARK_IGNORE_PLACEMENT = [
     "step",
@@ -1141,11 +1182,12 @@ export default function MapComponent({
     /**
      * Unselected trains: a mark, and from zoom 12 "+N" beside late ones.
      * MapLibre places upper layers first. The marks themselves stay out of
-     * collision, so station names are never pushed away by a train (it just
-     * draws over them). Under the names, an invisible copy of every mark
-     * (ROOM) joins the collision index, then the numbers: a number goes
-     * right, left, above or below its mark where it covers no mark, station
-     * name or other number, else it stays out. Bigger delays first.
+     * collision; an invisible copy of every mark (ROOM) above the station
+     * names joins it instead. Station names then take a side clear of
+     * trains, or show under them where none is (NAMES_OVERLAP). The numbers
+     * come last: a number goes right, left, above or below its mark where it
+     * covers no mark, station name or other number, else it stays out.
+     * Bigger delays first.
      */
     const baseMarkerLayers = () => [
         <Layer
@@ -1180,7 +1222,7 @@ export default function MapComponent({
         <Layer
             key="mark-room"
             id={ROOM.marks}
-            beforeId={SLOTS.names}
+            beforeId={SLOTS.route}
             type="symbol"
             filter={NOT_CLUSTER}
             layout={markLayout}
@@ -1189,7 +1231,7 @@ export default function MapComponent({
         <Layer
             key="bubble-room"
             id={ROOM.bubbles}
-            beforeId={SLOTS.names}
+            beforeId={SLOTS.route}
             type="symbol"
             filter={IS_CLUSTER}
             layout={{
@@ -1801,7 +1843,8 @@ export default function MapComponent({
                             <Layer
                                 key={layer.id}
                                 {...layer}
-                                beforeId={SLOTS.route}
+                                layout={dodgingTrains(layer.layout)}
+                                beforeId={SLOTS.trainRoom}
                             />
                         ))}
                 </Source>

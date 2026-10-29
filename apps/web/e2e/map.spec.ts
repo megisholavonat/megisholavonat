@@ -231,8 +231,8 @@ function stationNames(page: Page) {
         const zoom = map.getZoom();
         const order = [
             at("marker-delay"),
-            at("marker-dot-room"),
             at("mhav-station-label-1"),
+            at("marker-dot-room"),
             at("marker-dot"),
         ];
         return {
@@ -243,21 +243,25 @@ function stationNames(page: Page) {
                 label.layout?.visibility !== "none",
             maxzoom: label?.maxzoom ?? null,
             filter: JSON.stringify(label?.filter ?? null),
-            // Placed after every unselected train (MapLibre places the top
-            // layer first), drawn under them
+            // Placed after the trains' room (MapLibre places the top layer
+            // first) and before the "+N" numbers, drawn under the trains
             placedAfterTrains: order.every(
                 (index, i) =>
                     index >= 0 && (i === 0 || index > (order[i - 1] ?? -1)),
             ),
-            trainsPushNames:
-                layers.find((l) => l.id === "marker-dot")?.layout?.[
-                    "icon-ignore-placement"
-                ] !== true,
+            // A side clear of trains, else still shown under them
+            stepsAside:
+                Array.isArray(label?.layout?.["text-variable-anchor-offset"]) &&
+                JSON.stringify(label?.layout?.["text-overlap"]).includes(
+                    "cooperative",
+                ),
         };
     });
 }
 
-test("station names stay at zoom 14, under the trains", async ({ page }) => {
+test("station names stay at zoom 14, stepping aside for trains", async ({
+    page,
+}) => {
     await openHome(page);
     await expect
         .poll(() => stationNames(page))
@@ -266,7 +270,7 @@ test("station names stay at zoom 14, under the trains", async ({ page }) => {
             maxzoom: null,
             filter: expect.not.stringContaining("!="),
             placedAfterTrains: true,
-            trainsPushNames: false,
+            stepsAside: true,
         });
 });
 

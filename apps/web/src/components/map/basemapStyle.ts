@@ -31,11 +31,13 @@ export const SLOTS = {
     railway: "slot-railway",
     /** Over the station dots: the trains' "+N" numbers */
     trainText: "slot-train-text",
-    /**
-     * Over the numbers: the station names, placed before any train so a
-     * train never pushes a name away
-     */
+    /** Over the numbers: the station names, placed before them */
     names: "slot-names",
+    /**
+     * Over the names (station-name layers go before this slot): the trains'
+     * invisible room, placed before the names, so they step aside
+     */
+    trainRoom: "slot-train-room",
     route: "slot-route",
     stops: "slot-stops",
     station: "slot-station",
