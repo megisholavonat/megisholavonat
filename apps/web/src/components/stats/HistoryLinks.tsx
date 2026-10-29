@@ -1,11 +1,11 @@
 "use client";
 
 import type { Locale } from "@megisholavonat/core/i18n";
+import { trainNumber } from "@megisholavonat/core/trainName";
 import { ChartColumn, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { stationHref, trainPath } from "@/lib/seo/paths";
-import { trainNumber } from "@/lib/train";
 import { cn } from "@/lib/utils";
 
 /** "Pontosság ›" row of the train sheet, to the train's page. */

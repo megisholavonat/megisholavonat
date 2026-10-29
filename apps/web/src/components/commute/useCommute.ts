@@ -15,11 +15,12 @@ import {
 } from "@megisholavonat/core/commute";
 import type { DelayReasonCode } from "@megisholavonat/core/delayReasons";
 import { trainDisplay } from "@megisholavonat/core/display";
+import { trainNumber } from "@megisholavonat/core/trainName";
 import { useQueries } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import type { Follow } from "@/hooks/useFollows";
 import { predictedPlatformsOf } from "@/hooks/usePredictedPlatforms";
-import { trainNumber, usuallyLate } from "@/lib/train";
+import { usuallyLate } from "@/lib/train";
 
 const HOUR_MS = 60 * 60 * 1000;
 /** The board lists the next few hours at a busy station */

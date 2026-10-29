@@ -15,20 +15,23 @@ import {
     trainDisplay,
 } from "@megisholavonat/core/display";
 import { decodePolyline } from "@megisholavonat/core/polyline";
+import {
+    beforeDeparture,
+    predictedDelays,
+    type StopTiming,
+    stationIdOf,
+    stopTiming,
+} from "@megisholavonat/core/stops";
 import { ticketUrl } from "@megisholavonat/core/ticket";
+import { trainNumber } from "@megisholavonat/core/trainName";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useNow } from "@/hooks/useNow";
 import {
-    beforeDeparture,
     nextStopIndex,
     polylineKm,
-    type StopTiming,
-    stationIdOf,
-    stopTiming,
     type TrainPosition,
     type TrainReason,
-    trainNumber,
     trainPosition,
     trainReason,
     usuallyLate,
@@ -194,12 +197,9 @@ export function useTrainView(
         for (const station of history.data?.stations ?? []) {
             byStation.set(station.stationId, station);
         }
-        const predictedByIndex = new Map<number, number | null | undefined>();
-        vehicle.processedStops?.forEach((stop, i) => {
-            if (live) {
-                predictedByIndex.set(stop.index ?? i, stop.predictedDelay);
-            }
-        });
+        const predictedByIndex = live
+            ? predictedDelays(vehicle)
+            : new Map<number, number | null | undefined>();
         const displayable = vehicle.trip.infoServices.filter(
             (s) => s.displayable !== false,
         );

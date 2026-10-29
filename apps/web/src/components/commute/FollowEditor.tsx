@@ -5,7 +5,9 @@ import {
     localWeekday,
     tripRun,
 } from "@megisholavonat/core/commute";
+import { stationIdOf } from "@megisholavonat/core/stops";
 import { formatSecondsAsTime } from "@megisholavonat/core/time";
+import { trainNumber } from "@megisholavonat/core/trainName";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { ChevronDown, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
@@ -21,7 +23,7 @@ import {
     useFollows,
 } from "@/hooks/useFollows";
 import { track } from "@/lib/analytics";
-import { destinationOf, stationIdOf, trainNumber } from "@/lib/train";
+import { destinationOf } from "@/lib/train";
 import { cn } from "@/lib/utils";
 
 /** What the editor opens on: a live train, or a saved follow. */

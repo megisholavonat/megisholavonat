@@ -23,6 +23,7 @@ import {
     legChain,
     matchesBudapest,
 } from "@megisholavonat/core/planner";
+import { formatClock } from "@megisholavonat/core/time";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
     ArrowUpDown,
@@ -57,7 +58,6 @@ import {
 import { cn } from "@/lib/utils";
 import { CityChip } from "./CityChip";
 import {
-    formatTime,
     legDelays,
     RISK_FILL,
     RISK_TEXT,
@@ -612,8 +612,8 @@ function ItineraryRow({
                         canceled && "text-ink-2 line-through",
                     )}
                 >
-                    {formatTime(itinerary.scheduledDeparture)} –{" "}
-                    {formatTime(itinerary.scheduledArrival)}
+                    {formatClock(itinerary.scheduledDeparture)} –{" "}
+                    {formatClock(itinerary.scheduledArrival)}
                 </span>
                 {/* Beside the departure time, only a late start: a bare
                     "pontos" there would not say which train it means */}
@@ -903,7 +903,7 @@ function StopLine({
                     canceled && "text-ink-2 line-through",
                 )}
             >
-                {formatTime(time)}
+                {formatClock(time)}
             </span>
             {live && !canceled && delay > 0 ? (
                 <DelayChip delay={delay} />

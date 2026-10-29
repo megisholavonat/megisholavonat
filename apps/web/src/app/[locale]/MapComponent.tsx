@@ -41,6 +41,7 @@ import {
     MAP_STATION_MARK,
     markSizeAt,
 } from "@megisholavonat/core/tokens/map";
+import { trainNumber } from "@megisholavonat/core/trainName";
 import type { VehicleState } from "@megisholavonat/core/VehicleTracker";
 import {
     easeOut,
@@ -104,7 +105,6 @@ import { warmUpShaders } from "@/components/map/warmUpShaders";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
 import { useTheme } from "@/components/ui/ThemeProvider";
 import { useSettings } from "@/hooks/useSettings";
-import { trainNumber } from "@/lib/train";
 import { LAYER_IDS } from "@/util/constants";
 import { OVERLAYS } from "@/util/mapConfigs";
 

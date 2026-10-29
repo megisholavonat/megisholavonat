@@ -10,6 +10,8 @@ import {
     runDate,
 } from "@megisholavonat/core/delaySummary";
 import type { Locale } from "@megisholavonat/core/i18n";
+import { beforeDeparture } from "@megisholavonat/core/stops";
+import { trainNumber } from "@megisholavonat/core/trainName";
 import { useQuery } from "@tanstack/react-query";
 import { Check, Share } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
@@ -17,7 +19,6 @@ import { useState } from "react";
 import type { Follow } from "@/hooks/useFollows";
 import { useNow } from "@/hooks/useNow";
 import { shareLink } from "@/lib/share";
-import { beforeDeparture, trainNumber } from "@/lib/train";
 import { cn } from "@/lib/utils";
 import type { TrainView } from "./useTrainView";
 

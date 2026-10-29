@@ -3,12 +3,12 @@ import type {
     TrainFeatureProperties,
 } from "@megisholavonat/api-client";
 import { trainDisplay } from "@megisholavonat/core/display";
+import { trainNumber } from "@megisholavonat/core/trainName";
 import { useEffect, useRef } from "react";
 import type { Detent } from "@/components/sheet/BottomSheet";
 import type { TrainView } from "@/components/train/useTrainView";
 import { analytics, track } from "@/lib/analytics";
 import { noteEntry, takeEntry } from "@/lib/analyticsEvents";
-import { trainNumber } from "@/lib/train";
 
 type FeedKind =
     | "loading"

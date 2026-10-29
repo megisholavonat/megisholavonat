@@ -1,10 +1,11 @@
 "use client";
 
+import { trainName, trainNumber } from "@megisholavonat/core/trainName";
 import { useTranslations } from "next-intl";
 import { useEffect } from "react";
 import type { TrainView } from "@/components/train/useTrainView";
 import { documentTitle, trainTitle } from "@/lib/og/metadata";
-import { destinationOf, trainName, trainNumber } from "@/lib/train";
+import { destinationOf } from "@/lib/train";
 
 /**
  * Keeps the tab title on what the map shows ("650 TOKAJ → Budapest-Keleti ·
