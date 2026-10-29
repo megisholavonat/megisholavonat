@@ -2,7 +2,6 @@ import type { Locator, Page } from "@playwright/test";
 import {
     DELAY_NUMBER,
     expect,
-    knownGap,
     openHome,
     openTrain,
     t,
