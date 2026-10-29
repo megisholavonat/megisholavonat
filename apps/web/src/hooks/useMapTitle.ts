@@ -41,6 +41,19 @@ export function useMapTitle({
     }
     useEffect(() => {
         if (subject === undefined) return;
-        document.title = documentTitle(appTitle, subject);
+        const wanted = documentTitle(appTitle, subject);
+        const apply = () => {
+            if (document.title !== wanted) document.title = wanted;
+        };
+        apply();
+        // Next streams the server's <title> in after hydration (and puts it
+        // back on its own navigations): keep ours on top of it
+        const observer = new MutationObserver(apply);
+        observer.observe(document.head, {
+            childList: true,
+            subtree: true,
+            characterData: true,
+        });
+        return () => observer.disconnect();
     }, [appTitle, subject]);
 }

@@ -128,25 +128,33 @@ export function TrainTitle({
 }) {
     const name = withName ? trainName(tripShortName) : null;
     return (
-        <span className={cn("flex min-w-0 items-center gap-1.5", className)}>
-            <RouteGlyph routeShortName={routeShortName} className="text-lg" />
-            <span className="tnum shrink-0">
-                {trainNumber(tripShortName)}
-                {name ? ` ${name}` : ""}
+        <span
+            className={cn(
+                "flex min-w-0 flex-wrap items-center gap-x-1.5",
+                className,
+            )}
+        >
+            <span className="flex shrink-0 items-center gap-1.5">
+                <RouteGlyph
+                    routeShortName={routeShortName}
+                    className="text-lg"
+                />
+                <span className="tnum">
+                    {trainNumber(tripShortName)}
+                    {name ? ` ${name}` : ""}
+                </span>
             </span>
             {destination === null ? (
                 // Destination arrives with the details
                 <Skeleton className="h-4 w-28 shrink" />
             ) : (
                 destination && (
-                    <>
+                    // The destination is what a rider checks first: it
+                    // takes a line of its own before it is ever cut
+                    <span className="flex min-w-0 max-w-full items-center gap-1.5">
                         <ArrowRight className="size-4 shrink-0" aria-hidden />
-                        {/* Two lines before it is cut: the destination is
-                            what a rider checks first */}
-                        <span className="line-clamp-2 min-w-0 break-words">
-                            {destination}
-                        </span>
-                    </>
+                        <span className="truncate">{destination}</span>
+                    </span>
                 )
             )}
         </span>
@@ -216,7 +224,9 @@ export function NextStopLine({
     return (
         <span className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 text-headline">
             {!atEnd && (
-                <span className="min-w-0 max-w-full truncate">{stop.name}</span>
+                <span className="line-clamp-2 min-w-0 max-w-full">
+                    {stop.name}
+                </span>
             )}
             <span className="inline-flex shrink-0 items-baseline gap-1.5">
                 {prefix && (
