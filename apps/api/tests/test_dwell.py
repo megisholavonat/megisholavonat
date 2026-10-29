@@ -128,8 +128,8 @@ def test_10_waiting_at_zahony_is_on_time() -> None:
 def test_moving_train_near_a_stop_keeps_its_delay() -> None:
     train = _vehicles()["346"]
     _, szolnok = _stop(train, "Szolnok")
-    # Rolling out at 30 km/h ten minutes early: genuinely early
-    loc = _at(train, szolnok["scheduledDeparture"] - 10 * 60, speed=8.3)
+    # Rolling out at 36 km/h ten minutes early: genuinely early
+    loc = _at(train, szolnok["scheduledDeparture"] - 10 * 60, speed=10.0)
 
     assert loc["dwellStopIndex"] is None
     assert loc["delay"] < 0
@@ -185,3 +185,97 @@ def test_berthed_short_of_the_stops_point_waits_on_time() -> None:
     # A long platform: standing 204 m short, before its departure time
     assert berthed["dwellStopIndex"] == index
     assert berthed["delay"] == 0
+
+
+# 406 CORONA of 2026-10-28 (it runs overnight) at Debrecen, due 06:05 - 06:29
+# the next morning: at 06:19 standing 1.1 km past the station's point, at
+# 06:27 back at it, at 06:31 leaving at 9 m/s (QA NM-1: "-17 korán" and
+# "Püspökladány ≈06:41" while it waited)
+DEBRECEN_FIXTURE = Path(__file__).parent / "fixtures" / "dwell-406-debrecen.json.gz"
+
+
+def _406() -> list[dict[str, Any]]:
+    with gzip.open(DEBRECEN_FIXTURE, "rt") as f:
+        vehicles: list[dict[str, Any]] = json.load(f)
+    return vehicles
+
+
+def _process_at_report(vehicle: dict[str, Any], **changes: Any) -> dict[str, Any]:
+    vehicle = copy.deepcopy(vehicle)
+    vehicle.update(changes)
+    service = TrainService(None)  # type: ignore[arg-type]
+    service.reference_time = vehicle["lastUpdated"]
+    [processed] = service.process_locations([vehicle])
+    return processed
+
+
+def test_406_waiting_past_the_station_point_is_on_time() -> None:
+    standing, at_point, _ = _406()
+    index, _ = _stop(standing, "Debrecen")
+
+    for vehicle in (standing, at_point):
+        loc = _process_at_report(vehicle)
+        assert loc["vehicleProgress"]["lastStopIndex"] == index
+        assert loc["dwellStopIndex"] == index
+        assert loc["delay"] == 0
+
+
+def test_406_creeping_in_the_station_is_on_time() -> None:
+    standing, _, _ = _406()
+    index, _ = _stop(standing, "Debrecen")
+
+    # About 11 km/h, 10 min before its departure
+    loc = _process_at_report(standing, speed=3.0)
+
+    assert loc["dwellStopIndex"] == index
+    assert loc["delay"] == 0
+
+
+def test_406_shunting_in_the_station_is_on_time() -> None:
+    standing, _, _ = _406()
+    index, _ = _stop(standing, "Debrecen")
+
+    # QA's reading: 8 m/s (29 km/h) within the station at 06:13
+    loc = _process_at_report(standing, speed=8.0)
+
+    assert loc["dwellStopIndex"] == index
+    assert loc["delay"] == 0
+
+
+def test_406_forecast_never_before_debrecen_departure() -> None:
+    standing, _, _ = _406()
+    _, debrecen = _stop(standing, "Debrecen")
+    ladany_index, ladany = _stop(standing, "Püspökladány")
+    loc = _process_at_report(standing, speed=3.0)
+
+    serve.annotate_locations([loc], _Recovering())  # type: ignore[arg-type]
+
+    predicted = {s["index"]: s.get("predictedDelay") for s in loc["processedStops"]}
+    run = ladany["scheduledDeparture"] - debrecen["scheduledDeparture"]
+    # At most the timetable's padding early (about 1.5 min), not the model's
+    # ten minutes; it read 17 min early
+    assert predicted[ladany_index] * 60 >= -max(60, 0.05 * run) - 30
+
+
+def test_406_leaving_after_its_departure_time_is_late() -> None:
+    _, _, leaving = _406()
+
+    loc = _process_at_report(leaving)
+
+    assert leaving["speed"] == 9.0
+    assert loc["dwellStopIndex"] is None
+    assert loc["delay"] >= 1
+
+
+def test_406_standing_past_the_station_after_departure_is_late() -> None:
+    standing, _, _ = _406()
+    _, debrecen = _stop(standing, "Debrecen")
+    start = service_day_start(date.fromisoformat(standing["trip"]["serviceDate"]))
+    # Still 1.1 km past the point, ten minutes after its departure time
+    loc = _process_at_report(
+        standing,
+        lastUpdated=int(start.timestamp()) + debrecen["scheduledDeparture"] + 600,
+    )
+
+    assert loc["dwellStopIndex"] is None
+    assert loc["delay"] >= 9

@@ -15,7 +15,7 @@ from api.core.redis import add_key
 from api.forecast.serve import annotate_with_latest_model
 from api.schemas.alerts import DelayReason
 from api.util.county import get_county_for_point
-from api.util.preprocess import get_delay_and_position
+from api.util.preprocess import PreviousPosition, get_delay_and_position
 from api.util.replay import next_snapshot
 from api.util.route import route_from_polyline, simplified_polyline
 from api.util.trip import seconds_outside_window
@@ -25,6 +25,20 @@ logger = get_logger(__name__)
 
 # Upper bound for predictions (including a model reload) in a refresh
 FORECAST_TIMEOUT_S = 15
+
+# Each trip's last matched position along its route, so the next refresh
+# can tell which pass of a looping route the train is on. Entries older than
+# this are dropped.
+PROGRESS_KEY = "train-progress"
+PROGRESS_KEEP_S = 1800
+
+
+def progress_key(trip: dict[str, Any]) -> str | None:
+    """Identifies one run of a trip: its id and service date."""
+    trip_id = trip.get("gtfsId")
+    if not trip_id:
+        return None
+    return f"{trip_id}@{trip.get('serviceDate')}"
 
 
 class TrainService:
@@ -123,10 +137,13 @@ class TrainService:
         return [process_location(loc) for loc in locations]
 
     def process_locations(
-        self, locations: list[dict[str, Any]]
+        self,
+        locations: list[dict[str, Any]],
+        previous: dict[str, PreviousPosition] | None = None,
     ) -> list[dict[str, Any]]:
         """
-        Process delays and filter stale data
+        Process delays and filter stale data. `previous` holds each trip's
+        last matched position (by progress_key) and is updated in place.
         """
         now = self.reference_time or time.time()
         locations_processed = []
@@ -136,6 +153,7 @@ class TrainService:
             points = trip_geometry.get("points", "")
 
             route = route_from_polyline(points)
+            key = progress_key(trip)
 
             last_updated_dt = datetime.fromtimestamp(
                 location.get("lastUpdated", 0), tz=UTC
@@ -153,7 +171,14 @@ class TrainService:
                 lon,
                 location.get("heading"),
                 location.get("speed"),
+                previous.get(key) if previous is not None and key else None,
             )
+            if previous is not None and key and route.line is not None:
+                previous[key] = PreviousPosition(
+                    along=delay_data["trainPosition"],
+                    at=float(location.get("lastUpdated") or 0),
+                    line_length=route.line.length,
+                )
 
             processed_location = location.copy()
             processed_location.update(
@@ -177,6 +202,42 @@ class TrainService:
                 locations_processed.append(processed_location)
 
         return locations_processed
+
+    async def load_progress(self) -> dict[str, PreviousPosition]:
+        """Each trip's last matched position, from the previous refresh."""
+        try:
+            raw = await self.redis.hgetall(add_key(PROGRESS_KEY))  # type: ignore[misc]
+        except Exception as e:
+            logger.error(f"Failed to load train progress: {e!r}")
+            return {}
+        progress = {}
+        for key, value in raw.items():
+            try:
+                along, at, line_length = json.loads(value)
+                progress[key.decode() if isinstance(key, bytes) else key] = (
+                    PreviousPosition(
+                        along=float(along), at=float(at), line_length=float(line_length)
+                    )
+                )
+            except (TypeError, ValueError):
+                continue
+        return progress
+
+    @staticmethod
+    def save_progress(
+        pipe: Any, progress: dict[str, PreviousPosition], now: float
+    ) -> None:
+        """Queue the progress of trips seen within PROGRESS_KEEP_S."""
+        key = add_key(PROGRESS_KEY)
+        mapping = {
+            trip: json.dumps([p.along, p.at, p.line_length])
+            for trip, p in progress.items()
+            if now - p.at <= PROGRESS_KEEP_S
+        }
+        pipe.delete(key)
+        if mapping:
+            pipe.hset(key, mapping=mapping)
+            pipe.expire(key, PROGRESS_KEEP_S)
 
     async def refresh_data(self) -> None:
         """
@@ -231,7 +292,8 @@ class TrainService:
         logger.info(f"Added counties (Time: {(time.time() - step_start):.4f}s)")
 
         step_start = time.time()
-        locations_processed = self.process_locations(locations_with_counties)
+        previous = await self.load_progress()
+        locations_processed = self.process_locations(locations_with_counties, previous)
 
         logger.info(
             f"Processed delays & filtered: {len(locations_with_counties)} -> "
@@ -348,6 +410,7 @@ class TrainService:
                 json.dumps(feature_collection),
                 ex=settings.CACHE_DURATION,
             )
+            self.save_progress(pipe, previous, judged_at)
             await pipe.execute()
 
         logger.info(f"Cache updated (Time: {(time.time() - step_start):.4f}s)")
