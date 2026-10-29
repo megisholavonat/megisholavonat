@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateFollowData, CreateFollowErrors, CreateFollowResponses, DeleteDeviceData, DeleteDeviceErrors, DeleteDeviceResponses, DeleteFollowData, DeleteFollowErrors, DeleteFollowResponses, DeletePushTokenData, DeletePushTokenErrors, DeletePushTokenResponses, GetAlertsData, GetAlertsErrors, GetAlertsResponses, GetDeviceData, GetDeviceErrors, GetDeviceResponses, GetPosthogKeyData, GetPosthogKeyResponses, GetRankingsData, GetRankingsErrors, GetRankingsResponses, GetRedisStatusData, GetRedisStatusResponses, GetStationBoardData, GetStationBoardErrors, GetStationBoardResponses, GetStationPlatformsData, GetStationPlatformsErrors, GetStationPlatformsResponses, GetTimeOfDayPunctualityData, GetTimeOfDayPunctualityErrors, GetTimeOfDayPunctualityResponses, GetTrainDetailsData, GetTrainDetailsErrors, GetTrainDetailsResponses, GetTrainHistoryData, GetTrainHistoryErrors, GetTrainHistoryResponses, GetTrainsData, GetTrainsResponses, GetTrainStationHistoryData, GetTrainStationHistoryErrors, GetTrainStationHistoryResponses, ListFollowsData, ListFollowsErrors, ListFollowsResponses, PlanJourneysData, PlanJourneysErrors, PlanJourneysResponses, RegisterDeviceData, RegisterDeviceErrors, RegisterDeviceResponses, RegisterPushTokenData, RegisterPushTokenErrors, RegisterPushTokenResponses, RootData, RootResponses, RotateDeviceTokenData, RotateDeviceTokenErrors, RotateDeviceTokenResponses, SearchStationsData, SearchStationsErrors, SearchStationsResponses, UpdateFollowData, UpdateFollowErrors, UpdateFollowResponses } from './types.gen';
+import type { CreateFollowData, CreateFollowErrors, CreateFollowResponses, DeleteDeviceData, DeleteDeviceErrors, DeleteDeviceResponses, DeleteFollowData, DeleteFollowErrors, DeleteFollowResponses, DeletePushTokenData, DeletePushTokenErrors, DeletePushTokenResponses, GetAlertsData, GetAlertsErrors, GetAlertsResponses, GetDeviceData, GetDeviceErrors, GetDeviceResponses, GetDisruptionsData, GetDisruptionsErrors, GetDisruptionsResponses, GetPosthogKeyData, GetPosthogKeyResponses, GetRankingsData, GetRankingsErrors, GetRankingsResponses, GetRedisStatusData, GetRedisStatusResponses, GetStationBoardData, GetStationBoardErrors, GetStationBoardResponses, GetStationPlatformsData, GetStationPlatformsErrors, GetStationPlatformsResponses, GetTimeOfDayPunctualityData, GetTimeOfDayPunctualityErrors, GetTimeOfDayPunctualityResponses, GetTrainDetailsData, GetTrainDetailsErrors, GetTrainDetailsResponses, GetTrainHistoryData, GetTrainHistoryErrors, GetTrainHistoryResponses, GetTrainsData, GetTrainsResponses, GetTrainStationHistoryData, GetTrainStationHistoryErrors, GetTrainStationHistoryResponses, ListFollowsData, ListFollowsErrors, ListFollowsResponses, PlanJourneysData, PlanJourneysErrors, PlanJourneysResponses, RegisterDeviceData, RegisterDeviceErrors, RegisterDeviceResponses, RegisterPushTokenData, RegisterPushTokenErrors, RegisterPushTokenResponses, RootData, RootResponses, RotateDeviceTokenData, RotateDeviceTokenErrors, RotateDeviceTokenResponses, SearchStationsData, SearchStationsErrors, SearchStationsResponses, UpdateFollowData, UpdateFollowErrors, UpdateFollowResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -96,7 +96,8 @@ export const getStationBoard = <ThrowOnError extends boolean = false>(options: O
 /**
  * Plan Journeys
  *
- * Itineraries between two rail stations, with live delays and ticket links
+ * Itineraries between two rail stations, with live delays, the risk of
+ * missing each transfer and ticket links
  */
 export const planJourneys = <ThrowOnError extends boolean = false>(options: Options<PlanJourneysData, ThrowOnError>) => (options.client ?? client).get<PlanJourneysResponses, PlanJourneysErrors, ThrowOnError>({
     responseType: 'json',
@@ -112,6 +113,20 @@ export const planJourneys = <ThrowOnError extends boolean = false>(options: Opti
 export const getAlerts = <ThrowOnError extends boolean = false>(options?: Options<GetAlertsData, ThrowOnError>) => (options?.client ?? client).get<GetAlertsResponses, GetAlertsErrors, ThrowOnError>({
     responseType: 'json',
     url: '/v1/alerts',
+    ...options
+});
+
+/**
+ * Get Disruptions
+ *
+ * Active line and network disruptions (closures, replacement buses,
+ * engineering works, timetable changes, strikes, weather), with the alerts
+ * about the same event merged. Most severe first, then newest. Per-train
+ * notices such as delay reasons are left out.
+ */
+export const getDisruptions = <ThrowOnError extends boolean = false>(options?: Options<GetDisruptionsData, ThrowOnError>) => (options?.client ?? client).get<GetDisruptionsResponses, GetDisruptionsErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/v1/alerts/disruptions',
     ...options
 });
 

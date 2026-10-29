@@ -191,6 +191,73 @@ export const zDeviceInfo = z.object({
 });
 
 /**
+ * DisruptionLine
+ *
+ * A line glyph to show, deduplicated across the affected routes
+ */
+export const zDisruptionLine = z.object({
+    shortName: z.string(),
+    name: z.string().nullish(),
+    mode: z.string().nullish()
+});
+
+/**
+ * DisruptionSegment
+ *
+ * The stretch between two stations, as MÁV names it in the text
+ */
+export const zDisruptionSegment = z.object({
+    fromName: z.string(),
+    toName: z.string(),
+    fromId: z.string().nullish(),
+    toId: z.string().nullish()
+});
+
+/**
+ * Disruption
+ *
+ * A line or network disruption: the rail alerts about one event, merged.
+ * Per-train notices (delay reasons, coach changes) are not disruptions;
+ * they stay on the train.
+ */
+export const zDisruption = z.object({
+    id: z.string(),
+    alertIds: z.array(z.string()),
+    effect: z.enum([
+        'no_service',
+        'replacement_bus',
+        'modified_service',
+        'delays',
+        'other'
+    ]),
+    cause: z.enum([
+        'engineering',
+        'accident',
+        'strike',
+        'weather',
+        'technical',
+        'other'
+    ]),
+    severity: z.enum([
+        'high',
+        'medium',
+        'low'
+    ]),
+    scope: z.enum(['line', 'network']),
+    segment: zDisruptionSegment.nullish(),
+    title: z.string(),
+    description: z.string(),
+    details: z.array(z.string()),
+    url: z.string(),
+    start: z.int().nullish(),
+    end: z.int().nullish(),
+    lines: z.array(zDisruptionLine),
+    routes: z.array(zAlertRoute),
+    stations: z.array(zAlertStation),
+    trips: z.array(zAlertTrip)
+});
+
+/**
  * ExpoPushTokenCreate
  *
  * An Expo push token (iOS or Android): alerts about every follow
@@ -393,16 +460,6 @@ export const zStationBoard = z.object({
 });
 
 /**
- * StationPlatforms
- */
-export const zStationPlatforms = z.object({
-    stationId: z.string(),
-    stationName: z.string().nullish(),
-    window: zHistoryWindow,
-    predictions: z.array(zPlatformPrediction)
-});
-
-/**
  * StopWithCounty
  *
  * Stop information with county data
@@ -428,6 +485,7 @@ export const zStopTimeWithCounty = z.object({
     realtimeArrival: z.int(),
     scheduledDeparture: z.int(),
     realtimeDeparture: z.int(),
+    realtimeState: z.string().nullish(),
     stop: zStopWithCounty
 });
 
@@ -474,11 +532,19 @@ export const zTrainFeatureProperties = z.object({
     tripShortName: z.string(),
     routeShortName: z.string(),
     routeTextColor: z.string(),
+    headsign: z.string().nullish(),
     delay: z.int(),
     routePolyline: z.string().nullish(),
     distanceToNextStop: z.number().nullish(),
     lastUpdated: z.int(),
     isStale: z.boolean().optional().default(false),
+    activity: z.enum([
+        'running',
+        'beforeDeparture',
+        'arrived',
+        'offRoute',
+        'cancelled'
+    ]).nullish(),
     reason: zDelayReason.nullish()
 });
 
@@ -569,7 +635,17 @@ export const zTransfer = z.object({
     station: z.string(),
     transferMinutes: z.int(),
     expectedTransferMinutes: z.int(),
-    missRisk: z.number().nullish()
+    missRisk: z.number().nullish(),
+    risk: z.enum([
+        'safe',
+        'tight',
+        'likely_missed'
+    ]).nullish(),
+    riskSource: z.enum([
+        'forecast',
+        'history',
+        'canceled'
+    ]).nullish()
 });
 
 /**
@@ -665,6 +741,29 @@ export const zTrip = z.object({
 });
 
 /**
+ * TypicalDelay
+ *
+ * A train's usual delay at one station, for "usually late" before departure
+ */
+export const zTypicalDelay = z.object({
+    trainNumber: z.string(),
+    n: z.int(),
+    medianDelayMin: z.number().nullish(),
+    insufficientData: z.boolean()
+});
+
+/**
+ * StationPlatforms
+ */
+export const zStationPlatforms = z.object({
+    stationId: z.string(),
+    stationName: z.string().nullish(),
+    window: zHistoryWindow,
+    predictions: z.array(zPlatformPrediction),
+    typicalDelays: z.array(zTypicalDelay).optional().default([])
+});
+
+/**
  * ValidationError
  */
 export const zValidationError = z.object({
@@ -712,7 +811,14 @@ export const zVehiclePositionWithDelay = z.object({
     trainPosition: z.number(),
     totalRouteDistance: z.number(),
     processedStops: z.array(zProcessedStop),
-    vehicleProgress: zVehicleProgress
+    vehicleProgress: zVehicleProgress,
+    activity: z.enum([
+        'running',
+        'beforeDeparture',
+        'arrived',
+        'offRoute',
+        'cancelled'
+    ]).nullish()
 });
 
 /**
@@ -835,6 +941,13 @@ export const zPlanJourneysResponse = zJourneyPlan;
  * Successful Response
  */
 export const zGetAlertsResponse = z.array(zRailAlert);
+
+/**
+ * Response Getdisruptions
+ *
+ * Successful Response
+ */
+export const zGetDisruptionsResponse = z.array(zDisruption);
 
 export const zRegisterDeviceBody = zDeviceCreate;
 

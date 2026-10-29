@@ -26,4 +26,5 @@ export const LAYER_IDS = {
     TRAIN_HEADING: "marker-heading",
     TRAIN_PLAIN: "marker-plain",
     TRAIN_PILL: "marker-pill",
+    TRAIN_FOLLOW: "marker-follow",
 } as const;

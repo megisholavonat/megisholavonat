@@ -1,7 +1,12 @@
 import type { VehiclePositionWithDelay } from "@megisholavonat/api-client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { STALE_GREY_AFTER_S, STALE_HIDE_AFTER_S } from "./constants";
-import { dataAppearsFalsified, isActive, isStale } from "./vehicle";
+import {
+    dataAppearsFalsified,
+    isActive,
+    isStale,
+    trainActivity,
+} from "./vehicle";
 
 function stoptime(scheduled: number, realtime: number) {
     return {
@@ -125,6 +130,49 @@ describe("isActive", () => {
     ])("across the spring DST change at %s", (now, active) => {
         const train = atOrigin("2026-03-28", 27 * 3600);
         expect(isActive(train, cest(now))).toBe(active);
+    });
+
+    // Mirrors the activity tests in apps/api/tests/test_staleness.py
+    const at = (lon: number, speed: number) =>
+        ({
+            ...atOrigin("2026-08-14", 7 * 3600 + 1800),
+            lon,
+            speed,
+        }) as VehiclePositionWithDelay;
+    const eight = cest("2026-08-14T08:00:00");
+
+    it("names why a train is not running", () => {
+        expect(trainActivity(at(19.25, 20), eight)).toBe("running");
+        expect(
+            trainActivity(atOrigin("2026-08-14", 8 * 3600 + 300), eight),
+        ).toBe("beforeDeparture");
+        expect(trainActivity(at(19.495, 0), eight)).toBe("arrived");
+    });
+
+    it("keeps a train pulling into its terminus running", () => {
+        expect(trainActivity(at(19.495, 40 / 3.6), eight)).toBe("running");
+    });
+
+    it("is cancelled when every stop ahead is", () => {
+        const train = at(19.25, 20);
+        const [first, last] = train.trip.stoptimes;
+        const cancelled = {
+            ...train,
+            vehicleProgress: { nextStopIndex: 1 },
+            trip: {
+                ...train.trip,
+                stoptimes: [first, { ...last, realtimeState: "CANCELED" }],
+            },
+        } as VehiclePositionWithDelay;
+        expect(trainActivity(cancelled, eight)).toBe("cancelled");
+        const behind = {
+            ...cancelled,
+            trip: {
+                ...train.trip,
+                stoptimes: [{ ...first, realtimeState: "CANCELED" }, last],
+            },
+        } as VehiclePositionWithDelay;
+        expect(trainActivity(behind, eight)).toBe("running");
     });
 });
 

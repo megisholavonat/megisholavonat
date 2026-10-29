@@ -19,7 +19,7 @@ from api.util.preprocess import get_delay_and_position
 from api.util.replay import next_snapshot
 from api.util.route import route_from_polyline
 from api.util.trip import seconds_outside_window
-from api.util.vehicle import is_stale_or_inactive, should_remove
+from api.util.vehicle import activity, is_stale, should_remove
 
 logger = get_logger(__name__)
 
@@ -168,6 +168,7 @@ class TrainService:
                     "routeLengthKm": route.length_km,
                 }
             )
+            processed_location["activity"] = activity(processed_location, now)
 
             if not should_remove(processed_location, now):
                 locations_processed.append(processed_location)
@@ -245,21 +246,6 @@ class TrainService:
 
         step_start = time.time()
 
-        hash_key = add_key("train-positions-hash")
-
-        # Clear existing hash first to remove stale vehicles
-        await self.redis.delete(hash_key)
-
-        if locations_processed:
-            mapping = {
-                loc["vehicleId"]: json.dumps(loc)
-                for loc in locations_processed
-                if "vehicleId" in loc
-            }
-            if mapping:
-                await self.redis.hset(hash_key, mapping=mapping)  # type: ignore[misc]
-                await self.redis.expire(hash_key, settings.CACHE_DURATION)
-
         # Staleness is judged at the snapshot time in replay, else now
         judged_at = self.reference_time or time.time()
         features = []
@@ -268,6 +254,10 @@ class TrainService:
                 continue
 
             trip = loc.get("trip", {})
+            stoptimes = trip.get("stoptimes") or []
+            headsign = (
+                (stoptimes[-1].get("stop") or {}).get("name") if stoptimes else None
+            )
 
             distance_to_next_stop_km: float | None = None
             next_stop_id = loc.get("vehicleProgress", {}).get("nextStop")
@@ -312,10 +302,14 @@ class TrainService:
                     "heading": loc.get("heading"),
                     "speed": loc.get("speed"),
                     "lastUpdated": int(loc.get("lastUpdated") or 0),
-                    "isStale": is_stale_or_inactive(loc, judged_at),
+                    # Kept for older clients: stale or not running
+                    "isStale": is_stale(loc, judged_at)
+                    or loc.get("activity", "running") != "running",
+                    "activity": loc.get("activity"),
                     "tripShortName": trip.get("tripShortName", ""),
                     "routeShortName": trip.get("route", {}).get("shortName", ""),
                     "routeTextColor": trip.get("route", {}).get("textColor", ""),
+                    "headsign": headsign,
                     "delay": loc.get("delay"),
                     "routePolyline": trip.get("tripGeometry", {}).get("points"),
                     "distanceToNextStop": distance_to_next_stop_km,
@@ -331,11 +325,26 @@ class TrainService:
             "features": features,
         }
 
-        await self.redis.set(
-            add_key("train-positions-geojson"),
-            json.dumps(feature_collection),
-            ex=settings.CACHE_DURATION,
-        )
+        # Details and the feed are swapped in one transaction: a train's
+        # details never go missing mid-refresh, and never come from another
+        # refresh than its marker
+        hash_key = add_key("train-positions-hash")
+        mapping = {
+            loc["vehicleId"]: json.dumps(loc)
+            for loc in locations_processed
+            if "vehicleId" in loc
+        }
+        async with self.redis.pipeline(transaction=True) as pipe:
+            pipe.delete(hash_key)
+            if mapping:
+                pipe.hset(hash_key, mapping=mapping)
+                pipe.expire(hash_key, settings.CACHE_DURATION)
+            pipe.set(
+                add_key("train-positions-geojson"),
+                json.dumps(feature_collection),
+                ex=settings.CACHE_DURATION,
+            )
+            await pipe.execute()
 
         logger.info(f"Cache updated (Time: {(time.time() - step_start):.4f}s)")
 

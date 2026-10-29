@@ -1,0 +1,241 @@
+{
+  "type": "FeatureCollection",
+  "timestamp": "2026-10-29T01:59:11.002000+00:00",
+  "noDataReceived": false,
+  "dataAgeMinutes": 0,
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.1748009,
+          47.1791687
+        ]
+      },
+      "properties": {
+        "type": "train",
+        "vehicleId": "1:945514151113",
+        "lat": 47.1791687,
+        "lon": 20.1748009,
+        "heading": 41,
+        "speed": 0,
+        "tripShortName": "2619 személyvonat",
+        "routeShortName": "<span class=\"MNR2007\">&#360;</span>",
+        "routeTextColor": "00A0E3",
+        "headsign": "Budapest-Nyugati",
+        "delay": -8,
+        "routePolyline": null,
+        "distanceToNextStop": 13.2371,
+        "lastUpdated": 1793239095,
+        "isStale": true,
+        "reason": null
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19.4393806,
+          47.1374893
+        ]
+      },
+      "properties": {
+        "type": "train",
+        "vehicleId": "1:955514160253",
+        "lat": 47.1374893,
+        "lon": 19.4393806,
+        "heading": 310,
+        "speed": 14,
+        "tripShortName": "2909 személyvonat",
+        "routeShortName": "<span class=\"MNR2007\">&#352;</span>",
+        "routeTextColor": "00A0E3",
+        "headsign": "Budapest-Nyugati",
+        "delay": 0,
+        "routePolyline": null,
+        "distanceToNextStop": 4.1761,
+        "lastUpdated": 1793239145,
+        "isStale": false,
+        "reason": null
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          20.8433495,
+          47.2583313
+        ]
+      },
+      "properties": {
+        "type": "train",
+        "vehicleId": "1:918061937275",
+        "lat": 47.2583313,
+        "lon": 20.8433495,
+        "heading": 232,
+        "speed": 11,
+        "tripShortName": "9 TRANSCARPATHIA gyorsvonat",
+        "routeShortName": "<span class=\"MNR2007\">&#473;</span>",
+        "routeTextColor": "C82227",
+        "headsign": "Budapest-Keleti",
+        "delay": 8,
+        "routePolyline": null,
+        "distanceToNextStop": 56.675,
+        "lastUpdated": 1793239119,
+        "isStale": false,
+        "reason": {
+          "code": "technical",
+          "label": "Műszaki hiba"
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          22.08634,
+          48.2151718
+        ]
+      },
+      "properties": {
+        "type": "train",
+        "vehicleId": "1:915504313395",
+        "lat": 48.2151718,
+        "lon": 22.08634,
+        "heading": 28,
+        "speed": 26,
+        "tripShortName": "8 RUTHENIA gyorsvonat",
+        "routeShortName": "<span class=\"MNR2007\">&#473;</span>",
+        "routeTextColor": "C82227",
+        "headsign": "Chop",
+        "delay": 45,
+        "routePolyline": null,
+        "distanceToNextStop": 19.018,
+        "lastUpdated": 1793239145,
+        "isStale": false,
+        "reason": {
+          "code": "other_train",
+          "label": "Más vonat"
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          21.0183506,
+          47.3169518
+        ]
+      },
+      "properties": {
+        "type": "train",
+        "vehicleId": "1:915504700104",
+        "lat": 47.3169518,
+        "lon": 21.0183506,
+        "heading": 261,
+        "speed": 24,
+        "tripShortName": "6009 CÍVIS InterRégió",
+        "routeShortName": "<span class=\"MNR2007\">&#477;</span>",
+        "routeTextColor": "29803C",
+        "headsign": "Budapest-Nyugati",
+        "delay": 4,
+        "routePolyline": null,
+        "distanceToNextStop": 7.372,
+        "lastUpdated": 1793239102,
+        "isStale": false,
+        "reason": {
+          "code": "technical",
+          "label": "Műszaki hiba"
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          17.8805695,
+          46.6883392
+        ]
+      },
+      "properties": {
+        "type": "train",
+        "vehicleId": "1:955501173350",
+        "lat": 46.6883392,
+        "lon": 17.8805695,
+        "heading": 226,
+        "speed": 8,
+        "tripShortName": "38319 személyvonat",
+        "routeShortName": "<span class=\"MNR2007\">&#484;</span>",
+        "routeTextColor": "00A0E3",
+        "headsign": "Kaposvár",
+        "delay": -1,
+        "routePolyline": null,
+        "distanceToNextStop": 1.1802,
+        "lastUpdated": 1793239127,
+        "isStale": false,
+        "reason": null
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19.0728416,
+          47.6594353
+        ]
+      },
+      "properties": {
+        "type": "hev",
+        "vehicleId": "1:1141",
+        "lat": 47.6594353,
+        "lon": 19.0728416,
+        "heading": 21,
+        "speed": 0,
+        "tripShortName": "H8000 HÉV",
+        "routeShortName": "<span class=\"MNR2007\">&#440;</span>",
+        "routeTextColor": "900166",
+        "headsign": "Szentendre H",
+        "delay": 127,
+        "routePolyline": null,
+        "distanceToNextStop": 0.3004,
+        "lastUpdated": 1793239128,
+        "isStale": true,
+        "reason": null
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19.2067909,
+          47.4473801
+        ]
+      },
+      "properties": {
+        "type": "train",
+        "vehicleId": "1:945514150628",
+        "lat": 47.4473801,
+        "lon": 19.2067909,
+        "heading": 131,
+        "speed": 22,
+        "tripShortName": "6020 személyvonat",
+        "routeShortName": "<span class=\"MNR2007\">&#484;</span>",
+        "routeTextColor": "00A0E3",
+        "headsign": "Debrecen",
+        "delay": 3,
+        "routePolyline": null,
+        "distanceToNextStop": 0.6867,
+        "lastUpdated": 1793238240,
+        "isStale": true,
+        "reason": null
+      }
+    }
+  ]
+}

@@ -105,6 +105,26 @@ This repository is a pnpm monorepo with:
 - `pnpm test` – Run the API test suite (needs the compose Postgres; tests use a
   separate `<database>_test` database, or `TEST_DATABASE_URL` if set)
 
+### Web end-to-end tests
+
+`apps/web/e2e` is a Playwright suite (phone 390x844 and desktop 1440x900,
+Chromium). It serves the API from the JSON fixtures in `e2e/fixtures`, so it
+needs neither the API nor the network. CI runs it on every pull request that
+touches the web app or the packages.
+
+```bash
+pnpm --filter @megisholavonat/web exec playwright install chromium  # once
+pnpm turbo e2e --filter=@megisholavonat/web  # builds, then runs the suite
+```
+
+- Known gaps from the audit are `test.fixme` with the audit id in the title.
+  `E2E_RUN_FIXME=1` runs them anyway, to see which ones a branch fixes.
+- `PLAYWRIGHT_CHROMIUM_PATH` points the suite at a system Chromium, where
+  Playwright's own build cannot run (NixOS). `E2E_PORT` changes the port
+  (default 3210).
+- `node e2e/capture-fixtures.mjs` (in `apps/web`) re-captures the fixtures from
+  a local API.
+
 ### Database migrations
 
 Models live in `apps/api/api/models`. After changing them, from `apps/api`:

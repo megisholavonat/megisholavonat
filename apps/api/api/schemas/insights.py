@@ -125,8 +125,19 @@ class PlatformPrediction(BaseModel):
     n: int
 
 
+class TypicalDelay(BaseModel):
+    """A train's usual delay at one station, for "usually late" before departure"""
+
+    trainNumber: str
+    n: int
+    medianDelayMin: float | None = None
+    insufficientData: bool
+
+
 class StationPlatforms(BaseModel):
     stationId: str
     stationName: str | None = None
     window: HistoryWindow
     predictions: list[PlatformPrediction]
+    # Trains whose median delay here is at least a minute
+    typicalDelays: list[TypicalDelay] = []

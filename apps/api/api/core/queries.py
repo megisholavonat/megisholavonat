@@ -21,6 +21,7 @@ POSITIONS_QUERY = """
           realtimeArrival
           scheduledDeparture
           realtimeDeparture
+          realtimeState
           stop {
             gtfsId
             stationUicPricingCode

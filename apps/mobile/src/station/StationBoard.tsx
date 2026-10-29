@@ -2,13 +2,15 @@ import {
     getStationBoardOptions,
     getStationPlatformsOptions,
 } from "@megisholavonat/api-client/react-query";
-import { DELAY_REASONS } from "@megisholavonat/core/delayReasons";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { useFormatter, useLocale, useTranslations } from "use-intl";
+import { useFormatter, useTranslations } from "use-intl";
+import { StationDisruptions } from "../disruptions/DisruptionViews";
 import { useAppTheme } from "../theme/ThemeProvider";
+import { reasonTone } from "../train/delayDisplay";
 import { RouteIcon } from "../train/RouteIcon";
+import { ReasonLine } from "../train/TrainInfo";
 import { CloseButton } from "../ui/CloseButton";
 import { DelayChip, PlatformBadge, Skeleton, StateBlock } from "../ui/ds";
 import { Segmented } from "../ui/Segmented";
@@ -84,6 +86,7 @@ export function StationBoard({
                 value={kind}
                 onChange={setKind}
             />
+            <StationDisruptions stationId={stationId} />
             {rows ? (
                 rows.length > 0 ? (
                     <View>
@@ -142,7 +145,6 @@ function BoardRowView({
     const theme = useAppTheme();
     const t = useTranslations("Station");
     const format = useFormatter();
-    const locale = useLocale();
     const time = format.dateTime(new Date(row.time * 1000), {
         hour: "2-digit",
         minute: "2-digit",
@@ -151,7 +153,11 @@ function BoardRowView({
         kind === "arrivals" && row.place
             ? t("from", { name: row.place })
             : row.place;
-    const reason = row.reason ? DELAY_REASONS[row.reason][locale] : null;
+    // The cause only next to a late chip, in its colour
+    const tone =
+        row.reason && row.realtime && !row.canceled
+            ? reasonTone(row.delay)
+            : null;
 
     return (
         <Pressable
@@ -208,13 +214,12 @@ function BoardRowView({
                             <Text style={{ color: theme.delay.severe.text }}>
                                 {` · ${t("canceled")}`}
                             </Text>
-                        ) : reason ? (
-                            <Text style={{ color: theme.delay.severe.text }}>
-                                {` · ${reason}`}
-                            </Text>
                         ) : null}
                     </Text>
                 </View>
+                {row.reason && tone ? (
+                    <ReasonLine reason={row.reason} tone={tone} compact />
+                ) : null}
             </View>
             <View style={styles.platformCell}>
                 {row.platform ? (

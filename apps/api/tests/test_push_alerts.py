@@ -362,6 +362,7 @@ async def test_delay_alert_is_sent_and_recorded(
     assert [m.title for m in expo.sent] == ["S70 · +12 perc · Kelenföld 14:32"]
     assert expo.sent[0].data["followId"] == str(follow.id)
     assert expo.sent[0].data["tripId"] == "1:s70"
+    assert expo.sent[0].data["vehicleId"] == "veh-1:s70"
 
     state = await state_of(db_session, follow)
     assert state is not None

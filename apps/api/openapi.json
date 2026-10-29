@@ -279,7 +279,7 @@
           "journeys"
         ],
         "summary": "Plan Journeys",
-        "description": "Itineraries between two rail stations, with live delays and ticket links",
+        "description": "Itineraries between two rail stations, with live delays, the risk of\nmissing each transfer and ticket links",
         "operationId": "planJourneys",
         "parameters": [
           {
@@ -390,6 +390,35 @@
                   },
                   "type": "array",
                   "title": "Response Getalerts"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The upstream timetable service failed"
+          }
+        }
+      }
+    },
+    "/v1/alerts/disruptions": {
+      "get": {
+        "tags": [
+          "alerts"
+        ],
+        "summary": "Get Disruptions",
+        "description": "Active line and network disruptions (closures, replacement buses,\nengineering works, timetable changes, strikes, weather), with the alerts\nabout the same event merged. Most severe first, then newest. Per-train\nnotices such as delay reasons are left out.",
+        "operationId": "getDisruptions",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Disruption"
+                  },
+                  "type": "array",
+                  "title": "Response Getdisruptions"
                 }
               }
             }
@@ -1892,6 +1921,236 @@
         "title": "DeviceInfo",
         "description": "The calling device"
       },
+      "Disruption": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "alertIds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Alertids"
+          },
+          "effect": {
+            "type": "string",
+            "enum": [
+              "no_service",
+              "replacement_bus",
+              "modified_service",
+              "delays",
+              "other"
+            ],
+            "title": "Effect"
+          },
+          "cause": {
+            "type": "string",
+            "enum": [
+              "engineering",
+              "accident",
+              "strike",
+              "weather",
+              "technical",
+              "other"
+            ],
+            "title": "Cause"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ],
+            "title": "Severity"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "line",
+              "network"
+            ],
+            "title": "Scope"
+          },
+          "segment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DisruptionSegment"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "details": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Details"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "start": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start"
+          },
+          "end": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/DisruptionLine"
+            },
+            "type": "array",
+            "title": "Lines"
+          },
+          "routes": {
+            "items": {
+              "$ref": "#/components/schemas/AlertRoute"
+            },
+            "type": "array",
+            "title": "Routes"
+          },
+          "stations": {
+            "items": {
+              "$ref": "#/components/schemas/AlertStation"
+            },
+            "type": "array",
+            "title": "Stations"
+          },
+          "trips": {
+            "items": {
+              "$ref": "#/components/schemas/AlertTrip"
+            },
+            "type": "array",
+            "title": "Trips"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "alertIds",
+          "effect",
+          "cause",
+          "severity",
+          "scope",
+          "title",
+          "description",
+          "details",
+          "url",
+          "lines",
+          "routes",
+          "stations",
+          "trips"
+        ],
+        "title": "Disruption",
+        "description": "A line or network disruption: the rail alerts about one event, merged.\nPer-train notices (delay reasons, coach changes) are not disruptions;\nthey stay on the train."
+      },
+      "DisruptionLine": {
+        "properties": {
+          "shortName": {
+            "type": "string",
+            "title": "Shortname"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mode"
+          }
+        },
+        "type": "object",
+        "required": [
+          "shortName"
+        ],
+        "title": "DisruptionLine",
+        "description": "A line glyph to show, deduplicated across the affected routes"
+      },
+      "DisruptionSegment": {
+        "properties": {
+          "fromName": {
+            "type": "string",
+            "title": "Fromname"
+          },
+          "toName": {
+            "type": "string",
+            "title": "Toname"
+          },
+          "fromId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fromid"
+          },
+          "toId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Toid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "fromName",
+          "toName"
+        ],
+        "title": "DisruptionSegment",
+        "description": "The stretch between two stations, as M\u00c1V names it in the text"
+      },
       "ExpoPushTokenCreate": {
         "properties": {
           "type": {
@@ -2838,6 +3097,14 @@
             },
             "type": "array",
             "title": "Predictions"
+          },
+          "typicalDelays": {
+            "items": {
+              "$ref": "#/components/schemas/TypicalDelay"
+            },
+            "type": "array",
+            "title": "Typicaldelays",
+            "default": []
           }
         },
         "type": "object",
@@ -2876,6 +3143,17 @@
           "realtimeDeparture": {
             "type": "integer",
             "title": "Realtimedeparture"
+          },
+          "realtimeState": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Realtimestate"
           },
           "stop": {
             "$ref": "#/components/schemas/StopWithCounty"
@@ -3122,6 +3400,17 @@
             "type": "string",
             "title": "Routetextcolor"
           },
+          "headsign": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Headsign"
+          },
           "delay": {
             "type": "integer",
             "title": "Delay"
@@ -3156,6 +3445,24 @@
             "type": "boolean",
             "title": "Isstale",
             "default": false
+          },
+          "activity": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "running",
+                  "beforeDeparture",
+                  "arrived",
+                  "offRoute",
+                  "cancelled"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Activity"
           },
           "reason": {
             "anyOf": [
@@ -3465,6 +3772,38 @@
               }
             ],
             "title": "Missrisk"
+          },
+          "risk": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "safe",
+                  "tight",
+                  "likely_missed"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Risk"
+          },
+          "riskSource": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "forecast",
+                  "history",
+                  "canceled"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Risksource"
           }
         },
         "type": "object",
@@ -3875,6 +4214,41 @@
         "title": "TripGeometry",
         "description": "Trip geometry polyline"
       },
+      "TypicalDelay": {
+        "properties": {
+          "trainNumber": {
+            "type": "string",
+            "title": "Trainnumber"
+          },
+          "n": {
+            "type": "integer",
+            "title": "N"
+          },
+          "medianDelayMin": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mediandelaymin"
+          },
+          "insufficientData": {
+            "type": "boolean",
+            "title": "Insufficientdata"
+          }
+        },
+        "type": "object",
+        "required": [
+          "trainNumber",
+          "n",
+          "insufficientData"
+        ],
+        "title": "TypicalDelay",
+        "description": "A train's usual delay at one station, for \"usually late\" before departure"
+      },
       "ValidationError": {
         "properties": {
           "loc": {
@@ -3979,6 +4353,24 @@
           },
           "vehicleProgress": {
             "$ref": "#/components/schemas/VehicleProgress"
+          },
+          "activity": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "running",
+                  "beforeDeparture",
+                  "arrived",
+                  "offRoute",
+                  "cancelled"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Activity"
           }
         },
         "type": "object",

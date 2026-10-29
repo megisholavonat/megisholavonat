@@ -31,6 +31,21 @@ function feed(
 }
 
 describe("markerCollection", () => {
+    it("marks followed trains and draws them on top", () => {
+        const fc = markerCollection(
+            feed(
+                { id: "a", delay: 2, ago: 10 },
+                { id: "b", delay: 2, ago: 10 },
+            ),
+            lightTheme,
+            now,
+            new Set(["b"]),
+        );
+        const [a, b] = fc.features.map((f) => f.properties);
+        expect(a).toMatchObject({ followed: false, sort: 1 });
+        expect(b).toMatchObject({ followed: true, sort: 11 });
+    });
+
     it("colours by delay level and labels delays with +N", () => {
         const fc = markerCollection(
             feed(
@@ -72,6 +87,12 @@ describe("markerCollection", () => {
             label: "7′",
             fill: darkTheme.stale.background,
             labelColor: darkTheme.stale.text,
+            sort: 0,
+        });
+        // Fresh but not running (waiting or arrived): grey without "0′"
+        expect(fc.features[1]?.properties).toMatchObject({
+            label: "",
+            fill: darkTheme.stale.fill,
             sort: 0,
         });
     });

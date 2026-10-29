@@ -5,9 +5,14 @@ import type {
 } from "@megisholavonat/api-client";
 import { searchStationsOptions } from "@megisholavonat/api-client/react-query";
 import { normalizeSearchText } from "@megisholavonat/core/search";
+import { staleness } from "@megisholavonat/core/stale";
 import {
+    browseTrains,
     compareTrains,
+    lateTrains,
     matchesTrainQuery,
+    type SortDirection,
+    type TrainSortOption,
 } from "@megisholavonat/core/trainSearch";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
@@ -16,8 +21,38 @@ const RECENT_KEY = "mhav.recentStations";
 const RECENT_MAX = 5;
 const MAX_TRAINS = 6;
 const MAX_STATIONS = 6;
+/** Fetched before ranking, so the main stations are never cut off */
+const STATION_FETCH = 30;
+/** Late trains under an empty search field, as in the app */
+export const LATE_PREVIEW = 5;
 /** UIC country code of Hungary: domestic stations come first */
 const HUNGARY_PREFIX = "0055";
+
+/**
+ * The busiest stations, most used first. A query that starts their name or
+ * a word of it ("Bud", "keleti", "Misk") ranks them above the small stops
+ * that share the prefix (Budafa, Budafok, Kelebia, Miskolc-Gömöri).
+ */
+const MAIN_STATIONS = [
+    "005510017", // Budapest-Keleti
+    "005510033", // Budapest-Nyugati
+    "005501024", // Budapest-Kelenföld
+    "005501016", // Budapest-Déli
+    "005510173", // Kőbánya-Kispest
+    "005513748", // Szolnok
+    "005513912", // Debrecen
+    "005511387", // Miskolc-Tiszai
+    "005517228", // Szeged
+    "005501289", // Győr
+    "005503269", // Székesfehérvár
+    "005507294", // Pécs
+    "005517111", // Kecskemét
+    "005514019", // Nyíregyháza
+    "004302246", // Szombathely
+    "005513722", // Cegléd
+    "005511205", // Hatvan
+    "005510090", // Zugló
+];
 
 /** Major stations offered before the user has searched for any. */
 export const DEFAULT_STATIONS: Station[] = [
@@ -98,7 +133,7 @@ export function useSearch(
     const debounced = useDebounced(q, 180);
     const stations = useQuery({
         ...searchStationsOptions({
-            query: { q: debounced, limit: 12 },
+            query: { q: debounced, limit: STATION_FETCH },
         }),
         enabled: debounced.length >= 2,
         placeholderData: keepPreviousData,
@@ -109,20 +144,18 @@ export function useSearch(
         if (!q) return [];
         return (trains?.features ?? [])
             .map((f) => f.properties)
-            .filter((p) => matchesTrainQuery(p, q))
+            .filter(
+                (p) =>
+                    staleness(p.lastUpdated) !== "hidden" &&
+                    matchesTrainQuery(p, q),
+            )
             .sort(compareTrains("number", "asc"))
             .slice(0, MAX_TRAINS);
     }, [trains, q]);
 
     const stationResults = useMemo(() => {
         if (debounced.length < 2 || !stations.data) return [];
-        return [...stations.data]
-            .sort(
-                (a, b) =>
-                    Number(b.id.startsWith(HUNGARY_PREFIX)) -
-                    Number(a.id.startsWith(HUNGARY_PREFIX)),
-            )
-            .slice(0, MAX_STATIONS);
+        return rankStations(stations.data, debounced).slice(0, MAX_STATIONS);
     }, [stations.data, debounced]);
 
     return {
@@ -130,6 +163,50 @@ export function useSearch(
         trains: trainResults,
         loading: stations.isFetching,
     };
+}
+
+/**
+ * Re-ranks the API's matches: an exact name first, then the main stations
+ * the query starts a word of, then the rest in the API's order (prefix
+ * matches first), domestic before foreign.
+ */
+export function rankStations(stations: Station[], query: string): Station[] {
+    const q = normalizeSearchText(query.trim());
+    const tier = (station: Station) => {
+        const name = normalizeSearchText(station.name);
+        if (name === q) return -1;
+        const main = MAIN_STATIONS.indexOf(station.id);
+        const wordStart =
+            name.startsWith(q) ||
+            name.split(/[\s\-,.()]+/).some((word) => word.startsWith(q));
+        if (main !== -1 && wordStart) return main;
+        return (
+            MAIN_STATIONS.length +
+            (station.id.startsWith(HUNGARY_PREFIX) ? 0 : 1)
+        );
+    };
+    return stations
+        .map((station, index) => ({ station, index, tier: tier(station) }))
+        .sort((a, b) => a.tier - b.tier || a.index - b.index)
+        .map(({ station }) => station);
+}
+
+/** The late trains and the sortable list of every train, from the feed. */
+export function useTrainLists(
+    trains: TrainFeatureCollection | undefined,
+    sort: TrainSortOption,
+    direction: SortDirection,
+) {
+    // Re-sorted with the feed and the sort, not on clock ticks, so rows
+    // don't jump between polls
+    return useMemo(() => {
+        const list = (trains?.features ?? []).map((f) => f.properties);
+        const now = new Date();
+        return {
+            late: lateTrains(list, LATE_PREVIEW, now),
+            all: browseTrains(list, sort, direction, now),
+        };
+    }, [trains, sort, direction]);
 }
 
 /** Splits `text` around the first accent-insensitive match of `query`. */

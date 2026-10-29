@@ -77,12 +77,23 @@ function outside([first, last]: [number, number], now: number): number {
     return Math.max(0, first - now, now - last);
 }
 
-function shiftDate(serviceDate: string, days: number): string {
+/** `serviceDate` (YYYY-MM-DD) moved by whole calendar days. */
+export function shiftDate(serviceDate: string, days: number): string {
     return (
         DateTime.fromISO(serviceDate, { zone: "UTC" })
             .plus({ days })
             .toISODate() ?? serviceDate
     );
+}
+
+/** The calendar date in Budapest at `date`, YYYY-MM-DD. */
+export function budapestDate(date: Date = new Date()): string {
+    return DateTime.fromJSDate(date, { zone: BUDAPEST_TZ }).toISODate() ?? "";
+}
+
+/** ISO weekday of a YYYY-MM-DD date: 1 = Monday ... 7 = Sunday. */
+export function isoWeekday(isoDate: string): number {
+    return DateTime.fromISO(isoDate, { zone: "UTC" }).weekday;
 }
 
 /**

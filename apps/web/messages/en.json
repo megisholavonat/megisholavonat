@@ -7,13 +7,22 @@
         "locate": "My location",
         "location_error": "Your location is unavailable",
         "zoom_in": "Zoom in",
-        "zoom_out": "Zoom out"
+        "zoom_out": "Zoom out",
+        "inactive": "not running",
+        "cluster": "{count} trains here",
+        "map_data": "Map data"
     },
     "Sheet": {
-        "resize": "Resize panel"
+        "resize": "Resize panel",
+        "close": "Close"
     },
     "Delay": {
-        "on_time": "on time"
+        "on_time": "on time",
+        "early": "early",
+        "note": "We compute this delay from the train's GPS position, so it is more accurate. Timetable times are MÁV's official data and are sometimes off.",
+        "tile_label": "Delay: {delay} min",
+        "reason": "Delay cause: <b>{reason}</b>",
+        "reason_plain": "Delay cause: {reason}"
     },
     "Platform": {
         "announced": "Platform {platform}",
@@ -69,7 +78,16 @@
             "dsb_me": "DSB class ME \"Viking\"",
             "suburban": "LEW Henningsdorf MX/MXA",
             "unknown": "Unknown vehicle"
-        }
+        },
+        "history": "Punctuality",
+        "notice": "Notice",
+        "more_info": "More information",
+        "valid": "Valid: {range}",
+        "more_alerts": "{count, plural, one {+# notice} other {+# notices}}",
+        "departs": "dep. {time}",
+        "to_go": "{km, number} km to go",
+        "county": "{county} County",
+        "position": "Train position"
     },
     "Station": {
         "board": "Timetable board",
@@ -78,7 +96,10 @@
         "arrivals": "Arrivals",
         "from": "from {station}",
         "canceled": "cancelled",
-        "empty": "No trains right now"
+        "empty": "No trains right now",
+        "history": "Punctuality",
+        "usually_late": "usually late",
+        "usually_very_late": "usually very late"
     },
     "States": {
         "stale": "No fresh data for {minutes} min",
@@ -86,6 +107,7 @@
         "source_down": "MÁV data isn't arriving",
         "unreachable": "Can't reach the server",
         "since": "since {time}",
+        "timetable": "showing the timetable",
         "load_error": "Couldn't load",
         "retry": "Retry"
     },
@@ -95,7 +117,20 @@
         "back": "Back",
         "results": "Results",
         "no_results": "No results",
-        "station_label": "{station} station"
+        "station_label": "{station} station",
+        "cancel": "Cancel",
+        "stations": "Stations",
+        "late_now": "Late now",
+        "all_trains": "All trains",
+        "trains_count": "{count} trains",
+        "sort": "Sort",
+        "sort_delay": "Delay",
+        "sort_number": "Number",
+        "sort_speed": "Speed",
+        "ascending": "ascending",
+        "descending": "descending",
+        "speed": "{speed} km/h",
+        "train_to": "{train} to {destination}"
     },
     "Legend": {
         "label": "Delay legend",
@@ -103,7 +138,31 @@
         "slight": "5+",
         "moderate": "15+",
         "severe": "60+",
-        "stale": "no data"
+        "stale": "no data · standing",
+        "title": "Delay",
+        "minutes": "min"
+    },
+    "Disruptions": {
+        "title": "Service disruptions",
+        "chip": "{count, plural, one {# disruption} other {# disruptions}}",
+        "chip_mine": "{count} on your trains",
+        "mine": "Your train",
+        "empty": "No disruptions right now",
+        "between": "{effect} between {from} and {to}",
+        "effect_no_service": "No trains",
+        "effect_replacement_bus": "Replacement bus",
+        "effect_modified_service": "Changed timetable",
+        "effect_delays": "Delays",
+        "effect_other": "Service change",
+        "cause_engineering": "Engineering works",
+        "cause_accident": "Accident",
+        "cause_strike": "Strike",
+        "cause_weather": "Weather",
+        "cause_technical": "Technical fault",
+        "since": "Since {date}",
+        "until": "Until {date}",
+        "source": "More information",
+        "source_mavinform": "Details: MÁVINFORM"
     },
     "Settings": {
         "title": "Settings",
@@ -130,7 +189,10 @@
         "map_data": "Map data",
         "changelog": "What's new",
         "changelog_unavailable": "What's new isn't available right now.",
-        "contact": "Contact"
+        "contact": "Contact",
+        "punctuality": "Punctuality",
+        "license": "License",
+        "open_source": "This app is open source. Bug reports, ideas and help are welcome on GitHub."
     },
     "Consent": {
         "title": "Usage statistics?",
@@ -146,5 +208,80 @@
         "title": "Privacy notice",
         "back_to_map": "Back to the map",
         "last_updated": "Last updated: {date}"
+    },
+    "Follow": {
+        "follow": "Follow",
+        "following": "Following",
+        "follow_your_train": "Follow your train",
+        "my_commute": "My commute",
+        "days": "Days",
+        "boarding": "Boarding",
+        "save": "Save",
+        "unfollow": "Stop following",
+        "today_only": "Today only",
+        "tomorrow": "tomorrow",
+        "usually_late": "usually late",
+        "usually_very_late": "usually very late",
+        "day_1": "M",
+        "day_2": "T",
+        "day_3": "W",
+        "day_4": "T",
+        "day_5": "F",
+        "day_6": "S",
+        "day_7": "S"
+    },
+    "Stats": {
+        "title": "Punctuality",
+        "back": "Back",
+        "window": "Last {days} days",
+        "runs": "{runs} runs",
+        "rankings": "Rankings",
+        "order": "Order",
+        "lines": "Lines",
+        "trains": "Trains",
+        "stations": "Stations",
+        "best": "Most punctual",
+        "worst": "Most delayed",
+        "column": "On time of 10",
+        "of10": "<b>on time {count} in 10</b>",
+        "of10_at": "{station}: <b>on time {count} in 10</b>",
+        "usually_late": "Usually late by",
+        "late": {
+            "slight": "5+ min",
+            "moderate": "15+ min",
+            "severe": "60+ min"
+        },
+        "all_trains": "All trains",
+        "by_hour": "By time of day",
+        "hour": "Hour",
+        "by_stop": "By stop",
+        "few_data": "little data",
+        "no_data_hint": "We are still collecting runs. Check back in a few days.",
+        "show_on_map": "Show on map"
+    },
+    "Journey": {
+        "title": "Journey planner",
+        "open": "Plan a journey",
+        "from": "From",
+        "to": "To",
+        "swap": "Swap",
+        "done": "Done",
+        "time": "Time",
+        "depart": "Depart",
+        "arrive": "Arrive",
+        "now": "Now",
+        "direct": "Direct",
+        "changes": "{count, plural, one {# change} other {# changes}}",
+        "duration": "{m} min",
+        "duration_hours": "{h} h {m} min",
+        "risk_safe": "Safe",
+        "risk_tight": "Tight",
+        "risk_likely_missed": "Likely missed",
+        "canceled": "Cancelled",
+        "transfer_minutes": "{m} min to change",
+        "walk": "{m} min walk",
+        "on_map": "Show on the map",
+        "empty": "No journeys found",
+        "same_station": "Pick two different stations"
     }
 }

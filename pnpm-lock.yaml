@@ -73,6 +73,9 @@ importers:
       expo-router:
         specifier: ~58.0.28
         version: 58.0.28(bf39decea12b713f9152c76fbe7e3235)
+      expo-secure-store:
+        specifier: ~58.0.2
+        version: 58.0.2(expo@58.0.21)
       expo-splash-screen:
         specifier: ~58.0.12
         version: 58.0.12(expo@58.0.21)(typescript@6.0.3)
@@ -115,7 +118,7 @@ importers:
         version: 6.0.3
       vitest:
         specifier: ^5.0.5
-        version: 5.0.5(@opentelemetry/api@1.9.1)(vite@8.3.5(jiti@2.6.1)(terser@5.51.2))
+        version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@20.19.39)(vite@8.3.5(@types/node@20.19.39)(jiti@2.6.1)(terser@5.51.2))
 
   apps/web:
     dependencies:
@@ -196,13 +199,13 @@ importers:
         version: 12.38.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       next:
         specifier: 16.4.3
-        version: 16.4.3(@opentelemetry/api@1.9.1)(@types/node@20.19.39)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+        version: 16.4.3(@opentelemetry/api@1.9.1)(@playwright/test@1.64.1)(@types/node@20.19.39)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       next-intl:
         specifier: ^4.14.9
-        version: 4.14.9(@swc/helpers@0.5.23)(@types/react@19.3.0)(next@16.4.3(@opentelemetry/api@1.9.1)(@types/node@20.19.39)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)
+        version: 4.14.9(@swc/helpers@0.5.23)(@types/react@19.3.0)(next@16.4.3(@opentelemetry/api@1.9.1)(@playwright/test@1.64.1)(@types/node@20.19.39)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)
       nuqs:
         specifier: ^2.8.9
-        version: 2.8.9(next@16.4.3(@opentelemetry/api@1.9.1)(@types/node@20.19.39)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)
+        version: 2.8.9(next@16.4.3(@opentelemetry/api@1.9.1)(@playwright/test@1.64.1)(@types/node@20.19.39)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)
       posthog-js:
         specifier: ^1.441.2
         version: 1.441.2(@types/react@19.3.0)(react@19.3.0)
@@ -231,6 +234,9 @@ importers:
         specifier: ^4.6.7
         version: 4.6.7
     devDependencies:
+      '@playwright/test':
+        specifier: 1.64.1
+        version: 1.64.1
       '@tailwindcss/postcss':
         specifier: ^4.2.2
         version: 4.2.2
@@ -255,6 +261,9 @@ importers:
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
+      vitest:
+        specifier: ^5.0.5
+        version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@20.19.39)(vite@8.3.5(@types/node@20.19.39)(jiti@2.6.1)(terser@5.51.2))
 
   packages/api-client:
     dependencies:
@@ -301,7 +310,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^5.0.5
-        version: 5.0.5(@opentelemetry/api@1.9.1)(vite@8.3.5(jiti@2.6.1)(terser@5.51.2))
+        version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@20.19.39)(vite@8.3.5(@types/node@20.19.39)(jiti@2.6.1)(terser@5.51.2))
 
 packages:
 
@@ -1532,6 +1541,11 @@ packages:
   '@parcel/watcher@2.5.6':
     resolution: {integrity: sha512-tmmZ3lQxAe/k/+rNnXQRawJ4NjxO2hqiOLTHvWchtGZULp4RyFeh6aU4XdOYBFe2KE1oShQTv4AblOs2iOrNnQ==}
     engines: {node: '>= 10.0.0'}
+
+  '@playwright/test@1.64.1':
+    resolution: {integrity: sha512-IaYGml/nSOiZWROfPtuIL7neuu9qDOZ3TNvNljUIrhDMxiGTgPjzj/g9p9RxpS2tSepPDRY+UwAaEeiKtUvIAg==}
+    engines: {node: '>=20'}
+    hasBin: true
 
   '@posthog/browser-common@0.10.1':
     resolution: {integrity: sha512-gKtBGEsjxNExO/19trnkiXTHFX0075vXn69zZ+lPlXy6P/DkED4644WqjDN/GIWr1Y5en2dcVJPOqUmVO+drkg==}
@@ -3673,6 +3687,11 @@ packages:
       react-server-dom-webpack:
         optional: true
 
+  expo-secure-store@58.0.2:
+    resolution: {integrity: sha512-VupWWEuQF6IiQ06McSymtn7/tehs8ifThhFwAU4UK8poomZcaa2S0UVt/y7G2XozBdkI3xpiPSx+r0pS2zsuYQ==}
+    peerDependencies:
+      expo: '*'
+
   expo-server@58.0.6:
     resolution: {integrity: sha512-6DBlSZwxk3J0y1j2s4XebAWNiwGaMp32NcWX7b2kJC2+EFf1g+pCcVmx8ylawt2tyLmbDHswm4MHOfrd4bqfvA==}
     engines: {node: ^22.13.0 || ^24.3.0 || ^26.0.0 || >=27.0.0}
@@ -4888,6 +4907,16 @@ packages:
 
   pkg-types@2.3.0:
     resolution: {integrity: sha512-SIqCzDRg0s9npO5XQ3tNZioRY1uK06lA41ynBC1YmFTmnY6FjUjVt6s4LoADmwoig1qqD0oK8h1p/8mlMx8Oig==}
+
+  playwright-core@1.64.1:
+    resolution: {integrity: sha512-BC4s8y6SEVA6Q1rSxZTto8hI1KUI3xXlHGZgvGqP4IqPdI/a6FX9H29IDNz7vKo9l21b6LfYosScPL6M3xxyDQ==}
+    engines: {node: '>=20'}
+    hasBin: true
+
+  playwright@1.64.1:
+    resolution: {integrity: sha512-HCrVhHr5QQuwYoswEUGTb7gGp522yflbv/ST8nF4sFWGuLjQCt17Q/EubpGGSNKYn1tsTCPZxqHhHCfVURu7UA==}
+    engines: {node: '>=20'}
+    hasBin: true
 
   plist@3.1.1:
     resolution: {integrity: sha512-ZIfcLJC+7E7FBFnDxm9MPmt7D+DidyQ26lewieO75AdhA2ayMtsJSES0iWzqJQbcVRSrTufQoy0DR94xHue0oA==}
@@ -7319,6 +7348,10 @@ snapshots:
       '@parcel/watcher-win32-ia32': 2.5.6
       '@parcel/watcher-win32-x64': 2.5.6
 
+  '@playwright/test@1.64.1':
+    dependencies:
+      playwright: 1.64.1
+
   '@posthog/browser-common@0.10.1':
     dependencies:
       '@posthog/core': 1.61.2
@@ -9369,14 +9402,14 @@ snapshots:
     optionalDependencies:
       maplibre-gl: 6.16.0
 
-  '@vitest/mocker@5.0.5(vite@8.3.5(jiti@2.6.1)(terser@5.51.2))':
+  '@vitest/mocker@5.0.5(vite@8.3.5(@types/node@20.19.39)(jiti@2.6.1)(terser@5.51.2))':
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
       '@vitest/spy': 5.0.5
       estree-walker: 3.0.3
       magic-string: 1.4.5
     optionalDependencies:
-      vite: 8.3.5(jiti@2.6.1)(terser@5.51.2)
+      vite: 8.3.5(@types/node@20.19.39)(jiti@2.6.1)(terser@5.51.2)
 
   '@vitest/spy@5.0.5': {}
 
@@ -10171,6 +10204,10 @@ snapshots:
     transitivePeerDependencies:
       - '@types/react'
       - '@types/react-dom'
+
+  expo-secure-store@58.0.2(expo@58.0.21):
+    dependencies:
+      expo: 58.0.21(@babel/core@7.29.7)(@expo/dom-webview@58.0.2)(@expo/metro-runtime@58.0.15)(expo-router@58.0.28)(react-dom@19.3.0(react@19.3.0))(react-native-worklets@0.13.1(@babel/core@7.29.7)(@react-native/metro-config@0.88.1(@babel/core@7.29.7))(react-native@0.88.1(@babel/core@7.29.7)(@react-native/metro-config@0.88.1(@babel/core@7.29.7))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0))(react-native@0.88.1(@babel/core@7.29.7)(@react-native/metro-config@0.88.1(@babel/core@7.29.7))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
 
   expo-server@58.0.6: {}
 
@@ -11566,7 +11603,7 @@ snapshots:
 
   next-intl-swc-plugin-extractor@4.14.9: {}
 
-  next-intl@4.14.9(@swc/helpers@0.5.23)(@types/react@19.3.0)(next@16.4.3(@opentelemetry/api@1.9.1)(@types/node@20.19.39)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0):
+  next-intl@4.14.9(@swc/helpers@0.5.23)(@types/react@19.3.0)(next@16.4.3(@opentelemetry/api@1.9.1)(@playwright/test@1.64.1)(@types/node@20.19.39)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0):
     dependencies:
       '@eloqnt/config': 0.1.1
       '@eloqnt/format-json': 0.1.0
@@ -11576,7 +11613,7 @@ snapshots:
       '@swc/core': 1.16.20(@swc/helpers@0.5.23)
       icu-minify: 4.14.9
       negotiator: 1.0.0
-      next: 16.4.3(@opentelemetry/api@1.9.1)(@types/node@20.19.39)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      next: 16.4.3(@opentelemetry/api@1.9.1)(@playwright/test@1.64.1)(@types/node@20.19.39)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       next-intl-swc-plugin-extractor: 4.14.9
       react: 19.3.0
       use-intl: 4.14.9(@types/react@19.3.0)(react@19.3.0)
@@ -11585,7 +11622,7 @@ snapshots:
     transitivePeerDependencies:
       - '@swc/helpers'
 
-  next@16.4.3(@opentelemetry/api@1.9.1)(@types/node@20.19.39)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0):
+  next@16.4.3(@opentelemetry/api@1.9.1)(@playwright/test@1.64.1)(@types/node@20.19.39)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0):
     dependencies:
       '@next/env': 16.4.3
       '@swc/helpers': 0.5.23
@@ -11605,6 +11642,7 @@ snapshots:
       '@next/swc-win32-arm64-msvc': 16.4.3
       '@next/swc-win32-x64-msvc': 16.4.3
       '@opentelemetry/api': 1.9.1
+      '@playwright/test': 1.64.1
       babel-plugin-react-compiler: 1.0.0
       sharp: 0.35.5(@types/node@20.19.39)
     transitivePeerDependencies:
@@ -11657,12 +11695,12 @@ snapshots:
 
   nullthrows@1.1.1: {}
 
-  nuqs@2.8.9(next@16.4.3(@opentelemetry/api@1.9.1)(@types/node@20.19.39)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0):
+  nuqs@2.8.9(next@16.4.3(@opentelemetry/api@1.9.1)(@playwright/test@1.64.1)(@types/node@20.19.39)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0):
     dependencies:
       '@standard-schema/spec': 1.0.0
       react: 19.3.0
     optionalDependencies:
-      next: 16.4.3(@opentelemetry/api@1.9.1)(@types/node@20.19.39)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      next: 16.4.3(@opentelemetry/api@1.9.1)(@playwright/test@1.64.1)(@types/node@20.19.39)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
 
   ob1@0.87.1:
     dependencies:
@@ -11777,6 +11815,12 @@ snapshots:
       confbox: 0.2.4
       exsolve: 1.0.8
       pathe: 2.0.3
+
+  playwright-core@1.64.1: {}
+
+  playwright@1.64.1:
+    dependencies:
+      playwright-core: 1.64.1
 
   plist@3.1.1:
     dependencies:
@@ -12670,7 +12714,7 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
 
-  vite@8.3.5(jiti@2.6.1)(terser@5.51.2):
+  vite@8.3.5(@types/node@20.19.39)(jiti@2.6.1)(terser@5.51.2):
     dependencies:
       lightningcss: 1.30.1
       picomatch: 4.0.7
@@ -12678,14 +12722,15 @@ snapshots:
       rolldown: 1.2.15
       tinyglobby: 0.2.17
     optionalDependencies:
+      '@types/node': 20.19.39
       fsevents: 2.3.3
       jiti: 2.6.1
       terser: 5.51.2
 
-  vitest@5.0.5(@opentelemetry/api@1.9.1)(vite@8.3.5(jiti@2.6.1)(terser@5.51.2)):
+  vitest@5.0.5(@opentelemetry/api@1.9.1)(@types/node@20.19.39)(vite@8.3.5(@types/node@20.19.39)(jiti@2.6.1)(terser@5.51.2)):
     dependencies:
       '@types/chai': 5.2.3
-      '@vitest/mocker': 5.0.5(vite@8.3.5(jiti@2.6.1)(terser@5.51.2))
+      '@vitest/mocker': 5.0.5(vite@8.3.5(@types/node@20.19.39)(jiti@2.6.1)(terser@5.51.2))
       chai: 6.3.0
       es-module-lexer: 2.3.2
       expect-type: 1.4.0
@@ -12696,10 +12741,11 @@ snapshots:
       tinybench: 6.2.2
       tinyexec: 1.3.1
       tinyglobby: 0.2.17
-      vite: 8.3.5(jiti@2.6.1)(terser@5.51.2)
+      vite: 8.3.5(@types/node@20.19.39)(jiti@2.6.1)(terser@5.51.2)
       why-is-node-running: 3.2.1
     optionalDependencies:
       '@opentelemetry/api': 1.9.1
+      '@types/node': 20.19.39
     transitivePeerDependencies:
       - msw
 
