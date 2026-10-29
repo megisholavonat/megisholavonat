@@ -18,6 +18,7 @@ from api.core.queries import STATIONS_QUERY
 from api.core.redis import add_key
 from api.schemas.stations import Station
 from api.util.search import normalize_search_text
+from api.util.stop import StationType, station_type
 
 logger = get_logger(__name__)
 
@@ -31,12 +32,13 @@ HU_BBOX = (45.7, 16.1, 48.6, 22.95)
 INDEX_TTL = 3 * 24 * 60 * 60  # rebuilt daily; survives a missed run
 
 
+# v2 rows carry the station type
 def index_key() -> str:
-    return add_key("stations-index")
+    return add_key("stations-index-v2")
 
 
 def index_version_key() -> str:
-    return add_key("stations-index-version")
+    return add_key("stations-index-v2-version")
 
 
 @dataclass(frozen=True, slots=True)
@@ -48,12 +50,17 @@ class IndexedStation:
     normalized: str
     words: tuple[str, ...]
     in_hungary: bool
+    type: StationType = "rail"
 
     def to_schema(self) -> Station:
-        return Station(id=self.id, name=self.name, lat=self.lat, lon=self.lon)
+        return Station(
+            id=self.id, name=self.name, lat=self.lat, lon=self.lon, type=self.type
+        )
 
 
-def _indexed(id_: str, name: str, lat: float, lon: float) -> IndexedStation:
+def _indexed(
+    id_: str, name: str, lat: float, lon: float, type_: StationType = "rail"
+) -> IndexedStation:
     normalized = normalize_search_text(name)
     min_lat, min_lon, max_lat, max_lon = HU_BBOX
     return IndexedStation(
@@ -64,13 +71,14 @@ def _indexed(id_: str, name: str, lat: float, lon: float) -> IndexedStation:
         normalized=normalized,
         words=tuple(normalized.split()),
         in_hungary=min_lat <= lat <= max_lat and min_lon <= lon <= max_lon,
+        type=type_,
     )
 
 
 def rail_stations_from_otp(stations: list[dict[str, Any]]) -> list[list[Any]]:
     """
     Keep the rail parent stations and return them as compact
-    [id, name, lat, lon] rows, where id is the UIC station code.
+    [id, name, lat, lon, type] rows, where id is the UIC station code.
     """
     rows: list[list[Any]] = []
     for station in stations:
@@ -82,7 +90,15 @@ def rail_stations_from_otp(stations: list[dict[str, Any]]) -> list[list[Any]]:
             continue
         if station.get("lat") is None or station.get("lon") is None:
             continue
-        rows.append([local_id, station["name"], station["lat"], station["lon"]])
+        rows.append(
+            [
+                local_id,
+                station["name"],
+                station["lat"],
+                station["lon"],
+                station_type(station),
+            ]
+        )
     rows.sort(key=lambda r: r[0])
     return rows
 
@@ -130,6 +146,11 @@ async def load_station_index(redis: Redis) -> list[IndexedStation]:
     stations = [_indexed(*row) for row in json.loads(raw)]
     _memo.update(version=version, stations=stations)
     return stations
+
+
+def non_rail_station_ids(stations: list[IndexedStation]) -> list[str]:
+    """HÉV, tram-train and Children's Railway stops of the index."""
+    return [s.id for s in stations if s.type != "rail"]
 
 
 def _match_rank(station: IndexedStation, query: str) -> int | None:

@@ -27,7 +27,21 @@
     "name": "Győr",
     "lat": 47.681944,
     "lon": 17.634722,
-    "vehicleMode": "RAIL"
+    "vehicleMode": "RAIL",
+    "routes": [
+     {
+      "mode": "RAIL",
+      "agency": {
+       "name": "MÁV Személyszállítási Zrt."
+      }
+     },
+     {
+      "mode": "RAIL",
+      "agency": {
+       "name": "GYSEV Zrt."
+      }
+     }
+    ]
    },
    {
     "gtfsId": "BKK:056202",
@@ -90,7 +104,15 @@
     "name": "Szentendre H",
     "lat": 47.661038,
     "lon": 19.075607,
-    "vehicleMode": "SUBURBAN_RAILWAY"
+    "vehicleMode": "SUBURBAN_RAILWAY",
+    "routes": [
+     {
+      "mode": "SUBURBAN_RAILWAY",
+      "agency": {
+       "name": "MÁV Személyszállítási Zrt. (HÉV)"
+      }
+     }
+    ]
    },
    {
     "gtfsId": "1:v.005501289",
@@ -133,6 +155,72 @@
     "lat": 46.065833,
     "lon": 18.223611,
     "vehicleMode": "RAIL"
+   },
+   {
+    "gtfsId": "1:005517228",
+    "name": "Szeged",
+    "lat": 46.240806,
+    "lon": 20.140944,
+    "vehicleMode": "RAIL",
+    "routes": [
+     {
+      "mode": "RAIL",
+      "agency": {
+       "name": "MÁV Személyszállítási Zrt."
+      }
+     },
+     {
+      "mode": "RAIL_REPLACEMENT_BUS",
+      "agency": {
+       "name": "MÁV Személyszállítási Zrt."
+      }
+     }
+    ]
+   },
+   {
+    "gtfsId": "1:005500700",
+    "name": "Szeged vasútállomás",
+    "lat": 46.241556,
+    "lon": 20.141472,
+    "vehicleMode": "TRAMTRAIN",
+    "routes": [
+     {
+      "mode": "TRAMTRAIN",
+      "agency": {
+       "name": "MÁV Személyszállítási Zrt."
+      }
+     }
+    ]
+   },
+   {
+    "gtfsId": "1:005546847",
+    "name": "Hűvösvölgy",
+    "lat": 47.542417,
+    "lon": 18.966583,
+    "vehicleMode": "RAIL",
+    "routes": [
+     {
+      "mode": "RAIL",
+      "agency": {
+       "name": "Gyermekvasút"
+      }
+     }
+    ]
+   },
+   {
+    "gtfsId": "1:008022160",
+    "name": "Kersbach",
+    "lat": 49.680278,
+    "lon": 11.098056,
+    "vehicleMode": "SUBURBAN_RAILWAY",
+    "routes": [
+     {
+      "mode": "SUBURBAN_RAILWAY",
+      "agency": {
+       "name": "DB Regio"
+      }
+     }
+    ]
    }
   ]
  }

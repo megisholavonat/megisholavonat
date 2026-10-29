@@ -23,6 +23,7 @@ from api.services.disruptions import (
 )
 from api.services.live_trips import load_live_trip_index, match_live_trip
 from api.services.station_index import RAIL_FEED
+from api.util.stop import station_type
 
 BOARD_TTL = 30  # seconds
 # Look ahead this far first, and widen to a day for quiet stations
@@ -249,6 +250,7 @@ async def fetch_board(
             name=station["name"],
             lat=station["lat"],
             lon=station["lon"],
+            type=station_type(station),
         ),
         kind=kind,
         generatedAt=int(time.time()),

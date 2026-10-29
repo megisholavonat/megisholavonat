@@ -1,6 +1,6 @@
-"""Stop identifiers"""
+"""Stop identifiers and types"""
 
-from typing import Any
+from typing import Any, Literal
 
 
 def station_id_from_gtfs_id(gtfs_id: str) -> str:
@@ -21,3 +21,45 @@ def station_id(stop: dict[str, Any]) -> str | None:
         return str(uic)
     gtfs_id = stop.get("gtfsId")
     return station_id_from_gtfs_id(gtfs_id) if gtfs_id else None
+
+
+# What a stop of the rail feed is: a railway station or halt (MÁV, GYSEV and
+# foreign railways), a HÉV stop, a stop of the Szeged-Hódmezővásárhely
+# tram-train or a station of the Children's Railway
+StationType = Literal["rail", "hev", "tramtrain", "childrens_railway"]
+
+# Agencies told apart by name: their gtfsIds are feed-internal numbers
+HEV_AGENCY = "(HÉV)"  # "MÁV Személyszállítási Zrt. (HÉV)"
+CHILDRENS_RAILWAY_AGENCY = "Gyermekvasút"
+# A stop served by more than one kind is the first of these
+STATION_TYPE_ORDER: tuple[StationType, ...] = (
+    "rail",
+    "hev",
+    "tramtrain",
+    "childrens_railway",
+)
+
+
+def _route_type(route: dict[str, Any]) -> StationType | None:
+    mode = route.get("mode")
+    if mode == "RAIL_REPLACEMENT_BUS":
+        return None
+    agency = (route.get("agency") or {}).get("name") or ""
+    if CHILDRENS_RAILWAY_AGENCY in agency:
+        return "childrens_railway"
+    if HEV_AGENCY in agency:
+        return "hev"
+    if mode == "TRAMTRAIN":
+        return "tramtrain"
+    return "rail"
+
+
+def station_type(station: dict[str, Any]) -> StationType:
+    """
+    What kind of stop an OTP station is, from the mode and agency of the
+    routes serving it, never from its name. German and Austrian S-Bahns are
+    SUBURBAN_RAILWAY too, so the HÉV is told apart by its agency. A station
+    without routes counts as a railway station.
+    """
+    types = {_route_type(r) for r in station.get("routes") or []}
+    return next((t for t in STATION_TYPE_ORDER if t in types), "rail")
