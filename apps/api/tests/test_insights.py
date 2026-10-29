@@ -1,3 +1,4 @@
+import json
 from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
@@ -8,7 +9,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.models.history import Stop, StopDelayObservation
-from api.services import insights
+from api.services import insights, station_index
 from api.services.history import ensure_partition
 
 # "Today" for every test; observations are seeded relative to it
@@ -63,6 +64,8 @@ async def _seed(session: AsyncSession, rows: list[dict[str, Any]]) -> None:
             "name": NAMES.get(r["station_id"], r["station_id"]),
             "lat": 47.0,
             "lon": 19.0,
+            # Domestic stops have a county, foreign ones none
+            "county": "Pest" if r["station_id"] in NAMES else None,
         }
         for r in rows
     }
@@ -603,3 +606,47 @@ async def test_responses_are_cached(
     await _seed(db_session, _runs([900] * 5, seq=1))
     second = (await client.get(f"/v1/history/trains/10/stations/{KELETI}")).json()
     assert second == first
+
+
+# --- Directory ---
+
+
+async def test_directory_lists_regular_trains_and_served_domestic_stations(
+    client: httpx.AsyncClient,
+    db_session: AsyncSession,
+    redis: fakeredis.FakeAsyncRedis,
+) -> None:
+    vienna = "008101001"
+    await redis.set(
+        station_index.index_key(),
+        json.dumps(
+            [
+                [KELETI, "Budapest-Keleti", 47.5, 19.08],
+                [SZOLNOK, "Szolnok", 47.17, 20.19],
+                [DEBRECEN, "Debrecen", 47.52, 21.63],
+                [vienna, "Wien Hbf", 48.18, 16.37],
+            ]
+        ),
+    )
+    await redis.set(station_index.index_version_key(), "1")
+    # Daily at Keleti and in Vienna; Szolnok only once in four weeks
+    await _seed(db_session, _runs([60] * 28))
+    await _seed(db_session, _runs([60] * 28, station=vienna, train="40", seq=1))
+    await _seed(db_session, _runs([60], station=SZOLNOK, train="7", seq=2))
+
+    r = await client.get("/v1/history/directory")
+
+    assert r.status_code == 200
+    body = r.json()
+    # Vienna is served but abroad (and in the index's rough box of Hungary);
+    # Szolnok and Debrecen too seldom
+    assert body["stations"] == [{"id": KELETI, "name": "Budapest-Keleti"}]
+    # Train 7 ran once in 28 days: not regular
+    assert body["trains"] == [
+        {
+            "trainNumber": "10",
+            "tripShortName": "10 TRANSCARPATHIA",
+            "routeShortName": "IC",
+        },
+        {"trainNumber": "40", "tripShortName": "40", "routeShortName": "IC"},
+    ]

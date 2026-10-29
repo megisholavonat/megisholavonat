@@ -360,6 +360,60 @@ export type DeviceInfo = {
 };
 
 /**
+ * Directory
+ *
+ * Stations and train numbers with regular service in the window: the pages
+ * the website lists for search engines
+ */
+export type Directory = {
+    window: HistoryWindow;
+    /**
+     * Stations
+     */
+    stations: Array<DirectoryStation>;
+    /**
+     * Trains
+     */
+    trains: Array<DirectoryTrain>;
+};
+
+/**
+ * DirectoryStation
+ *
+ * A domestic station with regular service
+ */
+export type DirectoryStation = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Name
+     */
+    name: string;
+};
+
+/**
+ * DirectoryTrain
+ *
+ * A train number that runs regularly
+ */
+export type DirectoryTrain = {
+    /**
+     * Trainnumber
+     */
+    trainNumber: string;
+    /**
+     * Tripshortname
+     */
+    tripShortName: string;
+    /**
+     * Routeshortname
+     */
+    routeShortName?: string | null;
+};
+
+/**
  * Disruption
  *
  * A line or network disruption: the rail alerts about one event, merged.
@@ -2641,6 +2695,38 @@ export type GetStationPlatformsResponses = {
 };
 
 export type GetStationPlatformsResponse = GetStationPlatformsResponses[keyof GetStationPlatformsResponses];
+
+export type GetDirectoryData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Days
+         *
+         * Number of service dates to look back
+         */
+        days?: number;
+    };
+    url: '/v1/history/directory';
+};
+
+export type GetDirectoryErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetDirectoryError = GetDirectoryErrors[keyof GetDirectoryErrors];
+
+export type GetDirectoryResponses = {
+    /**
+     * Successful Response
+     */
+    200: Directory;
+};
+
+export type GetDirectoryResponse = GetDirectoryResponses[keyof GetDirectoryResponses];
 
 export type GetRunSummaryData = {
     body?: never;

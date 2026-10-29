@@ -18,6 +18,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.models.history import ON_TIME_THRESHOLD_S
 from api.schemas.insights import (
     DelayStats,
+    Directory,
+    DirectoryStation,
+    DirectoryTrain,
     HistoryWindow,
     HourPunctuality,
     PlatformPrediction,
@@ -32,6 +35,7 @@ from api.schemas.insights import (
     TrainStationHistory,
     TypicalDelay,
 )
+from api.services.station_index import IndexedStation
 from api.util.route_names import LINE_PATTERN, MAV_ROUTE_MAP, is_line, route_name
 from api.util.time import BUDAPEST_TZ
 
@@ -503,4 +507,75 @@ async def station_platforms(
             for r in rows
         ],
         typicalDelays=typical,
+    )
+
+
+def directory_thresholds(days: int) -> tuple[int, int]:
+    """
+    Fewest stop passages for a station (about a train a day) and fewest
+    service dates for a train number (about once a week) to be listed.
+    """
+    return max(1, days), max(1, days // 7)
+
+
+async def directory(
+    session: AsyncSession, stations: list[IndexedStation], days: int
+) -> Directory:
+    window = history_window(days)
+    min_passages, min_dates = directory_thresholds(days)
+    params = {
+        **_window_params(window),
+        "min_passages": min_passages,
+        "min_dates": min_dates,
+    }
+    served = await session.execute(
+        text(
+            f"""
+            SELECT station_id, count(*) AS n
+            FROM stop_delay_observations
+            WHERE {IN_WINDOW}
+              AND station_id IN (
+                  SELECT station_id FROM stops WHERE county IS NOT NULL
+              )
+            GROUP BY 1
+            HAVING count(*) >= :min_passages
+            """
+        ),
+        params,
+    )
+    # Only domestic stops have a county
+    passages = {r.station_id: int(r.n) for r in served}
+    # Named as the station search names them, busiest first
+    listed = sorted(
+        (s for s in stations if s.id in passages),
+        key=lambda s: (-passages[s.id], s.id),
+    )
+
+    trains = await session.execute(
+        text(
+            f"""
+            SELECT {TRAIN_NUMBER} AS number,
+                   mode() WITHIN GROUP (ORDER BY trip_short_name) AS trip_short_name,
+                   mode() WITHIN GROUP (ORDER BY route_short_name) AS route_short_name
+            FROM stop_delay_observations
+            WHERE {IN_WINDOW} AND {TRAIN_NUMBER} <> ''
+            GROUP BY 1
+            HAVING count(DISTINCT service_date) >= :min_dates
+            ORDER BY length({TRAIN_NUMBER}), 1
+            """
+        ),
+        params,
+    )
+
+    return Directory(
+        window=window,
+        stations=[DirectoryStation(id=s.id, name=s.name) for s in listed],
+        trains=[
+            DirectoryTrain(
+                trainNumber=r.number,
+                tripShortName=r.trip_short_name,
+                routeShortName=r.route_short_name or None,
+            )
+            for r in trains
+        ],
     )

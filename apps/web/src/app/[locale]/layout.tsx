@@ -10,6 +10,7 @@ import Providers from "@/app/providers";
 import ConsentBanner from "@/components/ui/ConsentBanner";
 import { routing } from "@/i18n/routing";
 import { pageMetadata } from "@/lib/og/page";
+import { siteUrl } from "@/lib/og/server";
 
 const inter = Inter({
     variable: "--font-inter",
@@ -23,9 +24,20 @@ export async function generateMetadata({
     params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
     const { locale } = await params;
-    return pageMetadata(
-        hasLocale(routing.locales, locale) ? locale : routing.defaultLocale,
-    );
+    const origin = siteUrl();
+    return {
+        ...(await pageMetadata(
+            hasLocale(routing.locales, locale) ? locale : routing.defaultLocale,
+        )),
+        // The map's language versions; pages with their own replace them
+        alternates: {
+            languages: {
+                hu: `${origin}/hu`,
+                en: `${origin}/en`,
+                "x-default": `${origin}/hu`,
+            },
+        },
+    };
 }
 
 export const viewport: Viewport = {
@@ -56,21 +68,6 @@ export default async function LocaleLayout({
             <head>
                 <style>{themeCss()}</style>
                 <meta name="apple-mobile-web-app-title" content="MHaV" />
-                <link
-                    rel="alternate"
-                    hrefLang="hu"
-                    href="https://megisholavonat.info/hu"
-                />
-                <link
-                    rel="alternate"
-                    hrefLang="en"
-                    href="https://megisholavonat.info/en"
-                />
-                <link
-                    rel="alternate"
-                    hrefLang="x-default"
-                    href="https://megisholavonat.info/hu"
-                />
             </head>
             <body className={`${inter.variable} font-sans antialiased`}>
                 <Providers>
