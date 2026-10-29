@@ -5,7 +5,11 @@ import type { BoardEntry, StationBoard } from "@megisholavonat/api-client";
 import type { Locale } from "@megisholavonat/core/i18n";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { MIN_SAMPLES, overallShare } from "@/components/stats/figures";
+import {
+    DEFAULT_DAYS,
+    MIN_SAMPLES,
+    overallShare,
+} from "@/components/stats/figures";
 import { HourChart } from "@/components/stats/HourChart";
 import { Of10Text, TenBar } from "@/components/stats/StatsParts";
 import { DelayChip } from "@/components/ui/Delay";
@@ -25,6 +29,7 @@ import {
     PageMain,
     Section,
 } from "./PageParts";
+import { TrackPageView } from "./TrackPageView";
 
 type Kind = "departures" | "arrivals";
 
@@ -217,6 +222,11 @@ export async function StationPage({
 
     return (
         <PageMain>
+            <TrackPageView
+                kind="station"
+                station_id={station.id}
+                days={hours?.window.days ?? DEFAULT_DAYS}
+            />
             <JsonLd
                 data={[
                     {

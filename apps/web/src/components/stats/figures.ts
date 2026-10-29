@@ -4,6 +4,9 @@
 import type { HourPunctuality } from "@megisholavonat/api-client";
 import { getDelayLevel } from "@megisholavonat/core/delay";
 
+/** Service dates the statistics look back on, as the API defaults to */
+export const DEFAULT_DAYS = 28;
+
 /**
  * Fewest samples for a figure, the same as the API's rankings use
  * (`DEFAULT_MIN_SAMPLES`): a station counts passages, a train its runs. A

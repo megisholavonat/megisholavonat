@@ -7,7 +7,12 @@ import { trainShareText } from "@megisholavonat/core/share";
 import { formatSecondsAsTime } from "@megisholavonat/core/time";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { lateLevel, MIN_SAMPLES, of10 } from "@/components/stats/figures";
+import {
+    DEFAULT_DAYS,
+    lateLevel,
+    MIN_SAMPLES,
+    of10,
+} from "@/components/stats/figures";
 import { LateChip, Of10Text, TenBar } from "@/components/stats/StatsParts";
 import { DelayChip } from "@/components/ui/Delay";
 import { PlatformBadge } from "@/components/ui/Platform";
@@ -25,6 +30,7 @@ import {
     PageMain,
     Section,
 } from "./PageParts";
+import { TrackPageView } from "./TrackPageView";
 
 /** A stop's share is told from as many runs as the rankings need */
 function enoughRuns(station: TrainRouteStation): boolean {
@@ -128,6 +134,11 @@ export async function TrainPage({
 
     return (
         <PageMain>
+            <TrackPageView
+                kind="train"
+                train_number={number}
+                days={history?.window.days ?? DEFAULT_DAYS}
+            />
             <JsonLd
                 data={[
                     {

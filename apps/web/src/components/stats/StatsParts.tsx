@@ -9,9 +9,9 @@ import { FILL_CLASS, type Level, TINT_CLASS } from "@/components/ui/Delay";
 import { useRouter } from "@/i18n/navigation";
 import { cameFromApp } from "@/lib/landing";
 import { cn } from "@/lib/utils";
+import { DEFAULT_DAYS } from "./figures";
 
-/** Service dates the statistics look back on, as the API defaults to */
-export const DEFAULT_DAYS = 28;
+export { DEFAULT_DAYS };
 
 /**
  * Look-back window. Not shown in the UI; `?days=` overrides it (1-365).
