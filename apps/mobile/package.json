@@ -11,7 +11,8 @@
         "check": "biome check && tsc --noEmit && node scripts/check-messages.mjs && node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/map-sprites.mjs --check",
         "sprites": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/map-sprites.mjs",
         "test": "vitest run",
-        "doctor": "expo-doctor"
+        "doctor": "expo-doctor",
+        "eas-build-post-install": "pnpm --filter @megisholavonat/api-client build"
     },
     "dependencies": {
         "@expo/ui": "~58.0.25",
