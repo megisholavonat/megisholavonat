@@ -1,0 +1,702 @@
+{
+  "vehicleId": "1:955501173350",
+  "lat": 46.6883392,
+  "lon": 17.8805695,
+  "heading": 226,
+  "speed": 8,
+  "lastUpdated": 1793239127,
+  "trip": {
+    "gtfsId": "1:35636110",
+    "serviceDate": "2026-10-29",
+    "tripShortName": "38319 személyvonat",
+    "route": {
+      "mode": "RAIL",
+      "textColor": "00A0E3",
+      "shortName": "<span class=\"MNR2007\">&#484;</span>",
+      "longName": "Sz 38318/38319"
+    },
+    "tripGeometry": {
+      "points": "wvf|GotbmB~EzMrPhJjErErMbb@AzMbHxXrHfXv_@va@rYrlBlK|SfCpJuB`r@gI`h@yOno@`AplAxRlZzPM`K`DpBpS}`@lnAy^tq@EfY{C|GgJtDcPfG}G~NkHzTsE~d@NlOvFdPn@rT`\\v]dSiDtTlOhp@vUrZoEpu@tm@vS?rJlDxP|k@fHv@~Z{NpzAou@xIaI`u@yNzmCkaA`l@uMbqAgl@`[iUhLfGHtUeYx]aYd|A{Rrh@dHndARhEeBzLyR~~@jC`NfMvVk@vP^hSiFhSrDjTQ~a@fIfMvN|KtQdXo@~UzJ~MtcAhC~KzL~G|ClKeG`KiAxKpBrq@gItTgDlJgL|D_SvE{C`g@tMhSIb^kDtU`Ad\\}Dzh@wIzmB_`@vmAaM`P}Ab~EqZ|NsC~c@h@bSmFf~Dkw@xt@{Ghc@~Rtp@yAdM|Hhm@`Ub`@xMhYEfU~PpHzc@xHnMr[hBlLrAlQoE|Uv@`ZkTnIEdIjH~B|HnF|RhHtN|R|_@lI`d@dJ|o@kHzq@"
+    },
+    "stoptimes": [
+      {
+        "stopPosition": 1,
+        "scheduledArrival": 8460,
+        "realtimeArrival": 8520,
+        "scheduledDeparture": 8460,
+        "realtimeDeparture": 8520,
+        "stop": {
+          "gtfsId": "1:005508342_2",
+          "stationUicPricingCode": "005508342",
+          "name": "Tab",
+          "lat": 46.734167,
+          "lon": 18.041111,
+          "platformCode": "2",
+          "county": "Somogy"
+        }
+      },
+      {
+        "stopPosition": 2,
+        "scheduledArrival": 9180,
+        "realtimeArrival": 9180,
+        "scheduledDeparture": 9180,
+        "realtimeDeparture": 9240,
+        "stop": {
+          "gtfsId": "1:005508334_2",
+          "stationUicPricingCode": "005508334",
+          "name": "Kapoly",
+          "lat": 46.713611,
+          "lon": 17.977778,
+          "platformCode": "2",
+          "county": "Somogy"
+        }
+      },
+      {
+        "stopPosition": 3,
+        "scheduledArrival": 9900,
+        "realtimeArrival": 9900,
+        "scheduledDeparture": 9900,
+        "realtimeDeparture": 9900,
+        "stop": {
+          "gtfsId": "1:005508326_2",
+          "stationUicPricingCode": "005508326",
+          "name": "Somogymeggyes",
+          "lat": 46.720556,
+          "lon": 17.920556,
+          "platformCode": "2",
+          "county": "Somogy"
+        }
+      },
+      {
+        "stopPosition": 4,
+        "scheduledArrival": 10920,
+        "realtimeArrival": 10920,
+        "scheduledDeparture": 11100,
+        "realtimeDeparture": 11100,
+        "stop": {
+          "gtfsId": "1:005508318_2",
+          "stationUicPricingCode": "005508318",
+          "name": "Karád",
+          "lat": 46.681111,
+          "lon": 17.874722,
+          "platformCode": "2",
+          "county": "Somogy"
+        }
+      },
+      {
+        "stopPosition": 5,
+        "scheduledArrival": 11580,
+        "realtimeArrival": 11580,
+        "scheduledDeparture": 11580,
+        "realtimeDeparture": 11580,
+        "stop": {
+          "gtfsId": "1:005508300_0",
+          "stationUicPricingCode": "005508300",
+          "name": "Andocs",
+          "lat": 46.646944,
+          "lon": 17.8925,
+          "platformCode": null,
+          "county": "Somogy"
+        }
+      },
+      {
+        "stopPosition": 6,
+        "scheduledArrival": 12120,
+        "realtimeArrival": 12120,
+        "scheduledDeparture": 12120,
+        "realtimeDeparture": 12120,
+        "stop": {
+          "gtfsId": "1:005508292_0",
+          "stationUicPricingCode": "005508292",
+          "name": "Bonnya",
+          "lat": 46.611389,
+          "lon": 17.909167,
+          "platformCode": null,
+          "county": "Somogy"
+        }
+      },
+      {
+        "stopPosition": 7,
+        "scheduledArrival": 12780,
+        "realtimeArrival": 12780,
+        "scheduledDeparture": 12840,
+        "realtimeDeparture": 12840,
+        "stop": {
+          "gtfsId": "1:005508284_0",
+          "stationUicPricingCode": "005508284",
+          "name": "Kisbárapáti",
+          "lat": 46.615,
+          "lon": 17.866667,
+          "platformCode": null,
+          "county": "Somogy"
+        }
+      },
+      {
+        "stopPosition": 9,
+        "scheduledArrival": 14040,
+        "realtimeArrival": 14040,
+        "scheduledDeparture": 14040,
+        "realtimeDeparture": 14040,
+        "stop": {
+          "gtfsId": "1:005508276_0",
+          "stationUicPricingCode": "005508276",
+          "name": "Felsőmocsolád",
+          "lat": 46.556389,
+          "lon": 17.8225,
+          "platformCode": null,
+          "county": "Somogy"
+        }
+      },
+      {
+        "stopPosition": 10,
+        "scheduledArrival": 14520,
+        "realtimeArrival": 14520,
+        "scheduledDeparture": 16080,
+        "realtimeDeparture": 16080,
+        "stop": {
+          "gtfsId": "1:005508268_2",
+          "stationUicPricingCode": "005508268",
+          "name": "Mernye",
+          "lat": 46.509444,
+          "lon": 17.832222,
+          "platformCode": "2",
+          "county": "Somogy"
+        }
+      },
+      {
+        "stopPosition": 11,
+        "scheduledArrival": 16380,
+        "realtimeArrival": 16380,
+        "scheduledDeparture": 16380,
+        "realtimeDeparture": 16380,
+        "stop": {
+          "gtfsId": "1:005547514_0",
+          "stationUicPricingCode": "005547514",
+          "name": "Somodor",
+          "lat": 46.4725,
+          "lon": 17.836667,
+          "platformCode": null,
+          "county": "Somogy"
+        }
+      },
+      {
+        "stopPosition": 12,
+        "scheduledArrival": 16560,
+        "realtimeArrival": 16560,
+        "scheduledDeparture": 16560,
+        "realtimeDeparture": 16560,
+        "stop": {
+          "gtfsId": "1:005508250_0",
+          "stationUicPricingCode": "005508250",
+          "name": "Somogyaszaló",
+          "lat": 46.453611,
+          "lon": 17.840278,
+          "platformCode": null,
+          "county": "Somogy"
+        }
+      },
+      {
+        "stopPosition": 13,
+        "scheduledArrival": 16800,
+        "realtimeArrival": 16800,
+        "scheduledDeparture": 16800,
+        "realtimeDeparture": 16800,
+        "stop": {
+          "gtfsId": "1:005543562_0",
+          "stationUicPricingCode": "005543562",
+          "name": "Répáspuszta",
+          "lat": 46.430278,
+          "lon": 17.847222,
+          "platformCode": null,
+          "county": "Somogy"
+        }
+      },
+      {
+        "stopPosition": 14,
+        "scheduledArrival": 17100,
+        "realtimeArrival": 17100,
+        "scheduledDeparture": 17100,
+        "realtimeDeparture": 17100,
+        "stop": {
+          "gtfsId": "1:005508243_0",
+          "stationUicPricingCode": "005508243",
+          "name": "Toponár",
+          "lat": 46.398333,
+          "lon": 17.840833,
+          "platformCode": null,
+          "county": "Somogy"
+        }
+      },
+      {
+        "stopPosition": 16,
+        "scheduledArrival": 17580,
+        "realtimeArrival": 17580,
+        "scheduledDeparture": 17580,
+        "realtimeDeparture": 17580,
+        "stop": {
+          "gtfsId": "1:005506270_B",
+          "stationUicPricingCode": "005506270",
+          "name": "Kaposszentjakab",
+          "lat": 46.358056,
+          "lon": 17.821944,
+          "platformCode": "B",
+          "county": "Somogy"
+        }
+      },
+      {
+        "stopPosition": 17,
+        "scheduledArrival": 17880,
+        "realtimeArrival": 17880,
+        "scheduledDeparture": 17880,
+        "realtimeDeparture": 17880,
+        "stop": {
+          "gtfsId": "1:005506288_2",
+          "stationUicPricingCode": "005506288",
+          "name": "Kaposvár",
+          "lat": 46.352778,
+          "lon": 17.795,
+          "platformCode": "2",
+          "county": "Somogy"
+        }
+      }
+    ],
+    "wheelchairAccessible": "NO_INFORMATION",
+    "bikesAllowed": "NO_INFORMATION",
+    "infoServices": [
+      {
+        "name": "A vonat 2. osztályú kocsikkal közlekedik",
+        "fromStopIndex": 0,
+        "tillStopIndex": 14,
+        "fontCharSet": "MNR2007",
+        "fontCode": 222,
+        "displayable": true
+      },
+      {
+        "name": "Országbérlettel igénybe vehető",
+        "fromStopIndex": 0,
+        "tillStopIndex": 14,
+        "fontCharSet": "MNR2007",
+        "fontCode": 557,
+        "displayable": true
+      }
+    ],
+    "alerts": []
+  },
+  "delay": -1,
+  "trainPosition": 0.2098494884075696,
+  "totalRouteDistance": 0.7181139877246991,
+  "processedStops": [
+    {
+      "id": "Tab",
+      "gtfsId": "1:005508342_2",
+      "index": 0,
+      "originalCoords": [
+        18.041111,
+        46.734167
+      ],
+      "distanceAlongRoute": 0.00004009880296819493,
+      "stopTimeInfo": {
+        "stopPosition": 1,
+        "scheduledArrival": 8460,
+        "realtimeArrival": 8520,
+        "scheduledDeparture": 8460,
+        "realtimeDeparture": 8520,
+        "stop": {
+          "gtfsId": "1:005508342_2",
+          "stationUicPricingCode": "005508342",
+          "name": "Tab",
+          "lat": 46.734167,
+          "lon": 18.041111,
+          "platformCode": "2",
+          "county": "Somogy"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Kapoly",
+      "gtfsId": "1:005508334_2",
+      "index": 1,
+      "originalCoords": [
+        17.977778,
+        46.713611
+      ],
+      "distanceAlongRoute": 0.07038155257450597,
+      "stopTimeInfo": {
+        "stopPosition": 2,
+        "scheduledArrival": 9180,
+        "realtimeArrival": 9180,
+        "scheduledDeparture": 9180,
+        "realtimeDeparture": 9240,
+        "stop": {
+          "gtfsId": "1:005508334_2",
+          "stationUicPricingCode": "005508334",
+          "name": "Kapoly",
+          "lat": 46.713611,
+          "lon": 17.977778,
+          "platformCode": "2",
+          "county": "Somogy"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Somogymeggyes",
+      "gtfsId": "1:005508326_2",
+      "index": 2,
+      "originalCoords": [
+        17.920556,
+        46.720556
+      ],
+      "distanceAlongRoute": 0.1378622235392568,
+      "stopTimeInfo": {
+        "stopPosition": 3,
+        "scheduledArrival": 9900,
+        "realtimeArrival": 9900,
+        "scheduledDeparture": 9900,
+        "realtimeDeparture": 9900,
+        "stop": {
+          "gtfsId": "1:005508326_2",
+          "stationUicPricingCode": "005508326",
+          "name": "Somogymeggyes",
+          "lat": 46.720556,
+          "lon": 17.920556,
+          "platformCode": "2",
+          "county": "Somogy"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Karád",
+      "gtfsId": "1:005508318_2",
+      "index": 3,
+      "originalCoords": [
+        17.874722,
+        46.681111
+      ],
+      "distanceAlongRoute": 0.22216238444189895,
+      "stopTimeInfo": {
+        "stopPosition": 4,
+        "scheduledArrival": 10920,
+        "realtimeArrival": 10920,
+        "scheduledDeparture": 11100,
+        "realtimeDeparture": 11100,
+        "stop": {
+          "gtfsId": "1:005508318_2",
+          "stationUicPricingCode": "005508318",
+          "name": "Karád",
+          "lat": 46.681111,
+          "lon": 17.874722,
+          "platformCode": "2",
+          "county": "Somogy"
+        }
+      },
+      "predictedDelay": -1
+    },
+    {
+      "id": "Andocs",
+      "gtfsId": "1:005508300_0",
+      "index": 4,
+      "originalCoords": [
+        17.8925,
+        46.646944
+      ],
+      "distanceAlongRoute": 0.26113624972777355,
+      "stopTimeInfo": {
+        "stopPosition": 5,
+        "scheduledArrival": 11580,
+        "realtimeArrival": 11580,
+        "scheduledDeparture": 11580,
+        "realtimeDeparture": 11580,
+        "stop": {
+          "gtfsId": "1:005508300_0",
+          "stationUicPricingCode": "005508300",
+          "name": "Andocs",
+          "lat": 46.646944,
+          "lon": 17.8925,
+          "platformCode": null,
+          "county": "Somogy"
+        }
+      },
+      "predictedDelay": -1
+    },
+    {
+      "id": "Bonnya",
+      "gtfsId": "1:005508292_0",
+      "index": 5,
+      "originalCoords": [
+        17.909167,
+        46.611389
+      ],
+      "distanceAlongRoute": 0.3007929202196946,
+      "stopTimeInfo": {
+        "stopPosition": 6,
+        "scheduledArrival": 12120,
+        "realtimeArrival": 12120,
+        "scheduledDeparture": 12120,
+        "realtimeDeparture": 12120,
+        "stop": {
+          "gtfsId": "1:005508292_0",
+          "stationUicPricingCode": "005508292",
+          "name": "Bonnya",
+          "lat": 46.611389,
+          "lon": 17.909167,
+          "platformCode": null,
+          "county": "Somogy"
+        }
+      },
+      "predictedDelay": -1
+    },
+    {
+      "id": "Kisbárapáti",
+      "gtfsId": "1:005508284_0",
+      "index": 6,
+      "originalCoords": [
+        17.866667,
+        46.615
+      ],
+      "distanceAlongRoute": 0.3572473327627166,
+      "stopTimeInfo": {
+        "stopPosition": 7,
+        "scheduledArrival": 12780,
+        "realtimeArrival": 12780,
+        "scheduledDeparture": 12840,
+        "realtimeDeparture": 12840,
+        "stop": {
+          "gtfsId": "1:005508284_0",
+          "stationUicPricingCode": "005508284",
+          "name": "Kisbárapáti",
+          "lat": 46.615,
+          "lon": 17.866667,
+          "platformCode": null,
+          "county": "Somogy"
+        }
+      },
+      "predictedDelay": -1
+    },
+    {
+      "id": "Felsőmocsolád",
+      "gtfsId": "1:005508276_0",
+      "index": 7,
+      "originalCoords": [
+        17.8225,
+        46.556389
+      ],
+      "distanceAlongRoute": 0.47008285868074695,
+      "stopTimeInfo": {
+        "stopPosition": 9,
+        "scheduledArrival": 14040,
+        "realtimeArrival": 14040,
+        "scheduledDeparture": 14040,
+        "realtimeDeparture": 14040,
+        "stop": {
+          "gtfsId": "1:005508276_0",
+          "stationUicPricingCode": "005508276",
+          "name": "Felsőmocsolád",
+          "lat": 46.556389,
+          "lon": 17.8225,
+          "platformCode": null,
+          "county": "Somogy"
+        }
+      },
+      "predictedDelay": -1
+    },
+    {
+      "id": "Mernye",
+      "gtfsId": "1:005508268_2",
+      "index": 8,
+      "originalCoords": [
+        17.832222,
+        46.509444
+      ],
+      "distanceAlongRoute": 0.5186534139540581,
+      "stopTimeInfo": {
+        "stopPosition": 10,
+        "scheduledArrival": 14520,
+        "realtimeArrival": 14520,
+        "scheduledDeparture": 16080,
+        "realtimeDeparture": 16080,
+        "stop": {
+          "gtfsId": "1:005508268_2",
+          "stationUicPricingCode": "005508268",
+          "name": "Mernye",
+          "lat": 46.509444,
+          "lon": 17.832222,
+          "platformCode": "2",
+          "county": "Somogy"
+        }
+      },
+      "predictedDelay": -1
+    },
+    {
+      "id": "Somodor",
+      "gtfsId": "1:005547514_0",
+      "index": 9,
+      "originalCoords": [
+        17.836667,
+        46.4725
+      ],
+      "distanceAlongRoute": 0.5558743165334034,
+      "stopTimeInfo": {
+        "stopPosition": 11,
+        "scheduledArrival": 16380,
+        "realtimeArrival": 16380,
+        "scheduledDeparture": 16380,
+        "realtimeDeparture": 16380,
+        "stop": {
+          "gtfsId": "1:005547514_0",
+          "stationUicPricingCode": "005547514",
+          "name": "Somodor",
+          "lat": 46.4725,
+          "lon": 17.836667,
+          "platformCode": null,
+          "county": "Somogy"
+        }
+      },
+      "predictedDelay": -1
+    },
+    {
+      "id": "Somogyaszaló",
+      "gtfsId": "1:005508250_0",
+      "index": 10,
+      "originalCoords": [
+        17.840278,
+        46.453611
+      ],
+      "distanceAlongRoute": 0.5754513703167146,
+      "stopTimeInfo": {
+        "stopPosition": 12,
+        "scheduledArrival": 16560,
+        "realtimeArrival": 16560,
+        "scheduledDeparture": 16560,
+        "realtimeDeparture": 16560,
+        "stop": {
+          "gtfsId": "1:005508250_0",
+          "stationUicPricingCode": "005508250",
+          "name": "Somogyaszaló",
+          "lat": 46.453611,
+          "lon": 17.840278,
+          "platformCode": null,
+          "county": "Somogy"
+        }
+      },
+      "predictedDelay": -1
+    },
+    {
+      "id": "Répáspuszta",
+      "gtfsId": "1:005543562_0",
+      "index": 11,
+      "originalCoords": [
+        17.847222,
+        46.430278
+      ],
+      "distanceAlongRoute": 0.5998000706930384,
+      "stopTimeInfo": {
+        "stopPosition": 13,
+        "scheduledArrival": 16800,
+        "realtimeArrival": 16800,
+        "scheduledDeparture": 16800,
+        "realtimeDeparture": 16800,
+        "stop": {
+          "gtfsId": "1:005543562_0",
+          "stationUicPricingCode": "005543562",
+          "name": "Répáspuszta",
+          "lat": 46.430278,
+          "lon": 17.847222,
+          "platformCode": null,
+          "county": "Somogy"
+        }
+      },
+      "predictedDelay": -1
+    },
+    {
+      "id": "Toponár",
+      "gtfsId": "1:005508243_0",
+      "index": 12,
+      "originalCoords": [
+        17.840833,
+        46.398333
+      ],
+      "distanceAlongRoute": 0.6344691343555848,
+      "stopTimeInfo": {
+        "stopPosition": 14,
+        "scheduledArrival": 17100,
+        "realtimeArrival": 17100,
+        "scheduledDeparture": 17100,
+        "realtimeDeparture": 17100,
+        "stop": {
+          "gtfsId": "1:005508243_0",
+          "stationUicPricingCode": "005508243",
+          "name": "Toponár",
+          "lat": 46.398333,
+          "lon": 17.840833,
+          "platformCode": null,
+          "county": "Somogy"
+        }
+      },
+      "predictedDelay": -1
+    },
+    {
+      "id": "Kaposszentjakab",
+      "gtfsId": "1:005506270_B",
+      "index": 13,
+      "originalCoords": [
+        17.821944,
+        46.358056
+      ],
+      "distanceAlongRoute": 0.6894634132583072,
+      "stopTimeInfo": {
+        "stopPosition": 16,
+        "scheduledArrival": 17580,
+        "realtimeArrival": 17580,
+        "scheduledDeparture": 17580,
+        "realtimeDeparture": 17580,
+        "stop": {
+          "gtfsId": "1:005506270_B",
+          "stationUicPricingCode": "005506270",
+          "name": "Kaposszentjakab",
+          "lat": 46.358056,
+          "lon": 17.821944,
+          "platformCode": "B",
+          "county": "Somogy"
+        }
+      },
+      "predictedDelay": -1
+    },
+    {
+      "id": "Kaposvár",
+      "gtfsId": "1:005506288_2",
+      "index": 14,
+      "originalCoords": [
+        17.795,
+        46.352778
+      ],
+      "distanceAlongRoute": 0.7181139877246991,
+      "stopTimeInfo": {
+        "stopPosition": 17,
+        "scheduledArrival": 17880,
+        "realtimeArrival": 17880,
+        "scheduledDeparture": 17880,
+        "realtimeDeparture": 17880,
+        "stop": {
+          "gtfsId": "1:005506288_2",
+          "stationUicPricingCode": "005506288",
+          "name": "Kaposvár",
+          "lat": 46.352778,
+          "lon": 17.795,
+          "platformCode": "2",
+          "county": "Somogy"
+        }
+      },
+      "predictedDelay": -1
+    }
+  ],
+  "vehicleProgress": {
+    "lastStop": "Somogymeggyes",
+    "nextStop": "Karád",
+    "lastStopIndex": 2,
+    "nextStopIndex": 3,
+    "progress": 0.8539398276054364
+  }
+}

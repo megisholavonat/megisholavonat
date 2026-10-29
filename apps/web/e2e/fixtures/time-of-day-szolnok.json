@@ -1,0 +1,154 @@
+{
+  "stationId": "005513748",
+  "window": {
+    "start": "2026-09-30",
+    "end": "2026-10-29",
+    "days": 30
+  },
+  "hours": [
+    {
+      "hour": 0,
+      "n": 0,
+      "onTimeShare": null,
+      "medianDelayMin": null
+    },
+    {
+      "hour": 1,
+      "n": 1,
+      "onTimeShare": 0,
+      "medianDelayMin": 39.1
+    },
+    {
+      "hour": 2,
+      "n": 0,
+      "onTimeShare": null,
+      "medianDelayMin": null
+    },
+    {
+      "hour": 3,
+      "n": 0,
+      "onTimeShare": null,
+      "medianDelayMin": null
+    },
+    {
+      "hour": 4,
+      "n": 0,
+      "onTimeShare": null,
+      "medianDelayMin": null
+    },
+    {
+      "hour": 5,
+      "n": 0,
+      "onTimeShare": null,
+      "medianDelayMin": null
+    },
+    {
+      "hour": 6,
+      "n": 0,
+      "onTimeShare": null,
+      "medianDelayMin": null
+    },
+    {
+      "hour": 7,
+      "n": 0,
+      "onTimeShare": null,
+      "medianDelayMin": null
+    },
+    {
+      "hour": 8,
+      "n": 0,
+      "onTimeShare": null,
+      "medianDelayMin": null
+    },
+    {
+      "hour": 9,
+      "n": 0,
+      "onTimeShare": null,
+      "medianDelayMin": null
+    },
+    {
+      "hour": 10,
+      "n": 0,
+      "onTimeShare": null,
+      "medianDelayMin": null
+    },
+    {
+      "hour": 11,
+      "n": 0,
+      "onTimeShare": null,
+      "medianDelayMin": null
+    },
+    {
+      "hour": 12,
+      "n": 0,
+      "onTimeShare": null,
+      "medianDelayMin": null
+    },
+    {
+      "hour": 13,
+      "n": 0,
+      "onTimeShare": null,
+      "medianDelayMin": null
+    },
+    {
+      "hour": 14,
+      "n": 0,
+      "onTimeShare": null,
+      "medianDelayMin": null
+    },
+    {
+      "hour": 15,
+      "n": 0,
+      "onTimeShare": null,
+      "medianDelayMin": null
+    },
+    {
+      "hour": 16,
+      "n": 0,
+      "onTimeShare": null,
+      "medianDelayMin": null
+    },
+    {
+      "hour": 17,
+      "n": 0,
+      "onTimeShare": null,
+      "medianDelayMin": null
+    },
+    {
+      "hour": 18,
+      "n": 0,
+      "onTimeShare": null,
+      "medianDelayMin": null
+    },
+    {
+      "hour": 19,
+      "n": 0,
+      "onTimeShare": null,
+      "medianDelayMin": null
+    },
+    {
+      "hour": 20,
+      "n": 0,
+      "onTimeShare": null,
+      "medianDelayMin": null
+    },
+    {
+      "hour": 21,
+      "n": 0,
+      "onTimeShare": null,
+      "medianDelayMin": null
+    },
+    {
+      "hour": 22,
+      "n": 4,
+      "onTimeShare": 0.25,
+      "medianDelayMin": 7.1
+    },
+    {
+      "hour": 23,
+      "n": 4,
+      "onTimeShare": 0.25,
+      "medianDelayMin": 15.5
+    }
+  ]
+}

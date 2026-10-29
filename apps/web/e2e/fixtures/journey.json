@@ -1,0 +1,686 @@
+{
+  "fromStation": {
+    "id": "005513748",
+    "name": "Szolnok",
+    "lat": 47.179167,
+    "lon": 20.175833
+  },
+  "toStation": {
+    "id": "005512401",
+    "name": "Eger",
+    "lat": 47.891667,
+    "lon": 20.381667
+  },
+  "time": 1793239200,
+  "arriveBy": false,
+  "generatedAt": 1793239208,
+  "itineraries": [
+    {
+      "scheduledDeparture": 1793239980,
+      "expectedDeparture": 1793239980,
+      "scheduledArrival": 1793254200,
+      "expectedArrival": 1793254200,
+      "durationMinutes": 237,
+      "transferCount": 1,
+      "legs": [
+        {
+          "type": "transit",
+          "mode": "RAIL",
+          "tripId": "1:35900260",
+          "tripShortName": "5719 személyvonat",
+          "trainNumber": "5719",
+          "routeShortName": "<span class=\"MNR2007\">&#379;</span>",
+          "routeLongName": "S820",
+          "routeTextColor": "00A0E3",
+          "headsign": "Hatvan",
+          "serviceDate": "2026-10-29",
+          "fromStop": {
+            "id": "005513748",
+            "name": "Szolnok",
+            "lat": 47.179167,
+            "lon": 20.175833,
+            "platform": "10"
+          },
+          "toStop": {
+            "id": "005511205",
+            "name": "Hatvan",
+            "lat": 47.663611,
+            "lon": 19.671389,
+            "platform": "1a"
+          },
+          "scheduledDeparture": 1793239980,
+          "expectedDeparture": 1793239980,
+          "scheduledArrival": 1793244780,
+          "expectedArrival": 1793244780,
+          "delayMinutes": 0,
+          "delaySource": "otp",
+          "realtime": false,
+          "canceled": false,
+          "intermediateStops": 5,
+          "vehicleId": null
+        },
+        {
+          "type": "walk",
+          "fromStop": {
+            "id": "005511205",
+            "name": "Hatvan",
+            "lat": 47.663611,
+            "lon": 19.671389,
+            "platform": "1a"
+          },
+          "toStop": {
+            "id": "005511205",
+            "name": "Hatvan",
+            "lat": 47.663611,
+            "lon": 19.671389,
+            "platform": "4"
+          },
+          "departureTime": 1793244780,
+          "arrivalTime": 1793244793,
+          "distanceMeters": 8
+        },
+        {
+          "type": "transit",
+          "mode": "RAIL",
+          "tripId": "1:32738522",
+          "tripShortName": "540 AGRIA InterRégió",
+          "trainNumber": "540",
+          "routeShortName": "<span class=\"MNR2007\">&#542;</span>",
+          "routeLongName": "IR87",
+          "routeTextColor": "29803C",
+          "headsign": "Eger",
+          "serviceDate": "2026-10-29",
+          "fromStop": {
+            "id": "005511205",
+            "name": "Hatvan",
+            "lat": 47.663611,
+            "lon": 19.671389,
+            "platform": "4"
+          },
+          "toStop": {
+            "id": "005512401",
+            "name": "Eger",
+            "lat": 47.891667,
+            "lon": 20.381667,
+            "platform": "1"
+          },
+          "scheduledDeparture": 1793249700,
+          "expectedDeparture": 1793249700,
+          "scheduledArrival": 1793254200,
+          "expectedArrival": 1793254200,
+          "delayMinutes": 0,
+          "delaySource": "otp",
+          "realtime": false,
+          "canceled": false,
+          "intermediateStops": 8,
+          "vehicleId": null
+        }
+      ],
+      "transfers": [
+        {
+          "fromLeg": 0,
+          "toLeg": 2,
+          "station": "Hatvan",
+          "transferMinutes": 82,
+          "expectedTransferMinutes": 82,
+          "missRisk": 0.35,
+          "risk": "tight",
+          "riskSource": "forecast"
+        }
+      ],
+      "ticketUrl": "https://jegy.mav.hu/?from_ticketing_stop_time_id=%5B%22005513748%22%5D&to_ticketing_stop_time_id=%5B%22005512401%22%5D&boarding_time=%5B%222026-10-29T02%3A13%3A00.000Z%22%5D&lang=hu"
+    },
+    {
+      "scheduledDeparture": 1793239980,
+      "expectedDeparture": 1793239980,
+      "scheduledArrival": 1793254200,
+      "expectedArrival": 1793254200,
+      "durationMinutes": 237,
+      "transferCount": 2,
+      "legs": [
+        {
+          "type": "transit",
+          "mode": "RAIL",
+          "tripId": "1:35900260",
+          "tripShortName": "5719 személyvonat",
+          "trainNumber": "5719",
+          "routeShortName": "<span class=\"MNR2007\">&#379;</span>",
+          "routeLongName": "S820",
+          "routeTextColor": "00A0E3",
+          "headsign": "Hatvan",
+          "serviceDate": "2026-10-29",
+          "fromStop": {
+            "id": "005513748",
+            "name": "Szolnok",
+            "lat": 47.179167,
+            "lon": 20.175833,
+            "platform": "10"
+          },
+          "toStop": {
+            "id": "005511205",
+            "name": "Hatvan",
+            "lat": 47.663611,
+            "lon": 19.671389,
+            "platform": "1a"
+          },
+          "scheduledDeparture": 1793239980,
+          "expectedDeparture": 1793239980,
+          "scheduledArrival": 1793244780,
+          "expectedArrival": 1793244780,
+          "delayMinutes": 0,
+          "delaySource": "otp",
+          "realtime": false,
+          "canceled": false,
+          "intermediateStops": 5,
+          "vehicleId": null
+        },
+        {
+          "type": "walk",
+          "fromStop": {
+            "id": "005511205",
+            "name": "Hatvan",
+            "lat": 47.663611,
+            "lon": 19.671389,
+            "platform": "1a"
+          },
+          "toStop": {
+            "id": "005511205",
+            "name": "Hatvan",
+            "lat": 47.663611,
+            "lon": 19.671389,
+            "platform": "5b"
+          },
+          "departureTime": 1793244780,
+          "arrivalTime": 1793244793,
+          "distanceMeters": 8
+        },
+        {
+          "type": "transit",
+          "mode": "RAIL",
+          "tripId": "1:35636030",
+          "tripShortName": "3039 MÁTRA InterRégió",
+          "trainNumber": "3039",
+          "routeShortName": "<span class=\"MNR2007\">&#541;</span>",
+          "routeLongName": "IR85",
+          "routeTextColor": "29803C",
+          "headsign": "Budapest-Keleti",
+          "serviceDate": "2026-10-29",
+          "fromStop": {
+            "id": "005511205",
+            "name": "Hatvan",
+            "lat": 47.663611,
+            "lon": 19.671389,
+            "platform": "5b"
+          },
+          "toStop": {
+            "id": "005511197",
+            "name": "Tura",
+            "lat": 47.626389,
+            "lon": 19.5975,
+            "platform": "1"
+          },
+          "scheduledDeparture": 1793245260,
+          "expectedDeparture": 1793245260,
+          "scheduledArrival": 1793245620,
+          "expectedArrival": 1793245620,
+          "delayMinutes": 0,
+          "delaySource": "otp",
+          "realtime": false,
+          "canceled": false,
+          "intermediateStops": 0,
+          "vehicleId": null
+        },
+        {
+          "type": "transit",
+          "mode": "RAIL",
+          "tripId": "1:32738522",
+          "tripShortName": "540 AGRIA InterRégió",
+          "trainNumber": "540",
+          "routeShortName": "<span class=\"MNR2007\">&#542;</span>",
+          "routeLongName": "IR87",
+          "routeTextColor": "29803C",
+          "headsign": "Eger",
+          "serviceDate": "2026-10-29",
+          "fromStop": {
+            "id": "005511197",
+            "name": "Tura",
+            "lat": 47.626389,
+            "lon": 19.5975,
+            "platform": "2"
+          },
+          "toStop": {
+            "id": "005512401",
+            "name": "Eger",
+            "lat": 47.891667,
+            "lon": 20.381667,
+            "platform": "1"
+          },
+          "scheduledDeparture": 1793249040,
+          "expectedDeparture": 1793249040,
+          "scheduledArrival": 1793254200,
+          "expectedArrival": 1793254200,
+          "delayMinutes": 0,
+          "delaySource": "otp",
+          "realtime": false,
+          "canceled": false,
+          "intermediateStops": 9,
+          "vehicleId": null
+        }
+      ],
+      "transfers": [
+        {
+          "fromLeg": 0,
+          "toLeg": 2,
+          "station": "Hatvan",
+          "transferMinutes": 8,
+          "expectedTransferMinutes": 8,
+          "missRisk": 0.02,
+          "risk": "safe",
+          "riskSource": "history"
+        },
+        {
+          "fromLeg": 2,
+          "toLeg": 3,
+          "station": "Tura",
+          "transferMinutes": 57,
+          "expectedTransferMinutes": 57,
+          "missRisk": 0.8,
+          "risk": "likely_missed",
+          "riskSource": "forecast"
+        }
+      ],
+      "ticketUrl": "https://jegy.mav.hu/?from_ticketing_stop_time_id=%5B%22005513748%22%5D&to_ticketing_stop_time_id=%5B%22005512401%22%5D&boarding_time=%5B%222026-10-29T02%3A13%3A00.000Z%22%5D&lang=hu"
+    },
+    {
+      "scheduledDeparture": 1793244660,
+      "expectedDeparture": 1793244660,
+      "scheduledArrival": 1793255400,
+      "expectedArrival": 1793255400,
+      "durationMinutes": 179,
+      "transferCount": 2,
+      "legs": [
+        {
+          "type": "transit",
+          "mode": "RAIL",
+          "tripId": "1:35897814",
+          "tripShortName": "5729 személyvonat",
+          "trainNumber": "5729",
+          "routeShortName": "<span class=\"MNR2007\">&#379;</span>",
+          "routeLongName": "S820",
+          "routeTextColor": "00A0E3",
+          "headsign": "Hatvan",
+          "serviceDate": "2026-10-29",
+          "fromStop": {
+            "id": "005513748",
+            "name": "Szolnok",
+            "lat": 47.179167,
+            "lon": 20.175833,
+            "platform": "12"
+          },
+          "toStop": {
+            "id": "005511205",
+            "name": "Hatvan",
+            "lat": 47.663611,
+            "lon": 19.671389,
+            "platform": "1a"
+          },
+          "scheduledDeparture": 1793244660,
+          "expectedDeparture": 1793244660,
+          "scheduledArrival": 1793249400,
+          "expectedArrival": 1793249400,
+          "delayMinutes": 0,
+          "delaySource": "otp",
+          "realtime": false,
+          "canceled": false,
+          "intermediateStops": 7,
+          "vehicleId": null
+        },
+        {
+          "type": "walk",
+          "fromStop": {
+            "id": "005511205",
+            "name": "Hatvan",
+            "lat": 47.663611,
+            "lon": 19.671389,
+            "platform": "1a"
+          },
+          "toStop": {
+            "id": "005511205",
+            "name": "Hatvan",
+            "lat": 47.663611,
+            "lon": 19.671389,
+            "platform": "4"
+          },
+          "departureTime": 1793249400,
+          "arrivalTime": 1793249413,
+          "distanceMeters": 8
+        },
+        {
+          "type": "transit",
+          "mode": "RAIL",
+          "tripId": "1:35052192",
+          "tripShortName": "582 TOKAJ InterCity",
+          "trainNumber": "582",
+          "routeShortName": "<span class=\"MNR2007\">&#474;</span>",
+          "routeLongName": "IC TOKAJ",
+          "routeTextColor": "274F96",
+          "headsign": "Budapest-Nyugati",
+          "serviceDate": "2026-10-29",
+          "fromStop": {
+            "id": "005511205",
+            "name": "Hatvan",
+            "lat": 47.663611,
+            "lon": 19.671389,
+            "platform": "4"
+          },
+          "toStop": {
+            "id": "005511296",
+            "name": "Füzesabony",
+            "lat": 47.751389,
+            "lon": 20.415278,
+            "platform": "3"
+          },
+          "scheduledDeparture": 1793250600,
+          "expectedDeparture": 1793250600,
+          "scheduledArrival": 1793252940,
+          "expectedArrival": 1793252940,
+          "delayMinutes": 0,
+          "delaySource": "otp",
+          "realtime": false,
+          "canceled": false,
+          "intermediateStops": 0,
+          "vehicleId": null
+        },
+        {
+          "type": "transit",
+          "mode": "RAIL",
+          "tripId": "1:28521659",
+          "tripShortName": "5512 személyvonat",
+          "trainNumber": "5512",
+          "routeShortName": "<span class=\"MNR2007\">&#484;</span>",
+          "routeLongName": "Sz 5510/5512/5517/5519/5527/5528/5529/5530/5531/5538/5541/5551",
+          "routeTextColor": "00A0E3",
+          "headsign": "Eger",
+          "serviceDate": "2026-10-29",
+          "fromStop": {
+            "id": "005511296",
+            "name": "Füzesabony",
+            "lat": 47.751389,
+            "lon": 20.415278,
+            "platform": "5"
+          },
+          "toStop": {
+            "id": "005512401",
+            "name": "Eger",
+            "lat": 47.891667,
+            "lon": 20.381667,
+            "platform": "3"
+          },
+          "scheduledDeparture": 1793254080,
+          "expectedDeparture": 1793254080,
+          "scheduledArrival": 1793255400,
+          "expectedArrival": 1793255400,
+          "delayMinutes": 0,
+          "delaySource": "otp",
+          "realtime": false,
+          "canceled": false,
+          "intermediateStops": 2,
+          "vehicleId": null
+        }
+      ],
+      "transfers": [
+        {
+          "fromLeg": 0,
+          "toLeg": 2,
+          "station": "Hatvan",
+          "transferMinutes": 20,
+          "expectedTransferMinutes": 20,
+          "missRisk": 0.05,
+          "risk": "safe",
+          "riskSource": "history"
+        },
+        {
+          "fromLeg": 2,
+          "toLeg": 3,
+          "station": "Füzesabony",
+          "transferMinutes": 19,
+          "expectedTransferMinutes": 19,
+          "missRisk": 0.3,
+          "risk": "tight",
+          "riskSource": "history"
+        }
+      ],
+      "ticketUrl": "https://jegy.mav.hu/?from_ticketing_stop_time_id=%5B%22005513748%22%5D&to_ticketing_stop_time_id=%5B%22005512401%22%5D&boarding_time=%5B%222026-10-29T03%3A31%3A00.000Z%22%5D&lang=hu"
+    },
+    {
+      "scheduledDeparture": 1793247300,
+      "expectedDeparture": 1793247300,
+      "scheduledArrival": 1793256720,
+      "expectedArrival": 1793256720,
+      "durationMinutes": 157,
+      "transferCount": 1,
+      "legs": [
+        {
+          "type": "transit",
+          "mode": "RAIL",
+          "tripId": "1:35900309",
+          "tripShortName": "5739 személyvonat",
+          "trainNumber": "5739",
+          "routeShortName": "<span class=\"MNR2007\">&#379;</span>",
+          "routeLongName": "S820",
+          "routeTextColor": "00A0E3",
+          "headsign": "Hatvan",
+          "serviceDate": "2026-10-29",
+          "fromStop": {
+            "id": "005513748",
+            "name": "Szolnok",
+            "lat": 47.179167,
+            "lon": 20.175833,
+            "platform": "10"
+          },
+          "toStop": {
+            "id": "005511205",
+            "name": "Hatvan",
+            "lat": 47.663611,
+            "lon": 19.671389,
+            "platform": "1a"
+          },
+          "scheduledDeparture": 1793247300,
+          "expectedDeparture": 1793247300,
+          "scheduledArrival": 1793252520,
+          "expectedArrival": 1793252520,
+          "delayMinutes": 0,
+          "delaySource": "otp",
+          "realtime": false,
+          "canceled": false,
+          "intermediateStops": 7,
+          "vehicleId": null
+        },
+        {
+          "type": "walk",
+          "fromStop": {
+            "id": "005511205",
+            "name": "Hatvan",
+            "lat": 47.663611,
+            "lon": 19.671389,
+            "platform": "1a"
+          },
+          "toStop": {
+            "id": "005511205",
+            "name": "Hatvan",
+            "lat": 47.663611,
+            "lon": 19.671389,
+            "platform": "4"
+          },
+          "departureTime": 1793252520,
+          "arrivalTime": 1793252533,
+          "distanceMeters": 8
+        },
+        {
+          "type": "transit",
+          "mode": "RAIL",
+          "tripId": "1:36322747",
+          "tripShortName": "550 AGRIA InterRégió",
+          "trainNumber": "550",
+          "routeShortName": "<span class=\"MNR2007\">&#542;</span>",
+          "routeLongName": "IR87",
+          "routeTextColor": "29803C",
+          "headsign": "Eger",
+          "serviceDate": "2026-10-29",
+          "fromStop": {
+            "id": "005511205",
+            "name": "Hatvan",
+            "lat": 47.663611,
+            "lon": 19.671389,
+            "platform": "4"
+          },
+          "toStop": {
+            "id": "005512401",
+            "name": "Eger",
+            "lat": 47.891667,
+            "lon": 20.381667,
+            "platform": "2"
+          },
+          "scheduledDeparture": 1793253120,
+          "expectedDeparture": 1793253120,
+          "scheduledArrival": 1793256720,
+          "expectedArrival": 1793256720,
+          "delayMinutes": 0,
+          "delaySource": "otp",
+          "realtime": false,
+          "canceled": false,
+          "intermediateStops": 4,
+          "vehicleId": null
+        }
+      ],
+      "transfers": [
+        {
+          "fromLeg": 0,
+          "toLeg": 2,
+          "station": "Hatvan",
+          "transferMinutes": 10,
+          "expectedTransferMinutes": 10,
+          "missRisk": 0.35,
+          "risk": "tight",
+          "riskSource": "forecast"
+        }
+      ],
+      "ticketUrl": "https://jegy.mav.hu/?from_ticketing_stop_time_id=%5B%22005513748%22%5D&to_ticketing_stop_time_id=%5B%22005512401%22%5D&boarding_time=%5B%222026-10-29T04%3A15%3A00.000Z%22%5D&lang=hu"
+    },
+    {
+      "scheduledDeparture": 1793251140,
+      "expectedDeparture": 1793251140,
+      "scheduledArrival": 1793260320,
+      "expectedArrival": 1793260320,
+      "durationMinutes": 153,
+      "transferCount": 1,
+      "legs": [
+        {
+          "type": "transit",
+          "mode": "RAIL",
+          "tripId": "1:35900310",
+          "tripShortName": "5717 személyvonat",
+          "trainNumber": "5717",
+          "routeShortName": "<span class=\"MNR2007\">&#379;</span>",
+          "routeLongName": "S820",
+          "routeTextColor": "00A0E3",
+          "headsign": "Hatvan",
+          "serviceDate": "2026-10-29",
+          "fromStop": {
+            "id": "005513748",
+            "name": "Szolnok",
+            "lat": 47.179167,
+            "lon": 20.175833,
+            "platform": "11"
+          },
+          "toStop": {
+            "id": "005511205",
+            "name": "Hatvan",
+            "lat": 47.663611,
+            "lon": 19.671389,
+            "platform": "1a"
+          },
+          "scheduledDeparture": 1793251140,
+          "expectedDeparture": 1793251140,
+          "scheduledArrival": 1793256360,
+          "expectedArrival": 1793256360,
+          "delayMinutes": 0,
+          "delaySource": "otp",
+          "realtime": false,
+          "canceled": false,
+          "intermediateStops": 7,
+          "vehicleId": null
+        },
+        {
+          "type": "walk",
+          "fromStop": {
+            "id": "005511205",
+            "name": "Hatvan",
+            "lat": 47.663611,
+            "lon": 19.671389,
+            "platform": "1a"
+          },
+          "toStop": {
+            "id": "005511205",
+            "name": "Hatvan",
+            "lat": 47.663611,
+            "lon": 19.671389,
+            "platform": "4"
+          },
+          "departureTime": 1793256360,
+          "arrivalTime": 1793256373,
+          "distanceMeters": 8
+        },
+        {
+          "type": "transit",
+          "mode": "RAIL",
+          "tripId": "1:32738533",
+          "tripShortName": "542 AGRIA InterRégió",
+          "trainNumber": "542",
+          "routeShortName": "<span class=\"MNR2007\">&#542;</span>",
+          "routeLongName": "IR87",
+          "routeTextColor": "29803C",
+          "headsign": "Eger",
+          "serviceDate": "2026-10-29",
+          "fromStop": {
+            "id": "005511205",
+            "name": "Hatvan",
+            "lat": 47.663611,
+            "lon": 19.671389,
+            "platform": "4"
+          },
+          "toStop": {
+            "id": "005512401",
+            "name": "Eger",
+            "lat": 47.891667,
+            "lon": 20.381667,
+            "platform": "1"
+          },
+          "scheduledDeparture": 1793256720,
+          "expectedDeparture": 1793256720,
+          "scheduledArrival": 1793260320,
+          "expectedArrival": 1793260320,
+          "delayMinutes": 0,
+          "delaySource": "otp",
+          "realtime": false,
+          "canceled": false,
+          "intermediateStops": 4,
+          "vehicleId": null
+        }
+      ],
+      "transfers": [
+        {
+          "fromLeg": 0,
+          "toLeg": 2,
+          "station": "Hatvan",
+          "transferMinutes": 6,
+          "expectedTransferMinutes": 6,
+          "missRisk": 0.02,
+          "risk": "safe",
+          "riskSource": "history"
+        }
+      ],
+      "ticketUrl": "https://jegy.mav.hu/?from_ticketing_stop_time_id=%5B%22005513748%22%5D&to_ticketing_stop_time_id=%5B%22005512401%22%5D&boarding_time=%5B%222026-10-29T05%3A19%3A00.000Z%22%5D&lang=hu"
+    }
+  ]
+}

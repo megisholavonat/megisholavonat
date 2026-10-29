@@ -1,0 +1,47 @@
+{
+  "trainNumber": "8",
+  "tripShortName": "8 RUTHENIA gyorsvonat",
+  "routeShortName": "<span class=\"MNR2007\">&#473;</span>",
+  "lineName": "Gy",
+  "window": {
+    "start": "2026-09-30",
+    "end": "2026-10-29",
+    "days": 30
+  },
+  "runs": 1,
+  "stations": [
+    {
+      "stationId": "005513748",
+      "stationName": "Szolnok",
+      "scheduledTimeS": 85740,
+      "n": 1,
+      "medianDelayMin": 25.4,
+      "p80DelayMin": 25.4,
+      "onTimeShare": 0,
+      "insufficientData": true,
+      "typicalPlatform": "10"
+    },
+    {
+      "stationId": "005513912",
+      "stationName": "Debrecen",
+      "scheduledTimeS": 90420,
+      "n": 1,
+      "medianDelayMin": 43,
+      "p80DelayMin": 43,
+      "onTimeShare": 0,
+      "insufficientData": true,
+      "typicalPlatform": "8"
+    },
+    {
+      "stationId": "005514019",
+      "stationName": "Nyíregyháza",
+      "scheduledTimeS": 92460,
+      "n": 1,
+      "medianDelayMin": 47.4,
+      "p80DelayMin": 47.4,
+      "onTimeShare": 0,
+      "insufficientData": true,
+      "typicalPlatform": "5"
+    }
+  ]
+}
