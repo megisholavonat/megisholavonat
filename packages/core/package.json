@@ -29,7 +29,8 @@
         "./trainSearch": "./src/trainSearch.ts",
         "./uic": "./src/uic.ts",
         "./vehicle": "./src/vehicle.ts",
-        "./VehicleTracker": "./src/VehicleTracker.ts"
+        "./VehicleTracker": "./src/VehicleTracker.ts",
+        "./vehicleMotion": "./src/vehicleMotion.ts"
     },
     "scripts": {
         "check": "biome check && tsc --noEmit",
