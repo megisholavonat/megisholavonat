@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useFormatter, useTranslations } from "use-intl";
 import { useAppTheme } from "../theme/ThemeProvider";
+import { DelayShareIcon } from "../train/DelayShare";
 import { reasonTone } from "../train/delayDisplay";
 import { RouteIcon } from "../train/RouteIcon";
 import { ReasonLine } from "../train/TrainInfo";
@@ -18,8 +19,15 @@ import {
 } from "../train/trainData";
 import { DelayChip, PlatformBadge } from "../ui/ds";
 import { Icon } from "../ui/Icon";
+import { useNow } from "../ui/useNow";
 import type { LiveFollow } from "./live";
-import { followTitle, type LocalFollow, type Run, trainNumber } from "./model";
+import {
+    followTitle,
+    type LocalFollow,
+    type Run,
+    recentRunDate,
+    trainNumber,
+} from "./model";
 
 const STATION_DATA_STALE_MS = 6 * 3600_000;
 /** Rows on home; more follows wait until these have left */
@@ -59,6 +67,8 @@ function CommuteRow({
         ? !departed && beforeDeparture(live.details)
         : true;
     const announced = live?.board?.platform ?? null;
+    // The run that left last, to share how late it was once it is over
+    const sharedDate = recentRunDate(follow, useNow());
 
     const { data: platforms } = useQuery({
         ...getStationPlatformsOptions({
@@ -157,6 +167,20 @@ function CommuteRow({
                         }
                     />
                 ) : null}
+                <DelayShareIcon
+                    target={
+                        sharedDate
+                            ? {
+                                  number,
+                                  date: sharedDate,
+                                  stops: {
+                                      from: board?.stationId,
+                                      to: follow.stops[follow.to]?.stationId,
+                                  },
+                              }
+                            : null
+                    }
+                />
             </View>
             <Text
                 style={[

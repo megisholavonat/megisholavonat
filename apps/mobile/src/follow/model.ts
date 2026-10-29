@@ -10,6 +10,10 @@ import {
     tripRun,
 } from "@megisholavonat/core/commute";
 import {
+    recentRun,
+    SHARE_RUN_WITHIN_S,
+} from "@megisholavonat/core/delaySummary";
+import {
     budapestDate,
     effectiveServiceDate,
     serviceDayStart,
@@ -246,6 +250,38 @@ export function nextRun(
         departure: runOn(serviceDate),
         dayOffset: occurrence.daysAhead,
     };
+}
+
+/**
+ * The service date of the follow's run that left its boarding stop most
+ * recently (within core's SHARE_RUN_WITHIN_S), for sharing its delay; null
+ * before it leaves.
+ */
+export function recentRunDate(
+    follow: LocalFollow,
+    now: Date = new Date(),
+): string | null {
+    const board = follow.stops[follow.from];
+    if (!board) return null;
+    if (follow.kind === "trip") {
+        if (!follow.serviceDate) return null;
+        const run = tripRun(
+            asTrip(follow, follow.serviceDate),
+            board.time,
+            now,
+        );
+        const ago = now.getTime() / 1000 - run.at;
+        return ago >= 0 && ago <= SHARE_RUN_WITHIN_S ? run.serviceDate : null;
+    }
+    const daysPast = Math.floor(board.time / DAY_S);
+    const run = recentRun(
+        {
+            weekdays: follow.weekdays,
+            departureS: board.time - daysPast * DAY_S,
+        },
+        now,
+    );
+    return run ? shiftDate(run.date, -daysPast) : null;
 }
 
 /** A follow's stops as a trip's stoptimes, for the service-day resolution. */

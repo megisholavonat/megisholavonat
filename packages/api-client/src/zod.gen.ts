@@ -470,6 +470,39 @@ export const zRoute = z.object({
 });
 
 /**
+ * RunStop
+ *
+ * A stop of the run, with our GPS-derived delay where it was recorded
+ */
+export const zRunStop = z.object({
+    stationId: z.string(),
+    name: z.string(),
+    scheduledArrivalS: z.int().nullish(),
+    scheduledDepartureS: z.int().nullish(),
+    delayMin: z.number().nullish(),
+    cancelled: z.boolean().optional().default(false)
+});
+
+/**
+ * RunSummary
+ *
+ * One run of a train on one service date, from the delay history (and the
+ * timetable for the stops the recorder did not see)
+ */
+export const zRunSummary = z.object({
+    trainNumber: z.string(),
+    tripShortName: z.string(),
+    routeShortName: z.string().nullish(),
+    lineName: z.string().nullish(),
+    serviceDate: z.iso.date(),
+    stops: z.array(zRunStop),
+    complete: z.boolean(),
+    cancelled: z.boolean(),
+    finished: z.boolean(),
+    reason: zDelayReason.nullish()
+});
+
+/**
  * Station
  *
  * A rail station, grouping all of its platforms
@@ -1131,6 +1164,20 @@ export const zGetDirectoryQuery = z.object({
  * Successful Response
  */
 export const zGetDirectoryResponse = zDirectory;
+
+export const zGetRunSummaryPath = z.object({
+    trainNumber: z.string().regex(/^[0-9A-Za-z]{1,12}$/),
+    serviceDate: z.iso.date()
+});
+
+export const zGetRunSummaryQuery = z.object({
+    from: z.string().regex(/^[0-9]{1,12}$/).nullish()
+});
+
+/**
+ * Successful Response
+ */
+export const zGetRunSummaryResponse = zRunSummary;
 
 export const zGetRankingsQuery = z.object({
     kind: z.enum([
