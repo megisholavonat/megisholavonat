@@ -55,8 +55,13 @@ export async function deviceToken(locale: string): Promise<string> {
     return registering;
 }
 
-/** Forget a device the API no longer knows (deleted after 180 idle days). */
-async function forgetDevice(): Promise<void> {
+/**
+ * Forget a device the API no longer knows (deleted after 180 idle days).
+ * Only if it is still the current one: calls that failed together forget
+ * it once and then share one new device.
+ */
+async function forgetDevice(stale: string): Promise<void> {
+    if (credentials !== stale) return;
     credentials = null;
     await SecureStore.deleteItemAsync(KEY, OPTIONS).catch(() => {});
 }
@@ -77,14 +82,12 @@ export async function withDevice<T>(
     locale: string,
     call: (auth: string) => Promise<T>,
 ): Promise<{ result: T; replaced: boolean }> {
+    const auth = await deviceToken(locale);
     try {
-        return {
-            result: await call(await deviceToken(locale)),
-            replaced: false,
-        };
+        return { result: await call(auth), replaced: false };
     } catch (error) {
         if (!isStatus(error, 401)) throw error;
-        await forgetDevice();
+        await forgetDevice(auth);
         return {
             result: await call(await deviceToken(locale)),
             replaced: true,
