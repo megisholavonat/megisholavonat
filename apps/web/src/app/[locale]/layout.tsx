@@ -1,5 +1,6 @@
+import { COLORS } from "@megisholavonat/core/tokens";
 import { themeCss } from "@megisholavonat/core/tokens/web";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "@/app/globals.css";
 import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
@@ -9,14 +10,9 @@ import Providers from "@/app/providers";
 import ConsentBanner from "@/components/ui/ConsentBanner";
 import { routing } from "@/i18n/routing";
 
-const geistSans = Geist({
-    variable: "--font-geist-sans",
-    subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-    variable: "--font-geist-mono",
-    subsets: ["latin"],
+const inter = Inter({
+    variable: "--font-inter",
+    subsets: ["latin", "latin-ext"],
 });
 
 export const metadata: Metadata = {
@@ -29,6 +25,11 @@ export const viewport: Viewport = {
     width: "device-width",
     initialScale: 1,
     viewportFit: "cover",
+    interactiveWidget: "resizes-content",
+    themeColor: [
+        { media: "(prefers-color-scheme: light)", color: COLORS.light.canvas },
+        { media: "(prefers-color-scheme: dark)", color: COLORS.dark.canvas },
+    ],
 };
 
 export default async function LocaleLayout({
@@ -64,9 +65,7 @@ export default async function LocaleLayout({
                     href="https://megisholavonat.info/hu"
                 />
             </head>
-            <body
-                className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-            >
+            <body className={`${inter.variable} font-sans antialiased`}>
                 <Providers>
                     <NextIntlClientProvider>
                         {children}
