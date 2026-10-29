@@ -3,7 +3,6 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { ArrowUpRight, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 import {
     type ReactNode,
@@ -14,6 +13,7 @@ import {
 } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { AppIcon } from "@/components/ui/AppIcon";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { useTheme } from "@/components/ui/ThemeProvider";
@@ -376,13 +376,7 @@ function About() {
     const t = useTranslations("Home");
     return (
         <div className="flex flex-col items-center gap-2 pt-2 pb-4 text-ink-2">
-            <Image
-                src="/icon1.png"
-                alt=""
-                width={40}
-                height={40}
-                className="rounded-[10px]"
-            />
+            <AppIcon size={40} />
             <p className="text-caption">{t("app_title")}</p>
         </div>
     );

@@ -10,11 +10,23 @@ export default defineConfig({
     fullyParallel: true,
     forbidOnly: !!process.env.CI,
     retries: process.env.CI ? 1 : 0,
-    workers: process.env.CI ? 2 : undefined,
+    // GitHub runners for public repos have 4 cores. The suite waits on the
+    // page more than it computes: 4 workers there take ~2/3 the time of 2
+    workers: process.env.CI ? 4 : undefined,
+    // On CI each test is listed as it ends, so a slow or stuck one shows in
+    // the log while the run is still going
     reporter: process.env.CI
-        ? [["github"], ["html", { open: "never", outputFolder: "report" }]]
+        ? [
+              ["list"],
+              ["github"],
+              ["html", { open: "never", outputFolder: "report" }],
+          ]
         : [["list"]],
-    timeout: 30_000,
+    // A test that loads the page several times needs more on a busy runner
+    timeout: process.env.CI ? 45_000 : 30_000,
+    // Stops a stuck run with a report of what was still running, before the
+    // CI step's own timeout cancels it silently
+    globalTimeout: process.env.CI ? 8 * 60_000 : undefined,
     expect: { timeout: 7_500 },
     use: {
         baseURL,
