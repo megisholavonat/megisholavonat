@@ -1676,7 +1676,7 @@ export default function MapComponent({
                         <Layer
                             id={LAYER_IDS.RAILWAY}
                             type="raster"
-                            beforeId={SLOTS.route}
+                            beforeId={SLOTS.railway}
                             paint={railwayPaint}
                         />
                     </Source>
