@@ -4,6 +4,8 @@ import type { Basemap } from "./styles";
 export type RailMode = "off" | "ours" | "orm";
 export type LabelMode = "off" | "poi" | "ours";
 export type MarkerVariant = "current" | "calm" | "simple";
+/** Simple markers: where unselected late trains show "+N" */
+export type DelayNumbers = "z10" | "z12" | "off";
 export type ViewId = "hu" | "bp" | "keleti" | "line" | "border" | "zahony";
 
 export interface LabOptions {
@@ -13,6 +15,7 @@ export interface LabOptions {
     rail: RailMode;
     labels: LabelMode;
     markers: MarkerVariant;
+    numbers: DelayNumbers;
     focus: boolean;
     onlyLate: boolean;
     onlyFollowed: boolean;
@@ -26,6 +29,7 @@ export const RECOMMENDED: LabOptions = {
     rail: "ours",
     labels: "ours",
     markers: "simple",
+    numbers: "z12",
     focus: true,
     onlyLate: false,
     onlyFollowed: false,
@@ -92,6 +96,11 @@ export function readOptions(params: URLSearchParams): LabOptions {
             ["current", "calm", "simple"] as const,
             r.markers,
         ),
+        numbers: pick(
+            params.get("numbers"),
+            ["z10", "z12", "off"] as const,
+            r.numbers,
+        ),
         focus: flag("focus", r.focus),
         onlyLate: flag("late", false),
         onlyFollowed: flag("followed", false),
@@ -106,6 +115,7 @@ export function writeOptions(o: LabOptions, extra: URLSearchParams): string {
     p.set("rail", o.rail);
     p.set("labels", o.labels);
     p.set("markers", o.markers);
+    p.set("numbers", o.numbers);
     p.set("focus", o.focus ? "1" : "0");
     if (o.onlyLate) p.set("late", "1");
     if (o.onlyFollowed) p.set("followed", "1");

@@ -1304,9 +1304,9 @@ export default function LabMap({
                 key="simple-label"
                 id={prefix("lab-simple-label")}
                 type="symbol"
-                minzoom={10}
+                minzoom={lab.numbers === "z12" ? 12 : 10}
                 filter={
-                    simple
+                    simple && lab.numbers !== "off"
                         ? only([
                               "in",
                               ["get", "level"],

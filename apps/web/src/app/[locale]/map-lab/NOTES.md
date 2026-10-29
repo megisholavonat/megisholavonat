@@ -115,6 +115,14 @@ Today a train can be a dot, a plain circle, a "+N" chip, a square (HÉV) or a po
 
 The panel's Markers row switches between Today, Calm and Simple.
 
+**Where should "+N" go?** The lab has a second switch, "Delay numbers on unselected trains" (`numbers=z10|z12|off`).
+- **Beside the dot from z10:** it competes with station names at city zoom, and in a cluster of trains the number can read as belonging to the wrong dot.
+- **Inside the mark:** a number needs about a 22 px chip, which brings back today's chips, so I left it out.
+- **Close in only (z12+):** recommended. Numbers appear only where trains are spread out enough to show which dot they belong to.
+- **On tap / hover:** the calmest, and the pattern live-vehicle maps use (DB Zugradar, the geOps/SBB live map): colour on the map, the minute on tap. The desktop tooltip and the train sheet already show it.
+
+In all three the selected and followed trains keep their "+N" chip, because that is the train the user cares about.
+
 ## Recommendation
 
 Ship **B · Transit + our network + our station names + Simple markers + focus**, in both themes, with the light palette from the design's map mock and the hand-tuned dark one above. Drop ORM from the default view (keep it as an opt-in "Rail infrastructure" setting if anyone uses it). Stay on OpenFreeMap vectors for now. Protomaps is the fallback if we want full self-hosting; nothing in the style ties us to one or the other.

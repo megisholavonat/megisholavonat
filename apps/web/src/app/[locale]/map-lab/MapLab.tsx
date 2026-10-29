@@ -348,6 +348,18 @@ export function MapLab() {
                                 ]}
                                 onChange={(v) => set("markers", v)}
                             />
+                            {opts.markers === "simple" && (
+                                <Segmented
+                                    label="Delay numbers on unselected trains"
+                                    value={opts.numbers}
+                                    options={[
+                                        ["z10", "From z10"],
+                                        ["z12", "Close in"],
+                                        ["off", "On tap"],
+                                    ]}
+                                    onChange={(v) => set("numbers", v)}
+                                />
+                            )}
                             <Toggle
                                 label="Focus the selected train"
                                 checked={opts.focus}
