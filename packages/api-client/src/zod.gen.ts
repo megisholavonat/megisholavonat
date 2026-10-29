@@ -493,6 +493,12 @@ export const zMapStationProperties = z.object({
     name: z.string(),
     short: z.string(),
     perDay: z.number(),
+    type: z.enum([
+        'rail',
+        'hev',
+        'tramtrain',
+        'childrens_railway'
+    ]),
     hev: z.union([z.literal(0), z.literal(1)])
 });
 

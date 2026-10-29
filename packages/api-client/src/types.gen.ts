@@ -1023,7 +1023,13 @@ export type MapStationProperties = {
      */
     perDay: number;
     /**
+     * Type
+     */
+    type: 'rail' | 'hev' | 'tramtrain' | 'childrens_railway';
+    /**
      * Hev
+     *
+     * @deprecated
      */
     hev: 0 | 1;
 };

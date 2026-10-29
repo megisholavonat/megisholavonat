@@ -323,8 +323,6 @@ def station_features(
     for station in stations:
         if not _inside((station.lat, station.lon), bbox):
             continue
-        # By the station index's type (replacement bus stops are not in it)
-        hev = station.type == "hev"
         features.append(
             {
                 "type": "Feature",
@@ -333,7 +331,11 @@ def station_features(
                     "name": station.name,
                     "short": station.name.removeprefix("Budapest-"),
                     "perDay": per_day.get(station.id, 0.0),
-                    "hev": int(hev),
+                    # From the station index (replacement bus stops are not
+                    # in it): rail, hev, tramtrain or childrens_railway
+                    "type": station.type,
+                    # For app builds from before `type`; drop once they are gone
+                    "hev": int(station.type == "hev"),
                 },
                 "geometry": {
                     "type": "Point",
@@ -436,8 +438,13 @@ LAYERS: dict[str, LayerBuilder] = {
 }
 
 
+# Storage key per layer: a new key when a layer's properties change, so the
+# stored copy is rebuilt on deploy instead of served until its daily rebuild
+LAYER_KEYS = {"network": "map-network", "stations": "map-stations-v2"}
+
+
 def layer_key(name: str) -> str:
-    return add_key(f"map-{name}")
+    return add_key(LAYER_KEYS[name])
 
 
 async def store_layer(redis: Redis, name: str, body: str) -> StoredLayer:
@@ -474,7 +481,7 @@ async def load_layer(redis: Redis, session: AsyncSession, name: str) -> StoredLa
     if stored:
         return stored
     async with _build_locks[name]:
-        lock_key = add_key(f"map-{name}-build-lock")
+        lock_key = add_key(f"{LAYER_KEYS[name]}-build-lock")
         token = secrets.token_hex(8)
         while True:
             stored = await _stored(redis, name)

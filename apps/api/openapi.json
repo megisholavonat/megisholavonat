@@ -3267,13 +3267,24 @@
             "type": "number",
             "title": "Perday"
           },
+          "type": {
+            "type": "string",
+            "enum": [
+              "rail",
+              "hev",
+              "tramtrain",
+              "childrens_railway"
+            ],
+            "title": "Type"
+          },
           "hev": {
             "type": "integer",
             "enum": [
               0,
               1
             ],
-            "title": "Hev"
+            "title": "Hev",
+            "deprecated": true
           }
         },
         "type": "object",
@@ -3282,6 +3293,7 @@
           "name",
           "short",
           "perDay",
+          "type",
           "hev"
         ],
         "title": "MapStationProperties"

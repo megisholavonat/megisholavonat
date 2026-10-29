@@ -2,7 +2,9 @@
 
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+from api.util.stop import StationType
 
 
 class MapLineString(BaseModel):
@@ -44,8 +46,10 @@ class MapStationProperties(BaseModel):
     short: str
     # Trains observed per day, averaged over the last two weeks of history
     perDay: float
-    # 1 for HÉV stations
-    hev: Literal[0, 1]
+    # What kind of stop it is; the map draws each in the shape of its vehicles
+    type: StationType
+    # 1 for HÉV stations (type "hev"); kept for app builds from before `type`
+    hev: Literal[0, 1] = Field(deprecated=True)
 
 
 class MapStationFeature(BaseModel):

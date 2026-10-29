@@ -165,6 +165,7 @@ def test_station_features_rank_and_name_stations() -> None:
             "name": "Budapest-Kelenföld",
             "short": "Kelenföld",
             "perDay": 250.0,
+            "type": "rail",
             "hev": 0,
         },
         {
@@ -172,6 +173,7 @@ def test_station_features_rank_and_name_stations() -> None:
             "name": "Budapest-Keleti",
             "short": "Keleti",
             "perDay": 180.5,
+            "type": "rail",
             "hev": 0,
         },
         {
@@ -179,14 +181,23 @@ def test_station_features_rank_and_name_stations() -> None:
             "name": "Szentendre H",
             "short": "Szentendre H",
             "perDay": 60.0,
+            "type": "hev",
             "hev": 1,
         },
-        {"id": "005501289", "name": "Győr", "short": "Győr", "perDay": 0.0, "hev": 0},
+        {
+            "id": "005501289",
+            "name": "Győr",
+            "short": "Győr",
+            "perDay": 0.0,
+            "type": "rail",
+            "hev": 0,
+        },
         {
             "id": "005500700",
             "name": "Szeged vasútállomás",
             "short": "Szeged vasútállomás",
             "perDay": 0.0,
+            "type": "tramtrain",
             "hev": 0,
         },
     ]
@@ -340,9 +351,11 @@ async def test_stations_are_built_from_index_and_history(
         "name": "Győr",
         "short": "Győr",
         "perDay": 42.0,
+        "type": "rail",
         "hev": 0,
     }
     assert all(f["properties"]["perDay"] == 0 for f in features[1:])
     by_name = {f["properties"]["name"]: f["properties"] for f in features}
+    assert by_name["Szentendre H"]["type"] == "hev"
     assert by_name["Szentendre H"]["hev"] == 1
     assert by_name["Budapest-Kelenföld"]["short"] == "Kelenföld"
