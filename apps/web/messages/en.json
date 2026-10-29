@@ -292,6 +292,8 @@
         "depart": "Depart",
         "arrive": "Arrive",
         "now": "Now",
+        "date": "Day",
+        "time_of_day": "Time of day",
         "direct": "Direct",
         "changes": "{count, plural, one {# change} other {# changes}}",
         "duration": "{m} min",

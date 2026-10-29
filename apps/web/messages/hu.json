@@ -292,6 +292,8 @@
         "depart": "Indulás",
         "arrive": "Érkezés",
         "now": "Most",
+        "date": "Nap",
+        "time_of_day": "Óra és perc",
         "direct": "Közvetlen",
         "changes": "{count} átszállás",
         "duration": "{m} perc",
