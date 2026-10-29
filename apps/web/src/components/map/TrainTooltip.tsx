@@ -1,5 +1,5 @@
 import type { TrainFeatureProperties } from "@megisholavonat/api-client";
-import { DelayText } from "@/components/ui/Delay";
+import { TrainDelay } from "@/components/ui/Delay";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
 import { trainName, trainNumber } from "@/lib/train";
 
@@ -15,7 +15,7 @@ export function TrainTooltip({
             <RouteGlyph routeShortName={props.routeShortName} />
             <span className="tnum">{trainNumber(props.tripShortName)}</span>
             {name && <span className="font-medium text-ink-2">{name}</span>}
-            <DelayText delay={props.delay} stale={!!props.isStale} />
+            <TrainDelay train={props} />
         </div>
     );
 }

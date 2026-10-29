@@ -16,7 +16,7 @@ import type {
     TrainFeatureProperties,
     VehiclePositionWithDelay,
 } from "@megisholavonat/api-client";
-import { getDelayLevel } from "@megisholavonat/core/delay";
+import { trainDisplay } from "@megisholavonat/core/display";
 import {
     COLORS,
     type ColorScheme,
@@ -67,6 +67,7 @@ import {
 import { TrainTooltip } from "@/components/map/TrainTooltip";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
 import { useTheme } from "@/components/ui/ThemeProvider";
+import { useNow } from "@/hooks/useNow";
 import { useSettings } from "@/hooks/useSettings";
 import { trainNumber } from "@/lib/train";
 import { LAYER_IDS } from "@/util/constants";
@@ -148,7 +149,7 @@ const SelectedLabel = memo(function SelectedLabel({
     markerRef: Ref<MaplibreMarker>;
     showSpeed: boolean;
 }) {
-    const level = info.isStale ? "stale" : getDelayLevel(info.delay);
+    const { level } = trainDisplay(info);
     const offsetY = -(pillHeight(level) / 2 + 12);
     const speed = Math.round((info.speed ?? 0) * 3.6);
     return (
@@ -193,18 +194,37 @@ const ARROW_OFFSET = ((): ExpressionSpecification => {
     ] as unknown as ExpressionSpecification;
 })();
 
+/**
+ * The open train's list entry with the delay and state of its details, which
+ * poll faster than the list, so its marker and sheet show the same.
+ */
+function withDetails(
+    props: TrainFeatureProperties,
+    details: VehiclePositionWithDelay | undefined,
+): TrainFeatureProperties {
+    if (
+        !details ||
+        details.vehicleId !== props.vehicleId ||
+        details.lastUpdated < props.lastUpdated
+    ) {
+        return props;
+    }
+    return {
+        ...props,
+        delay: details.delay,
+        lastUpdated: details.lastUpdated,
+        activity: details.activity ?? props.activity,
+    };
+}
+
 /** Marker level, shape and label, precomputed per train for the layers. */
 function enrich(
     props: TrainFeatureProperties,
-    nowS: number,
+    now: Date,
 ): Record<string, unknown> {
-    const stale = !!props.isStale;
-    const level = stale ? "stale" : getDelayLevel(props.delay);
-    const label = stale
-        ? MARKER.label.stale((nowS - props.lastUpdated) / 60)
-        : level === "onTime"
-          ? ""
-          : MARKER.label.delayed(props.delay);
+    const display = trainDisplay(props, now);
+    const { level, label } = display;
+    const stale = level === "stale";
     // Rough label width, to keep the direction arrow clear of the pill
     const halfWidth = label
         ? (label.length * labelSize(level) * 0.62) / 2 + PILL_PADDING_X
@@ -223,7 +243,7 @@ function enrich(
             ),
         ),
         // Bigger delays draw on top; stale trains at the bottom
-        sortKey: stale ? -1 : props.delay,
+        sortKey: stale ? -1 : (display.delay ?? 0),
     };
 }
 
@@ -284,8 +304,9 @@ export default function MapComponent({
         selectedIdRef.current = selectedId;
     }, [selectedId]);
 
+    const nowMs = useNow();
     const filteredTrains = useMemo(() => {
-        const nowS = Date.now() / 1000;
+        const now = new Date(nowMs);
         const features = (trains?.features ?? []).filter((feature) => {
             switch (feature.properties.type) {
                 case "train":
@@ -303,11 +324,13 @@ export default function MapComponent({
             features: features.map((feature) => ({
                 type: "Feature" as const,
                 geometry: feature.geometry as unknown as Point,
-                properties: enrich(feature.properties, nowS),
+                properties: enrich(withDetails(feature.properties, train), now),
             })),
         };
     }, [
         trains,
+        train,
+        nowMs,
         settings.showTrains,
         settings.showTramTrains,
         settings.showHev,
@@ -315,11 +338,11 @@ export default function MapComponent({
 
     const selectedInfo = useMemo(() => {
         if (!selectedId) return null;
-        return (
-            trains?.features.find((f) => f.properties.vehicleId === selectedId)
-                ?.properties ?? null
-        );
-    }, [trains, selectedId]);
+        const props = trains?.features.find(
+            (f) => f.properties.vehicleId === selectedId,
+        )?.properties;
+        return props ? withDetails(props, train) : null;
+    }, [trains, selectedId, train]);
 
     // Fly to a requested place, keeping it clear of the sheet / side panel
     useEffect(() => {

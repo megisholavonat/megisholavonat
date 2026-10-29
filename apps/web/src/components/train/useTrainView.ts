@@ -1,4 +1,5 @@
 import type {
+    TrainFeatureProperties,
     TrainRouteStation,
     VehiclePositionWithDelay,
 } from "@megisholavonat/api-client";
@@ -6,10 +7,11 @@ import {
     getTrainDetailsOptions,
     getTrainHistoryOptions,
 } from "@megisholavonat/api-client/react-query";
+import { type TrainDisplay, trainDisplay } from "@megisholavonat/core/display";
 import { ticketUrl } from "@megisholavonat/core/ticket";
-import { isStale } from "@megisholavonat/core/vehicle";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
+import { useNow } from "@/hooks/useNow";
 import {
     beforeDeparture,
     nextStopIndex,
@@ -39,6 +41,9 @@ export interface StopView {
 
 export interface TrainView {
     vehicle: VehiclePositionWithDelay;
+    /** The delay and state shown, the same as the map marker's */
+    display: TrainDisplay;
+    /** No live delay: stale, idle or cancelled */
     stale: boolean;
     stops: StopView[];
     next: StopView | null;
@@ -67,6 +72,7 @@ export function useTrainView(vehicleId: string | null): {
 } {
     const details = useTrainDetails(vehicleId);
     const vehicle = details.data;
+    const now = useNow();
     const number = vehicle ? trainNumber(vehicle.trip.tripShortName) : "";
 
     const history = useQuery({
@@ -78,13 +84,18 @@ export function useTrainView(vehicleId: string | null): {
 
     const view = useMemo((): TrainView | null => {
         if (!vehicle) return null;
+        const display = trainDisplay(vehicle, new Date(now));
+        // Idle and cancelled trains have no delay to carry forward or forecast
+        const live = display.delay != null;
         const byStation = new Map<string, TrainRouteStation>();
         for (const station of history.data?.stations ?? []) {
             byStation.set(station.stationId, station);
         }
         const predictedByIndex = new Map<number, number | null | undefined>();
         vehicle.processedStops?.forEach((stop, i) => {
-            predictedByIndex.set(stop.index ?? i, stop.predictedDelay);
+            if (live) {
+                predictedByIndex.set(stop.index ?? i, stop.predictedDelay);
+            }
         });
         const nextIdx = nextStopIndex(vehicle);
         const stoptimes = vehicle.trip.stoptimes;
@@ -106,7 +117,7 @@ export function useTrainView(vehicleId: string | null): {
                     stoptime,
                     index,
                     passed,
-                    vehicle.delay,
+                    display.delay ?? 0,
                     predictedByIndex.get(index),
                 ),
                 passed,
@@ -129,7 +140,8 @@ export function useTrainView(vehicleId: string | null): {
         const from = next ? stoptimes[next.index] : undefined;
         return {
             vehicle,
-            stale: isStale(vehicle),
+            display,
+            stale: display.state !== "running",
             stops,
             next,
             reason: trainReason(vehicle.trip.alerts),
@@ -152,7 +164,23 @@ export function useTrainView(vehicleId: string | null): {
                     : null,
             ),
         };
-    }, [vehicle, history.data]);
+    }, [vehicle, history.data, now]);
 
     return { view, isError: details.isError };
+}
+
+/**
+ * The delay a train sheet shows: from the details once loaded, else from the
+ * list feature, both through trainDisplay like the map marker.
+ */
+export function useShownDelay(
+    view: TrainView | null,
+    fallback: TrainFeatureProperties | null,
+): { delay: number | null; stale: boolean } {
+    const now = useNow();
+    const display =
+        view?.display ??
+        (fallback ? trainDisplay(fallback, new Date(now)) : null);
+    if (!display) return { delay: null, stale: true };
+    return { delay: display.delay, stale: display.state !== "running" };
 }

@@ -14,7 +14,6 @@ import {
 } from "@megisholavonat/core/uic";
 import {
     dataAppearsFalsified,
-    isActive,
     isFarFromRoute,
 } from "@megisholavonat/core/vehicle";
 import { formatDistanceToNow } from "date-fns";
@@ -48,7 +47,7 @@ import {
 } from "@/lib/train";
 import { cn } from "@/lib/utils";
 import { mnr2007 } from "@/util/fonts";
-import type { StopView, TrainView } from "./useTrainView";
+import { type StopView, type TrainView, useShownDelay } from "./useTrainView";
 
 export function IconButton({
     label,
@@ -196,8 +195,7 @@ export function TrainSummary({
 }) {
     const t = useTranslations("Train");
     const vehicle = view?.vehicle;
-    const delay = vehicle?.delay ?? fallback?.delay ?? 0;
-    const stale = view?.stale ?? !!fallback?.isStale;
+    const { delay, stale } = useShownDelay(view, fallback);
     const routeShortName =
         vehicle?.trip.route.shortName ?? fallback?.routeShortName ?? "";
     const tripShortName =
@@ -481,7 +479,8 @@ export function VehicleDetails({ view }: { view: TrainView }) {
     const { vehicle } = view;
     const farFromRoute = isFarFromRoute(vehicle);
     const mismatch =
-        isActive(vehicle) && dataAppearsFalsified(vehicle, view.stale);
+        view.display.state === "running" &&
+        dataAppearsFalsified(vehicle, view.stale);
     const rows: [string, string][] = [
         [
             t("vehicle_type_label"),

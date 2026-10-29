@@ -47,7 +47,7 @@ export function TrainSheet({
                     className="flex-1 text-headline"
                 />
                 <DelayText
-                    delay={view.vehicle.delay}
+                    delay={view.display.delay}
                     stale={view.stale}
                     className="text-headline"
                 />
@@ -89,7 +89,7 @@ export function TrainSheet({
                         {view.reason && (
                             <ReasonBanner
                                 reason={view.reason}
-                                delay={view.vehicle.delay}
+                                delay={view.display.delay ?? 0}
                                 detailed
                             />
                         )}
@@ -106,7 +106,7 @@ export function TrainSheet({
                         {view.reason && (
                             <ReasonBanner
                                 reason={view.reason}
-                                delay={view.vehicle.delay}
+                                delay={view.display.delay ?? 0}
                             />
                         )}
                         <StopList view={view} upcomingOnly />

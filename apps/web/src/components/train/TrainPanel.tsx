@@ -17,7 +17,7 @@ import {
     TrainTitle,
     VehicleDetails,
 } from "./TrainParts";
-import type { TrainView } from "./useTrainView";
+import { type TrainView, useShownDelay } from "./useTrainView";
 
 /** Desktop train panel, docked top-left over the map. */
 export function TrainPanel({
@@ -32,6 +32,7 @@ export function TrainPanel({
     const t = useTranslations("Train");
     const vehicle = view?.vehicle;
     const next = view?.next;
+    const shown = useShownDelay(view, fallback);
     return (
         <section
             aria-label={t("sheet_label")}
@@ -60,16 +61,10 @@ export function TrainPanel({
                     </h2>
                 </div>
                 <div className="flex items-center gap-3">
-                    <DelayTile
-                        delay={vehicle?.delay ?? fallback?.delay ?? 0}
-                        stale={view?.stale ?? !!fallback?.isStale}
-                    />
+                    <DelayTile delay={shown.delay} stale={shown.stale} />
                     <div className="flex min-w-0 flex-1 flex-col">
                         {next ? (
-                            <NextStopLine
-                                stop={next}
-                                stale={view?.stale ?? false}
-                            />
+                            <NextStopLine stop={next} stale={shown.stale} />
                         ) : (
                             <span className="h-5 w-40 animate-pulse rounded-sm bg-surface-2" />
                         )}
@@ -95,7 +90,7 @@ export function TrainPanel({
                 {view?.reason && (
                     <ReasonBanner
                         reason={view.reason}
-                        delay={view.vehicle.delay}
+                        delay={view.display.delay ?? 0}
                         detailed
                     />
                 )}
