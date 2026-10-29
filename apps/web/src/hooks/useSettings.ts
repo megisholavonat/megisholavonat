@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { track } from "@/lib/analytics";
 
 /** Per-device preferences, stored as `mhav.settings.<key>` in localStorage. */
 export interface Settings {
@@ -22,6 +23,18 @@ export const DEFAULT_SETTINGS: Settings = {
     showRailwayOverlay: true,
     animateVehicles: true,
 };
+
+/** Each setting's name in the `settings_changed` event */
+const EVENT_KEYS = {
+    showTooltip: "tooltip",
+    showStationNames: "station_names",
+    stationNamesOpacity: "station_names_opacity",
+    showTrains: "trains",
+    showTramTrains: "tram_trains",
+    showHev: "hev",
+    showRailwayOverlay: "railway_layer",
+    animateVehicles: "animate_vehicles",
+} as const satisfies Record<keyof Settings, string>;
 
 const PREFIX = "mhav.settings.";
 const listeners = new Set<() => void>();
@@ -81,6 +94,10 @@ export function setSetting<K extends keyof Settings>(
     }
     cache = { ...getSnapshot(), [key]: value };
     for (const listener of listeners) listener();
+    track("settings_changed", {
+        key: EVENT_KEYS[key],
+        value: typeof value === "boolean" ? (value ? "on" : "off") : undefined,
+    });
 }
 
 export function useSettings(): Settings {

@@ -20,6 +20,7 @@ import { useTheme } from "@/components/ui/ThemeProvider";
 import { useAnalyticsConsent } from "@/hooks/useAnalyticsConsent";
 import { type Settings, setSetting, useSettings } from "@/hooks/useSettings";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
+import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 const GITHUB_URL = "https://github.com/megisholavonat/megisholavonat";
@@ -200,7 +201,7 @@ function ConsentRow() {
                 checked={consent === "granted"}
                 disabled={consent === null}
                 onCheckedChange={(checked) =>
-                    setConsent(checked ? "granted" : "denied")
+                    setConsent(checked ? "granted" : "denied", "settings")
                 }
             />
         </div>
@@ -286,6 +287,10 @@ function SettingsList({
                         { value: "en", label: "English" },
                     ]}
                     onChange={(value) => {
+                        track("settings_changed", {
+                            key: "language",
+                            value: value as "hu" | "en",
+                        });
                         onNavigate();
                         router.replace(`${pathname}${window.location.search}`, {
                             locale: value,
@@ -301,7 +306,13 @@ function SettingsList({
                         { value: "light", label: t("theme_light") },
                         { value: "dark", label: t("theme_dark") },
                     ]}
-                    onChange={setTheme}
+                    onChange={(value) => {
+                        track("settings_changed", {
+                            key: "theme",
+                            value: value as "light" | "dark" | "system",
+                        });
+                        setTheme(value);
+                    }}
                 />
             </Group>
             <Group title={t("map")}>

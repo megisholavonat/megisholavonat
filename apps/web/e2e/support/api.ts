@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { Page, Route } from "@playwright/test";
+import { gunzipSync } from "node:zlib";
+import type { Page, Request, Route } from "@playwright/test";
 
 const FIXTURES = join(__dirname, "..", "fixtures");
 
@@ -76,6 +77,47 @@ const EMPTY_STYLE = {
     ],
 };
 
+/** An event PostHog sent, decoded from its request */
+export interface CapturedEvent {
+    uuid?: string;
+    event: string;
+    properties: Record<string, unknown>;
+}
+
+/** The events in a PostHog capture request (gzip, base64 or plain JSON) */
+function decodeEvents(request: Request): CapturedEvent[] {
+    const body = request.postDataBuffer();
+    if (!body?.length) return [];
+    let text: string;
+    try {
+        // gzip by its magic bytes: native compression has no query flag
+        if (body[0] === 0x1f && body[1] === 0x8b) {
+            text = gunzipSync(body).toString("utf8");
+        } else {
+            text = body.toString("utf8");
+            if (text.startsWith("data=")) {
+                text = Buffer.from(
+                    decodeURIComponent(text.slice(5)),
+                    "base64",
+                ).toString("utf8");
+            }
+        }
+        const parsed = JSON.parse(text) as unknown;
+        const list = Array.isArray(parsed)
+            ? parsed
+            : ((parsed as { batch?: unknown[] }).batch ?? [parsed]);
+        return (list as Partial<CapturedEvent>[])
+            .filter((e) => typeof e?.event === "string")
+            .map((e) => ({
+                uuid: e.uuid,
+                event: e.event as string,
+                properties: e.properties ?? {},
+            }));
+    } catch {
+        return [];
+    }
+}
+
 /**
  * Serves the API from the JSON fixtures, and keeps the page offline: the
  * basemap gets an empty style, tiles and fonts are answered empty, analytics
@@ -85,6 +127,8 @@ export async function mockApi(page: Page, baseURL: string) {
     const appHost = new URL(baseURL).host;
     /** Analytics calls the page made, for the consent tests */
     const analytics: string[] = [];
+    /** Events PostHog sent, for the analytics tests */
+    const events: CapturedEvent[] = [];
     const trains = fixture("trains.json");
     const details = Object.fromEntries(
         Object.entries(TRAINS).map(([role, { id }]) => [
@@ -120,6 +164,12 @@ export async function mockApi(page: Page, baseURL: string) {
             return route.fulfill({ contentType: "text/javascript", body: "" });
         }
         analytics.push(url);
+        // A retried batch is not sent twice
+        for (const e of decodeEvents(route.request())) {
+            if (!events.some((seen) => seen.uuid && seen.uuid === e.uuid)) {
+                events.push(e);
+            }
+        }
         // Its remote config is a script: JSON there is a syntax error
         if (new URL(url).pathname.endsWith(".js")) {
             return route.fulfill({ contentType: "text/javascript", body: "" });
@@ -194,5 +244,5 @@ export async function mockApi(page: Page, baseURL: string) {
         return json(route, { detail: "Not in the e2e fixtures" }, 404);
     });
 
-    return { analytics };
+    return { analytics, events };
 }

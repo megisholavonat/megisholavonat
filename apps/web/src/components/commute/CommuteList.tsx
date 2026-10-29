@@ -9,6 +9,7 @@ import { PlatformBadge } from "@/components/ui/Platform";
 import { ReasonLabel } from "@/components/ui/Reason";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
 import type { Follow } from "@/hooks/useFollows";
+import { commuteRowOpened } from "@/lib/analyticsEvents";
 import { cn } from "@/lib/utils";
 import type { CommuteRow } from "./useCommute";
 
@@ -179,7 +180,7 @@ export function CommuteList({
     if (visible.length === 0) return null;
     return (
         <section aria-label={t("my_commute")} className="flex flex-col">
-            {visible.map((row) => (
+            {visible.map((row, i) => (
                 <div
                     key={row.follow.id}
                     className={cn(
@@ -190,11 +191,14 @@ export function CommuteList({
                     <Row
                         row={row}
                         compact={compact}
-                        onOpen={(r) =>
-                            r.live?.vehicleId
+                        onOpen={(r) => {
+                            if (r.live?.vehicleId) {
+                                commuteRowOpened(i, r.live);
+                            }
+                            return r.live?.vehicleId
                                 ? onOpenTrain(r.live.vehicleId)
-                                : onEdit(r.follow)
-                        }
+                                : onEdit(r.follow);
+                        }}
                     />
                     <CommuteDelayShare follow={row.follow} />
                 </div>
