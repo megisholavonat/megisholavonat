@@ -968,6 +968,84 @@ export type Route = {
 };
 
 /**
+ * RunStop
+ *
+ * A stop of the run, with our GPS-derived delay where it was recorded
+ */
+export type RunStop = {
+    /**
+     * Stationid
+     */
+    stationId: string;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Scheduledarrivals
+     */
+    scheduledArrivalS?: number | null;
+    /**
+     * Scheduleddepartures
+     */
+    scheduledDepartureS?: number | null;
+    /**
+     * Delaymin
+     */
+    delayMin?: number | null;
+    /**
+     * Cancelled
+     */
+    cancelled?: boolean;
+};
+
+/**
+ * RunSummary
+ *
+ * One run of a train on one service date, from the delay history (and the
+ * timetable for the stops the recorder did not see)
+ */
+export type RunSummary = {
+    /**
+     * Trainnumber
+     */
+    trainNumber: string;
+    /**
+     * Tripshortname
+     */
+    tripShortName: string;
+    /**
+     * Routeshortname
+     */
+    routeShortName?: string | null;
+    /**
+     * Linename
+     */
+    lineName?: string | null;
+    /**
+     * Servicedate
+     */
+    serviceDate: string;
+    /**
+     * Stops
+     */
+    stops: Array<RunStop>;
+    /**
+     * Complete
+     */
+    complete: boolean;
+    /**
+     * Cancelled
+     */
+    cancelled: boolean;
+    /**
+     * Finished
+     */
+    finished: boolean;
+    reason?: DelayReason | null;
+};
+
+/**
  * Station
  *
  * A rail station, grouping all of its platforms
@@ -2563,6 +2641,55 @@ export type GetStationPlatformsResponses = {
 };
 
 export type GetStationPlatformsResponse = GetStationPlatformsResponses[keyof GetStationPlatformsResponses];
+
+export type GetRunSummaryData = {
+    body?: never;
+    path: {
+        /**
+         * Trainnumber
+         *
+         * e.g. 10 for 10 TRANSCARPATHIA
+         */
+        trainNumber: string;
+        /**
+         * Servicedate
+         *
+         * The day the run's stoptimes count from: the date it leaves its origin
+         */
+        serviceDate: string;
+    };
+    query?: {
+        /**
+         * From
+         *
+         * UIC code of the boarding station; finds a run leaving it after midnight by the date of boarding
+         */
+        from?: string | null;
+    };
+    url: '/v1/history/runs/{trainNumber}/{serviceDate}';
+};
+
+export type GetRunSummaryErrors = {
+    /**
+     * No such run on record
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetRunSummaryError = GetRunSummaryErrors[keyof GetRunSummaryErrors];
+
+export type GetRunSummaryResponses = {
+    /**
+     * Successful Response
+     */
+    200: RunSummary;
+};
+
+export type GetRunSummaryResponse = GetRunSummaryResponses[keyof GetRunSummaryResponses];
 
 export type GetRankingsData = {
     body?: never;
