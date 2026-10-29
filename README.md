@@ -115,10 +115,11 @@ This repository is a pnpm monorepo with:
 
 ### Mobile app against a local API
 
-The app uses production unless `EXPO_PUBLIC_API_URL` says otherwise. Every
-request goes there: the API client, the map's network and stations data, and
-the Live Activity tokens the native side posts. Development builds show the
-URL at the bottom of Settings.
+The app uses the production API (`https://api.megisholavonat.info`) unless
+`EXPO_PUBLIC_API_URL` says otherwise. Every request goes there: the API
+client, the map's network and stations data, and the Live Activity tokens the
+native side posts. Development builds, and any build on another API, show the
+URL at the bottom of Settings; production builds never do.
 
 1. Run the API (`pnpm --filter @megisholavonat/api dev`, on :8000).
 2. Over Tailscale, give it HTTPS on this machine's ts.net name:
@@ -130,7 +131,8 @@ URL at the bottom of Settings.
    `EXPO_PUBLIC_API_URL=https://<host>.<tailnet>.ts.net`, then
    `pnpm --filter @megisholavonat/mobile dev --clear` and open the dev client.
 
-EAS: preview and production builds pin the production URLs in `eas.json`.
+EAS: preview, beta and production builds pin their URLs in `eas.json` (see
+[Releasing the mobile app](#releasing-the-mobile-app)).
 The development profile reads `EXPO_PUBLIC_API_URL` from the EAS
 `development` environment (`eas env:create --environment development`) and
 falls back to production. `EXPO_PUBLIC_*` values end up in the JS bundle in
@@ -309,3 +311,99 @@ committed fixture holds ten recorded snapshots of twelve trains. Every refresh
 serves the next snapshot (looping at the end), and staleness is judged against
 the snapshot time. The position is kept in Redis under
 `<REDIS_KEY>:replay-cursor`; delete that key to start over.
+
+## Releasing the mobile app
+
+The new API runs in production as its own deployment at
+`https://api.megisholavonat.info` (paths `/v1/...`, no `/api` prefix),
+alongside the old API, which keeps serving `megisholavonat.info/api` until
+launch. Store builds use `api.megisholavonat.info` for good; the web keeps
+using same-origin `/api`, which is switched to the new pods at launch. The new
+API's delay history starts accumulating from its deploy. The dev environment
+(`dev.megisholavonat.info`) stays behind basic auth and is not used by the
+app.
+
+EAS build profiles (`apps/mobile/eas.json`):
+
+| Profile       | Distribution                             | API                                         |
+| ------------- | ---------------------------------------- | ------------------------------------------- |
+| `development` | dev client, internal                     | EAS `development` env, else production      |
+| `preview`     | internal (ad hoc)                        | `https://megisholavonat.info/api` (old API) |
+| `beta`        | store: TestFlight, Play internal testing | `https://api.megisholavonat.info`           |
+| `production`  | store                                    | `https://api.megisholavonat.info`           |
+
+The backend each build talks to has to send APNs pushes to the environment
+the build's tokens come from, otherwise Live Activity pushes fail:
+
+- dev client: a local API with `APNS_USE_SANDBOX=true`
+- beta (TestFlight) and production: `api.megisholavonat.info` with
+  `APNS_USE_SANDBOX=false` (TestFlight builds are distribution-signed and get
+  production tokens)
+
+Testers on beta builds use real data from the production API. Universal
+Links and App Links point at `megisholavonat.info` in every build.
+
+Beta and production share the bundle ID and build numbers (`autoIncrement`,
+remote app version) and are the same kind of store binary; the profiles
+differ only in where they are submitted. Only `production` builds go to App
+Store review and the Play production track.
+
+### Beta
+
+```sh
+cd apps/mobile
+npx eas-cli build --profile beta --platform all --auto-submit
+```
+
+iOS lands in TestFlight (internal testers get it once processing finishes,
+no review); Android goes to the Play internal testing track (`submit.beta`).
+
+### Launch
+
+1. Ahead of time, once the compatibility check passes (the current web and
+   the old apps keep working against the new API), deploy the new API to
+   `api.megisholavonat.info`.
+2. Build and submit production:
+   `npx eas-cli build --profile production --platform all --auto-submit`.
+   - iOS: in App Store Connect choose "Manually release this version" before
+     submitting for review.
+   - Android: turn on Managed publishing in Play Console (Publishing
+     overview) **before** submitting. `submit.production` sends the release
+     to the production track as completed; without managed publishing it
+     goes live as soon as review passes.
+3. Launch day: point `megisholavonat.info/api` at the new API pods, deploy the
+   new web, release the approved iOS version and publish the Android changes
+   in Play Console.
+4. After launch, retire the old API pods.
+
+### One-time store setup
+
+- [ ] Apple Developer: App ID `info.megisholavonat.app` with App Groups
+      (`group.info.megisholavonat.app`), Associated Domains and Push
+      Notifications; widget App ID `info.megisholavonat.app.widgets` with the
+      same App Group (EAS creates both on the first build if it manages
+      credentials)
+- [ ] App Store Connect: app record for `info.megisholavonat.app`, an
+      internal TestFlight group, App Privacy labels, privacy policy URL
+      `https://megisholavonat.info/hu/privacy`; an App Store Connect API key
+      in EAS (`eas credentials -p ios`) for non-interactive submits
+- [ ] Export compliance: `ITSAppUsesNonExemptEncryption` is `false` in
+      `app.json` (the app only uses HTTPS and the Keychain), so builds need no
+      encryption questionnaire
+- [ ] APNs key (.p8) with "Sandbox & Production" environment, for the backend
+      (`APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_PRIVATE_KEY`, `APNS_BUNDLE_ID`) and
+      for EAS push credentials
+- [ ] Play Console: app `info.megisholavonat.app`, internal testing track with
+      testers, Data safety form, privacy policy URL; upload the first AAB by
+      hand (the Play API refuses the first upload)
+- [ ] Google service account with release access in Play Console; its JSON
+      key uploaded to EAS (`eas credentials -p android`, "Google Service
+      Account Key for submissions")
+- [ ] Firebase project with the Android app; its FCM V1 service account key
+      uploaded to EAS (`eas credentials -p android`, "Push Notifications (FCM
+      V1)"); its `google-services.json` as `android.googleServicesFile` in
+      `app.json` (not set yet; it can come from an EAS file variable)
+- [ ] Play App signing SHA-256 (Play Console > Test and release > App
+      signing) next to the EAS upload key's in
+      `ANDROID_CERT_FINGERPRINTS` (`apps/web/src/lib/appLinks.ts`), deployed
+      with the web
