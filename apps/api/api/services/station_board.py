@@ -4,13 +4,12 @@ import time
 from collections.abc import Callable
 from datetime import datetime, timedelta
 from typing import Any
-from zoneinfo import ZoneInfo
 
 from redis.asyncio import Redis
 
+from api.core.cache import cached_model
 from api.core.graphql import query_graphql
 from api.core.queries import STATION_BOARD_QUERY
-from api.core.redis import add_key
 from api.schemas.alerts import DelayReason
 from api.schemas.stations import BoardEntry, BoardKind, Station, StationBoard
 from api.services.disruptions import (
@@ -21,15 +20,20 @@ from api.services.disruptions import (
     train_disruption,
     worst_train_disruption,
 )
-from api.services.live_trips import load_live_trip_index, match_live_trip
+from api.services.live_trips import (
+    apply_live_delay,
+    load_live_trip_index,
+    match_live_trip,
+)
 from api.services.station_index import RAIL_FEED
+from api.util.stop import station_id_from_gtfs_id
+from api.util.time import BUDAPEST_TZ
+from api.util.trip import train_number
 
 BOARD_TTL = 30  # seconds
 # Look ahead this far first, and widen to a day for quiet stations
 SHORT_RANGE = 4 * 60 * 60
 LONG_RANGE = 24 * 60 * 60
-
-TIMEZONE = ZoneInfo("Europe/Budapest")
 
 
 class StationNotFoundError(Exception):
@@ -37,12 +41,12 @@ class StationNotFoundError(Exception):
 
 
 def board_cache_key(station_id: str, kind: BoardKind, limit: int) -> str:
-    return add_key(f"station-board:{station_id}:{kind}:{limit}")
+    return f"station-board:{station_id}:{kind}:{limit}"
 
 
 def service_date(service_day: int) -> str:
     # serviceDay is local noon minus 12 hours, so noon is always on the date
-    noon = datetime.fromtimestamp(service_day, TIMEZONE) + timedelta(hours=12)
+    noon = datetime.fromtimestamp(service_day, BUDAPEST_TZ) + timedelta(hours=12)
     return noon.date().isoformat()
 
 
@@ -58,7 +62,7 @@ def trip_stops(
     """The trip's stops and the board's station among them, if listed."""
     stops = trip.get("stops") or []
     # Stops are platforms of a station: "1:<UIC>_<platform>"
-    uics = [(s.get("gtfsId") or "").partition(":")[2].split("_")[0] for s in stops]
+    uics = [station_id_from_gtfs_id(s.get("gtfsId") or "") for s in stops]
     if station_id is None or station_id not in uics:
         return None
     return TripStops(
@@ -90,11 +94,6 @@ def _board_entry(
         expected = service_day + stoptime["realtimeArrival"]
         headsign = (origin.get("stop") or {}).get("name")
 
-    delay = round((expected - scheduled) / 60)
-    delay_source = "otp"
-    realtime = bool(stoptime.get("realtime"))
-    vehicle_id = None
-
     live = match_live_trip(
         live_index,
         trip_id=trip["gtfsId"],
@@ -102,20 +101,16 @@ def _board_entry(
         trip_short_name=trip.get("tripShortName") or "",
         origin_departure=origin.get("scheduledDeparture"),
     )
-    if live is not None:
-        vehicle_id = live.vehicleId
     # Off its route, arrived or cancelled, the train shows no live delay on
     # the map (QA n-C: 604 off route read "+5" on the Szolnok board while the
     # map showed none); the row is then like one without a live train
-    if live is not None and live.has_delay:
-        delay = live.delay
-        # Trains do not leave early; a negative GPS delay before departure
-        # only means the train is waiting.
-        if kind == "departures":
-            delay = max(delay, 0)
-        expected = scheduled + delay * 60
-        delay_source = "gps"
-        realtime = True
+    delay = apply_live_delay(
+        live,
+        scheduled,
+        expected,
+        realtime=bool(stoptime.get("realtime")),
+        departing=kind == "departures",
+    )
 
     alerts = trip.get("alerts") or []
     stops = trip_stops(trip, station_id, kind)
@@ -148,21 +143,16 @@ def _board_entry(
         headsign=headsign,
         serviceDate=date,
         scheduledTime=scheduled,
-        expectedTime=expected,
-        delayMinutes=delay,
-        delaySource=delay_source,
+        expectedTime=delay.expected,
+        delayMinutes=delay.minutes,
+        delaySource=delay.source,
         platform=(stoptime.get("stop") or {}).get("platformCode"),
-        realtime=realtime,
+        realtime=delay.realtime,
         canceled=stoptime.get("realtimeState") == "CANCELED",
-        vehicleId=vehicle_id,
+        vehicleId=live.vehicleId if live is not None else None,
         reason=DelayReason.from_texts(*(a.get("alertDescriptionText") for a in alerts)),
         disruption=worst_train_disruption([*own, named]),
     )
-
-
-def train_number(trip_short_name: str) -> str:
-    """The number of a train, e.g. "201" of "201 AGRAM - TÓPART InterCity"."""
-    return trip_short_name.split(" ", 1)[0]
 
 
 def keep_best[T, K, R: tuple[Any, ...]](
@@ -263,11 +253,10 @@ async def get_board(
     if not station_id.isdigit():
         raise StationNotFoundError(station_id)
 
-    cache_key = board_cache_key(station_id, kind, limit)
-    cached = await redis.get(cache_key)
-    if cached is not None:
-        return StationBoard.model_validate_json(cached)
-
-    board = await fetch_board(redis, station_id, kind, limit)
-    await redis.set(cache_key, board.model_dump_json(), ex=BOARD_TTL)
-    return board
+    return await cached_model(
+        redis,
+        board_cache_key(station_id, kind, limit),
+        StationBoard,
+        BOARD_TTL,
+        lambda: fetch_board(redis, station_id, kind, limit),
+    )
