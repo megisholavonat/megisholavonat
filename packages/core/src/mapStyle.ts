@@ -532,10 +532,14 @@ export function networkLayer({
     };
 }
 
-/** A station's tier (MAP_STATIONS.tiers) from its trains a day */
+/**
+ * A station's tier (MAP_STATIONS.tiers) from its trains a day. HÉV stops and
+ * tram-train street stops (named "City, stop", e.g. "Szeged, Anna-kút") see
+ * many trains but are city stops: they name themselves at city zoom only.
+ */
 export const STATION_TIER: Expr = [
     "case",
-    ["==", ["get", "hev"], 1],
+    ["any", ["==", ["get", "hev"], 1], ["in", ", ", ["get", "name"]]],
     5,
     [
         "step",

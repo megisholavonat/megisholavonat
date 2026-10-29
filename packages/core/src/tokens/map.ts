@@ -153,13 +153,14 @@ export interface StationTier {
 
 /**
  * Station names by trains a day: the busiest from country zoom, the rest as
- * the map comes closer. HÉV stops (tier 5) only at city zoom.
+ * the map comes closer. HÉV and tram-train street stops (tier 5, "Szeged,
+ * Anna-kút") only at city zoom.
  */
 export const MAP_STATIONS = {
     tiers: [
-        { tier: 1, min: 40, dot: 6.5, label: 7 },
-        { tier: 2, min: 20, dot: 8, label: 8.5 },
-        { tier: 3, min: 8, dot: 9.5, label: 10 },
+        { tier: 1, min: 80, dot: 6.5, label: 7 },
+        { tier: 2, min: 40, dot: 8, label: 8.5 },
+        { tier: 3, min: 15, dot: 9.5, label: 10 },
         { tier: 4, min: 0, dot: 11, label: 11.5 },
         { tier: 5, min: -1, dot: 11.5, label: 12.5 },
     ],
@@ -201,11 +202,11 @@ export const MAP_MARKS = {
     tramtrain: { width: 1.2, height: 0.84 },
     /** "+N" beside unselected late trains, from this zoom only */
     delayTextMinZoom: 12,
-    delayTextSize: 11,
+    delayTextSize: 12,
     /** Gap between a mark's edge and its "+N" (px) */
     delayTextGap: 2,
     /** Overlapping trains merge into a neutral count bubble */
-    clusterRadius: 12,
+    clusterRadius: 10,
 } as const satisfies { size: ZoomStops; [key: string]: unknown };
 
 /** The mark's diameter at `zoom`, as the map interpolates it. */
