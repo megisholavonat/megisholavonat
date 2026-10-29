@@ -1,5 +1,6 @@
 // Map marker sprites drawn from the design tokens ("DS · Térképjelölő"):
-// colour + size + minutes, round for trains and square-ish for HÉV.
+// colour + size + minutes, round for trains, square-ish for HÉV and with
+// pointed ends for tram-trains.
 //
 // Images are generated on demand: layers reference ids like
 // `mhav-dark-pill-severe-hev-sel`, and the map's missing-image resolver calls
@@ -16,8 +17,13 @@ import {
 } from "@megisholavonat/core/tokens";
 import type { StyleImageMetadata } from "maplibre-gl";
 
-export type MarkerLevel = DelayLevel | "stale";
-export type MarkerShape = "train" | "hev";
+/**
+ * Colour level of a marker: a delay level, "stale" (hollow, dashed, with the
+ * data's age) or "inactive" (waiting, arrived or off its route: a plain grey
+ * dot without a delay, the old app's "No data / Inactive").
+ */
+export type MarkerLevel = DelayLevel | "stale" | "inactive";
+export type MarkerShape = "train" | "hev" | "tramtrain";
 
 const PIXEL_RATIO = 2;
 const PREFIX = "mhav-";
@@ -46,13 +52,42 @@ export function stationImageId(scheme: ColorScheme): string {
     return `${PREFIX}${scheme}-station`;
 }
 
+export function followImageId(scheme: ColorScheme): string {
+    return `${PREFIX}${scheme}-follow`;
+}
+
+/** Diameter of the followed-train star badge */
+export const FOLLOW_BADGE_SIZE = 16;
+
 interface Paint {
     fill: string;
     outline: Outline;
     dashed: boolean;
 }
 
+/** Outline of the grey inactive dot: dark enough to read on the light map. */
+const INACTIVE_OUTLINE: Record<ColorScheme, Outline> = {
+    light: { color: STALE_COLORS.light.outline.color, width: 1.5 },
+    dark: { color: COLORS.dark.map, width: 1.5 },
+};
+
+/** Fill and outline colour of a marker level (also for the z < 9 dots). */
+export function levelColors(
+    scheme: ColorScheme,
+    level: MarkerLevel,
+): { fill: string; outline: string } {
+    const paint = paintOf(scheme, level);
+    return { fill: paint.fill, outline: paint.outline.color };
+}
+
 function paintOf(scheme: ColorScheme, level: MarkerLevel): Paint {
+    if (level === "inactive") {
+        return {
+            fill: STALE_COLORS[scheme].fill,
+            outline: INACTIVE_OUTLINE[scheme],
+            dashed: false,
+        };
+    }
     if (level === "stale") {
         const stale = STALE_COLORS[scheme];
         return {
@@ -69,8 +104,17 @@ function outlineExtent(outline: Outline): number {
     return Math.max(outline.width, outline.halo?.width ?? 0);
 }
 
-function roundedRect(
+/** Depth of a tram-train's pointed ends, as a share of half its height. */
+const POINT_SHARE = 0.75;
+
+function pointDepth(w: number, h: number): number {
+    return Math.min((h / 2) * POINT_SHARE, w / 2);
+}
+
+/** A rounded rectangle, or a hexagon with pointed ends for tram-trains. */
+function bodyPath(
     ctx: CanvasRenderingContext2D,
+    shape: MarkerShape,
     x: number,
     y: number,
     w: number,
@@ -78,6 +122,17 @@ function roundedRect(
     r: number,
 ) {
     ctx.beginPath();
+    if (shape === "tramtrain") {
+        const p = pointDepth(w, h);
+        ctx.moveTo(x + p, y);
+        ctx.lineTo(x + w - p, y);
+        ctx.lineTo(x + w, y + h / 2);
+        ctx.lineTo(x + w - p, y + h);
+        ctx.lineTo(x + p, y + h);
+        ctx.lineTo(x, y + h / 2);
+        ctx.closePath();
+        return;
+    }
     ctx.roundRect(x, y, w, h, Math.min(r, h / 2, w / 2));
 }
 
@@ -90,6 +145,7 @@ function roundedRect(
 function drawBody(
     scheme: ColorScheme,
     level: MarkerLevel,
+    shape: MarkerShape,
     w: number,
     h: number,
     r: number,
@@ -109,14 +165,22 @@ function drawBody(
     const y = margin;
 
     const grow = (by: number, color: string) => {
-        roundedRect(ctx, x - by, y - by, w + by * 2, h + by * 2, r + by);
+        bodyPath(ctx, shape, x - by, y - by, w + by * 2, h + by * 2, r + by);
         ctx.fillStyle = color;
         ctx.fill();
     };
 
     if (selected) {
         const out = outlineExtent(paint.outline) + sel.gap + sel.ringWidth;
-        roundedRect(ctx, x - out, y - out, w + out * 2, h + out * 2, r + out);
+        bodyPath(
+            ctx,
+            shape,
+            x - out,
+            y - out,
+            w + out * 2,
+            h + out * 2,
+            r + out,
+        );
         ctx.fillStyle = COLORS[scheme].ink;
         ctx.fill();
         // The gap shows the map colour so the ring reads as separate
@@ -126,8 +190,9 @@ function drawBody(
     if (paint.dashed) {
         grow(0, paint.fill);
         const inset = paint.outline.width / 2;
-        roundedRect(
+        bodyPath(
             ctx,
+            shape,
             x + inset,
             y + inset,
             w - inset * 2,
@@ -156,8 +221,11 @@ function radiusFor(shape: MarkerShape, h: number): number {
     return shape === "hev" ? MARKER.radius.hev : h / 2;
 }
 
-/** Height of a pill (labelled marker) per level. */
+/** Height of a marker per level: its pill, or the plain dot. */
 export function pillHeight(level: MarkerLevel): number {
+    if (level === "onTime" || level === "inactive") {
+        return MARKER.levels.onTime.height;
+    }
     return level === "stale"
         ? MARKER.stale.height
         : MARKER.levels[level].height;
@@ -165,7 +233,7 @@ export function pillHeight(level: MarkerLevel): number {
 
 /** Label font size per level. */
 export function labelSize(level: MarkerLevel): number {
-    return level === "stale"
+    return level === "stale" || level === "inactive"
         ? MARKER.stale.fontSize
         : MARKER.levels[level].fontSize || MARKER.stale.fontSize;
 }
@@ -178,9 +246,24 @@ function pill(
 ) {
     const h = pillHeight(level);
     const r = radiusFor(shape, h);
-    // Two rounded ends plus a stretchable middle
+    // Two rounded (or pointed) ends plus a stretchable middle
     const w = Math.max(r * 2, PILL_PADDING_X * 2) + STRETCH;
-    const { canvas, margin } = drawBody(scheme, level, w, h, r, selected);
+    // Keep the label clear of a tram-train's slanted ends
+    const padX = Math.min(
+        (w - STRETCH) / 2,
+        shape === "tramtrain"
+            ? Math.max(PILL_PADDING_X, pointDepth(w, h) + 2)
+            : PILL_PADDING_X,
+    );
+    const { canvas, margin } = drawBody(
+        scheme,
+        level,
+        shape,
+        w,
+        h,
+        r,
+        selected,
+    );
     const data = toImage(canvas);
     if (!data) return null;
     const midX = margin + w / 2;
@@ -203,9 +286,9 @@ function pill(
             ],
         ],
         content: [
-            (margin + PILL_PADDING_X) * PIXEL_RATIO,
+            (margin + padX) * PIXEL_RATIO,
             (midY - textHeight / 2) * PIXEL_RATIO,
-            (margin + w - PILL_PADDING_X) * PIXEL_RATIO,
+            (margin + w - padX) * PIXEL_RATIO,
             (midY + textHeight / 2) * PIXEL_RATIO,
         ],
     };
@@ -220,7 +303,7 @@ function dot(
 ) {
     const size = MARKER.levels.onTime.height;
     const r = shape === "hev" ? MARKER.radius.hevDot : size / 2;
-    const { canvas } = drawBody(scheme, level, size, size, r, selected);
+    const { canvas } = drawBody(scheme, level, shape, size, size, r, selected);
     const data = toImage(canvas);
     return data ? { data, meta: { pixelRatio: PIXEL_RATIO } } : null;
 }
@@ -276,8 +359,46 @@ function station(scheme: ColorScheme) {
     return data ? { data, meta: { pixelRatio: PIXEL_RATIO } } : null;
 }
 
+/** Followed train: a small ink disc with a star, pinned to the marker. */
+function follow(scheme: ColorScheme) {
+    const ring = 1.5;
+    const size = FOLLOW_BADGE_SIZE + ring * 2;
+    const canvas = document.createElement("canvas");
+    canvas.width = size * PIXEL_RATIO;
+    canvas.height = size * PIXEL_RATIO;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+    ctx.scale(PIXEL_RATIO, PIXEL_RATIO);
+    const c = size / 2;
+    ctx.beginPath();
+    ctx.arc(c, c, c, 0, Math.PI * 2);
+    ctx.fillStyle = COLORS[scheme].surface;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(c, c, FOLLOW_BADGE_SIZE / 2, 0, Math.PI * 2);
+    ctx.fillStyle = COLORS[scheme].ink;
+    ctx.fill();
+    // Five-pointed star
+    const outer = 4.6;
+    const inner = outer * 0.45;
+    ctx.beginPath();
+    for (let i = 0; i < 10; i++) {
+        const r = i % 2 === 0 ? outer : inner;
+        const a = -Math.PI / 2 + (i * Math.PI) / 5;
+        const x = c + r * Math.cos(a);
+        const y = c + 0.4 + r * Math.sin(a);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fillStyle = COLORS[scheme].surface;
+    ctx.fill();
+    const data = toImage(canvas);
+    return data ? { data, meta: { pixelRatio: PIXEL_RATIO } } : null;
+}
+
 const ID_PATTERN =
-    /^mhav-(light|dark)-(?:(dot|pill)-(onTime|slight|moderate|severe|stale)-(train|hev)(-sel)?|(arrow)|(station))$/;
+    /^mhav-(light|dark)-(?:(dot|pill)-(onTime|slight|moderate|severe|stale|inactive)-(train|hev|tramtrain)(-sel)?|(arrow)|(station)|(follow))$/;
 
 /** Builds the sprite for one of our ids, or null for other ids. */
 export function markerImage(
@@ -288,6 +409,7 @@ export function markerImage(
     const scheme = match[1] as ColorScheme;
     if (match[6]) return arrow(scheme);
     if (match[7]) return station(scheme);
+    if (match[8]) return follow(scheme);
     const kind = match[2];
     const level = match[3] as MarkerLevel;
     const shape = match[4] as MarkerShape;

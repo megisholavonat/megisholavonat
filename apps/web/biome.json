@@ -4,7 +4,16 @@
     "extends": "//",
     "files": {
         "ignoreUnknown": false,
-        "includes": ["**", "!node_modules", "!.next", "!dist", "!build"]
+        "includes": [
+            "**",
+            "!node_modules",
+            "!.next",
+            "!dist",
+            "!build",
+            "!e2e/fixtures",
+            "!e2e/test-results",
+            "!e2e/report"
+        ]
     },
     "linter": {
         "enabled": true,

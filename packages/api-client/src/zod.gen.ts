@@ -577,7 +577,17 @@ export const zTransfer = z.object({
     station: z.string(),
     transferMinutes: z.int(),
     expectedTransferMinutes: z.int(),
-    missRisk: z.number().nullish()
+    missRisk: z.number().nullish(),
+    risk: z.enum([
+        'safe',
+        'tight',
+        'likely_missed'
+    ]).nullish(),
+    riskSource: z.enum([
+        'forecast',
+        'history',
+        'canceled'
+    ]).nullish()
 });
 
 /**

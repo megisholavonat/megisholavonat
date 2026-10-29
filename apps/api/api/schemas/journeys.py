@@ -59,6 +59,14 @@ class TransitLeg(BaseModel):
     vehicleId: str | None = None
 
 
+# How likely a transfer is missed: safe (well under 10%), tight, or likely
+# missed (50% or more)
+ConnectionRisk = Literal["safe", "tight", "likely_missed"]
+# forecast: the live delay forecast of a running train; history: the trains'
+# usual delays at the station; canceled: one of the trains is canceled
+ConnectionRiskSource = Literal["forecast", "history", "canceled"]
+
+
 JourneyLeg = Annotated[WalkLeg | TransitLeg, Field(discriminator="type")]
 
 
@@ -71,8 +79,11 @@ class Transfer(BaseModel):
     station: str  # where the arriving train stops
     transferMinutes: int  # planned
     expectedTransferMinutes: int  # with current delays
-    # Probability of missing the connection; filled by a later forecast model
+    # Probability of missing the connection (allowing a minimum transfer time
+    # and any walk); None when neither a forecast nor any history is known
     missRisk: float | None = None
+    risk: ConnectionRisk | None = None
+    riskSource: ConnectionRiskSource | None = None
 
 
 class Itinerary(BaseModel):

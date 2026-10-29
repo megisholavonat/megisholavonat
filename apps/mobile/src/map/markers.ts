@@ -25,8 +25,10 @@ export interface MarkerProperties {
     label: string;
     labelColor: string;
     fontSize: number;
-    /** Larger delays draw on top */
+    /** Larger delays draw on top, followed trains above all */
     sort: number;
+    /** A followed train: never faded, with an ink badge */
+    followed: boolean;
 }
 
 const SORT: Record<DelayLevel, number> = {
@@ -53,6 +55,7 @@ export function markerCollection(
     trains: TrainFeatureCollection | undefined,
     theme: MarkerTheme,
     now: Date = new Date(),
+    followed: ReadonlySet<string> = new Set(),
 ): GeoJSON.FeatureCollection<GeoJSON.Point, MarkerProperties> {
     const features: GeoJSON.Feature<GeoJSON.Point, MarkerProperties>[] = [];
     for (const feature of trains?.features ?? []) {
@@ -60,7 +63,7 @@ export function markerCollection(
         const state = staleness(p.lastUpdated, now);
         if (state === "hidden") continue;
 
-        let props: MarkerProperties;
+        let props: Omit<MarkerProperties, "followed">;
         if (state === "stale" || p.isStale) {
             const spec = MARKER.stale;
             const label = MARKER.label.stale(
@@ -105,7 +108,9 @@ export function markerCollection(
                 type: "Point",
                 coordinates: [p.lon, p.lat],
             },
-            properties: props,
+            properties: followed.has(p.vehicleId)
+                ? { ...props, followed: true, sort: props.sort + 10 }
+                : { ...props, followed: false },
         });
     }
     return { type: "FeatureCollection", features };

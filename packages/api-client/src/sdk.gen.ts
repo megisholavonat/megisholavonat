@@ -96,7 +96,8 @@ export const getStationBoard = <ThrowOnError extends boolean = false>(options: O
 /**
  * Plan Journeys
  *
- * Itineraries between two rail stations, with live delays and ticket links
+ * Itineraries between two rail stations, with live delays, the risk of
+ * missing each transfer and ticket links
  */
 export const planJourneys = <ThrowOnError extends boolean = false>(options: Options<PlanJourneysData, ThrowOnError>) => (options.client ?? client).get<PlanJourneysResponses, PlanJourneysErrors, ThrowOnError>({
     responseType: 'json',
@@ -286,8 +287,9 @@ export const getStationPlatforms = <ThrowOnError extends boolean = false>(option
  * Get Rankings
  *
  * Stations, lines (S10, Z30, H5, ...) or trains ranked by on-time share (at
- * most 5 minutes late), then by median delay. Stations and lines count every
- * stop passage; trains count one arrival per run, at its last recorded stop.
+ * most 5 minutes late), then by median delay. Stations count every stop
+ * passage; lines and trains count one arrival per run, at its final stop (or
+ * the last stop recorded before it).
  */
 export const getRankings = <ThrowOnError extends boolean = false>(options?: Options<GetRankingsData, ThrowOnError>) => (options?.client ?? client).get<GetRankingsResponses, GetRankingsErrors, ThrowOnError>({
     responseType: 'json',

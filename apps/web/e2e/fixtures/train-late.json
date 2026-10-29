@@ -1,0 +1,511 @@
+{
+  "vehicleId": "1:918061937275",
+  "lat": 47.2583313,
+  "lon": 20.8433495,
+  "heading": 232,
+  "speed": 11,
+  "lastUpdated": 1793239119,
+  "trip": {
+    "gtfsId": "1:36390424",
+    "serviceDate": "2026-10-28",
+    "tripShortName": "9 TRANSCARPATHIA gyorsvonat",
+    "route": {
+      "mode": "RAIL",
+      "textColor": "C82227",
+      "shortName": "<span class=\"MNR2007\">&#473;</span>",
+      "longName": "Gy TRANSCARPATHIA"
+    },
+    "tripGeometry": {
+      "points": "gnzrHouayDcLdyE`aKtqRdcQpaHnyOhb]jrHrkVfdPpaVraWt{~A|sJlw`A|c`@tgp@e`JfkK_eSrsUa{Gd~OasEfwJnPz}Q}tC|vV_gIjwg@_lDroP}cHzj{@mgBtnV_lAbu[cfEnqh@miGpw\\wfTp}Xs~Dn`WadGp_d@wwFhhLkuAb_OerAdoJ_{HlsUa|A~oF`Z`jNbyAbnOv_EltC|}Glzg@puFbbVr|Er`EfbEnyIbvGr_LjaJf`Qf~Ntxa@hfJ|aY`mHdak@fgTph`AjdIpqw@fgBxqV_c@zfYm~@nvKtvBx\\t|@ftCvsFdgLnkHlpAn{GwrAn`ItnGlmI{~C|cNscJhvV_]`b[lhU~sYjy^beElnO|hI`zNrqBjhDvbFph@z}C_h@t~Aum@v`Efx@hkCkq@btCtbB~pBlpE|g@ldDdj@vhCfaAjzB~nCxbA~f@buB`yAtAvmC`nE~_ArcA~k@cG~@doB|}AxgC~BlgB`YrvGzXdxGtkBzlCh|AjlBbzBlUjsB|SrvA|m@~zEt`A|hCtlDf|AhoShxBpmIxeFhcGtwIz~UnvIpla@piD`gUgfA|gMyvJztZrXpzFbhBnEhsJ`sI`tYbzHvmW||h@`uTh}^dkOicArnc@`_Fl~b@bfHpgd@hg|AdnSxshAzyJfwuAsaCzi\\cSrfHauYvsd@mrUpy~@b]`v]t~@zvF_mAv~RkeHjpWeTziLi`Af|F"
+    },
+    "stoptimes": [
+      {
+        "stopPosition": 1,
+        "scheduledArrival": 33480,
+        "realtimeArrival": 33480,
+        "scheduledDeparture": 33480,
+        "realtimeDeparture": 33480,
+        "stop": {
+          "gtfsId": "1:002232030_0",
+          "stationUicPricingCode": "002232030",
+          "name": "Kyiv-Pas.",
+          "lat": 50.439444,
+          "lon": 30.488056,
+          "platformCode": null,
+          "county": null
+        }
+      },
+      {
+        "stopPosition": 7,
+        "scheduledArrival": 55320,
+        "realtimeArrival": 55320,
+        "scheduledDeparture": 56760,
+        "realtimeDeparture": 56760,
+        "stop": {
+          "gtfsId": "1:002237000_0",
+          "stationUicPricingCode": "002237000",
+          "name": "Lviv",
+          "lat": 49.840278,
+          "lon": 23.994167,
+          "platformCode": null,
+          "county": null
+        }
+      },
+      {
+        "stopPosition": 15,
+        "scheduledArrival": 68760,
+        "realtimeArrival": 68760,
+        "scheduledDeparture": 68880,
+        "realtimeDeparture": 68880,
+        "stop": {
+          "gtfsId": "1:002238000_0",
+          "stationUicPricingCode": "002238000",
+          "name": "Mukachevo",
+          "lat": 48.429167,
+          "lon": 22.711667,
+          "platformCode": null,
+          "county": null
+        }
+      },
+      {
+        "stopPosition": 17,
+        "scheduledArrival": 71640,
+        "realtimeArrival": 71640,
+        "scheduledDeparture": 81180,
+        "realtimeDeparture": 81180,
+        "stop": {
+          "gtfsId": "1:002238010_0",
+          "stationUicPricingCode": "002238010",
+          "name": "Chop",
+          "lat": 48.4325,
+          "lon": 22.205556,
+          "platformCode": null,
+          "county": null
+        }
+      },
+      {
+        "stopPosition": 21,
+        "scheduledArrival": 82200,
+        "realtimeArrival": 85560,
+        "scheduledDeparture": 86400,
+        "realtimeDeparture": 88800,
+        "stop": {
+          "gtfsId": "1:005514175_5",
+          "stationUicPricingCode": "005514175",
+          "name": "Záhony",
+          "lat": 48.402222,
+          "lon": 22.183611,
+          "platformCode": "5",
+          "county": "Szabolcs-Szatmár-Bereg"
+        }
+      },
+      {
+        "stopPosition": 40,
+        "scheduledArrival": 89880,
+        "realtimeArrival": 91980,
+        "scheduledDeparture": 90780,
+        "realtimeDeparture": 92100,
+        "stop": {
+          "gtfsId": "1:005514019_5",
+          "stationUicPricingCode": "005514019",
+          "name": "Nyíregyháza",
+          "lat": 47.946667,
+          "lon": 21.705556,
+          "platformCode": "5",
+          "county": "Szabolcs-Szatmár-Bereg"
+        }
+      },
+      {
+        "stopPosition": 48,
+        "scheduledArrival": 93240,
+        "realtimeArrival": 94260,
+        "scheduledDeparture": 93360,
+        "realtimeDeparture": 94380,
+        "stop": {
+          "gtfsId": "1:005513912_8",
+          "stationUicPricingCode": "005513912",
+          "name": "Debrecen",
+          "lat": 47.520278,
+          "lon": 21.628611,
+          "platformCode": "8",
+          "county": "Hajdú-Bihar"
+        }
+      },
+      {
+        "stopPosition": 60,
+        "scheduledArrival": 99300,
+        "realtimeArrival": 99900,
+        "scheduledDeparture": 101160,
+        "realtimeDeparture": 101160,
+        "stop": {
+          "gtfsId": "1:005513748_4",
+          "stationUicPricingCode": "005513748",
+          "name": "Szolnok",
+          "lat": 47.179167,
+          "lon": 20.175833,
+          "platformCode": "4",
+          "county": "Jász-Nagykun-Szolnok"
+        }
+      },
+      {
+        "stopPosition": 86,
+        "scheduledArrival": 108000,
+        "realtimeArrival": 108000,
+        "scheduledDeparture": 108000,
+        "realtimeDeparture": 108000,
+        "stop": {
+          "gtfsId": "1:005510017_8",
+          "stationUicPricingCode": "005510017",
+          "name": "Budapest-Keleti",
+          "lat": 47.500278,
+          "lon": 19.084167,
+          "platformCode": "8",
+          "county": "Budapest"
+        }
+      }
+    ],
+    "wheelchairAccessible": "NO_INFORMATION",
+    "bikesAllowed": "NO_INFORMATION",
+    "infoServices": [
+      {
+        "name": "A vonat 2. osztályú kocsikkal közlekedik",
+        "fromStopIndex": 3,
+        "tillStopIndex": 4,
+        "fontCharSet": "MNR2007",
+        "fontCode": 222,
+        "displayable": true
+      },
+      {
+        "name": "Kerékpár nem szállítható",
+        "fromStopIndex": 0,
+        "tillStopIndex": 8,
+        "fontCharSet": "MNR2007",
+        "fontCode": 334,
+        "displayable": true
+      },
+      {
+        "name": "Országos vonat",
+        "fromStopIndex": 4,
+        "tillStopIndex": 8,
+        "fontCharSet": "MNR2007",
+        "fontCode": 339,
+        "displayable": true
+      },
+      {
+        "name": "Helyjegy váltása kötelező",
+        "fromStopIndex": 0,
+        "tillStopIndex": 8,
+        "fontCharSet": "MNR2007",
+        "fontCode": 197,
+        "displayable": true
+      },
+      {
+        "name": "Belföldi utazásra nem vehető igénybe.",
+        "fromStopIndex": 4,
+        "tillStopIndex": 8,
+        "fontCharSet": "MNR2007",
+        "fontCode": 198,
+        "displayable": true
+      },
+      {
+        "name": "Külföldi úti cél esetén nemzetközi jegyet kell váltania a teljes útvonalra.",
+        "fromStopIndex": 0,
+        "tillStopIndex": 8,
+        "fontCharSet": "MNR2007",
+        "fontCode": 406,
+        "displayable": true
+      },
+      {
+        "name": "2. oszt. egyágyas hálófülke",
+        "fromStopIndex": 0,
+        "tillStopIndex": 8,
+        "fontCharSet": "MNR2007",
+        "fontCode": 203,
+        "displayable": true
+      },
+      {
+        "name": "2. oszt. 2 ágyas hálófülke",
+        "fromStopIndex": 0,
+        "tillStopIndex": 8,
+        "fontCharSet": "MNR2007",
+        "fontCode": 203,
+        "displayable": true
+      },
+      {
+        "name": "2. oszt 4 ágyas hálófülke",
+        "fromStopIndex": 0,
+        "tillStopIndex": 8,
+        "fontCharSet": "MNR2007",
+        "fontCode": 203,
+        "displayable": true
+      }
+    ],
+    "alerts": [
+      {
+        "alertDescriptionText": "Vonat műszaki hibája miatti késés",
+        "alertUrl": null,
+        "effectiveStartDate": 1793227591,
+        "effectiveEndDate": 1793251080,
+        "reason": {
+          "code": "technical",
+          "label": "Műszaki hiba"
+        }
+      }
+    ]
+  },
+  "delay": 8,
+  "trainPosition": 12.273298137508212,
+  "totalRouteDistance": 14.17061390887681,
+  "processedStops": [
+    {
+      "id": "Kyiv-Pas.",
+      "gtfsId": "1:002232030_0",
+      "index": 0,
+      "originalCoords": [
+        30.488056,
+        50.439444
+      ],
+      "distanceAlongRoute": 0,
+      "stopTimeInfo": {
+        "stopPosition": 1,
+        "scheduledArrival": 33480,
+        "realtimeArrival": 33480,
+        "scheduledDeparture": 33480,
+        "realtimeDeparture": 33480,
+        "stop": {
+          "gtfsId": "1:002232030_0",
+          "stationUicPricingCode": "002232030",
+          "name": "Kyiv-Pas.",
+          "lat": 50.439444,
+          "lon": 30.488056,
+          "platformCode": null,
+          "county": null
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Lviv",
+      "gtfsId": "1:002237000_0",
+      "index": 1,
+      "originalCoords": [
+        23.994167,
+        49.840278
+      ],
+      "distanceAlongRoute": 7.227083075013943,
+      "stopTimeInfo": {
+        "stopPosition": 7,
+        "scheduledArrival": 55320,
+        "realtimeArrival": 55320,
+        "scheduledDeparture": 56760,
+        "realtimeDeparture": 56760,
+        "stop": {
+          "gtfsId": "1:002237000_0",
+          "stationUicPricingCode": "002237000",
+          "name": "Lviv",
+          "lat": 49.840278,
+          "lon": 23.994167,
+          "platformCode": null,
+          "county": null
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Mukachevo",
+      "gtfsId": "1:002238000_0",
+      "index": 2,
+      "originalCoords": [
+        22.711667,
+        48.429167
+      ],
+      "distanceAlongRoute": 9.687693095198453,
+      "stopTimeInfo": {
+        "stopPosition": 15,
+        "scheduledArrival": 68760,
+        "realtimeArrival": 68760,
+        "scheduledDeparture": 68880,
+        "realtimeDeparture": 68880,
+        "stop": {
+          "gtfsId": "1:002238000_0",
+          "stationUicPricingCode": "002238000",
+          "name": "Mukachevo",
+          "lat": 48.429167,
+          "lon": 22.711667,
+          "platformCode": null,
+          "county": null
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Chop",
+      "gtfsId": "1:002238010_0",
+      "index": 3,
+      "originalCoords": [
+        22.205556,
+        48.4325
+      ],
+      "distanceAlongRoute": 10.220982994283988,
+      "stopTimeInfo": {
+        "stopPosition": 17,
+        "scheduledArrival": 71640,
+        "realtimeArrival": 71640,
+        "scheduledDeparture": 81180,
+        "realtimeDeparture": 81180,
+        "stop": {
+          "gtfsId": "1:002238010_0",
+          "stationUicPricingCode": "002238010",
+          "name": "Chop",
+          "lat": 48.4325,
+          "lon": 22.205556,
+          "platformCode": null,
+          "county": null
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Záhony",
+      "gtfsId": "1:005514175_5",
+      "index": 4,
+      "originalCoords": [
+        22.183611,
+        48.402222
+      ],
+      "distanceAlongRoute": 10.273583677246748,
+      "stopTimeInfo": {
+        "stopPosition": 21,
+        "scheduledArrival": 82200,
+        "realtimeArrival": 85560,
+        "scheduledDeparture": 86400,
+        "realtimeDeparture": 88800,
+        "stop": {
+          "gtfsId": "1:005514175_5",
+          "stationUicPricingCode": "005514175",
+          "name": "Záhony",
+          "lat": 48.402222,
+          "lon": 22.183611,
+          "platformCode": "5",
+          "county": "Szabolcs-Szatmár-Bereg"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Nyíregyháza",
+      "gtfsId": "1:005514019_5",
+      "index": 5,
+      "originalCoords": [
+        21.705556,
+        47.946667
+      ],
+      "distanceAlongRoute": 10.987386669607508,
+      "stopTimeInfo": {
+        "stopPosition": 40,
+        "scheduledArrival": 89880,
+        "realtimeArrival": 91980,
+        "scheduledDeparture": 90780,
+        "realtimeDeparture": 92100,
+        "stop": {
+          "gtfsId": "1:005514019_5",
+          "stationUicPricingCode": "005514019",
+          "name": "Nyíregyháza",
+          "lat": 47.946667,
+          "lon": 21.705556,
+          "platformCode": "5",
+          "county": "Szabolcs-Szatmár-Bereg"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Debrecen",
+      "gtfsId": "1:005513912_8",
+      "index": 6,
+      "originalCoords": [
+        21.628611,
+        47.520278
+      ],
+      "distanceAlongRoute": 11.437666444035287,
+      "stopTimeInfo": {
+        "stopPosition": 48,
+        "scheduledArrival": 93240,
+        "realtimeArrival": 94260,
+        "scheduledDeparture": 93360,
+        "realtimeDeparture": 94380,
+        "stop": {
+          "gtfsId": "1:005513912_8",
+          "stationUicPricingCode": "005513912",
+          "name": "Debrecen",
+          "lat": 47.520278,
+          "lon": 21.628611,
+          "platformCode": "8",
+          "county": "Hajdú-Bihar"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Szolnok",
+      "gtfsId": "1:005513748_4",
+      "index": 7,
+      "originalCoords": [
+        20.175833,
+        47.179167
+      ],
+      "distanceAlongRoute": 12.958527471486402,
+      "stopTimeInfo": {
+        "stopPosition": 60,
+        "scheduledArrival": 99300,
+        "realtimeArrival": 99900,
+        "scheduledDeparture": 101160,
+        "realtimeDeparture": 101160,
+        "stop": {
+          "gtfsId": "1:005513748_4",
+          "stationUicPricingCode": "005513748",
+          "name": "Szolnok",
+          "lat": 47.179167,
+          "lon": 20.175833,
+          "platformCode": "4",
+          "county": "Jász-Nagykun-Szolnok"
+        }
+      },
+      "predictedDelay": 8
+    },
+    {
+      "id": "Budapest-Keleti",
+      "gtfsId": "1:005510017_8",
+      "index": 8,
+      "originalCoords": [
+        19.084167,
+        47.500278
+      ],
+      "distanceAlongRoute": 14.17061390887681,
+      "stopTimeInfo": {
+        "stopPosition": 86,
+        "scheduledArrival": 108000,
+        "realtimeArrival": 108000,
+        "scheduledDeparture": 108000,
+        "realtimeDeparture": 108000,
+        "stop": {
+          "gtfsId": "1:005510017_8",
+          "stationUicPricingCode": "005510017",
+          "name": "Budapest-Keleti",
+          "lat": 47.500278,
+          "lon": 19.084167,
+          "platformCode": "8",
+          "county": "Budapest"
+        }
+      },
+      "predictedDelay": null
+    }
+  ],
+  "vehicleProgress": {
+    "lastStop": "Debrecen",
+    "nextStop": "Szolnok",
+    "lastStopIndex": 6,
+    "nextStopIndex": 7,
+    "progress": 0.5494464506552583
+  }
+}

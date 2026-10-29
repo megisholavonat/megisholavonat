@@ -7,7 +7,10 @@
         "locate": "My location",
         "location_error": "Your location is unavailable",
         "zoom_in": "Zoom in",
-        "zoom_out": "Zoom out"
+        "zoom_out": "Zoom out",
+        "inactive": "not running",
+        "cluster": "{count} trains here",
+        "map_data": "Map data"
     },
     "Sheet": {
         "resize": "Resize panel"
@@ -69,7 +72,8 @@
             "dsb_me": "DSB class ME \"Viking\"",
             "suburban": "LEW Henningsdorf MX/MXA",
             "unknown": "Unknown vehicle"
-        }
+        },
+        "history": "Punctuality"
     },
     "Station": {
         "board": "Timetable board",
@@ -78,7 +82,8 @@
         "arrivals": "Arrivals",
         "from": "from {station}",
         "canceled": "cancelled",
-        "empty": "No trains right now"
+        "empty": "No trains right now",
+        "history": "Punctuality"
     },
     "States": {
         "stale": "No fresh data for {minutes} min",
@@ -130,7 +135,8 @@
         "map_data": "Map data",
         "changelog": "What's new",
         "changelog_unavailable": "What's new isn't available right now.",
-        "contact": "Contact"
+        "contact": "Contact",
+        "punctuality": "Punctuality"
     },
     "Consent": {
         "title": "Usage statistics?",
@@ -146,5 +152,80 @@
         "title": "Privacy notice",
         "back_to_map": "Back to the map",
         "last_updated": "Last updated: {date}"
+    },
+    "Follow": {
+        "follow": "Follow",
+        "following": "Following",
+        "follow_your_train": "Follow your train",
+        "my_commute": "My commute",
+        "days": "Days",
+        "boarding": "Boarding",
+        "save": "Save",
+        "unfollow": "Stop following",
+        "today_only": "Today only",
+        "tomorrow": "tomorrow",
+        "usually_late": "usually late",
+        "usually_very_late": "usually very late",
+        "day_1": "M",
+        "day_2": "T",
+        "day_3": "W",
+        "day_4": "T",
+        "day_5": "F",
+        "day_6": "S",
+        "day_7": "S"
+    },
+    "Stats": {
+        "title": "Punctuality",
+        "back": "Back",
+        "window": "Last {days} days",
+        "runs": "{runs} runs",
+        "rankings": "Rankings",
+        "order": "Order",
+        "lines": "Lines",
+        "trains": "Trains",
+        "stations": "Stations",
+        "best": "Most punctual",
+        "worst": "Most delayed",
+        "column": "On time of 10",
+        "of10": "<b>on time {count} in 10</b>",
+        "of10_at": "{station}: <b>on time {count} in 10</b>",
+        "usually_late": "Usually late by",
+        "late": {
+            "slight": "5+ min",
+            "moderate": "15+ min",
+            "severe": "60+ min"
+        },
+        "all_trains": "All trains",
+        "by_hour": "By time of day",
+        "hour": "Hour",
+        "by_stop": "By stop",
+        "few_data": "little data",
+        "no_data": "Not enough data yet",
+        "show_on_map": "Show on map"
+    },
+    "Journey": {
+        "title": "Journey planner",
+        "open": "Plan a journey",
+        "from": "From",
+        "to": "To",
+        "swap": "Swap",
+        "done": "Done",
+        "time": "Time",
+        "depart": "Depart",
+        "arrive": "Arrive",
+        "now": "Now",
+        "direct": "Direct",
+        "changes": "{count, plural, one {# change} other {# changes}}",
+        "duration": "{m} min",
+        "duration_hours": "{h} h {m} min",
+        "risk_safe": "Safe",
+        "risk_tight": "Tight",
+        "risk_likely_missed": "Likely missed",
+        "canceled": "Cancelled",
+        "transfer_minutes": "{m} min to change",
+        "walk": "{m} min walk",
+        "on_map": "Show on the map",
+        "empty": "No journeys found",
+        "same_station": "Pick two different stations"
     }
 }

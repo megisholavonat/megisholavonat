@@ -279,7 +279,7 @@
           "journeys"
         ],
         "summary": "Plan Journeys",
-        "description": "Itineraries between two rail stations, with live delays and ticket links",
+        "description": "Itineraries between two rail stations, with live delays, the risk of\nmissing each transfer and ticket links",
         "operationId": "planJourneys",
         "parameters": [
           {
@@ -1103,7 +1103,7 @@
           "rankings"
         ],
         "summary": "Get Rankings",
-        "description": "Stations, lines (S10, Z30, H5, ...) or trains ranked by on-time share (at\nmost 5 minutes late), then by median delay. Stations and lines count every\nstop passage; trains count one arrival per run, at its last recorded stop.",
+        "description": "Stations, lines (S10, Z30, H5, ...) or trains ranked by on-time share (at\nmost 5 minutes late), then by median delay. Stations count every stop\npassage; lines and trains count one arrival per run, at its final stop (or\nthe last stop recorded before it).",
         "operationId": "getRankings",
         "parameters": [
           {
@@ -1175,10 +1175,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Minimum samples to be ranked; defaults to 100 for stations, 300 for lines and 15 for trains",
+              "description": "Minimum samples to be ranked; defaults to 100 for stations, 30 for lines and 15 for trains",
               "title": "Minsamples"
             },
-            "description": "Minimum samples to be ranked; defaults to 100 for stations, 300 for lines and 15 for trains"
+            "description": "Minimum samples to be ranked; defaults to 100 for stations, 30 for lines and 15 for trains"
           }
         ],
         "responses": {
@@ -3494,6 +3494,38 @@
               }
             ],
             "title": "Missrisk"
+          },
+          "risk": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "safe",
+                  "tight",
+                  "likely_missed"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Risk"
+          },
+          "riskSource": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "forecast",
+                  "history",
+                  "canceled"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Risksource"
           }
         },
         "type": "object",

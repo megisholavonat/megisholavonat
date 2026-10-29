@@ -5,6 +5,7 @@
     "type": "module",
     "sideEffects": false,
     "exports": {
+        "./commute": "./src/commute.ts",
         "./constants": "./src/constants.ts",
         "./delay": "./src/delay.ts",
         "./display": "./src/display.ts",

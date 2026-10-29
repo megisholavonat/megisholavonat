@@ -183,7 +183,8 @@ export const planJourneysQueryKey = (options: Options<PlanJourneysData>) => crea
 /**
  * Plan Journeys
  *
- * Itineraries between two rail stations, with live delays and ticket links
+ * Itineraries between two rail stations, with live delays, the risk of
+ * missing each transfer and ticket links
  */
 export const planJourneysOptions = (options: Options<PlanJourneysData>) => queryOptions<PlanJourneysResponse, AxiosError<DefaultError>, PlanJourneysResponse, ReturnType<typeof planJourneysQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
@@ -478,8 +479,9 @@ export const getRankingsQueryKey = (options?: Options<GetRankingsData>) => creat
  * Get Rankings
  *
  * Stations, lines (S10, Z30, H5, ...) or trains ranked by on-time share (at
- * most 5 minutes late), then by median delay. Stations and lines count every
- * stop passage; trains count one arrival per run, at its last recorded stop.
+ * most 5 minutes late), then by median delay. Stations count every stop
+ * passage; lines and trains count one arrival per run, at its final stop (or
+ * the last stop recorded before it).
  */
 export const getRankingsOptions = (options?: Options<GetRankingsData>) => queryOptions<GetRankingsResponse, AxiosError<GetRankingsError>, GetRankingsResponse, ReturnType<typeof getRankingsQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {

@@ -18,11 +18,11 @@ describe("map style", () => {
         expect(railwayTileUrl()).toContain("tiles.openrailwaymap.org");
     });
 
-    it("fades the other markers while one is selected", () => {
+    it("fades the other markers while one is selected, except followed ones", () => {
         expect(markerPaint(null)?.["circle-opacity"]).toBe(1);
         expect(markerPaint("1:42")?.["circle-opacity"]).toEqual([
             "case",
-            ["==", ["get", "vehicleId"], "1:42"],
+            ["any", ["==", ["get", "vehicleId"], "1:42"], ["get", "followed"]],
             1,
             0.6,
         ]);

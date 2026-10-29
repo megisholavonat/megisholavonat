@@ -2,6 +2,7 @@
 
 import type { TrainFeatureProperties } from "@megisholavonat/api-client";
 import { useTranslations } from "next-intl";
+import { TrainHistoryLink } from "@/components/stats/HistoryLinks";
 import { DelayTile } from "@/components/ui/Delay";
 import { PlatformBadge } from "@/components/ui/Platform";
 import { destinationOf } from "@/lib/train";
@@ -24,10 +25,12 @@ export function TrainPanel({
     view,
     fallback,
     onClose,
+    onFollow,
 }: {
     view: TrainView | null;
     fallback: TrainFeatureProperties | null;
     onClose: () => void;
+    onFollow: () => void;
 }) {
     const t = useTranslations("Train");
     const vehicle = view?.vehicle;
@@ -86,7 +89,7 @@ export function TrainPanel({
                         />
                     )}
                 </div>
-                {view && <TrainActions view={view} />}
+                {view && <TrainActions view={view} onFollow={onFollow} />}
                 {view?.reason && (
                     <ReasonBanner
                         reason={view.reason}
@@ -100,6 +103,9 @@ export function TrainPanel({
                     <>
                         <ServiceGlyphs view={view} />
                         <StopList view={view} />
+                        <TrainHistoryLink
+                            tripShortName={view.vehicle.trip.tripShortName}
+                        />
                         <VehicleDetails view={view} />
                     </>
                 ) : (

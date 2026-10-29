@@ -160,6 +160,8 @@ class Observation:
     next_stop: str | None = None
     # Expected arrival at the alighting station, Unix seconds
     eta: int | None = None
+    # The train on the live map, for opening it from the notification
+    vehicle_id: str | None = None
 
 
 class Prefs(Protocol):
@@ -462,6 +464,7 @@ def observe(
         else find_train_ahead(locations, loc, tracked.board_idx),
         next_stop=next_stop,
         eta=eta,
+        vehicle_id=loc.get("vehicleId"),
     )
 
 
@@ -899,6 +902,8 @@ async def _process_follow(
             "serviceDate": obs.service_date.isoformat(),
             "kinds": [a.kind.value for a in alerts],
         }
+        if obs.vehicle_id:
+            data["vehicleId"] = obs.vehicle_id
         expo_messages = [
             ExpoMessage(t.id, t.token, title, body, data) for t in expo_tokens
         ]

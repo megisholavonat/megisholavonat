@@ -285,6 +285,9 @@ function SettingsList({
                 <ToggleRow label={t("tramtrain")} setting="showTramTrains" />
             </Group>
             <Group>
+                <LinkRow label={t("punctuality")} href="/stats" />
+            </Group>
+            <Group>
                 <ConsentRow />
                 <LinkRow label={t("privacy")} href="/privacy" />
             </Group>

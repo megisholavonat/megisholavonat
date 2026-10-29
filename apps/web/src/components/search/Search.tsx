@@ -297,9 +297,12 @@ function useQuickStations(): Station[] {
 export function DesktopSearch({
     trains,
     handlers,
+    home,
 }: {
     trains: TrainFeatureCollection | undefined;
     handlers: SearchHandlers;
+    /** Shown under the field while it is empty (the followed trains) */
+    home?: React.ReactNode;
 }) {
     const state = useSearchState(trains, handlers);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -351,18 +354,23 @@ export function DesktopSearch({
                     <Results state={state} />
                 </div>
             ) : (
-                <div className="flex flex-wrap gap-2 border-t border-line px-4 py-3">
-                    {quick.map((station) => (
-                        <button
-                            key={station.id}
-                            type="button"
-                            onClick={() => handlers.onSelectStation(station)}
-                            className="h-8 cursor-pointer rounded-full bg-surface-2 px-3 text-sm font-semibold text-ink hover:bg-line"
-                        >
-                            {station.name}
-                        </button>
-                    ))}
-                </div>
+                <>
+                    {home}
+                    <div className="flex flex-wrap gap-2 border-t border-line px-4 py-3">
+                        {quick.map((station) => (
+                            <button
+                                key={station.id}
+                                type="button"
+                                onClick={() =>
+                                    handlers.onSelectStation(station)
+                                }
+                                className="h-8 cursor-pointer rounded-full bg-surface-2 px-3 text-sm font-semibold text-ink hover:bg-line"
+                            >
+                                {station.name}
+                            </button>
+                        ))}
+                    </div>
+                </>
             )}
         </div>
     );

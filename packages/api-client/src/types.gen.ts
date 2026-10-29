@@ -1262,6 +1262,14 @@ export type Transfer = {
      * Missrisk
      */
     missRisk?: number | null;
+    /**
+     * Risk
+     */
+    risk?: 'safe' | 'tight' | 'likely_missed' | null;
+    /**
+     * Risksource
+     */
+    riskSource?: 'forecast' | 'history' | 'canceled' | null;
 };
 
 /**
@@ -2397,7 +2405,7 @@ export type GetRankingsData = {
         /**
          * Minsamples
          *
-         * Minimum samples to be ranked; defaults to 100 for stations, 300 for lines and 15 for trains
+         * Minimum samples to be ranked; defaults to 100 for stations, 30 for lines and 15 for trains
          */
         minSamples?: number | null;
     };

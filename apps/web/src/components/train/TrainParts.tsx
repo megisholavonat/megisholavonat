@@ -25,6 +25,7 @@ import {
     ChevronLeft,
     ChevronRight,
     Share,
+    Star,
     Triangle,
     X,
 } from "lucide-react";
@@ -39,6 +40,7 @@ import {
 import { PlatformBadge } from "@/components/ui/Platform";
 import { ReasonIcon } from "@/components/ui/ReasonIcon";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
+import { findFollow, useFollows } from "@/hooks/useFollows";
 import {
     destinationOf,
     type TrainReason,
@@ -230,9 +232,56 @@ export function TrainSummary({
     );
 }
 
-/** Ticket and share. Following comes with the commute features. */
-export function TrainActions({ view }: { view: TrainView }) {
+/** Whether this train is followed (by number, preferring its own stops). */
+export function useIsFollowed(view: TrainView | null): boolean {
+    const follows = useFollows();
+    if (!view) return false;
+    return !!findFollow(
+        follows,
+        trainNumber(view.vehicle.trip.tripShortName),
+        view.stops.map((s) => s.stationId),
+    );
+}
+
+/** Star button for the full sheet header. */
+export function FollowIconButton({
+    view,
+    onFollow,
+}: {
+    view: TrainView;
+    onFollow: () => void;
+}) {
+    const t = useTranslations("Follow");
+    const followed = useIsFollowed(view);
+    return (
+        <IconButton
+            label={followed ? t("following") : t("follow")}
+            onClick={onFollow}
+            className={
+                followed
+                    ? undefined
+                    : "bg-action text-on-action hover:bg-action"
+            }
+        >
+            <Star
+                className={cn("size-5", followed && "fill-current")}
+                aria-hidden
+            />
+        </IconButton>
+    );
+}
+
+/** Follow, share and ticket. */
+export function TrainActions({
+    view,
+    onFollow,
+}: {
+    view: TrainView;
+    onFollow: () => void;
+}) {
     const t = useTranslations("Train");
+    const tFollow = useTranslations("Follow");
+    const followed = useIsFollowed(view);
     const [copied, setCopied] = useState(false);
     const share = async () => {
         const url = window.location.href;
@@ -251,15 +300,23 @@ export function TrainActions({ view }: { view: TrainView }) {
     };
     return (
         <div className="flex gap-2">
-            <a
-                href={view.ticketUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-full bg-action px-4 text-[15px] font-semibold text-on-action"
+            <button
+                type="button"
+                onClick={onFollow}
+                aria-pressed={followed}
+                className={cn(
+                    "flex h-11 flex-1 cursor-pointer items-center justify-center gap-2 rounded-full px-4 text-[15px] font-semibold",
+                    followed
+                        ? "bg-surface-2 text-ink hover:bg-line"
+                        : "bg-action text-on-action",
+                )}
             >
-                {t("ticket")}
-                <ArrowUpRight className="size-4" aria-hidden />
-            </a>
+                <Star
+                    className={cn("size-4.5", followed && "fill-current")}
+                    aria-hidden
+                />
+                {followed ? tFollow("following") : tFollow("follow")}
+            </button>
             <IconButton
                 label={copied ? t("copied") : t("share")}
                 onClick={share}
@@ -270,6 +327,15 @@ export function TrainActions({ view }: { view: TrainView }) {
                     <Share className="size-5" aria-hidden />
                 )}
             </IconButton>
+            <a
+                href={view.ticketUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex h-11 shrink-0 items-center justify-center gap-1 rounded-full bg-surface-2 px-4 text-[15px] font-semibold text-ink transition-colors hover:bg-line"
+            >
+                {t("ticket")}
+                <ArrowUpRight className="size-4" aria-hidden />
+            </a>
         </div>
     );
 }

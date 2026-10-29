@@ -16,6 +16,8 @@ import { TILE_CACHE_URL } from "../config";
 import { useAppTheme } from "../theme/ThemeProvider";
 import {
     baseStyleUrl,
+    FOLLOWED_FILTER,
+    followedBadgePaint,
     HALO_FILTER,
     haloPaint,
     INITIAL_VIEW,
@@ -39,6 +41,7 @@ export function TrainMap({
     trains,
     now,
     onTrainPress,
+    followed,
     showRailways,
     followUser,
     onFollowUserChange,
@@ -48,6 +51,8 @@ export function TrainMap({
     /** Clock for staleness; ticks with the feed */
     now: Date;
     onTrainPress: (vehicleId: string) => void;
+    /** Vehicle ids of followed trains */
+    followed: readonly string[];
     showRailways: boolean;
     /** Show the user's position and keep the camera on it */
     followUser: boolean;
@@ -59,8 +64,8 @@ export function TrainMap({
     const selectedId = useSelectedTrain();
 
     const markers = useMemo(
-        () => markerCollection(trains, theme, now),
-        [trains, theme, now],
+        () => markerCollection(trains, theme, now, new Set(followed)),
+        [trains, theme, now, followed],
     );
 
     const trackUserLocation: TrackUserLocation | undefined = followUser
@@ -136,6 +141,16 @@ export function TrainMap({
                     minzoom={LABEL_MIN_ZOOM}
                     layout={LABEL_LAYOUT}
                     paint={labelPaint(selectedId)}
+                />
+                <Layer
+                    id="train-followed"
+                    type="circle"
+                    filter={FOLLOWED_FILTER}
+                    layout={MARKER_LAYOUT}
+                    paint={followedBadgePaint(
+                        theme.colors.ink,
+                        theme.colors.surface,
+                    )}
                 />
                 <Layer
                     id="train-selected"
