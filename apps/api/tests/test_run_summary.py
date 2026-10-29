@@ -1,5 +1,6 @@
 import json
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
+from types import SimpleNamespace
 from typing import Any
 
 import fakeredis
@@ -276,7 +277,7 @@ async def test_cancelled_run_from_the_live_trains(
         "alerts": [],
     }
     at = service_day_start(date(2026, 10, 28)) + timedelta(hours=7)
-    await redis.hset(
+    await redis.hset(  # type: ignore[misc]
         add_key("train-positions-hash"),
         "v1",
         json.dumps(
@@ -321,18 +322,12 @@ async def test_bad_input_is_rejected(
 
 
 def test_shift_days_by_when_the_passages_were_seen() -> None:
-    row = type(
-        "Row",
-        (),
-        {
-            "scheduled_departure_s": 600,
-            "scheduled_arrival_s": 600,
-            "delay_s": 0,
-            "observed_at": datetime.combine(DAY, datetime.min.time()),
-        },
-    )
-    row.observed_at = service_day_start(DAY + timedelta(days=1)) + timedelta(
-        seconds=600
+    # Seen at 0:10 on the next day, for a 0:10 stoptime
+    row = SimpleNamespace(
+        scheduled_departure_s=600,
+        scheduled_arrival_s=600,
+        delay_s=0,
+        observed_at=service_day_start(DAY + timedelta(days=1)) + timedelta(seconds=600),
     )
     run = run_summary._Run(DAY, "1:x", [row])
     assert run.effective_date == DAY + timedelta(days=1)
