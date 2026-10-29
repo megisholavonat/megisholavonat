@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { TrainHistoryLink } from "@/components/stats/HistoryLinks";
 import { DelayTile } from "@/components/ui/Delay";
 import { PlatformBadge } from "@/components/ui/Platform";
-import { destinationOf } from "@/lib/train";
+import { destinationOf, trainName } from "@/lib/train";
 import {
     BackButton,
     NextStopLine,
@@ -18,9 +18,14 @@ import {
     TrainTitle,
     VehicleDetails,
 } from "./TrainParts";
+import { useScrollToCurrentStop } from "./TrainSheet";
 import type { TrainView } from "./useTrainView";
 
-/** Desktop train panel, docked top-left over the map. */
+/**
+ * Desktop train panel, docked top-left over the map (the page positions
+ * and animates it). The destination keeps the title row; the train's name
+ * goes on its own line.
+ */
 export function TrainPanel({
     view,
     fallback,
@@ -35,31 +40,35 @@ export function TrainPanel({
     const t = useTranslations("Train");
     const vehicle = view?.vehicle;
     const next = view?.next;
+    const tripShortName =
+        vehicle?.trip.tripShortName ?? fallback?.tripShortName ?? "";
+    const name = trainName(tripShortName);
+    const listRef = useScrollToCurrentStop(view, true);
     return (
         <section
             aria-label={t("sheet_label")}
-            className="floating-card absolute top-4 bottom-4 left-4 z-30 flex w-[400px] flex-col overflow-hidden rounded-sheet"
+            className="floating-card flex h-full w-[400px] max-w-full flex-col overflow-hidden rounded-sheet"
         >
             <div className="flex flex-col gap-3 border-b border-line p-4">
                 <div className="flex items-center gap-2">
                     <BackButton onClick={onClose} />
-                    <h2 className="min-w-0 flex-1 text-headline">
+                    <h2 className="flex min-w-0 flex-1 flex-col text-headline">
                         <TrainTitle
                             routeShortName={
                                 vehicle?.trip.route.shortName ??
                                 fallback?.routeShortName ??
                                 ""
                             }
-                            tripShortName={
-                                vehicle?.trip.tripShortName ??
-                                fallback?.tripShortName ??
-                                ""
-                            }
+                            tripShortName={tripShortName}
                             destination={
                                 vehicle ? destinationOf(vehicle) : null
                             }
-                            withName
                         />
+                        {name && (
+                            <span className="truncate text-caption font-semibold tracking-wide text-ink-2">
+                                {name}
+                            </span>
+                        )}
                     </h2>
                 </div>
                 <div className="flex items-center gap-3">
@@ -103,7 +112,10 @@ export function TrainPanel({
                     />
                 )}
             </div>
-            <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 py-2">
+            <div
+                ref={listRef}
+                className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 py-2"
+            >
                 {view ? (
                     <>
                         <ServiceGlyphs view={view} />
