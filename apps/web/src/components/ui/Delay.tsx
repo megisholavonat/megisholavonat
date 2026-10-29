@@ -47,9 +47,13 @@ export function formatDelay(delay: number): string {
 function useDelayLabel(delay: number | null, stale: boolean) {
     const t = useTranslations("Delay");
     if (delay == null) return { onTime: false, text: "–" };
+    // A stale delay is a last known number, never a confident "pontos"
+    if (stale) {
+        const signed = delay < 0 ? `−${-delay}` : formatDelay(delay);
+        return { onTime: false, text: `${signed}?` };
+    }
     const onTime = getDelayLevel(delay) === "onTime";
-    const text = onTime ? t("on_time") : formatDelay(delay);
-    return { onTime, text: stale && !onTime ? `${text}?` : text };
+    return { onTime, text: onTime ? t("on_time") : formatDelay(delay) };
 }
 
 /**
