@@ -2,12 +2,12 @@ export { stationName, trainTitle } from "@/lib/stats/lookup";
 
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { OG_SIZE } from "@/lib/og/metadata";
+import { subpageMetadata } from "@/lib/og/metadata";
 import { siteUrl } from "@/lib/og/server";
 
 /**
  * Title, description and link preview of a stats page, with its own og:url
- * ("Pontosság | Mégis hol a vonat?").
+ * ("Pontosság · Mégis hol a vonat?").
  */
 export async function statsMetadata({
     locale,
@@ -26,35 +26,13 @@ export async function statsMetadata({
 }): Promise<Metadata> {
     const t = await getTranslations({ locale, namespace: "Stats" });
     const tHome = await getTranslations({ locale, namespace: "Home" });
-    const origin = siteUrl();
-    const appTitle = tHome("app_title");
-    const ogTitle = title ?? t("title");
-    const text = description ?? t("description");
-    const image = {
-        url: `/${locale}/og`,
-        ...OG_SIZE,
-        type: "image/png",
-        alt: appTitle,
-    };
-    return {
-        metadataBase: new URL(origin),
-        title: `${ogTitle} | ${appTitle}`,
-        description: text,
-        ...(missing ? { robots: { index: false } } : {}),
-        openGraph: {
-            type: "website",
-            siteName: appTitle,
-            locale: locale === "hu" ? "hu_HU" : "en_GB",
-            url: `${origin}/${locale}${path}`,
-            title: ogTitle,
-            description: text,
-            images: [image],
-        },
-        twitter: {
-            card: "summary_large_image",
-            title: ogTitle,
-            description: text,
-            images: [image],
-        },
-    };
+    return subpageMetadata({
+        locale,
+        origin: siteUrl(),
+        appTitle: tHome("app_title"),
+        path,
+        title: title ?? t("title"),
+        description: description ?? t("description"),
+        missing,
+    });
 }

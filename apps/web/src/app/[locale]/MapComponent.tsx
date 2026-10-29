@@ -1014,6 +1014,25 @@ export default function MapComponent({
         };
     }, [station]);
 
+    // The selected station's name, in a box under its ring
+    const stationLabelLayout = useMemo(
+        () => ({
+            "text-field": ["get", "name"] as ExpressionSpecification,
+            "text-font": ["Noto Sans Bold"],
+            "text-size": 13,
+            "text-anchor": "top" as const,
+            "text-offset": [0, 1.35] as [number, number],
+            "text-max-width": 12,
+            "text-allow-overlap": true,
+            "text-ignore-placement": true,
+            "icon-image": stationImageId(scheme, "label"),
+            "icon-text-fit": "both" as const,
+            "icon-allow-overlap": true,
+            "icon-ignore-placement": true,
+        }),
+        [scheme],
+    );
+
     // Every other marker fades to 60 % while a train is selected. A constant
     // (not per-feature) opacity, so MapLibre can transition it.
     const othersOpacity = selectedId ? MARKER.selected.othersOpacity : 1;
@@ -1306,8 +1325,10 @@ export default function MapComponent({
         () =>
             scheme === "dark"
                 ? {
-                      "raster-opacity": 0.6,
-                      "raster-brightness-min": 0.92,
+                      // Not too bright: a dense station yard would turn
+                      // into a pale slab
+                      "raster-opacity": 0.55,
+                      "raster-brightness-min": 0.48,
                       "raster-brightness-max": 0.2,
                       "raster-hue-rotate": 180,
                       "raster-saturation": -0.75,
@@ -1655,7 +1676,7 @@ export default function MapComponent({
                         <Layer
                             id={LAYER_IDS.RAILWAY}
                             type="raster"
-                            beforeId={SLOTS.route}
+                            beforeId={SLOTS.railway}
                             paint={railwayPaint}
                         />
                     </Source>
@@ -1707,24 +1728,6 @@ export default function MapComponent({
                         )}
                     </Source>
                 )}
-                {stationGeojson && (
-                    <Source
-                        id="station-source"
-                        type="geojson"
-                        data={stationGeojson}
-                    >
-                        <Layer
-                            id={LAYER_IDS.STATION}
-                            type="symbol"
-                            beforeId={SLOTS.trains}
-                            layout={{
-                                "icon-image": stationImageId(scheme),
-                                "icon-allow-overlap": true,
-                                "icon-ignore-placement": true,
-                            }}
-                        />
-                    </Source>
-                )}
                 <Source
                     id={SOURCES.base}
                     type="geojson"
@@ -1738,6 +1741,7 @@ export default function MapComponent({
                     {/* Overlapping trains: a count bubble… */}
                     <Layer
                         id={CLUSTER.bubble}
+                        beforeId={LAYER_IDS.TRAIN_PILL}
                         type="circle"
                         filter={["has", "point_count"]}
                         paint={{
@@ -1761,6 +1765,7 @@ export default function MapComponent({
                     />
                     <Layer
                         id={CLUSTER.count}
+                        beforeId={LAYER_IDS.TRAIN_PILL}
                         type="symbol"
                         filter={["has", "point_count"]}
                         layout={{
@@ -1779,6 +1784,7 @@ export default function MapComponent({
                     {/* …with a dot in the colour of its most delayed train */}
                     <Layer
                         id={CLUSTER.badge}
+                        beforeId={LAYER_IDS.TRAIN_PILL}
                         type="symbol"
                         filter={[
                             "all",
@@ -1817,6 +1823,45 @@ export default function MapComponent({
                             "icon-opacity": othersOpacity,
                             "icon-opacity-transition": fade,
                         }}
+                    />
+                </Source>
+                {/*
+                 * The selected station: its edge under the trains, its ring
+                 * above the clusters and plain dots (late pills still draw
+                 * over it) and its name above every unpinned train, so a busy
+                 * station stays readable.
+                 */}
+                {/* Always mounted, so its layers keep their place in the order */}
+                <Source
+                    id="station-source"
+                    type="geojson"
+                    data={stationGeojson ?? EMPTY}
+                >
+                    <Layer
+                        id={LAYER_IDS.STATION}
+                        type="symbol"
+                        beforeId={SLOTS.trains}
+                        layout={{
+                            "icon-image": stationImageId(scheme, "clear"),
+                            "icon-allow-overlap": true,
+                            "icon-ignore-placement": true,
+                        }}
+                    />
+                    <Layer
+                        id={LAYER_IDS.STATION_RING}
+                        type="symbol"
+                        beforeId={LAYER_IDS.TRAIN_PILL}
+                        layout={{
+                            "icon-image": stationImageId(scheme, "ring"),
+                            "icon-allow-overlap": true,
+                            "icon-ignore-placement": true,
+                        }}
+                    />
+                    <Layer
+                        id={LAYER_IDS.STATION_LABEL}
+                        type="symbol"
+                        layout={stationLabelLayout}
+                        paint={{ "text-color": colors.ink }}
                     />
                 </Source>
                 {/* Followed trains: never clustered */}

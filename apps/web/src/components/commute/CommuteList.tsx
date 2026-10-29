@@ -82,9 +82,20 @@ function Row({
         levelOf(live.delay) !== "onTime"
             ? live.reason
             : null;
+    // A live delay that is late moves the departure; within the on-time
+    // band, stale or cancelled, the timetable's time stands
+    const late =
+        live &&
+        !live.canceled &&
+        !live.stale &&
+        live.delay != null &&
+        levelOf(live.delay) !== "onTime"
+            ? live.delay
+            : null;
     return (
         <button
             type="button"
+            data-focus-key={`follow:${row.follow.id}`}
             onClick={() => onOpen(row)}
             className={cn(
                 "flex w-full cursor-pointer items-center gap-3 text-left",
@@ -105,9 +116,23 @@ function Row({
                     <span className="text-caption font-normal text-ink-2">
                         {tTrain("departs_at")}
                     </span>{" "}
-                    <span className="tnum">
-                        {formatSecondsAsTime(follow.departureS)}
-                    </span>
+                    {late ? (
+                        // Late: when it now leaves, as the board shows it
+                        <>
+                            <span className="tnum">
+                                {formatSecondsAsTime(
+                                    follow.departureS + late * 60,
+                                )}
+                            </span>{" "}
+                            <s className="tnum text-caption font-normal text-ink-2">
+                                {formatSecondsAsTime(follow.departureS)}
+                            </s>
+                        </>
+                    ) : (
+                        <span className="tnum">
+                            {formatSecondsAsTime(follow.departureS)}
+                        </span>
+                    )}
                 </span>
                 <span className="tnum truncate text-caption text-ink-2">
                     {follow.destination

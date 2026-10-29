@@ -77,6 +77,7 @@ import {
     TrainSheetHeader,
 } from "@/components/train/TrainSheet";
 import { useTrainView } from "@/components/train/useTrainView";
+import { useFocusReturn } from "@/hooks/useFocusReturn";
 import { type Follow, useFollows } from "@/hooks/useFollows";
 import { useIsDesktop } from "@/hooks/useIsMobile";
 import { useMapAnalytics } from "@/hooks/useMapAnalytics";
@@ -447,6 +448,8 @@ function MapScreen() {
     const feed = feedState(trains, trainsQuery.isError, trainsQuery.isPending);
 
     const [selectedId, setSelectedId] = useState<string | null>(null);
+    // Closing the train puts focus back on the row that opened it
+    useFocusReturn(selectedId);
     const [stationId, setStationId] = useState<string | null>(null);
     const [pickedStation, setPickedStation] = useState<Station | null>(null);
     const [boardKind, setBoardKind] = useState<BoardKind>("departures");

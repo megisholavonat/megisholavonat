@@ -17,11 +17,27 @@ export const STYLE_URLS: Record<ColorScheme, string> = {
  * added, also after a theme switch.
  */
 export const SLOTS = {
+    /**
+     * Under the basemap's place names: the railway overlay's dots never
+     * print over a city's name ("Buda•est")
+     */
+    railway: "slot-railway",
     route: "slot-route",
     stops: "slot-stops",
     station: "slot-station",
     trains: "slot-trains",
 } as const;
+
+/** Basemap layers the map hides */
+const QUIET_LAYERS = new Set(["road_oneway", "road_oneway_opposite"]);
+
+/** Dark basemap roads, recoloured just off the land colour */
+const DARK_ROADS: Record<string, string> = {
+    highway_motorway_casing: "#2C3037",
+    highway_motorway_inner: COLORS.dark.surface2,
+    highway_major_casing: "#2A2E35",
+    highway_major_inner: "#1F2227",
+};
 
 /** Marks the basemap's own layers, so the app's can be told apart. */
 const BASE_KEY = "mhav:base";
@@ -54,6 +70,16 @@ function patchLayer(
         // The land colour the marker colours were checked against
         out.paint = { ...out.paint, "background-color": COLORS[scheme].map };
     }
+    if (QUIET_LAYERS.has(out.id)) {
+        // One-way arrows on motorways: road detail a train map does not need
+        out.layout = { ...out.layout, visibility: "none" };
+    }
+    const quiet = scheme === "dark" ? DARK_ROADS[out.id] : undefined;
+    if (quiet && out.type === "line") {
+        // The dark style draws motorways black on a near-black map, heavier
+        // than a selected route: one quiet step off the land colour instead
+        out.paint = { ...out.paint, "line-color": quiet };
+    }
     if (out.type === "symbol" && out.layout?.["text-field"]) {
         // Place names in the page's language (OpenMapTiles carries name:xx);
         // the local name where there is no translation
@@ -82,11 +108,25 @@ function patchLayer(
     return out;
 }
 
-const SLOT_LAYERS: LayerSpecification[] = Object.values(SLOTS).map((id) => ({
+const slotLayer = (id: string): LayerSpecification => ({
     id,
     type: "background",
     layout: { visibility: "none" },
-}));
+});
+/** The slots above the whole basemap */
+const TOP_SLOTS: LayerSpecification[] = Object.values(SLOTS)
+    .filter((id) => id !== SLOTS.railway)
+    .map(slotLayer);
+
+/** Where the place names start: the railway slot goes right before them */
+function placeNamesAt(layers: LayerSpecification[]): number {
+    const at = layers.findIndex(
+        (l) =>
+            l.type === "symbol" &&
+            (l as { "source-layer"?: string })["source-layer"] === "place",
+    );
+    return at === -1 ? layers.length : at;
+}
 
 function isBase(layer: LayerSpecification): boolean {
     return !!(layer.metadata as Record<string, unknown> | undefined)?.[
@@ -105,20 +145,42 @@ export function basemapTransform(scheme: ColorScheme, locale: string) {
         next: StyleSpecification,
     ): StyleSpecification => {
         const base = next.layers.map((l) => patchLayer(l, scheme, locale));
+        const names = placeNamesAt(base);
+        const below = base.slice(0, names);
+        const above = base.slice(names);
         if (!previous) {
-            return { ...next, layers: [...base, ...SLOT_LAYERS] };
+            return {
+                ...next,
+                layers: [
+                    ...below,
+                    slotLayer(SLOTS.railway),
+                    ...above,
+                    ...TOP_SLOTS,
+                ],
+            };
         }
         const appLayers = previous.layers.filter((l) => !isBase(l));
+        // The app's layers up to the railway slot stay under the names
+        const split = appLayers.findIndex((l) => l.id === SLOTS.railway) + 1;
+        const under =
+            split > 0 ? appLayers.slice(0, split) : [slotLayer(SLOTS.railway)];
+        const over = split > 0 ? appLayers.slice(split) : appLayers;
         // Every source the basemap doesn't have is the app's
         const appSources: Record<string, SourceSpecification> = {};
         for (const [id, source] of Object.entries(previous.sources)) {
             if (!(id in next.sources)) appSources[id] = source;
         }
-        const hasSlots = appLayers.some((l) => l.id === SLOTS.route);
+        const hasSlots = over.some((l) => l.id === SLOTS.route);
         return {
             ...next,
             sources: { ...next.sources, ...appSources },
-            layers: [...base, ...(hasSlots ? [] : SLOT_LAYERS), ...appLayers],
+            layers: [
+                ...below,
+                ...under,
+                ...above,
+                ...(hasSlots ? [] : TOP_SLOTS),
+                ...over,
+            ],
         };
     };
 }

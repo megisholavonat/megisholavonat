@@ -28,6 +28,7 @@ import { RouteGlyph } from "@/components/ui/RouteGlyph";
 import { useNow } from "@/hooks/useNow";
 import { usePredictedPlatforms } from "@/hooks/usePredictedPlatforms";
 import { boardRowOpened } from "@/lib/analyticsEvents";
+import { rowTime } from "@/lib/board";
 import { trainNumber, usuallyLate } from "@/lib/train";
 import { cn } from "@/lib/utils";
 
@@ -162,7 +163,7 @@ function BoardRow({
     entry,
     kind,
     predictedPlatform,
-    train,
+    shown,
     usually,
     now,
     onSelectTrain,
@@ -171,8 +172,8 @@ function BoardRow({
     entry: BoardEntry;
     kind: BoardKind;
     predictedPlatform: string | null;
-    /** The train on the map, when it is there */
-    train: TrainFeatureProperties | undefined;
+    /** The row's delay, from the map's train when it is there */
+    shown: { delay: number; stale: boolean } | null;
     usually: "late" | "veryLate" | undefined;
     now: Date;
     onSelectTrain: (vehicleId: string) => void;
@@ -187,7 +188,7 @@ function BoardRow({
             : entry.headsign
         : "";
     const platform = entry.platform ?? predictedPlatform;
-    const shown = rowDelay(entry, kind, train, now);
+    const { time, late } = rowTime(entry, shown);
     const level = shown && !shown.stale ? getDelayLevel(shown.delay) : null;
     // The cause only next to a live delay that is actually late
     const reason =
@@ -223,7 +224,7 @@ function BoardRow({
             <div
                 className={cn(
                     "flex shrink-0 flex-col items-start gap-0.5",
-                    wide ? "w-36 flex-row items-center gap-3" : "w-14",
+                    wide ? "w-44 flex-row items-center gap-2" : "w-[4.25rem]",
                 )}
             >
                 <span
@@ -232,9 +233,19 @@ function BoardRow({
                         entry.canceled && "text-ink-2 line-through",
                     )}
                 >
-                    {formatTime(entry.scheduledTime)}
+                    {formatTime(time)}
                 </span>
-                {chip}
+                <span className="flex items-center gap-1">
+                    {chip}
+                    {late && (
+                        <s className="tnum text-caption text-ink-2">
+                            <span className="sr-only">
+                                {t("scheduled_time")}{" "}
+                            </span>
+                            {formatTime(entry.scheduledTime)}
+                        </s>
+                    )}
+                </span>
             </div>
             <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span
@@ -283,6 +294,7 @@ function BoardRow({
             {entry.vehicleId ? (
                 <button
                     type="button"
+                    data-focus-key={`train:${entry.vehicleId}`}
                     className={cn(
                         className,
                         "cursor-pointer hover:bg-surface-2/60",
@@ -345,13 +357,29 @@ function BoardList({
             </div>
         );
     }
-    const entries = board.data.entries;
-    if (entries.length === 0) {
+    // Sorted by the time each row shows: the API's expected time, but with
+    // the delay the map shows
+    const rows = board.data.entries
+        .map((entry) => {
+            const shown = rowDelay(
+                entry,
+                kind,
+                entry.vehicleId ? live.get(entry.vehicleId) : undefined,
+                now,
+            );
+            return { entry, shown, time: rowTime(entry, shown).time };
+        })
+        .sort(
+            (a, b) =>
+                a.time - b.time ||
+                a.entry.scheduledTime - b.entry.scheduledTime,
+        );
+    if (rows.length === 0) {
         return <p className="py-8 text-center text-ink-2">{t("empty")}</p>;
     }
     return (
         <ul className="flex flex-col">
-            {entries.map((entry, i) => (
+            {rows.map(({ entry, shown }, i) => (
                 <BoardRow
                     key={`${entry.tripId}-${entry.serviceDate}`}
                     entry={entry}
@@ -359,9 +387,7 @@ function BoardList({
                     predictedPlatform={
                         predicted.get(trainNumber(entry.tripShortName)) ?? null
                     }
-                    train={
-                        entry.vehicleId ? live.get(entry.vehicleId) : undefined
-                    }
+                    shown={shown}
                     usually={usually.get(trainNumber(entry.tripShortName))}
                     now={now}
                     onSelectTrain={(id) => {

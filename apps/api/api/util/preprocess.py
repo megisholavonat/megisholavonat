@@ -1,6 +1,7 @@
 import bisect
 import itertools
 import math
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
@@ -60,6 +61,20 @@ FAR_MATCH_M = 5000.0
 # Still this early, passes at any distance compete: by Üllő 650 was 5.5 km
 # from its first pass and 3.6 km from its last
 ABSURDLY_EARLY_S = 60 * 60
+# The same at the other end of the loop (QA NM-A): 582 TOKAJ approaching
+# Budapest-Nyugati at 12:07 was 1.1 km from its geometry's first km (leaving
+# Keleti at 05:25) and 3.2 km from its last, and read "+399". A pass this late
+# is implausible, as is one whose delay is this far from the trip's previous
+# delay; then the far passes compete as well, and every pass if still
+# ABSURDLY_LATE_S late. Only while the train is not on that pass's track
+# (more than MATCH_SLACK_M from it) or not where its previous position says:
+# a late train is common, and on the track it is where it is. On replays,
+# 140 standing at Wien Hbf 91 min late, 1 m from its geometry, otherwise
+# matched to its terminus Wien Westbf 3.5 km on, where a train standing
+# after its arrival time is "on time".
+IMPLAUSIBLY_LATE_S = 90 * 60
+IMPLAUSIBLE_JUMP_S = 30 * 60
+ABSURDLY_LATE_S = 3 * 60 * 60
 # Stops are snapped the same way, keeping them in timetable order
 STOP_SLACK_M = 1000.0
 OUT_OF_ORDER_M = 50_000.0
@@ -76,6 +91,10 @@ AGAINST_HEADING_S = 1800.0
 # Outside the reach of the trip's previous position. It is large, but less
 # than being hours early, so one wrong match cannot lock a train in place.
 OFF_PREVIOUS_S = 7200.0
+# Each second of implied delay away from the trip's previous delay, up to
+# this much: of two plausible passes, the one that keeps the delay steady.
+# Capped well below being hours off, for the same reason as OFF_PREVIOUS_S.
+INCONSISTENT_MAX_S = 1800.0
 # The previous position counts if at most this old (seconds); the train may
 # have gone back this far (GPS noise, a standing train) or forward this fast
 PREVIOUS_MAX_AGE_S = 1800.0
@@ -340,6 +359,8 @@ class PreviousPosition:
     at: float
     # Length of the line it was measured on, to ignore a changed geometry
     line_length: float
+    # The delay it read there (seconds), if known
+    delay: float | None = None
 
 
 class _Timetable:
@@ -410,14 +431,17 @@ def locate_on_route(
     """
     Distance along the route of the pass the train is on: of the passes
     within MATCH_SLACK_M of the nearest, the one closest to where the train is
-    expected by its timetable, its previous position and its heading. Each
-    costs seconds (see the constants above); the cheapest wins. If even that
-    one would make the train more than IMPLAUSIBLY_EARLY_S early, passes up
-    to FAR_MATCH_M away compete too (at METRE_COST_S per extra metre), and
-    if that is still more than ABSURDLY_EARLY_S early, every pass.
+    expected by its timetable, its previous position and delay, and its
+    heading. Each costs seconds (see the constants above); the cheapest wins.
+    If even that one is implausible (more than IMPLAUSIBLY_EARLY_S early, or
+    off its track or previous position and IMPLAUSIBLY_LATE_S late or
+    IMPLAUSIBLE_JUMP_S off the previous delay),
+    passes up to FAR_MATCH_M away compete too (at METRE_COST_S per extra
+    metre), and if that is still ABSURDLY_EARLY_S early or ABSURDLY_LATE_S
+    late, every pass.
 
-    None when the route passes by only once and the nearest point is
-    plausible: the caller keeps its plain projection.
+    None when the plain projection is as good: the route passes by only once
+    and the nearest point is plausible, or the wider search finds no better.
     """
     if not candidates:
         return None
@@ -425,6 +449,7 @@ def locate_on_route(
     near = [c for c in candidates if c.metres <= nearest + MATCH_SLACK_M]
     moving = heading is not None and speed is not None and speed > STANDING_MAX_MPS
     window: tuple[float, float] | None = None
+    previous_delay: float | None = None
     if previous is not None and metres_per_unit > 0:
         age = reported_at - previous.at
         if 0 <= age <= PREVIOUS_MAX_AGE_S:
@@ -433,10 +458,13 @@ def locate_on_route(
                 previous.along - PREVIOUS_BACK_M / metres_per_unit,
                 previous.along + reach / metres_per_unit,
             )
+            previous_delay = previous.delay
 
     def cost(c: Candidate) -> float:
         delay = timetable.implied_delay(c.along, now)
         total = delay if delay >= 0 else -delay * EARLY_WEIGHT
+        if previous_delay is not None:
+            total += min(abs(delay - previous_delay), INCONSISTENT_MAX_S)
         total += (c.metres - nearest) * METRE_COST_S
         if moving and heading is not None and _heading_against(c.bearing, heading):
             total += AGAINST_HEADING_S
@@ -444,17 +472,35 @@ def locate_on_route(
             total += OFF_PREVIOUS_S
         return total
 
+    def implausible(c: Candidate) -> bool:
+        delay = timetable.implied_delay(c.along, now)
+        if delay < -IMPLAUSIBLY_EARLY_S:
+            return True
+        off_track = c.metres > MATCH_SLACK_M or (
+            window is not None and not window[0] <= c.along <= window[1]
+        )
+        return off_track and (
+            delay > IMPLAUSIBLY_LATE_S
+            or (
+                previous_delay is not None
+                and abs(delay - previous_delay) > IMPLAUSIBLE_JUMP_S
+            )
+        )
+
+    def absurd(c: Candidate) -> bool:
+        delay = timetable.implied_delay(c.along, now)
+        return delay < -ABSURDLY_EARLY_S or delay > ABSURDLY_LATE_S
+
     best = min(near, key=cost)
-    if timetable.implied_delay(best.along, now) >= -IMPLAUSIBLY_EARLY_S or len(
-        candidates
-    ) == len(near):
-        return best.along if len(near) > 1 else None
-    reach = max(FAR_MATCH_M, nearest + MATCH_SLACK_M)
-    best = min((c for c in candidates if c.metres <= reach), key=cost)
-    if timetable.implied_delay(best.along, now) < -ABSURDLY_EARLY_S:
-        # Hours early on every pass nearby: the train is on another line than
-        # its geometry, and any pass is a better guess
-        best = min(candidates, key=cost)
+    if len(candidates) > len(near) and implausible(best):
+        reach = max(FAR_MATCH_M, nearest + MATCH_SLACK_M)
+        best = min((c for c in candidates if c.metres <= reach), key=cost)
+        if absurd(best):
+            # Hours off on every pass nearby: the train is on another line
+            # than its geometry, and any pass is a better guess
+            best = min(candidates, key=cost)
+    if len(near) == 1 and best is near[0]:
+        return None
     return best.along
 
 
@@ -508,6 +554,52 @@ def dwell_stop_index(
         if (at_stop or waiting) and (best is None or metres < best[0]):
             best = (metres, index)
     return best[1] if best else None
+
+
+def arriving_floor(
+    stoptimes: list[dict[str, Any]],
+    processed_stops: Iterable[dict[str, Any]],
+    vehicle_progress: dict[str, Any],
+    train_position: float,
+    metres_per_unit: float,
+    current_time: float,
+    previous_delay: float | None,
+) -> float:
+    """
+    The least delay of a train, not standing, within AT_STOP_M of its last or
+    next stop before that stop's scheduled departure: its delay against the
+    arrival there, but no more than it read last time. Running into a long
+    stop, its front passes the stop's point at speed, and interpolating from
+    the departure would make it the whole dwell early (QA n-A: 6215 entering
+    Nyíregyháza at 11 m/s, due 12:14 - 12:37, read "-17" at 12:20 and 0 a
+    minute later, standing). A train leaving early after standing there read
+    0 last time (the dwell rule), so it reads at least 0 for that poll, then
+    its early delay. -inf without a previous delay and away from stops: a
+    train between them keeps an early reading.
+    """
+    if previous_delay is None:
+        return -math.inf
+    along_by_index = {
+        stop.get("index"): stop["distanceAlongRoute"] for stop in processed_stops
+    }
+    floor = -math.inf
+    for index in (
+        vehicle_progress.get("lastStopIndex"),
+        vehicle_progress.get("nextStopIndex"),
+    ):
+        if index is None or index >= len(stoptimes) - 1:
+            continue
+        along = along_by_index.get(index)
+        arrival = stoptimes[index].get("scheduledArrival")
+        departure = stoptimes[index].get("scheduledDeparture")
+        if along is None or arrival is None or departure is None:
+            continue
+        if (
+            abs(train_position - along) * metres_per_unit <= AT_STOP_M
+            and current_time < departure
+        ):
+            floor = max(floor, min(previous_delay, current_time - arrival))
+    return floor
 
 
 # --- Main Function ---
@@ -575,6 +667,8 @@ def get_delay_and_position(
     # position more than once, the pass the train is expected on.
     train_position = 0.0
     off_route_m: float | None = None
+    # The trip's delay at its previous position, if recent
+    previous_delay: float | None = None
     if route.line is not None:
         line = route.line
         vehicle_point = Point(lon, lat)
@@ -583,6 +677,11 @@ def get_delay_and_position(
             previous.line_length, line.length, rel_tol=1e-6
         ):
             previous = None
+        if (
+            previous is not None
+            and 0 <= calculate_date.timestamp() - previous.at <= PREVIOUS_MAX_AGE_S
+        ):
+            previous_delay = previous.delay
         located = locate_on_route(
             candidates,
             _Timetable(stoptimes, list(processed_stops), metres_per_unit),
@@ -615,7 +714,7 @@ def get_delay_and_position(
         total_route_distance = max(s["distanceAlongRoute"] for s in processed_stops)
 
     # Calculate Delay
-    delay = 0
+    delay: float = 0
 
     last_index = vehicle_progress["lastStopIndex"]
     next_index = vehicle_progress["nextStopIndex"]
@@ -672,6 +771,19 @@ def get_delay_and_position(
             and (along - train_position) * metres_per_unit > HELD_SHORT_M
         ):
             delay = max(delay, current_time - arrival)
+    elif metres_per_unit > 0:
+        delay = max(
+            delay,
+            arriving_floor(
+                stoptimes,
+                processed_stops,
+                vehicle_progress,
+                train_position,
+                metres_per_unit,
+                current_time,
+                previous_delay,
+            ),
+        )
 
     return {
         "delay": delay,

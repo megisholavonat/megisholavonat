@@ -104,6 +104,10 @@ def _board_entry(
     )
     if live is not None:
         vehicle_id = live.vehicleId
+    # Off its route, arrived or cancelled, the train shows no live delay on
+    # the map (QA n-C: 604 off route read "+5" on the Szolnok board while the
+    # map showed none); the row is then like one without a live train
+    if live is not None and live.has_delay:
         delay = live.delay
         # Trains do not leave early; a negative GPS delay before departure
         # only means the train is waiting.
@@ -178,13 +182,18 @@ def merge_duplicate_trips(entries: list[BoardEntry]) -> list[BoardEntry]:
     """
     OTP sometimes lists one physical train as two trips (e.g. "201 ... InterCity"
     and "201 ... gyorsvonat"). Keep one row per train number and scheduled time,
-    preferring the one matched to a live vehicle, then a running one, then
-    realtime data.
+    preferring the one matched to a live vehicle (with a live delay, then
+    without), then a running one, then realtime data.
     """
     return keep_best(
         entries,
         key=lambda e: (e.serviceDate, train_number(e.tripShortName), e.scheduledTime),
-        rank=lambda e: (e.delaySource == "gps", not e.canceled, e.realtime),
+        rank=lambda e: (
+            e.delaySource == "gps",
+            e.vehicleId is not None,
+            not e.canceled,
+            e.realtime,
+        ),
     )
 
 

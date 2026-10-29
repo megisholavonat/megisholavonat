@@ -575,6 +575,7 @@ function ItineraryRow({
     open: boolean;
     onToggle: () => void;
 }) {
+    const tTrain = useTranslations("Train");
     const t = useTranslations("Journey");
     const legs = rides(itinerary);
     const first = legs[0];
@@ -606,7 +607,13 @@ function ItineraryRow({
                 {firstDelay?.live &&
                     !first?.canceled &&
                     getDelayLevel(firstDelay.departure) !== "onTime" && (
-                        <DelayChip delay={firstDelay.departure} />
+                        // Says whose delay it is: the first train's start
+                        <span className="flex items-center gap-1">
+                            <span className="text-caption text-ink-2">
+                                {tTrain("departs_at")}
+                            </span>
+                            <DelayChip delay={firstDelay.departure} />
+                        </span>
                     )}
                 <span className="ml-auto shrink-0 text-sm text-ink-2">
                     <Duration minutes={itinerary.durationMinutes} />
