@@ -283,5 +283,10 @@
         "on_map": "Show on the map",
         "empty": "No journeys found",
         "same_station": "Pick two different stations"
+    },
+    "Shell": {
+        "train_gone": "This train is no longer running",
+        "station_unknown": "No such station",
+        "skip_to_search": "Skip to search"
     }
 }

@@ -284,5 +284,10 @@
         "on_map": "Mutasd a térképen",
         "empty": "Nincs találat",
         "same_station": "Válassz két különböző állomást"
+    },
+    "Shell": {
+        "train_gone": "Ez a vonat már nem közlekedik",
+        "station_unknown": "Nincs ilyen állomás",
+        "skip_to_search": "Ugrás a keresésre"
     }
 }
