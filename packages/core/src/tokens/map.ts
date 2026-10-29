@@ -6,7 +6,7 @@
 // neutral grey ranked by width, ≥ 3:1 on land; borders and water read in both
 // themes; detail comes in with zoom; dark is tuned on its own, not inverted.
 
-import { COLORS, type ColorScheme } from "./tokens";
+import { COLORS, type ColorScheme, MARKER } from "./tokens";
 
 export interface MapPalette {
     /** The land colour the marker colours were checked against */
@@ -254,3 +254,48 @@ export const MAP_FOLLOW_STAR = {
     /** Optical centring: the star sits this much lower */
     dy: 0.4,
 } as const;
+
+/**
+ * The selected train's direction of travel: an ink dart with a surface halo,
+ * so it reads on the map and on the route line in both themes. It sits
+ * `gap` px clear of the selection ring, from zoom `minZoom`, and not for old
+ * data or a standing train.
+ */
+export const MAP_DIRECTION_ARROW = {
+    width: 14,
+    height: 12,
+    /** The back's notch, as a share of the height */
+    notch: 0.3,
+    /** Surface-coloured outline around the dart (px) */
+    halo: 2,
+    /** Between the selection ring and the dart's back (px) */
+    gap: 3,
+    minZoom: MARKER.labelMinZoom,
+} as const;
+
+export function directionArrowPaint(scheme: ColorScheme): {
+    fill: string;
+    halo: string;
+} {
+    return { fill: COLORS[scheme].ink, halo: COLORS[scheme].surface };
+}
+
+/**
+ * The dart's outline pointing up, centred on its box (css px), clockwise
+ * on screen: tip, right wing, notch, left wing.
+ */
+export function directionArrowPoints(): [number, number][] {
+    const { width: w, height: h, notch } = MAP_DIRECTION_ARROW;
+    return [
+        [0, -h / 2],
+        [w / 2, h / 2],
+        [0, h / 2 - notch * h],
+        [-w / 2, h / 2],
+    ];
+}
+
+/** The arrow sprite's side lengths (css px): the dart, its halo and 1 px */
+export function directionArrowBox(): { w: number; h: number } {
+    const { width, height, halo } = MAP_DIRECTION_ARROW;
+    return { w: width + (halo + 1) * 2, h: height + (halo + 1) * 2 };
+}

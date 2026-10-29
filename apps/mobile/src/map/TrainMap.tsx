@@ -99,7 +99,7 @@ const asLayer = (layer: unknown) => layer as LayerProps;
  * Bottom to top: basemap fills and lines … border, network, railway
  * overlay, place names, station dots, station names, route, stops, station
  * clearing, "+N", bubbles, station ring, marks, then the selected and
- * followed trains' marks, ring, arrow, star and chips. Every app layer names
+ * followed trains' marks, ring, star, chips and arrow. Every app layer names
  * the layer it sits on (afterId), so a theme switch, which reloads the
  * native style, adds them back in the same places (web BL-1).
  */
@@ -220,9 +220,10 @@ export function TrainMap({
             asLayer({ ...layers.text, afterId: marks }),
             asLayer({ ...layers.marks, afterId: layers.text.id }),
             asLayer({ ...layers.ring, afterId: layers.marks.id }),
-            asLayer({ ...layers.arrow, afterId: layers.ring.id }),
-            asLayer({ ...layers.badge, afterId: layers.arrow.id }),
+            asLayer({ ...layers.badge, afterId: layers.ring.id }),
             asLayer({ ...layers.chip, afterId: layers.badge.id }),
+            // On top: it may point across the chip
+            asLayer({ ...layers.arrow, afterId: layers.chip.id }),
         ];
     }, [scheme, selectedId, fadeMs, baseLayers]);
 

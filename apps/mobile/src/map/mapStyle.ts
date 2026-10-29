@@ -241,8 +241,8 @@ function bySizeStep(value: (zoom: number) => unknown): Expression {
 /** From the mark's centre to the direction arrow's centre (css px) */
 export function arrowDistance(shape: MarkShape, zoom: number): number {
     const scale = markSizeAt(zoom) / SPRITE_SIZE;
-    // Clear of the selection ring around the shape, with a 1 px gap
-    return round3(ringReach(shape) * scale + 1 + ARROW.height / 2);
+    // Its back `gap` px clear of the selection ring around the shape
+    return round3(ringReach(shape) * scale + ARROW.gap + ARROW.height / 2);
 }
 
 /**
@@ -407,7 +407,7 @@ export function trainLayers({
             id: TRAIN_LAYER_IDS.arrow + suffix,
             type: "symbol",
             source,
-            minzoom: MARKER.labelMinZoom,
+            minzoom: ARROW.minZoom,
             filter: [
                 "all",
                 isSelected(selectedId),

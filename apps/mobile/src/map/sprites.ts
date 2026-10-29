@@ -8,6 +8,7 @@ import {
     STALE_COLORS,
 } from "@megisholavonat/core/tokens";
 import {
+    MAP_DIRECTION_ARROW,
     MAP_FOLLOW_STAR,
     MAP_MARKS,
     MAP_STATION_MARK,
@@ -75,13 +76,8 @@ export function spriteIds(): string[] {
     return ids;
 }
 
-/** The direction arrow's sprite: the triangle plus a 1 px margin (css px) */
-export const ARROW = {
-    ...MARKER.directionArrow,
-    margin: 1,
-    /** Its outline in the map colour, centred on the edge as on the web */
-    stroke: 1.5,
-} as const;
+/** The direction arrow (MAP_DIRECTION_ARROW): a dart with a surface halo */
+export const ARROW = MAP_DIRECTION_ARROW;
 
 /** The follow star's sprite size (css px): the badge plus its rim */
 export const FOLLOW_SIZE = MARKER.followBadge.size + MAP_FOLLOW_STAR.rim * 2;

@@ -34,6 +34,7 @@ import {
     STALE_COLORS,
 } from "@megisholavonat/core/tokens";
 import {
+    MAP_DIRECTION_ARROW,
     MAP_FOCUS,
     MAP_MARKS,
     MAP_PALETTE,
@@ -227,7 +228,14 @@ const SelectedLabel = memo(function SelectedLabel({
     markerRef: Ref<MaplibreMarker>;
     showSpeed: boolean;
 }) {
-    const offsetY = -(pillHeight(level) / 2 + 12);
+    // Clear of the ring and of the direction arrow when it points up
+    const offsetY = -(
+        pillHeight(level) / 2 +
+        RING_REACH +
+        MAP_DIRECTION_ARROW.gap +
+        MAP_DIRECTION_ARROW.height +
+        MAP_DIRECTION_ARROW.halo
+    );
     const speed = Math.round((info.speed ?? 0) * 3.6);
     return (
         <Marker
@@ -310,8 +318,9 @@ interface ClusterListState {
     trains: TrainFeatureProperties[];
 }
 
-// The arrow sits just outside the marker, rotated with the heading. Offsets
-// are bucketed: icon-offset can only pick between literal arrays.
+// The arrow sits outside the marker's selection ring, rotated with the
+// heading. `arrowOffset` is the ring's outer edge; offsets are bucketed:
+// icon-offset can only pick between literal arrays.
 const ARROW_OFFSET_MIN = 12;
 const ARROW_OFFSET_MAX = 40;
 const ARROW_OFFSET_STEP = 2;
@@ -331,10 +340,13 @@ function arrowOffset(extra: number): ExpressionSpecification {
         ["literal", [0, -(ARROW_OFFSET_MIN + extra)]],
     ] as unknown as ExpressionSpecification;
 }
-/** The selected train's arrow clears its ring */
+/** The selected train's arrow: its back `gap` px clear of the ring */
 const ARROW_OFFSET_SELECTED = arrowOffset(
-    MARKER.selected.gap + MARKER.selected.ringWidth,
+    MAP_DIRECTION_ARROW.gap + MAP_DIRECTION_ARROW.height / 2,
 );
+/** From the pill's edge to its selection ring's outer edge */
+const RING_REACH =
+    MARKER.outlineWidth + MARKER.selected.gap + MARKER.selected.ringWidth;
 
 /**
  * The selection ring at progress `p` (0 → 1): its opacity, and on the z < 9
@@ -431,7 +443,7 @@ function enrich(
             ARROW_OFFSET_MAX,
             Math.max(
                 ARROW_OFFSET_MIN,
-                Math.round((halfWidth + 6) / ARROW_OFFSET_STEP) *
+                Math.round((halfWidth + RING_REACH) / ARROW_OFFSET_STEP) *
                     ARROW_OFFSET_STEP,
             ),
         ),
@@ -1894,7 +1906,7 @@ export default function MapComponent({
                     <Layer
                         id={SEL.heading}
                         type="symbol"
-                        minzoom={MARKER.labelMinZoom}
+                        minzoom={MAP_DIRECTION_ARROW.minZoom}
                         filter={HAS_HEADING}
                         layout={{
                             "icon-image": arrowImageId(scheme),

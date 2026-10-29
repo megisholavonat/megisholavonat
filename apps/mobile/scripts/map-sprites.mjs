@@ -34,9 +34,13 @@ registerHooks({
 
 const sprites = await import("../src/map/sprites.ts");
 const { COLORS } = await import("@megisholavonat/core/tokens");
-const { MAP_FOLLOW_STAR, MAP_STATION_MARK } = await import(
-    "@megisholavonat/core/tokens/map"
-);
+const {
+    MAP_FOLLOW_STAR,
+    MAP_STATION_MARK,
+    directionArrowBox,
+    directionArrowPaint,
+    directionArrowPoints,
+} = await import("@megisholavonat/core/tokens/map");
 const {
     ARROW,
     FOLLOW_SIZE,
@@ -387,25 +391,46 @@ function inside(points) {
     };
 }
 
-/** Direction of travel: an ink triangle pointing up, edged in the map colour */
+/** Distance (css px) from a point to a polygon's outline, round at corners */
+function edgeDistance(points) {
+    return (x, y) => {
+        let best = Number.POSITIVE_INFINITY;
+        for (let i = 0; i < points.length; i++) {
+            const [ax, ay] = points[i];
+            const [bx, by] = points[(i + 1) % points.length];
+            const dx = bx - ax;
+            const dy = by - ay;
+            const t = Math.max(
+                0,
+                Math.min(
+                    1,
+                    ((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy),
+                ),
+            );
+            best = Math.min(best, Math.hypot(x - ax - dx * t, y - ay - dy * t));
+        }
+        return best;
+    };
+}
+
+/**
+ * Direction of travel: an ink dart pointing up with a surface halo, as the
+ * web draws it (MAP_DIRECTION_ARROW)
+ */
 function arrow(scheme) {
-    const { width, height, margin, stroke } = ARROW;
-    const sdf = polygon([
-        [0, -height / 2],
-        [width / 2, height / 2],
-        [-width / 2, height / 2],
-    ]);
+    const points = directionArrowPoints();
+    const inDart = inside(points);
+    const edge = edgeDistance(points);
+    const paint = directionArrowPaint(scheme);
+    const box = directionArrowBox();
     return {
-        w: width + margin * 2,
-        h: height + margin * 2,
+        w: box.w,
+        h: box.h,
         paint: over([
+            { color: parseColor(paint.fill), covers: inDart },
             {
-                color: parseColor(COLORS[scheme].ink),
-                covers: (x, y) => sdf(x, y) < 0,
-            },
-            {
-                color: parseColor(COLORS[scheme].map),
-                covers: (x, y) => sdf(x, y) < stroke / 2,
+                color: parseColor(paint.halo),
+                covers: (x, y) => edge(x, y) < ARROW.halo,
             },
         ]),
     };

@@ -61,7 +61,7 @@ function PopIn({
 export function labelLift(zoom: number): number {
     const scale = markSizeAt(zoom) / SPRITE_SIZE;
     const ring = Math.max(...MARK_SHAPES.map(ringReach)) * scale;
-    return Math.round(ring + 1 + ARROW.height + 2);
+    return Math.round(ring + ARROW.gap + ARROW.height + ARROW.halo);
 }
 
 /** Route glyph and number on an ink pill above the selected train. */

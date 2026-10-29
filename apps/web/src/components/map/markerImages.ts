@@ -17,6 +17,10 @@ import {
     STALE_COLORS,
 } from "@megisholavonat/core/tokens";
 import {
+    directionArrowBox,
+    directionArrowPaint,
+    directionArrowPoints,
+    MAP_DIRECTION_ARROW,
     MAP_FOLLOW_STAR,
     MAP_MARKS,
     MAP_STATION_MARK,
@@ -398,25 +402,28 @@ function cluster(scheme: ColorScheme) {
     return data ? { data, meta: { pixelRatio: PIXEL_RATIO } } : null;
 }
 
-/** Direction of travel: a small ink triangle pointing up (rotated by heading). */
+/**
+ * Direction of travel: an ink dart pointing up (rotated by heading) with a
+ * surface halo, so it reads on the route line too (MAP_DIRECTION_ARROW).
+ */
 function arrow(scheme: ColorScheme) {
-    const { width, height } = MARKER.directionArrow;
+    const { w, h } = directionArrowBox();
+    const paint = directionArrowPaint(scheme);
     const canvas = document.createElement("canvas");
-    canvas.width = (width + 2) * PIXEL_RATIO;
-    canvas.height = (height + 2) * PIXEL_RATIO;
+    canvas.width = w * PIXEL_RATIO;
+    canvas.height = h * PIXEL_RATIO;
     const ctx = context(canvas);
     if (!ctx) return null;
     ctx.scale(PIXEL_RATIO, PIXEL_RATIO);
+    ctx.translate(w / 2, h / 2);
     ctx.beginPath();
-    ctx.moveTo(1 + width / 2, 1);
-    ctx.lineTo(1 + width, 1 + height);
-    ctx.lineTo(1, 1 + height);
+    for (const [x, y] of directionArrowPoints()) ctx.lineTo(x, y);
     ctx.closePath();
     ctx.lineJoin = "round";
-    ctx.lineWidth = 1.5;
-    ctx.strokeStyle = COLORS[scheme].map;
+    ctx.lineWidth = MAP_DIRECTION_ARROW.halo * 2;
+    ctx.strokeStyle = paint.halo;
     ctx.stroke();
-    ctx.fillStyle = COLORS[scheme].ink;
+    ctx.fillStyle = paint.fill;
     ctx.fill();
     const data = toImage(canvas);
     return data ? { data, meta: { pixelRatio: PIXEL_RATIO } } : null;
