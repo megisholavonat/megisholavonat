@@ -1,65 +1,21 @@
 import type { TrainFeatureProperties } from "@megisholavonat/api-client";
-import MAVRouteIcon from "@/components/ui/MavRouteIcon";
+import { DelayText } from "@/components/ui/Delay";
+import { RouteGlyph } from "@/components/ui/RouteGlyph";
+import { trainName, trainNumber } from "@/lib/train";
 
-interface TrainTooltipProps {
+/** Hover card on desktop: route glyph, number, name and delay. */
+export function TrainTooltip({
+    featureProperties: props,
+}: {
     featureProperties: TrainFeatureProperties;
-}
-
-export function TrainTooltip({ featureProperties }: TrainTooltipProps) {
-    const tripName = featureProperties.tripShortName;
-    const isCapital = (char: string) => {
-        return (char >= "A" && char <= "Z") || "ÁÉÍÓÖŐÚÜŰ".includes(char);
-    };
-
-    // Find first 2 consecutive capitals
-    let startPos = -1;
-    if (tripName) {
-        for (let i = 0; i < tripName.length - 1; i++) {
-            if (isCapital(tripName[i]) && isCapital(tripName[i + 1])) {
-                startPos = i;
-                break;
-            }
-        }
-    }
-
-    // Find last 2 consecutive capitals
-    let endPos = -1;
-    if (tripName) {
-        for (let i = tripName.length - 2; i >= 0; i--) {
-            if (isCapital(tripName[i]) && isCapital(tripName[i + 1])) {
-                endPos = i + 1; // Include the second capital
-                break;
-            }
-        }
-    }
-
-    // Extract text from first capital to last capital (inclusive)
-    let extractedText: string | null = null;
-    if (startPos !== -1 && endPos !== -1 && startPos <= endPos && tripName) {
-        extractedText = tripName.substring(startPos, endPos + 1);
-    }
-
-    const tripNameDisplay = tripName ? (
-        <>
-            {extractedText && (
-                <span className="text-xs font-bold">{extractedText}</span>
-            )}
-            {tripName.endsWith("TramTrain") && (
-                <span className="text-xs font-bold">TramTrain</span>
-            )}
-        </>
-    ) : null;
-
+}) {
+    const name = trainName(props.tripShortName);
     return (
-        <div
-            className="text-sm font-medium flex items-center gap-1 pt-0.5"
-            style={{
-                color: `#${featureProperties.routeTextColor}`,
-                fontFamily: "inherit",
-            }}
-        >
-            <MAVRouteIcon routeShortName={featureProperties.routeShortName} />
-            {tripNameDisplay}
+        <div className="flex items-center gap-1.5 py-0.5 text-sm font-semibold whitespace-nowrap">
+            <RouteGlyph routeShortName={props.routeShortName} />
+            <span className="tnum">{trainNumber(props.tripShortName)}</span>
+            {name && <span className="font-medium text-ink-2">{name}</span>}
+            <DelayText delay={props.delay} stale={!!props.isStale} />
         </div>
     );
 }

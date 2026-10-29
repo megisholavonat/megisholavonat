@@ -4,7 +4,11 @@ import parse from "html-react-parser";
 import { cn } from "@/lib/utils";
 import { mnr2007 } from "@/util/fonts";
 
-export default function MAVRouteIcon({
+/**
+ * MÁV route / train category glyph (MNR2007 font). The glyph takes the
+ * surrounding text colour.
+ */
+export function RouteGlyph({
     routeShortName,
     className,
 }: {
@@ -14,17 +18,17 @@ export default function MAVRouteIcon({
     const routeName = getMavRouteName(routeShortName);
 
     return (
-        <div
+        <span
             role="img"
             title={routeName ?? undefined}
             aria-label={routeName ?? undefined}
             className={cn(
                 mnr2007.className,
-                "dark:bg-white dark:px-1 dark:rounded",
+                "inline-block shrink-0 leading-none",
                 className,
             )}
         >
             {parse(DOMPurify.sanitize(routeShortName))}
-        </div>
+        </span>
     );
 }

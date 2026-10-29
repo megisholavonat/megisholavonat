@@ -4,22 +4,26 @@ import {
     Map as MapLibreMap,
     type MapMouseEvent,
     type MapRef,
+    Marker,
     Popup,
     Source,
 } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import polyline from "@mapbox/polyline";
-import type { TrainFeatureProperties } from "@megisholavonat/api-client";
+import type {
+    Station,
+    TrainFeatureCollection,
+    TrainFeatureProperties,
+    VehiclePositionWithDelay,
+} from "@megisholavonat/api-client";
+import { getDelayLevel } from "@megisholavonat/core/delay";
 import {
-    getTrainDetailsOptions,
-    getTrainsOptions,
-} from "@megisholavonat/api-client/react-query";
-import {
-    ORANGE_THRESHOLD,
-    RED_THRESHOLD,
-    YELLOW_THRESHOLD,
-} from "@megisholavonat/core/constants";
-import { DELAY_COLORS, NO_DATA_COLOR } from "@megisholavonat/core/delay";
+    COLORS,
+    type ColorScheme,
+    DELAY_SCALE,
+    MARKER,
+    STALE_COLORS,
+} from "@megisholavonat/core/tokens";
 import {
     createVehicleState,
     onPositionUpdate,
@@ -27,19 +31,21 @@ import {
     tick,
     type VehicleState,
 } from "@megisholavonat/core/VehicleTracker";
-import { useQuery } from "@tanstack/react-query";
 import type {
+    Feature,
     FeatureCollection,
     GeoJSON as GeoJsonType,
     LineString,
+    Point,
 } from "geojson";
 import {
     type ExpressionSpecification,
     type GeoJSONSource,
+    type Marker as MaplibreMarker,
     type Popup as MaplibrePopup,
     setWorkerUrl,
 } from "maplibre-gl";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { useReducedMotion } from "motion/react";
 import {
     memo,
     type Ref,
@@ -49,18 +55,21 @@ import {
     useRef,
     useState,
 } from "react";
-import { DelayLegend } from "@/components/information/DelayLegend";
-import { DragCloseDrawer } from "@/components/information/DragModal";
-import { NoDataDialog } from "@/components/information/NoDataDialog";
-import { TrainPanel } from "@/components/information/TrainPanel";
-import { MapController } from "@/components/map/MapController";
-import { MapImage } from "@/components/map/MapImage";
+import { MapControls } from "@/components/map/MapControls";
+import {
+    arrowImageId,
+    labelSize,
+    markerImage,
+    PILL_PADDING_X,
+    pillHeight,
+    stationImageId,
+} from "@/components/map/markerImages";
 import { TrainTooltip } from "@/components/map/TrainTooltip";
-import { UserLocation } from "@/components/map/UserLocation";
-import { ZoomButtons } from "@/components/map/ZoomButtons";
+import { RouteGlyph } from "@/components/ui/RouteGlyph";
 import { useTheme } from "@/components/ui/ThemeProvider";
-import { useMapSettings } from "@/hooks/useMapSettings";
-import { LAYER_IDS, Z_LAYERS } from "@/util/constants";
+import { useSettings } from "@/hooks/useSettings";
+import { trainNumber } from "@/lib/train";
+import { LAYER_IDS } from "@/util/constants";
 import { OVERLAYS } from "@/util/mapConfigs";
 
 // maplibre-gl 6 can't find its worker from inside a bundle; point it at the
@@ -84,51 +93,25 @@ function createTransparentBasemapIcon(): ImageData {
     );
 }
 
-const SVG_TRIANGLE = `
-<svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-  <path d="M24 4 L32 20 L16 20 Z" fill="white" /> 
-</svg>
-`;
-
-const desktopVariants = {
-    hidden: {
-        x: "100%",
-        opacity: 0,
-    },
-    visible: {
-        x: 0,
-        opacity: 1,
-        transition: {
-            type: "spring" as const,
-            damping: 30,
-            stiffness: 300,
-            opacity: { duration: 0.3 },
-        },
-    },
-    exit: {
-        x: "100%",
-        opacity: 0,
-        transition: {
-            type: "spring" as const,
-            damping: 30,
-            stiffness: 300,
-            opacity: { duration: 0.2 },
-        },
-    },
-};
-
 // Interpolated train positions are pushed to the map at most this often.
 const VEHICLE_FRAME_INTERVAL_MS = 1000 / 12;
 // Skip setData unless some train moved more than this (degrees, ~0.1 m)…
 const VEHICLE_COORD_EPSILON = 1e-6;
 // …or turned more than this many degrees.
 const VEHICLE_BEARING_EPSILON = 0.5;
+/** Taps this close (px) to a marker select it: a 44 px touch target. */
+const HIT_RADIUS = MARKER.hitArea / 2;
+
+const STYLE_URLS: Record<ColorScheme, string> = {
+    light: "https://tiles.openfreemap.org/styles/positron",
+    dark: "https://tiles.openfreemap.org/styles/dark",
+};
 
 function bearingDelta(a: number, b: number): number {
     return Math.abs(((((a - b) % 360) + 540) % 360) - 180);
 }
 
-const TOOLTIP_OFFSET: [number, number] = [0, -10]; // Appear "above" the marker
+const TOOLTIP_OFFSET: [number, number] = [0, -14];
 
 // Memoized so MapComponent re-renders don't reset the popup to `info`'s
 // coordinates; the animation loop moves it through `popupRef`.
@@ -155,170 +138,202 @@ const HoverTooltip = memo(function HoverTooltip({
     );
 });
 
-export interface SearchSelection {
-    vehicleId: string;
-    timestamp: number;
+/** Ink label above the selected train: route glyph, number (and speed). */
+const SelectedLabel = memo(function SelectedLabel({
+    info,
+    markerRef,
+    showSpeed,
+}: {
+    info: TrainFeatureProperties;
+    markerRef: Ref<MaplibreMarker>;
+    showSpeed: boolean;
+}) {
+    const level = info.isStale ? "stale" : getDelayLevel(info.delay);
+    const offsetY = -(pillHeight(level) / 2 + 12);
+    const speed = Math.round((info.speed ?? 0) * 3.6);
+    return (
+        <Marker
+            ref={markerRef}
+            longitude={info.lon}
+            latitude={info.lat}
+            anchor="bottom"
+            offset={[0, offsetY]}
+            style={{ pointerEvents: "none" }}
+        >
+            <div className="flex items-center gap-1 rounded-md bg-action px-1.5 py-0.5 text-caption font-bold text-on-action whitespace-nowrap shadow-sm">
+                <RouteGlyph routeShortName={info.routeShortName} />
+                <span className="tnum">
+                    {trainNumber(info.tripShortName)}
+                    {showSpeed && speed > 0 ? ` · ${speed} km/h` : ""}
+                </span>
+            </div>
+        </Marker>
+    );
+});
+
+// The arrow sits just outside the marker, rotated with the heading. Offsets
+// are bucketed: icon-offset can only pick between literal arrays.
+const ARROW_OFFSET_MIN = 12;
+const ARROW_OFFSET_MAX = 40;
+const ARROW_OFFSET_STEP = 2;
+const ARROW_OFFSET = ((): ExpressionSpecification => {
+    const cases: (number | ExpressionSpecification)[] = [];
+    for (
+        let offset = ARROW_OFFSET_MIN;
+        offset <= ARROW_OFFSET_MAX;
+        offset += ARROW_OFFSET_STEP
+    ) {
+        cases.push(offset, ["literal", [0, -offset]]);
+    }
+    return [
+        "match",
+        ["get", "arrowOffset"],
+        ...cases,
+        ["literal", [0, -ARROW_OFFSET_MIN]],
+    ] as unknown as ExpressionSpecification;
+})();
+
+/** Marker level, shape and label, precomputed per train for the layers. */
+function enrich(
+    props: TrainFeatureProperties,
+    nowS: number,
+): Record<string, unknown> {
+    const stale = !!props.isStale;
+    const level = stale ? "stale" : getDelayLevel(props.delay);
+    const label = stale
+        ? MARKER.label.stale((nowS - props.lastUpdated) / 60)
+        : level === "onTime"
+          ? ""
+          : MARKER.label.delayed(props.delay);
+    // Rough label width, to keep the direction arrow clear of the pill
+    const halfWidth = label
+        ? (label.length * labelSize(level) * 0.62) / 2 + PILL_PADDING_X
+        : MARKER.levels.onTime.height / 2;
+    return {
+        ...props,
+        level,
+        shape: props.type === "hev" ? "hev" : "train",
+        label,
+        arrowOffset: Math.min(
+            ARROW_OFFSET_MAX,
+            Math.max(
+                ARROW_OFFSET_MIN,
+                Math.round((halfWidth + 6) / ARROW_OFFSET_STEP) *
+                    ARROW_OFFSET_STEP,
+            ),
+        ),
+        // Bigger delays draw on top; stale trains at the bottom
+        sortKey: stale ? -1 : props.delay,
+    };
+}
+
+export interface FlyTarget {
+    lon: number;
+    lat: number;
+    zoom?: number;
+    /** Changes on every request, so the same place can be flown to twice */
+    key: number;
+}
+
+export interface MapInsets {
+    bottom: number;
+    left: number;
 }
 
 export default function MapComponent({
-    searchSelection,
-    onClearSearchSelection,
+    trains,
+    selectedId,
+    onSelectTrain,
+    train,
+    station,
+    flyTarget,
+    insets,
+    isDesktop,
 }: {
-    searchSelection: SearchSelection | null;
-    onClearSearchSelection?: () => void;
+    trains: TrainFeatureCollection | undefined;
+    selectedId: string | null;
+    onSelectTrain: (vehicleId: string | null) => void;
+    train: VehiclePositionWithDelay | undefined;
+    station: Station | null;
+    flyTarget: FlyTarget | null;
+    insets: MapInsets;
+    isDesktop: boolean;
 }) {
-    const {
-        showTooltip,
-        showStationNames,
-        stationNamesOpacity,
-        vehicleTypeSettings,
-        showRailwayOverlay,
-        animateVehicles,
-    } = useMapSettings();
+    const settings = useSettings();
     const { resolvedTheme } = useTheme();
+    const scheme: ColorScheme = resolvedTheme === "dark" ? "dark" : "light";
     const prefersReducedMotion = useReducedMotion() ?? false;
     const mapRef = useRef<MapRef>(null);
     const trackersRef = useRef<Map<string, VehicleState>>(new Map());
     const filteredTrainsRef = useRef<FeatureCollection | null>(null);
     const popupRef = useRef<MaplibrePopup>(null);
+    const selectedMarkerRef = useRef<MaplibreMarker>(null);
     const lastHoveredIdRef = useRef<string | null>(null);
-    const { data: trains } = useQuery(getTrainsOptions());
+    const selectedIdRef = useRef(selectedId);
     const [cursor, setCursor] = useState<string | null>(null);
     const [hoverInfo, setHoverInfo] = useState<TrainFeatureProperties | null>(
         null,
     );
-
-    // Read the vehicleId from the URL once on mount (component is ssr:false so window is always available)
-    const [initialUrlVehicleId] = useState<string | null>(() =>
-        new URLSearchParams(window.location.search).get("vehicleId"),
-    );
-    const [selectedId, setSelectedId] = useState<string | null>(
-        initialUrlVehicleId,
-    );
-    const [isPanelOpen, setIsPanelOpen] = useState(!!initialUrlVehicleId);
-    const [showNoDataDialog, setShowNoDataDialog] = useState(false);
-
     const [mapLoaded, setMapLoaded] = useState(false);
-
-    // Refs for URL sync and initial fly-to
-    const isFirstUrlSyncRef = useRef(true);
-    const hasHandledInitialFlyRef = useRef(false);
-    const lastSearchFlyTimestampRef = useRef<number | null>(null);
-
-    const filteredTrains = useMemo(() => {
-        if (!trains)
-            return {
-                type: "FeatureCollection" as const,
-                features: [],
-            };
-
-        return {
-            type: "FeatureCollection" as const,
-            features: trains.features.filter((feature) => {
-                const properties =
-                    feature.properties as TrainFeatureProperties & {
-                        type?: string;
-                    };
-                const type = properties.type;
-                switch (type) {
-                    case "train":
-                        return vehicleTypeSettings.showTrains;
-                    case "tramtrain":
-                        return vehicleTypeSettings.showTramTrains;
-                    case "hev":
-                        return vehicleTypeSettings.showHev;
-                    default:
-                        return true;
-                }
-            }),
-        };
-    }, [trains, vehicleTypeSettings]);
-
-    const { data: train } = useQuery({
-        ...getTrainDetailsOptions({ path: { vehicle_id: selectedId ?? "" } }),
-        enabled: !!selectedId,
-        refetchInterval: selectedId ? 5000 : false,
-    });
+    const insetsRef = useRef(insets);
 
     useEffect(() => {
-        if (searchSelection) {
-            setSelectedId(searchSelection.vehicleId);
-            setIsPanelOpen(true);
-        }
-    }, [searchSelection]);
-
+        insetsRef.current = insets;
+    }, [insets]);
     useEffect(() => {
-        if (!searchSelection) {
-            lastSearchFlyTimestampRef.current = null;
-            return;
-        }
-        if (!filteredTrains) return;
-
-        const feature = filteredTrains.features.find(
-            (f) => f.properties.vehicleId === searchSelection.vehicleId,
-        );
-        if (!feature || !mapRef.current) return;
-
-        if (lastSearchFlyTimestampRef.current === searchSelection.timestamp) {
-            return;
-        }
-        lastSearchFlyTimestampRef.current = searchSelection.timestamp;
-
-        const { lon, lat } = feature.properties;
-        mapRef.current.flyTo({
-            center: [lon, lat],
-            zoom: 14,
-            duration: 2000,
-        });
-    }, [searchSelection, filteredTrains]);
-
-    useEffect(() => {
-        if (isFirstUrlSyncRef.current) {
-            isFirstUrlSyncRef.current = false;
-            return;
-        }
-        const params = new URLSearchParams(window.location.search);
-        if (selectedId) {
-            params.set("vehicleId", selectedId);
-        } else {
-            params.delete("vehicleId");
-        }
-        const search = params.toString();
-        window.history.replaceState(
-            null,
-            "",
-            `${window.location.pathname}${search ? `?${search}` : ""}`,
-        );
+        selectedIdRef.current = selectedId;
     }, [selectedId]);
 
-    // Fly to the vehicle that was in the URL on load
-    useEffect(() => {
-        if (
-            hasHandledInitialFlyRef.current ||
-            !initialUrlVehicleId ||
-            !trains ||
-            !mapLoaded
-        )
-            return;
+    const filteredTrains = useMemo(() => {
+        const nowS = Date.now() / 1000;
+        const features = (trains?.features ?? []).filter((feature) => {
+            switch (feature.properties.type) {
+                case "train":
+                    return settings.showTrains;
+                case "tramtrain":
+                    return settings.showTramTrains;
+                case "hev":
+                    return settings.showHev;
+                default:
+                    return true;
+            }
+        });
+        return {
+            type: "FeatureCollection" as const,
+            features: features.map((feature) => ({
+                type: "Feature" as const,
+                geometry: feature.geometry as unknown as Point,
+                properties: enrich(feature.properties, nowS),
+            })),
+        };
+    }, [
+        trains,
+        settings.showTrains,
+        settings.showTramTrains,
+        settings.showHev,
+    ]);
 
-        const feature = filteredTrains.features.find(
-            (f) => f.properties.vehicleId === initialUrlVehicleId,
+    const selectedInfo = useMemo(() => {
+        if (!selectedId) return null;
+        return (
+            trains?.features.find((f) => f.properties.vehicleId === selectedId)
+                ?.properties ?? null
         );
+    }, [trains, selectedId]);
 
-        hasHandledInitialFlyRef.current = true;
-
-        if (feature) {
-            mapRef.current?.flyTo({
-                center: [feature.properties.lon, feature.properties.lat],
-                zoom: 14,
-                duration: 2000,
-            });
-        } else {
-            // Train is no longer available — clear selection and remove from URL
-            setSelectedId(null);
-            setIsPanelOpen(false);
-        }
-    }, [trains, filteredTrains, initialUrlVehicleId, mapLoaded]);
+    // Fly to a requested place, keeping it clear of the sheet / side panel
+    useEffect(() => {
+        if (!flyTarget || !mapLoaded) return;
+        const map = mapRef.current;
+        if (!map) return;
+        const { bottom, left } = insetsRef.current;
+        map.flyTo({
+            center: [flyTarget.lon, flyTarget.lat],
+            zoom: Math.max(map.getZoom(), flyTarget.zoom ?? 13),
+            duration: prefersReducedMotion ? 0 : 1600,
+            padding: { top: 0, right: 0, bottom, left },
+        });
+    }, [flyTarget, mapLoaded, prefersReducedMotion]);
 
     useEffect(() => {
         filteredTrainsRef.current =
@@ -377,14 +392,16 @@ export default function MapComponent({
     useEffect(() => {
         const hoveredId = lastHoveredIdRef.current;
         if (!hoveredId) return;
-        const feature = filteredTrains.features.find(
+        const feature = trains?.features.find(
             (f) => f.properties.vehicleId === hoveredId,
         );
-        if (feature) setHoverInfo(feature.properties as TrainFeatureProperties);
-    }, [filteredTrains]);
+        if (feature) setHoverInfo(feature.properties);
+    }, [trains]);
 
     useEffect(() => {
-        if (!mapLoaded || !animateVehicles || prefersReducedMotion) return;
+        if (!mapLoaded || !settings.animateVehicles || prefersReducedMotion) {
+            return;
+        }
         const map = mapRef.current?.getMap();
         if (!map) return;
 
@@ -452,11 +469,20 @@ export default function MapComponent({
             lastSource = source;
             lastData = data;
 
-            // Keep the tooltip anchored to the moving vehicle without
-            // re-rendering this component.
+            // Keep the tooltip and the selected label on their moving
+            // vehicles without re-rendering this component.
             const hoveredId = lastHoveredIdRef.current;
             const hovered = hoveredId ? lastSent.get(hoveredId) : undefined;
             if (hovered) popupRef.current?.setLngLat([hovered[0], hovered[1]]);
+            const selected = selectedIdRef.current
+                ? lastSent.get(selectedIdRef.current)
+                : undefined;
+            if (selected) {
+                selectedMarkerRef.current?.setLngLat([
+                    selected[0],
+                    selected[1],
+                ]);
+            }
         };
 
         const frame = (timestamp: DOMHighResTimeStamp) => {
@@ -508,7 +534,7 @@ export default function MapComponent({
                 /* Map may already be removed (e.g. locale change / unmount). */
             }
         };
-    }, [mapLoaded, animateVehicles, prefersReducedMotion]);
+    }, [mapLoaded, settings.animateVehicles, prefersReducedMotion]);
 
     const stopMarkersGeojson = useMemo(() => {
         if (!train?.trip?.stoptimes) return null;
@@ -548,98 +574,187 @@ export default function MapComponent({
         };
     }, [train]);
 
-    const circleColor = useMemo(
-        (): ExpressionSpecification =>
-            [
-                "case",
-                ["==", ["get", "vehicleId"], selectedId || ""],
-                "#00bcd4", // Selected blue
-                ["==", ["get", "isStale"], true],
-                NO_DATA_COLOR, // Stale or inactive
-                [
-                    "step",
-                    ["coalesce", ["get", "delay"], 0],
-                    DELAY_COLORS.onTime,
-                    YELLOW_THRESHOLD,
-                    DELAY_COLORS.slight,
-                    ORANGE_THRESHOLD,
-                    DELAY_COLORS.moderate,
-                    RED_THRESHOLD,
-                    DELAY_COLORS.severe,
-                ],
-            ] as ExpressionSpecification,
+    const stationGeojson = useMemo((): Feature<Point> | null => {
+        if (!station) return null;
+        return {
+            type: "Feature",
+            properties: { name: station.name },
+            geometry: {
+                type: "Point",
+                coordinates: [station.lon, station.lat],
+            },
+        };
+    }, [station]);
+
+    const isSelected: ExpressionSpecification = useMemo(
+        () => ["==", ["get", "vehicleId"], selectedId ?? ""],
         [selectedId],
     );
 
-    const typeColor = useMemo(
-        (): ExpressionSpecification =>
-            [
-                "case",
-                ["==", ["get", "type"], "tramtrain"],
-                "#f9a825", // tramtrain orange
-                ["==", ["get", "type"], "hev"],
-                "#009860", // hev green
-                "#2f4550", // dark blue-ish
-            ] as ExpressionSpecification,
-        [],
+    // Other markers fade while a train is selected
+    const markerOpacity = useMemo(
+        (): ExpressionSpecification | number =>
+            selectedId
+                ? ["case", isSelected, 1, MARKER.selected.othersOpacity]
+                : 1,
+        [selectedId, isSelected],
     );
 
-    const mapStyle = useMemo(() => {
-        return resolvedTheme === "dark"
-            ? "https://tiles.openfreemap.org/styles/dark"
-            : "https://tiles.openfreemap.org/styles/liberty";
-    }, [resolvedTheme]);
+    const imageId = useCallback(
+        (kind: "dot" | "pill"): ExpressionSpecification => [
+            "concat",
+            `mhav-${scheme}-${kind}-`,
+            ["get", "level"],
+            "-",
+            ["get", "shape"],
+            ["case", isSelected, "-sel", ""],
+        ],
+        [scheme, isSelected],
+    );
 
+    const sortKey: ExpressionSpecification = useMemo(
+        () => ["case", isSelected, 100000, ["get", "sortKey"]],
+        [isSelected],
+    );
+
+    const dotPaint = useMemo(() => {
+        const scale = DELAY_SCALE[scheme];
+        const stale = STALE_COLORS[scheme];
+        const byLevel = (
+            pick: (level: keyof typeof scale) => string | number,
+            staleValue: string | number,
+        ): ExpressionSpecification => [
+            "match",
+            ["get", "level"],
+            "slight",
+            pick("slight"),
+            "moderate",
+            pick("moderate"),
+            "severe",
+            pick("severe"),
+            "stale",
+            staleValue,
+            pick("onTime"),
+        ];
+        return {
+            "circle-radius": byLevel(
+                (level) => MARKER.levels[level].dot / 2,
+                MARKER.stale.dot / 2,
+            ),
+            "circle-color": byLevel(
+                (level) => scale[level].fill,
+                stale.background,
+            ),
+            "circle-stroke-width": [
+                "case",
+                isSelected,
+                MARKER.selected.ringWidth,
+                1,
+            ] as ExpressionSpecification,
+            "circle-stroke-color": [
+                "case",
+                isSelected,
+                COLORS[scheme].ink,
+                byLevel(
+                    (level) => scale[level].outline.color,
+                    stale.outline.color,
+                ),
+            ] as ExpressionSpecification,
+            "circle-opacity": markerOpacity,
+            "circle-stroke-opacity": markerOpacity,
+        };
+    }, [scheme, isSelected, markerOpacity]);
+
+    const pillTextColor = useMemo((): ExpressionSpecification => {
+        const scale = DELAY_SCALE[scheme];
+        return [
+            "match",
+            ["get", "level"],
+            "slight",
+            scale.slight.label,
+            "moderate",
+            scale.moderate.label,
+            "severe",
+            scale.severe.label,
+            "stale",
+            STALE_COLORS[scheme].text,
+            scale.onTime.label,
+        ];
+    }, [scheme]);
+
+    // Marker sprites are drawn on first use. The resolver goes in as soon as
+    // the map exists, before any layer asks for an image.
+    const attachMap = useCallback((ref: MapRef | null) => {
+        mapRef.current = ref;
+        const map = ref?.getMap();
+        if (!map) return;
+        map.setMissingStyleImageResolver((id) => {
+            if (map.hasImage(id)) return;
+            const sprite = markerImage(id);
+            if (sprite) {
+                map.addImage(id, sprite.data, sprite.meta);
+            } else {
+                map.addImage(id, createTransparentBasemapIcon());
+            }
+        });
+    }, []);
+
+    // Match the basemap's land colour to the one the marker colours were
+    // checked against
     useEffect(() => {
         if (!mapLoaded) return;
         const map = mapRef.current?.getMap();
         if (!map) return;
-
-        map.setMissingStyleImageResolver((id) => {
-            if (!map.hasImage(id)) {
-                map.addImage(id, createTransparentBasemapIcon());
+        const paintBackground = () => {
+            for (const id of ["background", "Background"]) {
+                if (map.getLayer(id)) {
+                    map.setPaintProperty(
+                        id,
+                        "background-color",
+                        COLORS[scheme].map,
+                    );
+                }
             }
-        });
+        };
+        paintBackground();
+        map.on("style.load", paintBackground);
         return () => {
             try {
-                map.setMissingStyleImageResolver(null);
+                map.off("style.load", paintBackground);
             } catch {
-                /* Map may already be removed (e.g. locale change / unmount). */
+                /* Map may already be removed. */
             }
         };
-    }, [mapLoaded]);
+    }, [mapLoaded, scheme]);
 
-    const railwayPaint = useMemo(() => {
-        if (resolvedTheme === "dark") {
-            return {
-                "raster-opacity": 0.6,
-            };
-        }
-        return {
-            "raster-opacity": 0.8,
-        };
-    }, [resolvedTheme]);
+    const railwayPaint = useMemo(
+        () => ({ "raster-opacity": scheme === "dark" ? 0.55 : 0.75 }),
+        [scheme],
+    );
+
+    const markerLayerIds = useMemo(
+        () => [
+            LAYER_IDS.TRAIN_DOT,
+            LAYER_IDS.TRAIN_PLAIN,
+            LAYER_IDS.TRAIN_PILL,
+        ],
+        [],
+    );
 
     const onHover = useCallback(
         (e: MapMouseEvent) => {
-            if (!showTooltip) return;
+            if (!settings.showTooltip || !isDesktop) return;
             const feature = e.features?.[0];
-            if (feature && trains) {
-                const newId = (feature.properties as TrainFeatureProperties)
-                    .vehicleId;
-
-                const isSameVehicle = lastHoveredIdRef.current === newId;
-                if (!isSameVehicle) {
-                    lastHoveredIdRef.current = newId;
-                    setCursor("pointer");
-                }
-                // While hovering the same vehicle, the animation loop moves the
-                // tooltip and the feed effect refreshes its content; setting
-                // state here would re-render the map on every mousemove.
-                if (isSameVehicle) {
-                    return;
-                }
-                setHoverInfo(feature.properties as TrainFeatureProperties);
+            if (feature) {
+                const props = feature.properties as TrainFeatureProperties;
+                const newId = props.vehicleId;
+                if (lastHoveredIdRef.current === newId) return;
+                lastHoveredIdRef.current = newId;
+                setCursor("pointer");
+                const fresh = trains?.features.find(
+                    (f) => f.properties.vehicleId === newId,
+                );
+                setHoverInfo(fresh?.properties ?? props);
             } else {
                 if (lastHoveredIdRef.current === null) return;
                 lastHoveredIdRef.current = null;
@@ -647,124 +762,45 @@ export default function MapComponent({
                 setHoverInfo(null);
             }
         },
-        [trains, showTooltip],
+        [trains, settings.showTooltip, isDesktop],
     );
 
     const onClick = useCallback(
         (e: MapMouseEvent) => {
-            const feature = e.features?.[0];
-            if (feature) {
-                const id = feature.properties.vehicleId;
-                onClearSearchSelection?.();
-                if (selectedId === id) {
-                    setSelectedId(null);
-                    setIsPanelOpen(false);
-                } else {
-                    setSelectedId(id);
-                    setIsPanelOpen(true);
-                }
-            } else {
-                onClearSearchSelection?.();
-                setSelectedId(null);
-                setIsPanelOpen(false);
+            let feature = e.features?.[0];
+            if (!feature) {
+                // Small dots get a 44 px touch target
+                const map = mapRef.current?.getMap();
+                const { x, y } = e.point;
+                const hits = map?.queryRenderedFeatures(
+                    [
+                        [x - HIT_RADIUS, y - HIT_RADIUS],
+                        [x + HIT_RADIUS, y + HIT_RADIUS],
+                    ],
+                    { layers: markerLayerIds },
+                );
+                feature = hits?.sort((a, b) => {
+                    const pa = map?.project(
+                        (a.geometry as Point).coordinates as [number, number],
+                    );
+                    const pb = map?.project(
+                        (b.geometry as Point).coordinates as [number, number],
+                    );
+                    const da = pa ? (pa.x - x) ** 2 + (pa.y - y) ** 2 : 0;
+                    const db = pb ? (pb.x - x) ** 2 + (pb.y - y) ** 2 : 0;
+                    return da - db;
+                })[0];
             }
+            const id = feature?.properties.vehicleId as string | undefined;
+            onSelectTrain(id && id !== selectedId ? id : null);
         },
-        [selectedId, onClearSearchSelection],
+        [selectedId, onSelectTrain, markerLayerIds],
     );
 
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === "Escape" && (selectedId || isPanelOpen)) {
-                onClearSearchSelection?.();
-                setSelectedId(null);
-                setIsPanelOpen(false);
-            }
-        };
-
-        window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [selectedId, isPanelOpen, onClearSearchSelection]);
-
-    useEffect(() => {
-        const hasTrains = (trains?.features?.length ?? 0) > 0;
-        const isVeryOld =
-            trains?.dataAgeMinutes !== undefined &&
-            trains.dataAgeMinutes !== null &&
-            trains.dataAgeMinutes >= 15;
-
-        if (trains?.noDataReceived || (isVeryOld && !hasTrains)) {
-            setShowNoDataDialog(true);
-        } else {
-            setShowNoDataDialog(false);
-        }
-    }, [
-        trains?.noDataReceived,
-        trains?.dataAgeMinutes,
-        trains?.features?.length,
-    ]);
-
     return (
-        <div className="relative h-full w-full bg-background">
-            <AnimatePresence>
-                {train && (
-                    <>
-                        <motion.div
-                            className="hidden md:block md:w-1/2 lg:w-1/3 rounded-l-3xl bg-card border-l border-border overflow-hidden flex-col fixed right-0 top-0 h-full shadow-2xl"
-                            style={{ zIndex: Z_LAYERS.PANELS }}
-                            variants={desktopVariants}
-                            initial="hidden"
-                            animate="visible"
-                            exit="exit"
-                        >
-                            <TrainPanel
-                                vehicle={train}
-                                onClose={() => {
-                                    onClearSearchSelection?.();
-                                    setSelectedId(null);
-                                    setIsPanelOpen(false);
-                                }}
-                                showCloseButton={true}
-                            />
-                        </motion.div>
-                        <div
-                            className="md:hidden fixed bottom-0 left-0 right-0"
-                            style={{ zIndex: Z_LAYERS.PANELS }}
-                        >
-                            <DragCloseDrawer
-                                open={isPanelOpen}
-                                setOpen={(open) => {
-                                    setIsPanelOpen(open);
-                                    if (!open) {
-                                        onClearSearchSelection?.();
-                                        setSelectedId(null);
-                                    }
-                                }}
-                            >
-                                <TrainPanel
-                                    vehicle={train}
-                                    showCloseButton={false}
-                                />
-                            </DragCloseDrawer>
-                        </div>
-                    </>
-                )}
-            </AnimatePresence>
-            <div
-                className="absolute bottom-4 right-4"
-                style={{ zIndex: Z_LAYERS.MAP_CONTROLS }}
-            >
-                <DelayLegend
-                    dataAgeMinutes={trains?.dataAgeMinutes ?? undefined}
-                    hasTrains={!!trains?.features?.length}
-                />
-            </div>
-            <NoDataDialog
-                open={showNoDataDialog}
-                onOpenChange={setShowNoDataDialog}
-                dataAgeMinutes={trains?.dataAgeMinutes ?? undefined}
-            />
+        <div className="relative h-full w-full bg-map">
             <MapLibreMap
-                ref={mapRef}
+                ref={attachMap}
                 initialViewState={{
                     longitude: 19.045,
                     latitude: 47.499,
@@ -773,13 +809,11 @@ export default function MapComponent({
                 onLoad={() => setMapLoaded(true)}
                 maxPitch={0}
                 dragRotate={false}
-                attributionControl={false}
-                style={{ width: "100vw", height: "100vh" }}
-                mapStyle={mapStyle}
-                interactiveLayerIds={[
-                    LAYER_IDS.TRAIN_MAIN,
-                    LAYER_IDS.TRAIN_HEADING,
-                ]}
+                touchPitch={false}
+                attributionControl={{ compact: !isDesktop }}
+                style={{ width: "100%", height: "100%" }}
+                mapStyle={STYLE_URLS[scheme]}
+                interactiveLayerIds={markerLayerIds}
                 cursor={cursor ?? undefined}
                 onClick={onClick}
                 onMouseMove={onHover}
@@ -791,64 +825,21 @@ export default function MapComponent({
                 // default (4) changes label placement at zoom 15+.
                 zoomLevelsToOverscale={undefined}
             >
-                <MapImage id="marker-triangle" svg={SVG_TRIANGLE} sdf={true} />
-                <ZoomButtons />
-                <UserLocation disableInitialFly={!!initialUrlVehicleId} />
-                <MapController
-                    mapRef={mapRef}
-                    selectedTrainId={selectedId}
-                    trains={filteredTrains}
-                    isPanelOpen={isPanelOpen}
+                <MapControls
+                    isDesktop={isDesktop}
+                    skipInitialFly={!!selectedId || !!station}
                 />
-                <Source
-                    id="vehicles-source"
-                    type="geojson"
-                    data={filteredTrains as unknown as GeoJsonType}
-                >
-                    <Layer
-                        id={LAYER_IDS.TRAIN_HEADING}
-                        type="symbol"
-                        layout={{
-                            "icon-image": "marker-triangle",
-                            "icon-size": 0.65,
-                            "icon-rotate": ["coalesce", ["get", "heading"], 0],
-                            "icon-rotation-alignment": "map",
-                            "icon-allow-overlap": true,
-                            "icon-ignore-placement": true,
-                            "icon-offset": [0, -10], // Push out
-                        }}
-                        paint={{
-                            "icon-color": typeColor,
-                        }}
-                    />
-                    <Layer
-                        id={LAYER_IDS.TRAIN_MAIN}
-                        type="circle"
-                        paint={{
-                            "circle-radius": 8,
-                            "circle-color": circleColor,
-                            "circle-stroke-width": 2.5,
-                            "circle-stroke-color": typeColor,
-                        }}
-                    />
-                </Source>
-                {showRailwayOverlay && (
+                {settings.showRailwayOverlay && (
                     <Source
                         id="railway-source"
                         type="raster"
-                        tiles={[
-                            OVERLAYS.railway.url
-                                .replace("{s}", "a")
-                                .replace("{z}", "{z}")
-                                .replace("{x}", "{x}")
-                                .replace("{y}", "{y}"),
-                        ]}
+                        tiles={[OVERLAYS.railway.url.replace("{s}", "a")]}
                         tileSize={256}
+                        attribution={OVERLAYS.railway.attribution}
                     >
                         <Layer
                             id={LAYER_IDS.RAILWAY}
                             type="raster"
-                            beforeId={LAYER_IDS.TRAIN_HEADING}
                             paint={railwayPaint}
                         />
                     </Source>
@@ -862,8 +853,11 @@ export default function MapComponent({
                         <Layer
                             id={LAYER_IDS.ROUTE_LINE}
                             type="line"
-                            beforeId={LAYER_IDS.TRAIN_HEADING}
-                            paint={{ "line-color": "#0066ff", "line-width": 4 }}
+                            paint={{
+                                "line-color": COLORS[scheme].ink,
+                                "line-opacity": 0.72,
+                                "line-width": 4,
+                            }}
                             layout={{
                                 "line-cap": "round",
                                 "line-join": "round",
@@ -880,42 +874,141 @@ export default function MapComponent({
                         <Layer
                             id={LAYER_IDS.STOP_CIRCLES}
                             type="circle"
-                            beforeId={LAYER_IDS.TRAIN_HEADING}
                             paint={{
-                                "circle-radius": 6,
+                                "circle-radius": 4.5,
                                 "circle-color": [
                                     "case",
                                     ["boolean", ["get", "hasPassed"], false],
-                                    "#3b82f6", // blue-500
-                                    "#ffffff", // white
+                                    COLORS[scheme].ink2,
+                                    COLORS[scheme].surface,
                                 ],
                                 "circle-stroke-width": 2,
-                                "circle-stroke-color": "#4b5563", // gray-600
+                                "circle-stroke-color": COLORS[scheme].ink,
                             }}
                         />
-                        {showStationNames && (
+                        {settings.showStationNames && (
                             <Layer
                                 id={LAYER_IDS.STOP_LABELS}
                                 type="symbol"
-                                beforeId={LAYER_IDS.TRAIN_HEADING}
                                 layout={{
                                     "text-field": ["get", "name"],
-                                    "text-size": 14,
-                                    "text-offset": [0, 1.5],
+                                    "text-size": 13,
+                                    "text-offset": [0, 1],
                                     "text-anchor": "top",
                                     "text-font": ["Noto Sans Bold"],
                                 }}
                                 paint={{
-                                    "text-color": "#111827", // gray-900
-                                    "text-halo-color": "#ffffff",
+                                    "text-color": COLORS[scheme].ink,
+                                    "text-halo-color": COLORS[scheme].map,
                                     "text-halo-width": 2,
-                                    "text-opacity": stationNamesOpacity,
+                                    "text-opacity":
+                                        settings.stationNamesOpacity,
                                 }}
                             />
                         )}
                     </Source>
                 )}
-                {hoverInfo && (
+                {stationGeojson && (
+                    <Source
+                        id="station-source"
+                        type="geojson"
+                        data={stationGeojson}
+                    >
+                        <Layer
+                            id={LAYER_IDS.STATION}
+                            type="symbol"
+                            layout={{
+                                "icon-image": stationImageId(scheme),
+                                "icon-allow-overlap": true,
+                                "icon-ignore-placement": true,
+                            }}
+                        />
+                    </Source>
+                )}
+                <Source
+                    id="vehicles-source"
+                    type="geojson"
+                    data={filteredTrains as unknown as GeoJsonType}
+                >
+                    {/* Below zoom 9: unlabelled dots, size by severity */}
+                    <Layer
+                        id={LAYER_IDS.TRAIN_DOT}
+                        type="circle"
+                        maxzoom={MARKER.labelMinZoom}
+                        layout={{ "circle-sort-key": sortKey }}
+                        paint={dotPaint}
+                    />
+                    {/* Direction of travel */}
+                    <Layer
+                        id={LAYER_IDS.TRAIN_HEADING}
+                        type="symbol"
+                        minzoom={MARKER.labelMinZoom}
+                        filter={["!=", ["get", "level"], "stale"]}
+                        layout={{
+                            "icon-image": arrowImageId(scheme),
+                            "icon-rotate": ["coalesce", ["get", "heading"], 0],
+                            "icon-rotation-alignment": "map",
+                            "icon-allow-overlap": true,
+                            "icon-ignore-placement": true,
+                            "icon-offset": ARROW_OFFSET,
+                        }}
+                        paint={{ "icon-opacity": markerOpacity }}
+                    />
+                    {/* On time: a plain 16 px dot */}
+                    <Layer
+                        id={LAYER_IDS.TRAIN_PLAIN}
+                        type="symbol"
+                        minzoom={MARKER.labelMinZoom}
+                        filter={["==", ["get", "level"], "onTime"]}
+                        layout={{
+                            "icon-image": imageId("dot"),
+                            "icon-allow-overlap": true,
+                            "icon-ignore-placement": true,
+                            "symbol-sort-key": sortKey,
+                        }}
+                        paint={{ "icon-opacity": markerOpacity }}
+                    />
+                    {/* Late or stale: a pill with "+N" or "6′" */}
+                    <Layer
+                        id={LAYER_IDS.TRAIN_PILL}
+                        type="symbol"
+                        minzoom={MARKER.labelMinZoom}
+                        filter={["!=", ["get", "level"], "onTime"]}
+                        layout={{
+                            "icon-image": imageId("pill"),
+                            "icon-text-fit": "both",
+                            "icon-allow-overlap": true,
+                            "icon-ignore-placement": true,
+                            "text-field": ["get", "label"],
+                            "text-font": ["Noto Sans Bold"],
+                            "text-size": [
+                                "match",
+                                ["get", "level"],
+                                "severe",
+                                labelSize("severe"),
+                                "moderate",
+                                labelSize("moderate"),
+                                labelSize("slight"),
+                            ],
+                            "text-allow-overlap": true,
+                            "text-ignore-placement": true,
+                            "symbol-sort-key": sortKey,
+                        }}
+                        paint={{
+                            "text-color": pillTextColor,
+                            "icon-opacity": markerOpacity,
+                            "text-opacity": markerOpacity,
+                        }}
+                    />
+                </Source>
+                {selectedInfo && (
+                    <SelectedLabel
+                        info={selectedInfo}
+                        markerRef={selectedMarkerRef}
+                        showSpeed={isDesktop}
+                    />
+                )}
+                {hoverInfo && hoverInfo.vehicleId !== selectedId && (
                     <HoverTooltip info={hoverInfo} popupRef={popupRef} />
                 )}
             </MapLibreMap>
