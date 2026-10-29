@@ -16,7 +16,12 @@
         "resize": "Resize panel"
     },
     "Delay": {
-        "on_time": "on time"
+        "on_time": "on time",
+        "early": "early",
+        "note": "We compute this delay from the train's GPS position, so it is more accurate. Timetable times are MÁV's official data and are sometimes off.",
+        "tile_label": "Delay: {delay} min",
+        "reason": "Delay cause: <b>{reason}</b>",
+        "reason_plain": "Delay cause: {reason}"
     },
     "Platform": {
         "announced": "Platform {platform}",
@@ -73,7 +78,15 @@
             "suburban": "LEW Henningsdorf MX/MXA",
             "unknown": "Unknown vehicle"
         },
-        "history": "Punctuality"
+        "history": "Punctuality",
+        "notice": "Notice",
+        "more_info": "More information",
+        "valid": "Valid: {range}",
+        "more_alerts": "{count, plural, one {+# notice} other {+# notices}}",
+        "departs": "dep. {time}",
+        "to_go": "{km, number} km to go",
+        "county": "{county} County",
+        "position": "Train position"
     },
     "Station": {
         "board": "Timetable board",
@@ -91,6 +104,7 @@
         "source_down": "MÁV data isn't arriving",
         "unreachable": "Can't reach the server",
         "since": "since {time}",
+        "timetable": "showing the timetable",
         "load_error": "Couldn't load",
         "retry": "Retry"
     },
@@ -108,7 +122,9 @@
         "slight": "5+",
         "moderate": "15+",
         "severe": "60+",
-        "stale": "no data"
+        "stale": "no data · standing",
+        "title": "Delay",
+        "minutes": "min"
     },
     "Settings": {
         "title": "Settings",
@@ -136,7 +152,9 @@
         "changelog": "What's new",
         "changelog_unavailable": "What's new isn't available right now.",
         "contact": "Contact",
-        "punctuality": "Punctuality"
+        "punctuality": "Punctuality",
+        "license": "License",
+        "open_source": "This app is open source. Bug reports, ideas and help are welcome on GitHub."
     },
     "Consent": {
         "title": "Usage statistics?",
@@ -200,7 +218,7 @@
         "hour": "Hour",
         "by_stop": "By stop",
         "few_data": "little data",
-        "no_data": "Not enough data yet",
+        "no_data_hint": "We are still collecting runs. Check back in a few days.",
         "show_on_map": "Show on map"
     },
     "Journey": {

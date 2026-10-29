@@ -1,4 +1,5 @@
 import type {
+    InfoService,
     TrainFeatureProperties,
     TrainRouteStation,
     VehiclePositionWithDelay,
@@ -8,6 +9,7 @@ import {
     getTrainHistoryOptions,
 } from "@megisholavonat/api-client/react-query";
 import { type TrainDisplay, trainDisplay } from "@megisholavonat/core/display";
+import { decodePolyline } from "@megisholavonat/core/polyline";
 import { ticketUrl } from "@megisholavonat/core/ticket";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
@@ -15,12 +17,15 @@ import { useNow } from "@/hooks/useNow";
 import {
     beforeDeparture,
     nextStopIndex,
+    polylineKm,
     type StopTiming,
     stationIdOf,
     stopTiming,
+    type TrainPosition,
     type TrainReason,
     toEpoch,
     trainNumber,
+    trainPosition,
     trainReason,
     usuallyLate,
 } from "@/lib/train";
@@ -37,6 +42,8 @@ export interface StopView {
     platform: string | null;
     /** The platform is a history-based guess */
     platformPredicted: boolean;
+    /** Services valid here but not for the whole trip (bike carriage A→B) */
+    services: InfoService[];
 }
 
 export interface TrainView {
@@ -53,6 +60,10 @@ export interface TrainView {
     /** On-time share at the next stop, with enough history */
     punctuality: { station: string; onTimeOf10: number } | null;
     ticketUrl: string;
+    /** Where the train is between its last and next stop */
+    position: TrainPosition;
+    /** Whole-trip services */
+    services: InfoService[];
 }
 
 const HOUR = 60 * 60 * 1000;
@@ -86,6 +97,13 @@ export function useTrainView(
         retry: false,
     });
 
+    // Route length, to turn distances along the route into km
+    const points = vehicle?.trip.tripGeometry.points;
+    const routeKm = useMemo(
+        () => (points ? polylineKm(decodePolyline(points)) : null),
+        [points],
+    );
+
     const view = useMemo((): TrainView | null => {
         if (!vehicle) return null;
         // Details without `activity` borrow the list's flag, as the map does
@@ -113,6 +131,10 @@ export function useTrainView(
         });
         const nextIdx = nextStopIndex(vehicle);
         const stoptimes = vehicle.trip.stoptimes;
+        const lastIdx = stoptimes.length - 1;
+        const displayable = vehicle.trip.infoServices.filter(
+            (s) => s.displayable !== false,
+        );
         const stops = stoptimes.map((stoptime, index): StopView => {
             const passed = index < nextIdx;
             const stationId = stationIdOf(stoptime.stop);
@@ -133,12 +155,19 @@ export function useTrainView(
                     passed,
                     display.delay ?? 0,
                     predictedByIndex.get(index),
+                    index === lastIdx,
                 ),
                 passed,
                 isNext: index === nextIdx,
                 isLast: index === stoptimes.length - 1,
                 platform: announced ?? guess,
                 platformPredicted: !announced && !!guess,
+                // A service shows where it begins; the trip row holds the
+                // ones from the first stop. Each explains its range on tap.
+                services:
+                    index > 0
+                        ? displayable.filter((s) => s.fromStopIndex === index)
+                        : [],
             };
         });
         const next = stops[nextIdx] ?? null;
@@ -158,7 +187,7 @@ export function useTrainView(
             stale: display.state !== "running",
             stops,
             next,
-            reason: trainReason(vehicle.trip.alerts),
+            reason: trainReason(vehicle.trip.alerts, Date.now() / 1000),
             usuallyLate: waiting ? usuallyLate(firstStation) : null,
             punctuality:
                 nextStation &&
@@ -177,8 +206,10 @@ export function useTrainView(
                     ? toEpoch(vehicle.trip.serviceDate, from.scheduledDeparture)
                     : null,
             ),
+            position: trainPosition(vehicle, nextIdx, routeKm),
+            services: displayable.filter((s) => s.fromStopIndex <= 0),
         };
-    }, [vehicle, history.data, now, listed]);
+    }, [vehicle, history.data, now, listed, routeKm]);
 
     return { view, isError: details.isError };
 }
