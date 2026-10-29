@@ -1,0 +1,2337 @@
+{
+ "data": {
+  "plan": {
+   "itineraries": [
+    {
+     "legs": [
+      {
+       "mode": "WALK",
+       "startTime": 1793341302000,
+       "endTime": 1793341380000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 68.96,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest",
+        "lat": 47.497912,
+        "lon": 19.054916,
+        "stop": null
+       },
+       "to": {
+        "name": "Budapest, Deák Ferenc tér M",
+        "lat": 47.497413,
+        "lon": 19.055158,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "TRAM",
+       "startTime": 1793341380000,
+       "endTime": 1793342580000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 5357.25,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Kelenföld vasútállomás M",
+       "from": {
+        "name": "Budapest, Deák Ferenc tér M",
+        "lat": 47.497413,
+        "lon": 19.055158,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Kelenföld vasútállomás M",
+        "lat": 47.465755,
+        "lon": 19.021871,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": {
+        "gtfsId": "BKK:3490",
+        "shortName": "49",
+        "longName": null,
+        "color": "FFD800",
+        "textColor": "000000"
+       },
+       "trip": {
+        "gtfsId": "BKK:D1522877",
+        "tripShortName": null,
+        "departureStoptime": {
+         "scheduledDeparture": 26580
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "BKK:F01012"
+        },
+        {
+         "gtfsId": "BKK:F01005"
+        },
+        {
+         "gtfsId": "BKK:F00921"
+        },
+        {
+         "gtfsId": "BKK:008590"
+        },
+        {
+         "gtfsId": "BKK:F02148"
+        },
+        {
+         "gtfsId": "BKK:F02202"
+        },
+        {
+         "gtfsId": "BKK:F02181"
+        },
+        {
+         "gtfsId": "BKK:F02047"
+        },
+        {
+         "gtfsId": "BKK:F02042"
+        },
+        {
+         "gtfsId": "BKK:F02038"
+        }
+       ]
+      },
+      {
+       "mode": "WALK",
+       "startTime": 1793342580000,
+       "endTime": 1793342926000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 352.21,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest, Kelenföld vasútállomás M",
+        "lat": 47.465755,
+        "lon": 19.021871,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest-Kelenföld",
+        "lat": 47.464444,
+        "lon": 19.02,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501024"
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793343300000,
+       "endTime": 1793347200000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 125469.36,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "München Hbf",
+       "from": {
+        "name": "Budapest-Kelenföld",
+        "lat": 47.464444,
+        "lon": 19.02,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501024"
+        }
+       },
+       "to": {
+        "name": "Győr",
+        "lat": 47.681944,
+        "lon": 17.634722,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501289"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E36226003",
+        "shortName": "<span class=\"MNR2007\">&#481;</span>",
+        "longName": "rjx 60/62/63/64/65/66",
+        "color": "FEFEFE",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:36226003",
+        "tripShortName": "60 railjet xpress",
+        "departureStoptime": {
+         "scheduledDeparture": 27000
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005501131_0"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "WALK",
+       "startTime": 1793341335000,
+       "endTime": 1793341497000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 112.63,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest",
+        "lat": 47.497912,
+        "lon": 19.054916,
+        "stop": null
+       },
+       "to": {
+        "name": "Budapest, Deák Ferenc tér",
+        "lat": 47.497591,
+        "lon": 19.054525,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "SUBWAY",
+       "startTime": 1793341497000,
+       "endTime": 1793341671000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 1149.14,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Kőbánya-Kispest",
+       "from": {
+        "name": "Budapest, Deák Ferenc tér",
+        "lat": 47.497591,
+        "lon": 19.054525,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Kálvin tér",
+        "lat": 47.48949,
+        "lon": 19.06192,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": {
+        "gtfsId": "BKK:5300",
+        "shortName": "M3",
+        "longName": null,
+        "color": "005CA5",
+        "textColor": "FFFFFF"
+       },
+       "trip": {
+        "gtfsId": "BKK:C97780181",
+        "tripShortName": null,
+        "departureStoptime": {
+         "scheduledDeparture": 25750
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "BKK:F00953"
+        }
+       ]
+      },
+      {
+       "mode": "WALK",
+       "startTime": 1793341671000,
+       "endTime": 1793341761000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 93.88,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest, Kálvin tér",
+        "lat": 47.48949,
+        "lon": 19.06192,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Kálvin tér",
+        "lat": 47.488903,
+        "lon": 19.061022,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "SUBWAY",
+       "startTime": 1793342058000,
+       "endTime": 1793342580000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 4641.18,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Kelenföld vasútállomás",
+       "from": {
+        "name": "Budapest, Kálvin tér",
+        "lat": 47.488903,
+        "lon": 19.061022,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Kelenföld vasútállomás",
+        "lat": 47.464515,
+        "lon": 19.019618,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": {
+        "gtfsId": "BKK:5400",
+        "shortName": "M4",
+        "longName": null,
+        "color": "4CA22F",
+        "textColor": "FFFFFF"
+       },
+       "trip": {
+        "gtfsId": "BKK:D17742294",
+        "tripShortName": null,
+        "departureStoptime": {
+         "scheduledDeparture": 26990
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "BKK:056225"
+        },
+        {
+         "gtfsId": "BKK:056223"
+        },
+        {
+         "gtfsId": "BKK:056221"
+        },
+        {
+         "gtfsId": "BKK:056219"
+        },
+        {
+         "gtfsId": "BKK:056217"
+        }
+       ]
+      },
+      {
+       "mode": "WALK",
+       "startTime": 1793342580000,
+       "endTime": 1793342901000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 333.33,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest, Kelenföld vasútállomás",
+        "lat": 47.464515,
+        "lon": 19.019618,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest-Kelenföld",
+        "lat": 47.464444,
+        "lon": 19.02,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501024"
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793343300000,
+       "endTime": 1793347200000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 125469.36,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "München Hbf",
+       "from": {
+        "name": "Budapest-Kelenföld",
+        "lat": 47.464444,
+        "lon": 19.02,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501024"
+        }
+       },
+       "to": {
+        "name": "Győr",
+        "lat": 47.681944,
+        "lon": 17.634722,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501289"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E36226003",
+        "shortName": "<span class=\"MNR2007\">&#481;</span>",
+        "longName": "rjx 60/62/63/64/65/66",
+        "color": "FEFEFE",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:36226003",
+        "tripShortName": "60 railjet xpress",
+        "departureStoptime": {
+         "scheduledDeparture": 27000
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005501131_0"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "WALK",
+       "startTime": 1793342682000,
+       "endTime": 1793342760000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 68.96,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest",
+        "lat": 47.497912,
+        "lon": 19.054916,
+        "stop": null
+       },
+       "to": {
+        "name": "Budapest, Deák Ferenc tér M",
+        "lat": 47.497413,
+        "lon": 19.055158,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "TRAM",
+       "startTime": 1793342760000,
+       "endTime": 1793343960000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 5357.25,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Kelenföld vasútállomás M",
+       "from": {
+        "name": "Budapest, Deák Ferenc tér M",
+        "lat": 47.497413,
+        "lon": 19.055158,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Kelenföld vasútállomás M",
+        "lat": 47.465755,
+        "lon": 19.021871,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": {
+        "gtfsId": "BKK:3490",
+        "shortName": "49",
+        "longName": null,
+        "color": "FFD800",
+        "textColor": "000000"
+       },
+       "trip": {
+        "gtfsId": "BKK:D1522889",
+        "tripShortName": null,
+        "departureStoptime": {
+         "scheduledDeparture": 27960
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "BKK:F01012"
+        },
+        {
+         "gtfsId": "BKK:F01005"
+        },
+        {
+         "gtfsId": "BKK:F00921"
+        },
+        {
+         "gtfsId": "BKK:008590"
+        },
+        {
+         "gtfsId": "BKK:F02148"
+        },
+        {
+         "gtfsId": "BKK:F02202"
+        },
+        {
+         "gtfsId": "BKK:F02181"
+        },
+        {
+         "gtfsId": "BKK:F02047"
+        },
+        {
+         "gtfsId": "BKK:F02042"
+        },
+        {
+         "gtfsId": "BKK:F02038"
+        }
+       ]
+      },
+      {
+       "mode": "WALK",
+       "startTime": 1793343960000,
+       "endTime": 1793344306000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 352.21,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest, Kelenföld vasútállomás M",
+        "lat": 47.465755,
+        "lon": 19.021871,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest-Kelenföld",
+        "lat": 47.464444,
+        "lon": 19.02,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501024"
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793345100000,
+       "endTime": 1793349420000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 125384.73,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Graz Hbf",
+       "from": {
+        "name": "Budapest-Kelenföld",
+        "lat": 47.464444,
+        "lon": 19.02,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501024"
+        }
+       },
+       "to": {
+        "name": "Győr",
+        "lat": 47.681944,
+        "lon": 17.634722,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501289"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E36226697",
+        "shortName": "<span class=\"MNR2007\">&#474;</span>",
+        "longName": "IC MURA",
+        "color": "FEFEFE",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:36226697",
+        "tripShortName": "354 MURA InterCity",
+        "departureStoptime": {
+         "scheduledDeparture": 30300
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005501131_0"
+        },
+        {
+         "gtfsId": "1:005501164_0"
+        },
+        {
+         "gtfsId": "1:005501222_0"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "WALK",
+       "startTime": 1793343222000,
+       "endTime": 1793343300000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 68.96,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest",
+        "lat": 47.497912,
+        "lon": 19.054916,
+        "stop": null
+       },
+       "to": {
+        "name": "Budapest, Deák Ferenc tér M",
+        "lat": 47.497413,
+        "lon": 19.055158,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "TRAM",
+       "startTime": 1793343300000,
+       "endTime": 1793343540000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 1525.44,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Kelenföld vasútállomás M",
+       "from": {
+        "name": "Budapest, Deák Ferenc tér M",
+        "lat": 47.497413,
+        "lon": 19.055158,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Fővám tér M",
+        "lat": 47.486916,
+        "lon": 19.05724,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": {
+        "gtfsId": "BKK:3490",
+        "shortName": "49",
+        "longName": null,
+        "color": "FFD800",
+        "textColor": "000000"
+       },
+       "trip": {
+        "gtfsId": "BKK:D1522893",
+        "tripShortName": null,
+        "departureStoptime": {
+         "scheduledDeparture": 28500
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "BKK:F01012"
+        },
+        {
+         "gtfsId": "BKK:F01005"
+        }
+       ]
+      },
+      {
+       "mode": "WALK",
+       "startTime": 1793343540000,
+       "endTime": 1793343753000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 206.83,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest, Fővám tér M",
+        "lat": 47.486916,
+        "lon": 19.05724,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Fővám tér",
+        "lat": 47.485792,
+        "lon": 19.057571,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "SUBWAY",
+       "startTime": 1793343936000,
+       "endTime": 1793344380000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 4189.92,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Kelenföld vasútállomás",
+       "from": {
+        "name": "Budapest, Fővám tér",
+        "lat": 47.485792,
+        "lon": 19.057571,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Kelenföld vasútállomás",
+        "lat": 47.464515,
+        "lon": 19.019618,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": {
+        "gtfsId": "BKK:5400",
+        "shortName": "M4",
+        "longName": null,
+        "color": "4CA22F",
+        "textColor": "FFFFFF"
+       },
+       "trip": {
+        "gtfsId": "BKK:D17742159",
+        "tripShortName": null,
+        "departureStoptime": {
+         "scheduledDeparture": 28790
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "BKK:056223"
+        },
+        {
+         "gtfsId": "BKK:056221"
+        },
+        {
+         "gtfsId": "BKK:056219"
+        },
+        {
+         "gtfsId": "BKK:056217"
+        }
+       ]
+      },
+      {
+       "mode": "WALK",
+       "startTime": 1793344380000,
+       "endTime": 1793344701000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 333.33,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest, Kelenföld vasútállomás",
+        "lat": 47.464515,
+        "lon": 19.019618,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest-Kelenföld",
+        "lat": 47.464444,
+        "lon": 19.02,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501024"
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793345100000,
+       "endTime": 1793349420000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 125384.73,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Graz Hbf",
+       "from": {
+        "name": "Budapest-Kelenföld",
+        "lat": 47.464444,
+        "lon": 19.02,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501024"
+        }
+       },
+       "to": {
+        "name": "Győr",
+        "lat": 47.681944,
+        "lon": 17.634722,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501289"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E36226697",
+        "shortName": "<span class=\"MNR2007\">&#474;</span>",
+        "longName": "IC MURA",
+        "color": "FEFEFE",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:36226697",
+        "tripShortName": "354 MURA InterCity",
+        "departureStoptime": {
+         "scheduledDeparture": 30300
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005501131_0"
+        },
+        {
+         "gtfsId": "1:005501164_0"
+        },
+        {
+         "gtfsId": "1:005501222_0"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "WALK",
+       "startTime": 1793344902000,
+       "endTime": 1793344980000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 68.96,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest",
+        "lat": 47.497912,
+        "lon": 19.054916,
+        "stop": null
+       },
+       "to": {
+        "name": "Budapest, Deák Ferenc tér M",
+        "lat": 47.497413,
+        "lon": 19.055158,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "TRAM",
+       "startTime": 1793344980000,
+       "endTime": 1793346180000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 5357.25,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Kelenföld vasútállomás M",
+       "from": {
+        "name": "Budapest, Deák Ferenc tér M",
+        "lat": 47.497413,
+        "lon": 19.055158,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Kelenföld vasútállomás M",
+        "lat": 47.465755,
+        "lon": 19.021871,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": {
+        "gtfsId": "BKK:3490",
+        "shortName": "49",
+        "longName": null,
+        "color": "FFD800",
+        "textColor": "000000"
+       },
+       "trip": {
+        "gtfsId": "BKK:D15228105",
+        "tripShortName": null,
+        "departureStoptime": {
+         "scheduledDeparture": 30180
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "BKK:F01012"
+        },
+        {
+         "gtfsId": "BKK:F01005"
+        },
+        {
+         "gtfsId": "BKK:F00921"
+        },
+        {
+         "gtfsId": "BKK:008590"
+        },
+        {
+         "gtfsId": "BKK:F02148"
+        },
+        {
+         "gtfsId": "BKK:F02202"
+        },
+        {
+         "gtfsId": "BKK:F02181"
+        },
+        {
+         "gtfsId": "BKK:F02047"
+        },
+        {
+         "gtfsId": "BKK:F02042"
+        },
+        {
+         "gtfsId": "BKK:F02038"
+        }
+       ]
+      },
+      {
+       "mode": "WALK",
+       "startTime": 1793346180000,
+       "endTime": 1793346526000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 352.21,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest, Kelenföld vasútállomás M",
+        "lat": 47.465755,
+        "lon": 19.021871,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest-Kelenföld",
+        "lat": 47.464444,
+        "lon": 19.02,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501024"
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793346900000,
+       "endTime": 1793350800000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 125469.36,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Wien Westbf",
+       "from": {
+        "name": "Budapest-Kelenföld",
+        "lat": 47.464444,
+        "lon": 19.02,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501024"
+        }
+       },
+       "to": {
+        "name": "Győr",
+        "lat": 47.681944,
+        "lon": 17.634722,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501289"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E36225966",
+        "shortName": "<span class=\"MNR2007\">&#467;</span>",
+        "longName": "EC HORTOBÁGY",
+        "color": "FEFEFE",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:36226523",
+        "tripShortName": "140 HORTOBÁGY EuroCity",
+        "departureStoptime": {
+         "scheduledDeparture": 16020
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005501131_0"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "WALK",
+       "startTime": 1793344935000,
+       "endTime": 1793345097000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 112.63,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest",
+        "lat": 47.497912,
+        "lon": 19.054916,
+        "stop": null
+       },
+       "to": {
+        "name": "Budapest, Deák Ferenc tér",
+        "lat": 47.497591,
+        "lon": 19.054525,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "SUBWAY",
+       "startTime": 1793345097000,
+       "endTime": 1793345271000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 1149.14,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Kőbánya-Kispest",
+       "from": {
+        "name": "Budapest, Deák Ferenc tér",
+        "lat": 47.497591,
+        "lon": 19.054525,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Kálvin tér",
+        "lat": 47.48949,
+        "lon": 19.06192,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": {
+        "gtfsId": "BKK:5300",
+        "shortName": "M3",
+        "longName": null,
+        "color": "005CA5",
+        "textColor": "FFFFFF"
+       },
+       "trip": {
+        "gtfsId": "BKK:C97780578",
+        "tripShortName": null,
+        "departureStoptime": {
+         "scheduledDeparture": 29350
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "BKK:F00953"
+        }
+       ]
+      },
+      {
+       "mode": "WALK",
+       "startTime": 1793345271000,
+       "endTime": 1793345361000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 93.88,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest, Kálvin tér",
+        "lat": 47.48949,
+        "lon": 19.06192,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Kálvin tér",
+        "lat": 47.488903,
+        "lon": 19.061022,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "SUBWAY",
+       "startTime": 1793345658000,
+       "endTime": 1793346180000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 4641.18,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Kelenföld vasútállomás",
+       "from": {
+        "name": "Budapest, Kálvin tér",
+        "lat": 47.488903,
+        "lon": 19.061022,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Kelenföld vasútállomás",
+        "lat": 47.464515,
+        "lon": 19.019618,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": {
+        "gtfsId": "BKK:5400",
+        "shortName": "M4",
+        "longName": null,
+        "color": "4CA22F",
+        "textColor": "FFFFFF"
+       },
+       "trip": {
+        "gtfsId": "BKK:D17742448",
+        "tripShortName": null,
+        "departureStoptime": {
+         "scheduledDeparture": 30590
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "BKK:056225"
+        },
+        {
+         "gtfsId": "BKK:056223"
+        },
+        {
+         "gtfsId": "BKK:056221"
+        },
+        {
+         "gtfsId": "BKK:056219"
+        },
+        {
+         "gtfsId": "BKK:056217"
+        }
+       ]
+      },
+      {
+       "mode": "WALK",
+       "startTime": 1793346180000,
+       "endTime": 1793346501000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 333.33,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest, Kelenföld vasútállomás",
+        "lat": 47.464515,
+        "lon": 19.019618,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest-Kelenföld",
+        "lat": 47.464444,
+        "lon": 19.02,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501024"
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793346900000,
+       "endTime": 1793350800000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 125469.36,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Wien Westbf",
+       "from": {
+        "name": "Budapest-Kelenföld",
+        "lat": 47.464444,
+        "lon": 19.02,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501024"
+        }
+       },
+       "to": {
+        "name": "Győr",
+        "lat": 47.681944,
+        "lon": 17.634722,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501289"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E36225966",
+        "shortName": "<span class=\"MNR2007\">&#467;</span>",
+        "longName": "EC HORTOBÁGY",
+        "color": "FEFEFE",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:36226523",
+        "tripShortName": "140 HORTOBÁGY EuroCity",
+        "departureStoptime": {
+         "scheduledDeparture": 16020
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005501131_0"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "WALK",
+       "startTime": 1793346702000,
+       "endTime": 1793346780000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 68.96,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest",
+        "lat": 47.497912,
+        "lon": 19.054916,
+        "stop": null
+       },
+       "to": {
+        "name": "Budapest, Deák Ferenc tér M",
+        "lat": 47.497413,
+        "lon": 19.055158,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "TRAM",
+       "startTime": 1793346780000,
+       "endTime": 1793347980000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 5357.25,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Kelenföld vasútállomás M",
+       "from": {
+        "name": "Budapest, Deák Ferenc tér M",
+        "lat": 47.497413,
+        "lon": 19.055158,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Kelenföld vasútállomás M",
+        "lat": 47.465755,
+        "lon": 19.021871,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": {
+        "gtfsId": "BKK:3490",
+        "shortName": "49",
+        "longName": null,
+        "color": "FFD800",
+        "textColor": "000000"
+       },
+       "trip": {
+        "gtfsId": "BKK:D15228125",
+        "tripShortName": null,
+        "departureStoptime": {
+         "scheduledDeparture": 31980
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "BKK:F01012"
+        },
+        {
+         "gtfsId": "BKK:F01005"
+        },
+        {
+         "gtfsId": "BKK:F00921"
+        },
+        {
+         "gtfsId": "BKK:008590"
+        },
+        {
+         "gtfsId": "BKK:F02148"
+        },
+        {
+         "gtfsId": "BKK:F02202"
+        },
+        {
+         "gtfsId": "BKK:F02181"
+        },
+        {
+         "gtfsId": "BKK:F02047"
+        },
+        {
+         "gtfsId": "BKK:F02042"
+        },
+        {
+         "gtfsId": "BKK:F02038"
+        }
+       ]
+      },
+      {
+       "mode": "WALK",
+       "startTime": 1793347980000,
+       "endTime": 1793348326000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 352.21,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest, Kelenföld vasútállomás M",
+        "lat": 47.465755,
+        "lon": 19.021871,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest-Kelenföld",
+        "lat": 47.464444,
+        "lon": 19.02,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501024"
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793348700000,
+       "endTime": 1793353020000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 125384.73,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Sopron",
+       "from": {
+        "name": "Budapest-Kelenföld",
+        "lat": 47.464444,
+        "lon": 19.02,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501024"
+        }
+       },
+       "to": {
+        "name": "Győr",
+        "lat": 47.681944,
+        "lon": 17.634722,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501289"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E35803906",
+        "shortName": "<span class=\"MNR2007\">&#474;</span>",
+        "longName": "IC SCARBANTIA",
+        "color": "FEFEFE",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:36225833",
+        "tripShortName": "992 SCARBANTIA InterCity",
+        "departureStoptime": {
+         "scheduledDeparture": 33900
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005501131_0"
+        },
+        {
+         "gtfsId": "1:005501164_0"
+        },
+        {
+         "gtfsId": "1:005501222_0"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "WALK",
+       "startTime": 1793346915000,
+       "endTime": 1793347077000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 112.63,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest",
+        "lat": 47.497912,
+        "lon": 19.054916,
+        "stop": null
+       },
+       "to": {
+        "name": "Budapest, Deák Ferenc tér",
+        "lat": 47.497591,
+        "lon": 19.054525,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "SUBWAY",
+       "startTime": 1793347077000,
+       "endTime": 1793347251000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 1149.14,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Kőbánya-Kispest",
+       "from": {
+        "name": "Budapest, Deák Ferenc tér",
+        "lat": 47.497591,
+        "lon": 19.054525,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Kálvin tér",
+        "lat": 47.48949,
+        "lon": 19.06192,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": {
+        "gtfsId": "BKK:5300",
+        "shortName": "M3",
+        "longName": null,
+        "color": "005CA5",
+        "textColor": "FFFFFF"
+       },
+       "trip": {
+        "gtfsId": "BKK:C97780271",
+        "tripShortName": null,
+        "departureStoptime": {
+         "scheduledDeparture": 31330
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "BKK:F00953"
+        }
+       ]
+      },
+      {
+       "mode": "WALK",
+       "startTime": 1793347251000,
+       "endTime": 1793347341000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 93.88,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest, Kálvin tér",
+        "lat": 47.48949,
+        "lon": 19.06192,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Kálvin tér",
+        "lat": 47.488903,
+        "lon": 19.061022,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "SUBWAY",
+       "startTime": 1793347543000,
+       "endTime": 1793348065000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 4641.18,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Kelenföld vasútállomás",
+       "from": {
+        "name": "Budapest, Kálvin tér",
+        "lat": 47.488903,
+        "lon": 19.061022,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Kelenföld vasútállomás",
+        "lat": 47.464515,
+        "lon": 19.019618,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": {
+        "gtfsId": "BKK:5400",
+        "shortName": "M4",
+        "longName": null,
+        "color": "4CA22F",
+        "textColor": "FFFFFF"
+       },
+       "trip": {
+        "gtfsId": "BKK:D1774212",
+        "tripShortName": null,
+        "departureStoptime": {
+         "scheduledDeparture": 32475
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "BKK:056225"
+        },
+        {
+         "gtfsId": "BKK:056223"
+        },
+        {
+         "gtfsId": "BKK:056221"
+        },
+        {
+         "gtfsId": "BKK:056219"
+        },
+        {
+         "gtfsId": "BKK:056217"
+        }
+       ]
+      },
+      {
+       "mode": "WALK",
+       "startTime": 1793348065000,
+       "endTime": 1793348386000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 333.33,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest, Kelenföld vasútállomás",
+        "lat": 47.464515,
+        "lon": 19.019618,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest-Kelenföld",
+        "lat": 47.464444,
+        "lon": 19.02,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501024"
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793348700000,
+       "endTime": 1793353020000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 125384.73,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Sopron",
+       "from": {
+        "name": "Budapest-Kelenföld",
+        "lat": 47.464444,
+        "lon": 19.02,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501024"
+        }
+       },
+       "to": {
+        "name": "Győr",
+        "lat": 47.681944,
+        "lon": 17.634722,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501289"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E35803906",
+        "shortName": "<span class=\"MNR2007\">&#474;</span>",
+        "longName": "IC SCARBANTIA",
+        "color": "FEFEFE",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:36225833",
+        "tripShortName": "992 SCARBANTIA InterCity",
+        "departureStoptime": {
+         "scheduledDeparture": 33900
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005501131_0"
+        },
+        {
+         "gtfsId": "1:005501164_0"
+        },
+        {
+         "gtfsId": "1:005501222_0"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "WALK",
+       "startTime": 1793348442000,
+       "endTime": 1793348520000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 68.96,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest",
+        "lat": 47.497912,
+        "lon": 19.054916,
+        "stop": null
+       },
+       "to": {
+        "name": "Budapest, Deák Ferenc tér M",
+        "lat": 47.497413,
+        "lon": 19.055158,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "TRAM",
+       "startTime": 1793348520000,
+       "endTime": 1793349720000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 5357.25,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Kelenföld vasútállomás M",
+       "from": {
+        "name": "Budapest, Deák Ferenc tér M",
+        "lat": 47.497413,
+        "lon": 19.055158,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Kelenföld vasútállomás M",
+        "lat": 47.465755,
+        "lon": 19.021871,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": {
+        "gtfsId": "BKK:3490",
+        "shortName": "49",
+        "longName": null,
+        "color": "FFD800",
+        "textColor": "000000"
+       },
+       "trip": {
+        "gtfsId": "BKK:D15228141",
+        "tripShortName": null,
+        "departureStoptime": {
+         "scheduledDeparture": 33720
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "BKK:F01012"
+        },
+        {
+         "gtfsId": "BKK:F01005"
+        },
+        {
+         "gtfsId": "BKK:F00921"
+        },
+        {
+         "gtfsId": "BKK:008590"
+        },
+        {
+         "gtfsId": "BKK:F02148"
+        },
+        {
+         "gtfsId": "BKK:F02202"
+        },
+        {
+         "gtfsId": "BKK:F02181"
+        },
+        {
+         "gtfsId": "BKK:F02047"
+        },
+        {
+         "gtfsId": "BKK:F02042"
+        },
+        {
+         "gtfsId": "BKK:F02038"
+        }
+       ]
+      },
+      {
+       "mode": "WALK",
+       "startTime": 1793349720000,
+       "endTime": 1793350066000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 352.21,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest, Kelenföld vasútállomás M",
+        "lat": 47.465755,
+        "lon": 19.021871,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest-Kelenföld",
+        "lat": 47.464444,
+        "lon": 19.02,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501024"
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793350500000,
+       "endTime": 1793354400000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 125469.36,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "München Hbf",
+       "from": {
+        "name": "Budapest-Kelenföld",
+        "lat": 47.464444,
+        "lon": 19.02,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501024"
+        }
+       },
+       "to": {
+        "name": "Győr",
+        "lat": 47.681944,
+        "lon": 17.634722,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501289"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E36226003",
+        "shortName": "<span class=\"MNR2007\">&#481;</span>",
+        "longName": "rjx 60/62/63/64/65/66",
+        "color": "FEFEFE",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:36226539",
+        "tripShortName": "62 railjet xpress",
+        "departureStoptime": {
+         "scheduledDeparture": 34200
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005501131_0"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "WALK",
+       "startTime": 1793348622000,
+       "endTime": 1793348700000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 68.96,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest",
+        "lat": 47.497912,
+        "lon": 19.054916,
+        "stop": null
+       },
+       "to": {
+        "name": "Budapest, Deák Ferenc tér M",
+        "lat": 47.497413,
+        "lon": 19.055158,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "TRAM",
+       "startTime": 1793348700000,
+       "endTime": 1793348940000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 1525.44,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Városház tér",
+       "from": {
+        "name": "Budapest, Deák Ferenc tér M",
+        "lat": 47.497413,
+        "lon": 19.055158,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Fővám tér M",
+        "lat": 47.486916,
+        "lon": 19.05724,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": {
+        "gtfsId": "BKK:3470",
+        "shortName": "47",
+        "longName": null,
+        "color": "FFD800",
+        "textColor": "000000"
+       },
+       "trip": {
+        "gtfsId": "BKK:D16576208",
+        "tripShortName": null,
+        "departureStoptime": {
+         "scheduledDeparture": 33900
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "BKK:F01012"
+        },
+        {
+         "gtfsId": "BKK:F01005"
+        }
+       ]
+      },
+      {
+       "mode": "WALK",
+       "startTime": 1793348940000,
+       "endTime": 1793349153000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 206.83,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest, Fővám tér M",
+        "lat": 47.486916,
+        "lon": 19.05724,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Fővám tér",
+        "lat": 47.485792,
+        "lon": 19.057571,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "SUBWAY",
+       "startTime": 1793349280000,
+       "endTime": 1793349720000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 4189.92,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Kelenföld vasútállomás",
+       "from": {
+        "name": "Budapest, Fővám tér",
+        "lat": 47.485792,
+        "lon": 19.057571,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest, Kelenföld vasútállomás",
+        "lat": 47.464515,
+        "lon": 19.019618,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": {
+        "gtfsId": "BKK:5400",
+        "shortName": "M4",
+        "longName": null,
+        "color": "4CA22F",
+        "textColor": "FFFFFF"
+       },
+       "trip": {
+        "gtfsId": "BKK:D17742385",
+        "tripShortName": null,
+        "departureStoptime": {
+         "scheduledDeparture": 34140
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "BKK:056223"
+        },
+        {
+         "gtfsId": "BKK:056221"
+        },
+        {
+         "gtfsId": "BKK:056219"
+        },
+        {
+         "gtfsId": "BKK:056217"
+        }
+       ]
+      },
+      {
+       "mode": "WALK",
+       "startTime": 1793349720000,
+       "endTime": 1793350041000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 333.33,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest, Kelenföld vasútállomás",
+        "lat": 47.464515,
+        "lon": 19.019618,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budapest-Kelenföld",
+        "lat": 47.464444,
+        "lon": 19.02,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501024"
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793350500000,
+       "endTime": 1793354400000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 125469.36,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "München Hbf",
+       "from": {
+        "name": "Budapest-Kelenföld",
+        "lat": 47.464444,
+        "lon": 19.02,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501024"
+        }
+       },
+       "to": {
+        "name": "Győr",
+        "lat": 47.681944,
+        "lon": 17.634722,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501289"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E36226003",
+        "shortName": "<span class=\"MNR2007\">&#481;</span>",
+        "longName": "rjx 60/62/63/64/65/66",
+        "color": "FEFEFE",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:36226539",
+        "tripShortName": "62 railjet xpress",
+        "departureStoptime": {
+         "scheduledDeparture": 34200
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005501131_0"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ }
+}

@@ -11,6 +11,13 @@ def station_id_from_gtfs_id(gtfs_id: str) -> str:
     return gtfs_id.split(":", 1)[-1].split("_", 1)[0]
 
 
+def platform_from_gtfs_id(gtfs_id: str) -> str | None:
+    """`1:005501024_14` -> `14`: the platform a platform-level stop stands for."""
+    local = gtfs_id.split(":", 1)[-1]
+    _, sep, platform = local.partition("_")
+    return (platform or None) if sep else None
+
+
 def station_id(stop: dict[str, Any]) -> str | None:
     """
     Station-level id of a stop: OTP's stationUicPricingCode when present,

@@ -5,6 +5,7 @@ import {
     HStack,
     Picker,
     Section,
+    Slider,
     Spacer,
     Text,
     Toggle,
@@ -99,6 +100,56 @@ export function SettingsScreen() {
                         label={s.t("detailed_railway_map")}
                         isOn={s.settings.detailedRailwayMap}
                         onIsOnChange={s.setDetailedRailwayMap}
+                    />
+                    <Toggle
+                        label={s.t("station_names")}
+                        isOn={s.settings.showStationNames}
+                        onIsOnChange={(on) =>
+                            s.setMapSwitch("showStationNames", on)
+                        }
+                    />
+                    {s.settings.showStationNames ? (
+                        <HStack spacing={12}>
+                            <Text>{s.t("station_names_opacity")}</Text>
+                            <Slider
+                                value={s.settings.stationNamesOpacity}
+                                min={s.opacityRange.min}
+                                max={s.opacityRange.max}
+                                step={s.opacityRange.step}
+                                onValueChange={s.setStationNamesOpacity}
+                                onEditingChanged={(editing) => {
+                                    if (!editing) {
+                                        s.commitStationNamesOpacity();
+                                    }
+                                }}
+                            />
+                        </HStack>
+                    ) : null}
+                    <Toggle
+                        label={s.t("animation")}
+                        isOn={s.settings.animateVehicles}
+                        onIsOnChange={(on) =>
+                            s.setMapSwitch("animateVehicles", on)
+                        }
+                    />
+                </Section>
+                <Section title={s.t("vehicles")}>
+                    <Toggle
+                        label={s.t("trains")}
+                        isOn={s.settings.showTrains}
+                        onIsOnChange={(on) => s.setMapSwitch("showTrains", on)}
+                    />
+                    <Toggle
+                        label={s.t("hev")}
+                        isOn={s.settings.showHev}
+                        onIsOnChange={(on) => s.setMapSwitch("showHev", on)}
+                    />
+                    <Toggle
+                        label={s.t("tramtrain")}
+                        isOn={s.settings.showTramTrains}
+                        onIsOnChange={(on) =>
+                            s.setMapSwitch("showTramTrains", on)
+                        }
                     />
                 </Section>
                 <Section>

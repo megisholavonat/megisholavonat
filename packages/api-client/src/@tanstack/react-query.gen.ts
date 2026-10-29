@@ -482,7 +482,8 @@ export const getStationPlatformsQueryKey = (options: Options<GetStationPlatforms
 /**
  * Get Station Platforms
  *
- * Predicted platform per train at a station: the most common one recently
+ * Predicted platform per train at a station: the most common one recently;
+ * `confident` tells whether it is sure enough to show
  */
 export const getStationPlatformsOptions = (options: Options<GetStationPlatformsData>) => queryOptions<GetStationPlatformsResponse, AxiosError<GetStationPlatformsError>, GetStationPlatformsResponse, ReturnType<typeof getStationPlatformsQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {

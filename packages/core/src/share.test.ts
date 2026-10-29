@@ -3,6 +3,7 @@ import {
     huTrainSubject,
     shareUrl,
     stationShareText,
+    stationShareTitle,
     trainShareStatus,
     trainShareText,
 } from "./share";
@@ -196,6 +197,17 @@ describe("trainShareStatus", () => {
                 delay: 7,
             }),
         ).toBe("noData");
+    });
+});
+
+describe("stationShareTitle", () => {
+    it("says the link opens the live departures", () => {
+        expect(stationShareTitle("hu", "Szolnok")).toBe(
+            "Szolnok – indulások élőben",
+        );
+        expect(stationShareTitle("en", "Szolnok")).toBe(
+            "Szolnok – live departures",
+        );
     });
 });
 

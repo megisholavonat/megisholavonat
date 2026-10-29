@@ -213,13 +213,11 @@ dependencies = [
     { name = "orjson" },
     { name = "polyline" },
     { name = "pydantic-settings" },
-    { name = "pytz" },
     { name = "redis" },
     { name = "shapely" },
     { name = "sqlalchemy", extra = ["asyncio"] },
     { name = "taskiq", extra = ["orjson", "reload"] },
     { name = "taskiq-redis" },
-    { name = "types-pytz" },
 ]
 
 [package.dev-dependencies]
@@ -232,7 +230,6 @@ dev = [
     { name = "pytest-asyncio" },
     { name = "respx" },
     { name = "ruff" },
-    { name = "types-pytz" },
     { name = "types-shapely" },
 ]
 train = [
@@ -252,13 +249,11 @@ requires-dist = [
     { name = "orjson", specifier = ">=3.11.8" },
     { name = "polyline", specifier = ">=2.0.3" },
     { name = "pydantic-settings", specifier = ">=2.14.2" },
-    { name = "pytz", specifier = ">=2025.2" },
     { name = "redis", specifier = "<7" },
     { name = "shapely", specifier = ">=2.1.2" },
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.1.6" },
     { name = "taskiq", extras = ["orjson", "reload"], specifier = ">=0.11.20" },
     { name = "taskiq-redis", specifier = ">=1.1.2" },
-    { name = "types-pytz", specifier = ">=2025.2.0.20251108" },
 ]
 
 [package.metadata.requires-dev]
@@ -271,7 +266,6 @@ dev = [
     { name = "pytest-asyncio", specifier = ">=1.4.1" },
     { name = "respx", specifier = ">=0.23.1" },
     { name = "ruff", specifier = ">=0.14.6" },
-    { name = "types-pytz", specifier = ">=2025.2.0.20251108" },
     { name = "types-shapely", specifier = ">=2.1.0.20250917" },
 ]
 train = [{ name = "lightgbm", specifier = ">=4.7.0" }]
@@ -1670,15 +1664,6 @@ wheels = [
 ]
 
 [[package]]
-name = "pytz"
-version = "2026.1.post1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/56/db/b8721d71d945e6a8ac63c0fc900b2067181dbb50805958d4d4661cf7d277/pytz-2026.1.post1.tar.gz", hash = "sha256:3378dde6a0c3d26719182142c56e60c7f9af7e968076f31aae569d72a0358ee1", size = 321088, upload-time = "2026-03-03T07:47:50.683Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/10/99/781fe0c827be2742bcc775efefccb3b048a3a9c6ce9aec0cbf4a101677e5/pytz-2026.1.post1-py2.py3-none-any.whl", hash = "sha256:f2fd16142fda348286a75e1a524be810bb05d444e5a081f37f7affc635035f7a", size = 510489, upload-time = "2026-03-03T07:47:49.167Z" },
-]
-
-[[package]]
 name = "pyyaml"
 version = "6.0.3"
 source = { registry = "https://pypi.org/simple" }
@@ -2134,15 +2119,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/f5/24/cb09efec5cc954f7f9b930bf8279447d24618bb6758d4f6adf2574c41780/typer-0.24.1.tar.gz", hash = "sha256:e39b4732d65fbdcde189ae76cf7cd48aeae72919dea1fdfc16593be016256b45", size = 118613, upload-time = "2026-02-21T16:54:40.609Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/4a/91/48db081e7a63bb37284f9fbcefda7c44c277b18b0e13fbc36ea2335b71e6/typer-0.24.1-py3-none-any.whl", hash = "sha256:112c1f0ce578bfb4cab9ffdabc68f031416ebcc216536611ba21f04e9aa84c9e", size = 56085, upload-time = "2026-02-21T16:54:41.616Z" },
-]
-
-[[package]]
-name = "types-pytz"
-version = "2026.1.1.20260408"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/f7/b7/33f5a4f29b1f285b99ff79a607751a7996194cbb98705e331dab7a2daa28/types_pytz-2026.1.1.20260408.tar.gz", hash = "sha256:89b6a34b9198ea2a4b98a9d15cbca987053f52a105fd44f7ce3789cae4349408", size = 10788, upload-time = "2026-04-08T04:28:14.54Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ae/90/12c059e6bb330a22d9cc97daf027ac7fb7f50fbf518e4d88185b4d39120e/types_pytz-2026.1.1.20260408-py3-none-any.whl", hash = "sha256:c7e4dec76221fb7d0c97b91ad8561d689bebe39b6bcb7b728387e7ffd8cde788", size = 10124, upload-time = "2026-04-08T04:28:13.353Z" },
 ]
 
 [[package]]

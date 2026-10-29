@@ -636,8 +636,39 @@ async def test_platform_prediction_most_common(
             "platform": "5",
             "confidence": 0.75,
             "n": 4,
+            # Below both the confidence and the runs needed
+            "confident": False,
         }
     ]
+
+
+@pytest.mark.parametrize(
+    ("platforms", "confident"),
+    [
+        (["5"] * 5, True),
+        (["5"] * 4 + ["2"], True),
+        # Sure, but from too few runs
+        (["5"] * 4, False),
+        (["5"] * 6 + ["2"] * 2, False),
+    ],
+)
+async def test_platform_prediction_confident(
+    client: httpx.AsyncClient,
+    db_session: AsyncSession,
+    platforms: list[str],
+    confident: bool,
+) -> None:
+    await _seed(
+        db_session,
+        [
+            _obs(0, day=MONDAY - timedelta(days=i), trip=f"1:run{i}", platform=p)
+            for i, p in enumerate(platforms)
+        ],
+    )
+
+    body = (await client.get(f"/v1/history/stations/{KELETI}/platforms")).json()
+
+    assert body["predictions"][0]["confident"] is confident
 
 
 async def test_station_typical_delays(

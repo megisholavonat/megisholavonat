@@ -320,6 +320,30 @@ export const zJourneyStop = z.object({
 });
 
 /**
+ * CityLeg
+ *
+ * A ride on urban transit (Budapest's BKK, or another town's metro, tram,
+ * trolleybus or bus) to the first train, from the last one, or between two
+ * trains at different stations
+ */
+export const zCityLeg = z.object({
+    type: z.literal('city').optional().default('city'),
+    mode: z.string(),
+    line: z.string(),
+    routeColor: z.string().nullish(),
+    routeTextColor: z.string().nullish(),
+    headsign: z.string().nullish(),
+    fromStop: zJourneyStop,
+    toStop: zJourneyStop,
+    scheduledDeparture: z.int(),
+    expectedDeparture: z.int(),
+    scheduledArrival: z.int(),
+    expectedArrival: z.int(),
+    realtime: z.boolean(),
+    intermediateStops: z.int()
+});
+
+/**
  * LiveActivityPushTokenCreate
  *
  * The ActivityKit push token of one followed trip's iOS Live Activity. It
@@ -501,7 +525,8 @@ export const zPlatformPrediction = z.object({
     lineName: z.string().nullish(),
     platform: z.string(),
     confidence: z.number(),
-    n: z.int()
+    n: z.int(),
+    confident: z.boolean()
 });
 
 /**
@@ -1039,11 +1064,17 @@ export const zItinerary = z.object({
     expectedArrival: z.int(),
     durationMinutes: z.int(),
     transferCount: z.int(),
-    legs: z.array(z.union([z.object({
+    legs: z.array(z.union([
+        z.object({
             type: z.literal('walk')
-        }).and(zWalkLeg), z.object({
+        }).and(zWalkLeg),
+        z.object({
             type: z.literal('transit')
-        }).and(zTransitLeg)])),
+        }).and(zTransitLeg),
+        z.object({
+            type: z.literal('city')
+        }).and(zCityLeg)
+    ])),
     transfers: z.array(zTransfer),
     ticketUrl: z.string()
 });
@@ -1119,7 +1150,8 @@ export const zPlanJourneysQuery = z.object({
     to: z.string(),
     time: z.iso.datetime().nullish(),
     arriveBy: z.boolean().optional().default(false),
-    limit: z.int().gte(1).lte(10).optional().default(5)
+    limit: z.int().gte(1).lte(10).optional().default(5),
+    cityTransit: z.boolean().optional().default(false)
 });
 
 /**

@@ -48,7 +48,10 @@ import {
     Wordmark,
 } from "@/components/home/HomeChrome";
 import {
+    PLANNER_PARAMS,
     PlannerButton,
+    plannerFromParams,
+    plannerParams,
     usePlannerState,
 } from "@/components/journey/PlannerButton";
 import {
@@ -502,8 +505,26 @@ function MapScreen() {
         if (overlay === "search") setSearchOpen(true);
         if (overlay === "planner") setPlannerOpen(true);
         if (overlay === "disruptions") setDisruptionsOpen(true);
+        // A shared journey (?from=…&to=…) opens the planner on it, as if
+        // opened here: the entry is the planner's, so back closes it
+        const shared = plannerFromParams(
+            new URLSearchParams(window.location.search),
+        );
+        if (shared) {
+            setPlanner(shared);
+            setPlannerOpen(true);
+            if (overlay !== "planner") {
+                const entry: NavEntry = {
+                    ...window.history.state,
+                    mhav: 1,
+                    overlay: "planner",
+                    from: null,
+                };
+                window.history.replaceState(entry, "", window.location.href);
+            }
+        }
         setUrlRead(true);
-    }, []);
+    }, [setPlanner]);
 
     const overlay: Overlay | null = searchOpen
         ? "search"
@@ -527,6 +548,31 @@ function MapScreen() {
             backPendingRef,
         );
     }, [selectedId, stationId, overlay, urlRead]);
+
+    // The planned journey in the URL while the planner is open (shareable),
+    // after the effect above has settled the entry (and again whenever it
+    // rewrites the URL, hence the layers in the dependencies)
+    // biome-ignore lint/correctness/useExhaustiveDependencies: see above
+    useEffect(() => {
+        if (!urlRead || backPendingRef.current) return;
+        const params = new URLSearchParams(window.location.search);
+        const wanted = plannerOpen ? plannerParams(planner) : {};
+        let changed = false;
+        for (const name of PLANNER_PARAMS) {
+            const value = wanted[name] ?? null;
+            if (params.get(name) === value) continue;
+            if (value) params.set(name, value);
+            else params.delete(name);
+            changed = true;
+        }
+        if (!changed) return;
+        const search = params.toString();
+        window.history.replaceState(
+            window.history.state,
+            "",
+            `${window.location.pathname}${search ? `?${search}` : ""}`,
+        );
+    }, [urlRead, plannerOpen, planner, selectedId, stationId, overlay]);
 
     const board = useQuery({
         ...getStationBoardOptions({

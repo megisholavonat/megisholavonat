@@ -1,9 +1,10 @@
+import type { Station } from "@megisholavonat/api-client";
 import {
     getStationBoardOptions,
     getStationPlatformsOptions,
 } from "@megisholavonat/api-client/react-query";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useFormatter, useTranslations } from "use-intl";
 import { StationDisruptions } from "../disruptions/DisruptionViews";
@@ -29,10 +30,13 @@ export function StationBoard({
     initialName,
     onClose,
     onTrain,
+    onStation,
 }: {
     stationId: string;
     /** Shown until the board loads (from search) */
     initialName?: string;
+    /** The station as the board names and places it, once loaded */
+    onStation?: (station: Station) => void;
     onClose: () => void;
     onTrain: (vehicleId: string) => void;
 }) {
@@ -61,6 +65,10 @@ export function StationBoard({
     );
 
     const name = board.data?.station.name ?? initialName ?? "";
+    const loaded = board.data?.station;
+    useEffect(() => {
+        if (loaded) onStation?.(loaded);
+    }, [loaded, onStation]);
 
     return (
         <ScrollView contentContainerStyle={styles.container}>

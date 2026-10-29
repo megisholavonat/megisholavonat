@@ -16,6 +16,7 @@
         "./i18n": "./src/i18n.ts",
         "./mapStyle": "./src/mapStyle.ts",
         "./mavRoutes": "./src/mavRoutes.ts",
+        "./planner": "./src/planner.ts",
         "./polyline": "./src/polyline.ts",
         "./search": "./src/search.ts",
         "./share": "./src/share.ts",
@@ -30,7 +31,8 @@
         "./trainSearch": "./src/trainSearch.ts",
         "./uic": "./src/uic.ts",
         "./vehicle": "./src/vehicle.ts",
-        "./VehicleTracker": "./src/VehicleTracker.ts"
+        "./VehicleTracker": "./src/VehicleTracker.ts",
+        "./vehicleMotion": "./src/vehicleMotion.ts"
     },
     "scripts": {
         "check": "biome check && tsc --noEmit",

@@ -15,7 +15,7 @@ import time
 from collections import defaultdict
 from collections.abc import Awaitable, Callable, Iterable, Iterator
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from itertools import pairwise
 from typing import Any
 
@@ -34,7 +34,7 @@ from api.services.station_index import (
     IndexedStation,
     load_station_index,
 )
-from api.util.time import BUDAPEST_TZ
+from api.util.time import today
 
 logger = get_logger(__name__)
 
@@ -274,10 +274,6 @@ def _patterns_query(codes: list[str]) -> str:
     )
 
 
-def service_date_today() -> date:
-    return datetime.now(BUDAPEST_TZ).date()
-
-
 async def fetch_patterns(service_date: date) -> list[PatternTrips]:
     """Rail patterns calling at stops in the map's bbox, with their trips."""
     min_lat, min_lon, max_lat, max_lon = MAP_BBOX
@@ -316,10 +312,6 @@ STATION_LOOKBACK_DAYS = 90
 # Days with fewer observations than this share of the best day looked at were
 # only partly recorded (outages, deploys) and are skipped
 FULL_DAY_SHARE = 0.5
-# HÉV stations have UIC codes of this prefix; the other stops under it are
-# replacement bus stops
-HEV_UIC_PREFIX = "0036"
-HEV_NAME_SUFFIX = " H"
 
 
 def station_features(
@@ -331,9 +323,8 @@ def station_features(
     for station in stations:
         if not _inside((station.lat, station.lon), bbox):
             continue
-        hev = station.id.startswith(HEV_UIC_PREFIX)
-        if hev and not station.name.endswith(HEV_NAME_SUFFIX):
-            continue
+        # By the station index's type (replacement bus stops are not in it)
+        hev = station.type == "hev"
         features.append(
             {
                 "type": "Feature",
@@ -413,7 +404,7 @@ class StoredLayer:
 
 async def build_network_layer(redis: Redis, session: AsyncSession) -> str:
     start = time.time()
-    patterns = await fetch_patterns(service_date_today())
+    patterns = await fetch_patterns(today())
     collection = await asyncio.to_thread(build_network, patterns)
     body = _dumps(collection)
     logger.info(
@@ -427,7 +418,7 @@ async def build_network_layer(redis: Redis, session: AsyncSession) -> str:
 async def build_stations_layer(redis: Redis, session: AsyncSession) -> str:
     start = time.time()
     stations = await load_station_index(redis)
-    per_day = await trains_per_day(session, service_date_today())
+    per_day = await trains_per_day(session, today())
     collection = station_features(stations, per_day)
     body = _dumps(collection)
     logger.info(

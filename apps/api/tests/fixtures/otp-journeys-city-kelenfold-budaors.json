@@ -1,0 +1,524 @@
+{
+ "data": {
+  "plan": {
+   "itineraries": [
+    {
+     "legs": [
+      {
+       "mode": "RAIL",
+       "startTime": 1793340120000,
+       "endTime": 1793340360000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 5464.79,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Oroszlány",
+       "from": {
+        "name": "Budapest-Kelenföld",
+        "lat": 47.464444,
+        "lon": 19.02,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501024"
+        }
+       },
+       "to": {
+        "name": "Budaörs",
+        "lat": 47.4475,
+        "lon": 18.965,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501032"
+        }
+       },
+       "route": {
+        "gtfsId": "1:V2917_106",
+        "shortName": "<span class=\"MNR2007\">&#350;</span>",
+        "longName": "S12",
+        "color": "FFFFFF",
+        "textColor": "00A0E3"
+       },
+       "trip": {
+        "gtfsId": "1:36017829",
+        "tripShortName": "4412 személyvonat",
+        "departureStoptime": {
+         "scheduledDeparture": 24900
+        }
+       },
+       "intermediateStops": []
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "WALK",
+       "startTime": 1793340443000,
+       "endTime": 1793340600000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 210.44,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest-Kelenföld",
+        "lat": 47.464444,
+        "lon": 19.02,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501024"
+        }
+       },
+       "to": {
+        "name": "Budapest, Kelenföld vasútállomás M",
+        "lat": 47.464337,
+        "lon": 19.018507,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "BUS",
+       "startTime": 1793340600000,
+       "endTime": 1793340960000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 5358.67,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Budaörsi lakótelep [Elsőajtós]",
+       "from": {
+        "name": "Budapest, Kelenföld vasútállomás M",
+        "lat": 47.464337,
+        "lon": 19.018507,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budaörs, Csata utca",
+        "lat": 47.455673,
+        "lon": 18.96072,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": {
+        "gtfsId": "BKK:0405",
+        "shortName": "40E",
+        "longName": null,
+        "color": "009EE3",
+        "textColor": "FFFFFF"
+       },
+       "trip": {
+        "gtfsId": "BKK:D2165972832",
+        "tripShortName": null,
+        "departureStoptime": {
+         "scheduledDeparture": 25800
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "BKK:082617"
+        }
+       ]
+      },
+      {
+       "mode": "WALK",
+       "startTime": 1793340960000,
+       "endTime": 1793341810000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 1069.42,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budaörs, Csata utca",
+        "lat": 47.455673,
+        "lon": 18.96072,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budaörs",
+        "lat": 47.4475,
+        "lon": 18.965,
+        "stop": {
+         "platformCode": "4",
+         "stationUicPricingCode": "005501032"
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "RAIL",
+       "startTime": 1793341920000,
+       "endTime": 1793342160000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 5464.79,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Győr",
+       "from": {
+        "name": "Budapest-Kelenföld",
+        "lat": 47.464444,
+        "lon": 19.02,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501024"
+        }
+       },
+       "to": {
+        "name": "Budaörs",
+        "lat": 47.4475,
+        "lon": 18.965,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501032"
+        }
+       },
+       "route": {
+        "gtfsId": "1:V2986_106",
+        "shortName": "<span class=\"MNR2007\">&#335;</span>",
+        "longName": "S10",
+        "color": "FFFFFF",
+        "textColor": "00A0E3"
+       },
+       "trip": {
+        "gtfsId": "1:36016483",
+        "tripShortName": "4922 személyvonat",
+        "departureStoptime": {
+         "scheduledDeparture": 26700
+        }
+       },
+       "intermediateStops": []
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "WALK",
+       "startTime": 1793342023000,
+       "endTime": 1793342160000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 183.33,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest-Kelenföld",
+        "lat": 47.464444,
+        "lon": 19.02,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501024"
+        }
+       },
+       "to": {
+        "name": "Budapest, Kelenföld vasútállomás M",
+        "lat": 47.464094,
+        "lon": 19.018481,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "BUS",
+       "startTime": 1793342160000,
+       "endTime": 1793342520000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 5351.62,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Nyár utca ► Törökbálint vasútállomás [Elsőajtós]",
+       "from": {
+        "name": "Budapest, Kelenföld vasútállomás M",
+        "lat": 47.464094,
+        "lon": 19.018481,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budaörs, benzinkút",
+        "lat": 47.45318,
+        "lon": 18.958444,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": {
+        "gtfsId": "BKK:1730",
+        "shortName": "173",
+        "longName": null,
+        "color": "009EE3",
+        "textColor": "FFFFFF"
+       },
+       "trip": {
+        "gtfsId": "BKK:D2157220848",
+        "tripShortName": null,
+        "departureStoptime": {
+         "scheduledDeparture": 27360
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "BKK:082617"
+        }
+       ]
+      },
+      {
+       "mode": "WALK",
+       "startTime": 1793342520000,
+       "endTime": 1793343438000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 1044.55,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budaörs, benzinkút",
+        "lat": 47.45318,
+        "lon": 18.958444,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budaörs",
+        "lat": 47.4475,
+        "lon": 18.965,
+        "stop": {
+         "platformCode": "4",
+         "stationUicPricingCode": "005501032"
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "RAIL",
+       "startTime": 1793343720000,
+       "endTime": 1793343960000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 5464.79,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Oroszlány",
+       "from": {
+        "name": "Budapest-Kelenföld",
+        "lat": 47.464444,
+        "lon": 19.02,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501024"
+        }
+       },
+       "to": {
+        "name": "Budaörs",
+        "lat": 47.4475,
+        "lon": 18.965,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501032"
+        }
+       },
+       "route": {
+        "gtfsId": "1:V2917_106",
+        "shortName": "<span class=\"MNR2007\">&#350;</span>",
+        "longName": "S12",
+        "color": "FFFFFF",
+        "textColor": "00A0E3"
+       },
+       "trip": {
+        "gtfsId": "1:36016440",
+        "tripShortName": "4422 személyvonat",
+        "departureStoptime": {
+         "scheduledDeparture": 28500
+        }
+       },
+       "intermediateStops": []
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "WALK",
+       "startTime": 1793343823000,
+       "endTime": 1793343960000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 183.33,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budapest-Kelenföld",
+        "lat": 47.464444,
+        "lon": 19.02,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005501024"
+        }
+       },
+       "to": {
+        "name": "Budapest, Kelenföld vasútállomás M",
+        "lat": 47.464094,
+        "lon": 19.018481,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "BUS",
+       "startTime": 1793343960000,
+       "endTime": 1793344320000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 5351.62,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Törökbálint vasútállomás ► Nyár utca [Elsőajtós]",
+       "from": {
+        "name": "Budapest, Kelenföld vasútállomás M",
+        "lat": 47.464094,
+        "lon": 19.018481,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budaörs, benzinkút",
+        "lat": 47.45318,
+        "lon": 18.958444,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": {
+        "gtfsId": "BKK:1720",
+        "shortName": "172",
+        "longName": null,
+        "color": "009EE3",
+        "textColor": "FFFFFF"
+       },
+       "trip": {
+        "gtfsId": "BKK:D2157220920",
+        "tripShortName": null,
+        "departureStoptime": {
+         "scheduledDeparture": 29160
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "BKK:082617"
+        }
+       ]
+      },
+      {
+       "mode": "WALK",
+       "startTime": 1793344320000,
+       "endTime": 1793345238000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 1044.55,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Budaörs, benzinkút",
+        "lat": 47.45318,
+        "lon": 18.958444,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Budaörs",
+        "lat": 47.4475,
+        "lon": 18.965,
+        "stop": {
+         "platformCode": "4",
+         "stationUicPricingCode": "005501032"
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      }
+     ]
+    }
+   ]
+  }
+ }
+}

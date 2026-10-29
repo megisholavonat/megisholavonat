@@ -155,6 +155,66 @@ export type BoardEntry = {
 };
 
 /**
+ * CityLeg
+ *
+ * A ride on urban transit (Budapest's BKK, or another town's metro, tram,
+ * trolleybus or bus) to the first train, from the last one, or between two
+ * trains at different stations
+ */
+export type CityLeg = {
+    /**
+     * Type
+     */
+    type?: 'city';
+    /**
+     * Mode
+     */
+    mode: string;
+    /**
+     * Line
+     */
+    line: string;
+    /**
+     * Routecolor
+     */
+    routeColor?: string | null;
+    /**
+     * Routetextcolor
+     */
+    routeTextColor?: string | null;
+    /**
+     * Headsign
+     */
+    headsign?: string | null;
+    fromStop: JourneyStop;
+    toStop: JourneyStop;
+    /**
+     * Scheduleddeparture
+     */
+    scheduledDeparture: number;
+    /**
+     * Expecteddeparture
+     */
+    expectedDeparture: number;
+    /**
+     * Scheduledarrival
+     */
+    scheduledArrival: number;
+    /**
+     * Expectedarrival
+     */
+    expectedArrival: number;
+    /**
+     * Realtime
+     */
+    realtime: boolean;
+    /**
+     * Intermediatestops
+     */
+    intermediateStops: number;
+};
+
+/**
  * CommuteFollow
  */
 export type CommuteFollow = {
@@ -713,7 +773,9 @@ export type Itinerary = {
         type: 'walk';
     } & WalkLeg) | ({
         type: 'transit';
-    } & TransitLeg)>;
+    } & TransitLeg) | ({
+        type: 'city';
+    } & CityLeg)>;
     /**
      * Transfers
      */
@@ -1014,6 +1076,10 @@ export type PlatformPrediction = {
      * N
      */
     n: number;
+    /**
+     * Confident
+     */
+    confident: boolean;
 };
 
 /**
@@ -2325,13 +2391,13 @@ export type PlanJourneysData = {
         /**
          * From
          *
-         * UIC code of the departure station
+         * UIC code of the departure station, or `budapest` for any Budapest station
          */
         from: string;
         /**
          * To
          *
-         * UIC code of the destination station
+         * UIC code of the destination station, or `budapest` for any Budapest station
          */
         to: string;
         /**
@@ -2350,6 +2416,12 @@ export type PlanJourneysData = {
          * Limit
          */
         limit?: number;
+        /**
+         * Citytransit
+         *
+         * Also ride urban transit (metro, tram, trolleybus, city bus; never interurban coaches) to the first train, from the last one, or between two stations; always on for `budapest`
+         */
+        cityTransit?: boolean;
     };
     url: '/v1/journeys';
 };

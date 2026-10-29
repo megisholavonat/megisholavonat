@@ -1,6 +1,7 @@
 "use client";
 
 import type { Station } from "@megisholavonat/api-client";
+import { ANY_BUDAPEST } from "@megisholavonat/core/planner";
 import { Route as RouteIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
@@ -15,6 +16,57 @@ export interface PlannerState {
     /** Local Budapest time "YYYY-MM-DDTHH:mm", or null for now */
     time: string | null;
     arriveBy: boolean;
+}
+
+/** The planner's query parameters, so a planned journey can be shared */
+export const PLANNER_PARAMS = ["from", "to", "time", "arriveBy"] as const;
+type PlannerParam = (typeof PLANNER_PARAMS)[number];
+
+const STATION_PARAM = /^(\d{9}|budapest)$/;
+const TIME_PARAM = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+
+/** A station known by id only, until its name is looked up. */
+export function stationStub(id: string): Station {
+    return id === ANY_BUDAPEST.id
+        ? ANY_BUDAPEST
+        : { id, name: "", lat: 0, lon: 0 };
+}
+
+/**
+ * The planner of a shared link: `?from=005510017&to=budapest&time=
+ * 2026-10-30T07:00&arriveBy=1`, a UIC code or `budapest` at either end.
+ * Null when it names neither end.
+ */
+export function plannerFromParams(
+    params: URLSearchParams,
+): PlannerState | null {
+    const station = (name: "from" | "to") => {
+        const id = params.get(name);
+        return id && STATION_PARAM.test(id) ? stationStub(id) : null;
+    };
+    const from = station("from");
+    const to = station("to");
+    if (!from && !to) return null;
+    const param = params.get("time");
+    const time = param && TIME_PARAM.test(param) ? param : null;
+    return {
+        from,
+        to,
+        time,
+        // Arriving by is a set time's ("now" only departs; see TimeRow)
+        arriveBy: time !== null && params.get("arriveBy") === "1",
+    };
+}
+
+export function plannerParams(
+    state: PlannerState,
+): Partial<Record<PlannerParam, string>> {
+    const params: Partial<Record<PlannerParam, string>> = {};
+    if (state.from) params.from = state.from.id;
+    if (state.to) params.to = state.to.id;
+    if (state.time) params.time = state.time;
+    if (state.time && state.arriveBy) params.arriveBy = "1";
+    return params;
 }
 
 export function usePlannerState() {

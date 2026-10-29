@@ -7,7 +7,7 @@ GPS-derived delay_s. Statistics cover the last N service dates up to today
 (see `history_window`).
 """
 
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from functools import cache
 from typing import Any
 
@@ -15,7 +15,6 @@ import holidays
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.models.history import ON_TIME_THRESHOLD_S
 from api.schemas.insights import (
     DelayStats,
     Directory,
@@ -35,9 +34,17 @@ from api.schemas.insights import (
     TrainStationHistory,
     TypicalDelay,
 )
+from api.services.history_sql import (
+    DELAY_AGGREGATES,
+    IN_WINDOW,
+    RAIL_ONLY,
+    TRAIN_NUMBER,
+    window_params,
+)
 from api.services.station_index import IndexedStation
+from api.util.history_constants import platform_confident
 from api.util.route_names import LINE_PATTERN, MAV_ROUTE_MAP, is_line, route_name
-from api.util.time import BUDAPEST_TZ
+from api.util.time import today
 
 # Below this many passages a delay statistic is flagged as insufficient
 MIN_SAMPLES = 5
@@ -45,20 +52,8 @@ MIN_SAMPLES = 5
 # train's runs were recorded there
 USUAL_ROUTE_MIN_SHARE = 0.5
 
-# Train numbers are the first token of the trip short name ("10 TRANSCARPATHIA")
-TRAIN_NUMBER = "split_part(trip_short_name, ' ', 1)"
-IN_WINDOW = "service_date BETWEEN :start AND :end"
-
 # Weekend timetables also run on public holidays and bridge days
 WEEKEND = "(extract(isodow FROM service_date) >= 6 OR service_date = ANY(:holidays))"
-
-# Delay aggregates over a set of observations
-DELAY_AGGREGATES = """
-    count(*) AS n,
-    percentile_cont(0.5) WITHIN GROUP (ORDER BY delay_s) AS median_s,
-    percentile_cont(0.8) WITHIN GROUP (ORDER BY delay_s) AS p80_s,
-    avg((delay_s <= :on_time)::int) AS on_time_share
-"""
 
 
 def _minutes(seconds: float | None) -> float | None:
@@ -83,11 +78,6 @@ def _stats(row: Any) -> dict[str, Any]:
     }
 
 
-def today() -> date:
-    """Today in Budapest (tests replace it to pin the window)."""
-    return datetime.now(BUDAPEST_TZ).date()
-
-
 @cache
 def _holidays(year: int) -> tuple[date, ...]:
     return tuple(sorted(holidays.country_holidays("HU", years=year)))
@@ -105,16 +95,13 @@ def public_holidays(start: date, end: date) -> list[date]:
 
 def history_window(days: int) -> HistoryWindow:
     """The last `days` service dates, up to and including today."""
+    # `today` is looked up here, so tests can replace it on this module
     end = today()
     return HistoryWindow(start=end - timedelta(days=days - 1), end=end, days=days)
 
 
 def _window_params(window: HistoryWindow) -> dict[str, Any]:
-    return {
-        "start": window.start,
-        "end": window.end,
-        "on_time": ON_TIME_THRESHOLD_S,
-    }
+    return window_params(window.start, window.end)
 
 
 async def station_names(
@@ -340,13 +327,6 @@ RANKING_EXTRAS: dict[str, str] = {
 }
 
 
-# Rankings and network-wide figures are of the railway: HÉV and tram-train
-# stops (and the runs ending at them) are left out. They run short, frequent,
-# mostly punctual urban services, and every HÉV stop would outrank every
-# railway station.
-RAIL_ONLY = "AND station_id <> ALL(CAST(:non_rail AS text[]))"
-
-
 async def rankings(
     session: AsyncSession,
     kind: RankingKind,
@@ -522,6 +502,7 @@ async def station_platforms(
                 platform=r.platform,
                 confidence=round(r.c / r.total, 3),
                 n=r.total,
+                confident=platform_confident(round(float(r.c / r.total), 3), r.total),
             )
             for r in rows
         ],

@@ -16,7 +16,15 @@ import {
     type Outline,
     STALE_COLORS,
 } from "@megisholavonat/core/tokens";
-import { MAP_MARKS } from "@megisholavonat/core/tokens/map";
+import {
+    directionArrowBox,
+    directionArrowPaint,
+    directionArrowPoints,
+    MAP_DIRECTION_ARROW,
+    MAP_FOLLOW_STAR,
+    MAP_MARKS,
+    MAP_STATION_MARK,
+} from "@megisholavonat/core/tokens/map";
 import type { StyleImageMetadata } from "maplibre-gl";
 
 /**
@@ -86,7 +94,7 @@ export function followImageId(scheme: ColorScheme): string {
 }
 
 /** Diameter of the followed-train star badge */
-export const FOLLOW_BADGE_SIZE = 16;
+export const FOLLOW_BADGE_SIZE = MARKER.followBadge.size;
 
 interface Paint {
     fill: string;
@@ -394,37 +402,40 @@ function cluster(scheme: ColorScheme) {
     return data ? { data, meta: { pixelRatio: PIXEL_RATIO } } : null;
 }
 
-/** Direction of travel: a small ink triangle pointing up (rotated by heading). */
+/**
+ * Direction of travel: an ink dart pointing up (rotated by heading) with a
+ * surface halo, so it reads on the route line too (MAP_DIRECTION_ARROW).
+ */
 function arrow(scheme: ColorScheme) {
-    const { width, height } = MARKER.directionArrow;
+    const { w, h } = directionArrowBox();
+    const paint = directionArrowPaint(scheme);
     const canvas = document.createElement("canvas");
-    canvas.width = (width + 2) * PIXEL_RATIO;
-    canvas.height = (height + 2) * PIXEL_RATIO;
+    canvas.width = w * PIXEL_RATIO;
+    canvas.height = h * PIXEL_RATIO;
     const ctx = context(canvas);
     if (!ctx) return null;
     ctx.scale(PIXEL_RATIO, PIXEL_RATIO);
+    ctx.translate(w / 2, h / 2);
     ctx.beginPath();
-    ctx.moveTo(1 + width / 2, 1);
-    ctx.lineTo(1 + width, 1 + height);
-    ctx.lineTo(1, 1 + height);
+    for (const [x, y] of directionArrowPoints()) ctx.lineTo(x, y);
     ctx.closePath();
     ctx.lineJoin = "round";
-    ctx.lineWidth = 1.5;
-    ctx.strokeStyle = COLORS[scheme].map;
+    ctx.lineWidth = MAP_DIRECTION_ARROW.halo * 2;
+    ctx.strokeStyle = paint.halo;
     ctx.stroke();
-    ctx.fillStyle = COLORS[scheme].ink;
+    ctx.fillStyle = paint.fill;
     ctx.fill();
     const data = toImage(canvas);
     return data ? { data, meta: { pixelRatio: PIXEL_RATIO } } : null;
 }
 
 /** A thin edge in the map colour just around the ring: opaque to here… */
-const STATION_CLEAR = 15;
+const STATION_CLEAR = MAP_STATION_MARK.clear;
 /** …then fading out to here (css px) */
-const STATION_FADE = 18;
+const STATION_FADE = MAP_STATION_MARK.fade;
 /** The ring's radius, to the middle of its stroke */
-const STATION_RING_R = 9;
-const STATION_RING_W = 3;
+const STATION_RING_R = MAP_STATION_MARK.ring.radius;
+const STATION_RING_W = MAP_STATION_MARK.ring.width;
 
 /**
  * Selected station, drawn in two layers. Under the trains, a thin edge in the
@@ -452,8 +463,8 @@ function station(scheme: ColorScheme, part: "clear" | "ring") {
         ctx.fillRect(0, 0, size, size);
     } else {
         ctx.beginPath();
-        ctx.arc(c, c, 13, 0, Math.PI * 2);
-        ctx.globalAlpha = 0.2;
+        ctx.arc(c, c, MAP_STATION_MARK.halo.radius, 0, Math.PI * 2);
+        ctx.globalAlpha = MAP_STATION_MARK.halo.opacity;
         ctx.fillStyle = COLORS[scheme].ink;
         ctx.fill();
         ctx.globalAlpha = 1;
@@ -470,11 +481,11 @@ function station(scheme: ColorScheme, part: "clear" | "ring") {
 }
 
 /** The station name's box: its corner radius and padding (css px) */
-const LABEL_RADIUS = 6;
-const LABEL_PAD_X = 7;
-const LABEL_PAD_Y = 3;
+const LABEL_RADIUS = MAP_STATION_MARK.label.radius;
+const LABEL_PAD_X = MAP_STATION_MARK.label.padX;
+const LABEL_PAD_Y = MAP_STATION_MARK.label.padY;
 /** Line height of the 13 px name, as MapLibre lays it out */
-const LABEL_TEXT_H = 13 * TEXT_LINE_HEIGHT;
+const LABEL_TEXT_H = MAP_STATION_MARK.label.size * TEXT_LINE_HEIGHT;
 
 /**
  * The box behind the selected station's name: a surface card with a hairline
@@ -529,7 +540,7 @@ function stationLabel(scheme: ColorScheme) {
 
 /** Followed train: a small ink disc with a star, pinned to the marker. */
 function follow(scheme: ColorScheme) {
-    const ring = 1.5;
+    const ring = MAP_FOLLOW_STAR.rim;
     const size = FOLLOW_BADGE_SIZE + ring * 2;
     const canvas = document.createElement("canvas");
     canvas.width = size * PIXEL_RATIO;
@@ -547,14 +558,13 @@ function follow(scheme: ColorScheme) {
     ctx.fillStyle = COLORS[scheme].ink;
     ctx.fill();
     // Five-pointed star
-    const outer = 4.6;
-    const inner = outer * 0.45;
+    const { outer, inner } = MAP_FOLLOW_STAR;
     ctx.beginPath();
     for (let i = 0; i < 10; i++) {
         const r = i % 2 === 0 ? outer : inner;
         const a = -Math.PI / 2 + (i * Math.PI) / 5;
         const x = c + r * Math.cos(a);
-        const y = c + 0.4 + r * Math.sin(a);
+        const y = c + MAP_FOLLOW_STAR.dy + r * Math.sin(a);
         if (i === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
     }

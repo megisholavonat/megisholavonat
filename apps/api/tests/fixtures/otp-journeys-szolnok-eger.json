@@ -1,0 +1,990 @@
+{
+ "data": {
+  "plan": {
+   "itineraries": [
+    {
+     "legs": [
+      {
+       "mode": "RAIL",
+       "startTime": 1793331060000,
+       "endTime": 1793335800000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 68421.98,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Hatvan",
+       "from": {
+        "name": "Szolnok",
+        "lat": 47.179167,
+        "lon": 20.175833,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005513748"
+        }
+       },
+       "to": {
+        "name": "Hatvan",
+        "lat": 47.663611,
+        "lon": 19.671389,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511205"
+        }
+       },
+       "route": {
+        "gtfsId": "1:V2991_106",
+        "shortName": "<span class=\"MNR2007\">&#379;</span>",
+        "longName": "S820",
+        "color": "FFFFFF",
+        "textColor": "00A0E3"
+       },
+       "trip": {
+        "gtfsId": "1:35897814",
+        "tripShortName": "5729 személyvonat",
+        "departureStoptime": {
+         "scheduledDeparture": 16260
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005511692_0"
+        },
+        {
+         "gtfsId": "1:005511981_0"
+        },
+        {
+         "gtfsId": "1:005511973_0"
+        },
+        {
+         "gtfsId": "1:005511965_0"
+        },
+        {
+         "gtfsId": "1:005511957_0"
+        },
+        {
+         "gtfsId": "1:005511940_0"
+        },
+        {
+         "gtfsId": "1:005511932_0"
+        }
+       ]
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793336100000,
+       "endTime": 1793340600000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 74814.17,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Eger",
+       "from": {
+        "name": "Hatvan",
+        "lat": 47.663611,
+        "lon": 19.671389,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511205"
+        }
+       },
+       "to": {
+        "name": "Eger",
+        "lat": 47.891667,
+        "lon": 20.381667,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005512401"
+        }
+       },
+       "route": {
+        "gtfsId": "1:V2930_103",
+        "shortName": "<span class=\"MNR2007\">&#542;</span>",
+        "longName": "IR87",
+        "color": "FFFFFF",
+        "textColor": "29803C"
+       },
+       "trip": {
+        "gtfsId": "1:32738522",
+        "tripShortName": "540 AGRIA InterRégió",
+        "departureStoptime": {
+         "scheduledDeparture": 18000
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005511239_0"
+        },
+        {
+         "gtfsId": "1:005511247_0"
+        },
+        {
+         "gtfsId": "1:005511254_0"
+        },
+        {
+         "gtfsId": "1:005511262_0"
+        },
+        {
+         "gtfsId": "1:005511270_0"
+        },
+        {
+         "gtfsId": "1:005511288_0"
+        },
+        {
+         "gtfsId": "1:005511296_0"
+        },
+        {
+         "gtfsId": "1:005512377_0"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "RAIL",
+       "startTime": 1793333700000,
+       "endTime": 1793338920000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 68421.98,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Hatvan",
+       "from": {
+        "name": "Szolnok",
+        "lat": 47.179167,
+        "lon": 20.175833,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005513748"
+        }
+       },
+       "to": {
+        "name": "Hatvan",
+        "lat": 47.663611,
+        "lon": 19.671389,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511205"
+        }
+       },
+       "route": {
+        "gtfsId": "1:V2991_106",
+        "shortName": "<span class=\"MNR2007\">&#379;</span>",
+        "longName": "S820",
+        "color": "FFFFFF",
+        "textColor": "00A0E3"
+       },
+       "trip": {
+        "gtfsId": "1:35900309",
+        "tripShortName": "5739 személyvonat",
+        "departureStoptime": {
+         "scheduledDeparture": 18900
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005511692_0"
+        },
+        {
+         "gtfsId": "1:005511981_0"
+        },
+        {
+         "gtfsId": "1:005511973_0"
+        },
+        {
+         "gtfsId": "1:005511965_0"
+        },
+        {
+         "gtfsId": "1:005511957_0"
+        },
+        {
+         "gtfsId": "1:005511940_0"
+        },
+        {
+         "gtfsId": "1:005511932_0"
+        }
+       ]
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793339520000,
+       "endTime": 1793343120000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 74813.57,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Eger",
+       "from": {
+        "name": "Hatvan",
+        "lat": 47.663611,
+        "lon": 19.671389,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511205"
+        }
+       },
+       "to": {
+        "name": "Eger",
+        "lat": 47.891667,
+        "lon": 20.381667,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005512401"
+        }
+       },
+       "route": {
+        "gtfsId": "1:V2930_103",
+        "shortName": "<span class=\"MNR2007\">&#542;</span>",
+        "longName": "IR87",
+        "color": "FFFFFF",
+        "textColor": "29803C"
+       },
+       "trip": {
+        "gtfsId": "1:36322747",
+        "tripShortName": "550 AGRIA InterRégió",
+        "departureStoptime": {
+         "scheduledDeparture": 21600
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005511239_0"
+        },
+        {
+         "gtfsId": "1:005511288_0"
+        },
+        {
+         "gtfsId": "1:005511296_0"
+        },
+        {
+         "gtfsId": "1:005512377_0"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "RAIL",
+       "startTime": 1793337540000,
+       "endTime": 1793342760000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 68421.98,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Hatvan",
+       "from": {
+        "name": "Szolnok",
+        "lat": 47.179167,
+        "lon": 20.175833,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005513748"
+        }
+       },
+       "to": {
+        "name": "Hatvan",
+        "lat": 47.663611,
+        "lon": 19.671389,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511205"
+        }
+       },
+       "route": {
+        "gtfsId": "1:V2991_106",
+        "shortName": "<span class=\"MNR2007\">&#379;</span>",
+        "longName": "S820",
+        "color": "FFFFFF",
+        "textColor": "00A0E3"
+       },
+       "trip": {
+        "gtfsId": "1:35900310",
+        "tripShortName": "5717 személyvonat",
+        "departureStoptime": {
+         "scheduledDeparture": 22740
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005511692_0"
+        },
+        {
+         "gtfsId": "1:005511981_0"
+        },
+        {
+         "gtfsId": "1:005511973_0"
+        },
+        {
+         "gtfsId": "1:005511965_0"
+        },
+        {
+         "gtfsId": "1:005511957_0"
+        },
+        {
+         "gtfsId": "1:005511940_0"
+        },
+        {
+         "gtfsId": "1:005511932_0"
+        }
+       ]
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793343120000,
+       "endTime": 1793346720000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 74813.57,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Eger",
+       "from": {
+        "name": "Hatvan",
+        "lat": 47.663611,
+        "lon": 19.671389,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511205"
+        }
+       },
+       "to": {
+        "name": "Eger",
+        "lat": 47.891667,
+        "lon": 20.381667,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005512401"
+        }
+       },
+       "route": {
+        "gtfsId": "1:V2930_103",
+        "shortName": "<span class=\"MNR2007\">&#542;</span>",
+        "longName": "IR87",
+        "color": "FFFFFF",
+        "textColor": "29803C"
+       },
+       "trip": {
+        "gtfsId": "1:32738533",
+        "tripShortName": "542 AGRIA InterRégió",
+        "departureStoptime": {
+         "scheduledDeparture": 25200
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005511239_0"
+        },
+        {
+         "gtfsId": "1:005511288_0"
+        },
+        {
+         "gtfsId": "1:005511296_0"
+        },
+        {
+         "gtfsId": "1:005512377_0"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "RAIL",
+       "startTime": 1793341080000,
+       "endTime": 1793346300000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 68421.98,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Hatvan",
+       "from": {
+        "name": "Szolnok",
+        "lat": 47.179167,
+        "lon": 20.175833,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005513748"
+        }
+       },
+       "to": {
+        "name": "Hatvan",
+        "lat": 47.663611,
+        "lon": 19.671389,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511205"
+        }
+       },
+       "route": {
+        "gtfsId": "1:V2991_106",
+        "shortName": "<span class=\"MNR2007\">&#379;</span>",
+        "longName": "S820",
+        "color": "FFFFFF",
+        "textColor": "00A0E3"
+       },
+       "trip": {
+        "gtfsId": "1:35900262",
+        "tripShortName": "5727 személyvonat",
+        "departureStoptime": {
+         "scheduledDeparture": 26280
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005511692_0"
+        },
+        {
+         "gtfsId": "1:005511981_0"
+        },
+        {
+         "gtfsId": "1:005511957_0"
+        },
+        {
+         "gtfsId": "1:005511940_0"
+        },
+        {
+         "gtfsId": "1:005511932_0"
+        }
+       ]
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793346720000,
+       "endTime": 1793350320000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 74813.57,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Eger",
+       "from": {
+        "name": "Hatvan",
+        "lat": 47.663611,
+        "lon": 19.671389,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511205"
+        }
+       },
+       "to": {
+        "name": "Eger",
+        "lat": 47.891667,
+        "lon": 20.381667,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005512401"
+        }
+       },
+       "route": {
+        "gtfsId": "1:V2930_103",
+        "shortName": "<span class=\"MNR2007\">&#542;</span>",
+        "longName": "IR87",
+        "color": "FFFFFF",
+        "textColor": "29803C"
+       },
+       "trip": {
+        "gtfsId": "1:32738711",
+        "tripShortName": "5500 AGRIA InterRégió",
+        "departureStoptime": {
+         "scheduledDeparture": 28800
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005511239_0"
+        },
+        {
+         "gtfsId": "1:005511288_0"
+        },
+        {
+         "gtfsId": "1:005511296_0"
+        },
+        {
+         "gtfsId": "1:005512377_0"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "RAIL",
+       "startTime": 1793344680000,
+       "endTime": 1793349960000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 68421.98,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Hatvan",
+       "from": {
+        "name": "Szolnok",
+        "lat": 47.179167,
+        "lon": 20.175833,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005513748"
+        }
+       },
+       "to": {
+        "name": "Hatvan",
+        "lat": 47.663611,
+        "lon": 19.671389,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511205"
+        }
+       },
+       "route": {
+        "gtfsId": "1:V2991_106",
+        "shortName": "<span class=\"MNR2007\">&#379;</span>",
+        "longName": "S820",
+        "color": "FFFFFF",
+        "textColor": "00A0E3"
+       },
+       "trip": {
+        "gtfsId": "1:35900312",
+        "tripShortName": "5737 személyvonat",
+        "departureStoptime": {
+         "scheduledDeparture": 29880
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005511692_0"
+        },
+        {
+         "gtfsId": "1:005511981_0"
+        },
+        {
+         "gtfsId": "1:005511973_0"
+        },
+        {
+         "gtfsId": "1:005511965_0"
+        },
+        {
+         "gtfsId": "1:005511957_0"
+        },
+        {
+         "gtfsId": "1:005511940_0"
+        },
+        {
+         "gtfsId": "1:005511932_0"
+        }
+       ]
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793350320000,
+       "endTime": 1793353920000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 74813.57,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Eger",
+       "from": {
+        "name": "Hatvan",
+        "lat": 47.663611,
+        "lon": 19.671389,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511205"
+        }
+       },
+       "to": {
+        "name": "Eger",
+        "lat": 47.891667,
+        "lon": 20.381667,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005512401"
+        }
+       },
+       "route": {
+        "gtfsId": "1:V2930_103",
+        "shortName": "<span class=\"MNR2007\">&#542;</span>",
+        "longName": "IR87",
+        "color": "FFFFFF",
+        "textColor": "29803C"
+       },
+       "trip": {
+        "gtfsId": "1:32738712",
+        "tripShortName": "552 AGRIA InterRégió",
+        "departureStoptime": {
+         "scheduledDeparture": 32400
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005511239_0"
+        },
+        {
+         "gtfsId": "1:005511288_0"
+        },
+        {
+         "gtfsId": "1:005511296_0"
+        },
+        {
+         "gtfsId": "1:005512377_0"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "RAIL",
+       "startTime": 1793346600000,
+       "endTime": 1793348820000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 45015.89,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Debrecen",
+       "from": {
+        "name": "Szolnok",
+        "lat": 47.179167,
+        "lon": 20.175833,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005513748"
+        }
+       },
+       "to": {
+        "name": "Kisújszállás",
+        "lat": 47.223889,
+        "lon": 20.751111,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005513821"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E35051309",
+        "shortName": "<span class=\"MNR2007\">&#477;</span>",
+        "longName": "IR CÍVIS",
+        "color": "FEFEFE",
+        "textColor": "29803C"
+       },
+       "trip": {
+        "gtfsId": "1:35052319",
+        "tripShortName": "6002 CÍVIS InterRégió",
+        "departureStoptime": {
+         "scheduledDeparture": 26340
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005513771_0"
+        },
+        {
+         "gtfsId": "1:005513789_0"
+        },
+        {
+         "gtfsId": "1:005513805_0"
+        }
+       ]
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793349480000,
+       "endTime": 1793355240000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 73270.69,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Kál-Kápolna",
+       "from": {
+        "name": "Kisújszállás",
+        "lat": 47.223889,
+        "lon": 20.751111,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005513821"
+        }
+       },
+       "to": {
+        "name": "Kál-Kápolna",
+        "lat": 47.734167,
+        "lon": 20.254167,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511288"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E28519148",
+        "shortName": "<span class=\"MNR2007\">&#484;</span>",
+        "longName": "Sz 36511/36513/36514/36515/36516/36517/36522/36523/36526/36527/36532",
+        "color": "FEFEFE",
+        "textColor": "00A0E3"
+       },
+       "trip": {
+        "gtfsId": "1:28522806",
+        "tripShortName": "36527 személyvonat",
+        "departureStoptime": {
+         "scheduledDeparture": 34680
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005512351_0"
+        },
+        {
+         "gtfsId": "1:005512344_0"
+        },
+        {
+         "gtfsId": "1:005512328_0"
+        },
+        {
+         "gtfsId": "1:005543802_0"
+        },
+        {
+         "gtfsId": "1:005512310_0"
+        },
+        {
+         "gtfsId": "1:005512302_0"
+        },
+        {
+         "gtfsId": "1:005512294_0"
+        },
+        {
+         "gtfsId": "1:005512286_0"
+        },
+        {
+         "gtfsId": "1:005512260_0"
+        }
+       ]
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793355900000,
+       "endTime": 1793357520000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 28661.51,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Eger",
+       "from": {
+        "name": "Kál-Kápolna",
+        "lat": 47.734167,
+        "lon": 20.254167,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511288"
+        }
+       },
+       "to": {
+        "name": "Eger",
+        "lat": 47.891667,
+        "lon": 20.381667,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005512401"
+        }
+       },
+       "route": {
+        "gtfsId": "1:V2930_103",
+        "shortName": "<span class=\"MNR2007\">&#542;</span>",
+        "longName": "IR87",
+        "color": "FFFFFF",
+        "textColor": "29803C"
+       },
+       "trip": {
+        "gtfsId": "1:32738713",
+        "tripShortName": "5502 AGRIA InterRégió",
+        "departureStoptime": {
+         "scheduledDeparture": 36000
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005511296_0"
+        },
+        {
+         "gtfsId": "1:005512377_0"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "RAIL",
+       "startTime": 1793345820000,
+       "endTime": 1793352000000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 77883.41,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Vámosgyörk",
+       "from": {
+        "name": "Szolnok",
+        "lat": 47.179167,
+        "lon": 20.175833,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005513748"
+        }
+       },
+       "to": {
+        "name": "Vámosgyörk",
+        "lat": 47.686111,
+        "lon": 19.927778,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511239"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E28519646",
+        "shortName": "<span class=\"MNR2007\">&#484;</span>",
+        "longName": "Sz 35711/35715/35716/35722/35723/35727",
+        "color": "FEFEFE",
+        "textColor": "00A0E3"
+       },
+       "trip": {
+        "gtfsId": "1:28519646",
+        "tripShortName": "35727 személyvonat",
+        "departureStoptime": {
+         "scheduledDeparture": 31020
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005542317_0"
+        },
+        {
+         "gtfsId": "1:005542275_0"
+        },
+        {
+         "gtfsId": "1:005511692_0"
+        },
+        {
+         "gtfsId": "1:005512062_0"
+        },
+        {
+         "gtfsId": "1:005542432_0"
+        },
+        {
+         "gtfsId": "1:005512047_0"
+        },
+        {
+         "gtfsId": "1:005512039_0"
+        },
+        {
+         "gtfsId": "1:005512021_0"
+        },
+        {
+         "gtfsId": "1:005512013_0"
+        }
+       ]
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793354760000,
+       "endTime": 1793357520000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 53990.83,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Eger",
+       "from": {
+        "name": "Vámosgyörk",
+        "lat": 47.686111,
+        "lon": 19.927778,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511239"
+        }
+       },
+       "to": {
+        "name": "Eger",
+        "lat": 47.891667,
+        "lon": 20.381667,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005512401"
+        }
+       },
+       "route": {
+        "gtfsId": "1:V2930_103",
+        "shortName": "<span class=\"MNR2007\">&#542;</span>",
+        "longName": "IR87",
+        "color": "FFFFFF",
+        "textColor": "29803C"
+       },
+       "trip": {
+        "gtfsId": "1:32738713",
+        "tripShortName": "5502 AGRIA InterRégió",
+        "departureStoptime": {
+         "scheduledDeparture": 36000
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005511288_0"
+        },
+        {
+         "gtfsId": "1:005511296_0"
+        },
+        {
+         "gtfsId": "1:005512377_0"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ }
+}

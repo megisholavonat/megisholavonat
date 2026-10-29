@@ -1,7 +1,7 @@
 /**
  * The delay summary of one run ("A 7:15-ös Szolnok → Budapest-Nyugati ma
- * 23 percet késett"): its stable link, the card it shows and the text
- * shared with it. Built from the API's run summary (our GPS-derived delay
+ * 23 percet késett"): its stable link and the card its link previews.
+ * Built from the API's run summary (our GPS-derived delay
  * at each stop), shared by the web card page and both apps' share actions.
  */
 
@@ -409,19 +409,6 @@ function huTrainSubjectShort(number: string): string {
     if (!/^\d+$/.test(number)) return `A ${number}`;
     const n = Number(number);
     return `${huVowelStart(n) ? "Az" : "A"} ${number}-${huSuffix(n)}`;
-}
-
-/** The text shared with the card link: the sentence and whose measurement. */
-export function delaySummaryShareText(
-    locale: Locale,
-    card: DelaySummary,
-    now: Date = new Date(),
-): string {
-    const source =
-        locale === "hu"
-            ? "Mégis hol a vonat? GPS-mérés"
-            : "Mégis hol a vonat? GPS measurement";
-    return `${delaySummarySentence(locale, card, now)} (${source})`;
 }
 
 /** A followed run can be shared this long after it left its boarding stop. */
