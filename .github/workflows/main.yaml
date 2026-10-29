@@ -142,14 +142,23 @@ jobs:
         with:
           cmd: yq -i '.image.tag = "${{ github.sha }}"' cluster/apps/mhav-dev/values.yaml
 
+      # The new API (api.megisholavonat.info) deploys from main for now; at
+      # launch this bump moves to prod.yaml. Leaves mhav's .image.tag (old
+      # prod) alone and only writes when next.image.tag already exists, so it
+      # is a no-op until the gitops change adding that key is merged.
+      - name: Update api-next image tag
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq -i 'with(select(.next.image | has("tag")); .next.image.tag = "${{ github.sha }}")' cluster/apps/mhav/values.yaml
+
       - name: Commit and push changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           if [[ -n $(git status -s) ]]; then
-            git add cluster/apps/mhav-dev/values.yaml
-            git commit -m "ci: update dev image tag to ${{ github.sha }}"
+            git add cluster/apps/mhav-dev/values.yaml cluster/apps/mhav/values.yaml
+            git commit -m "ci: update dev and api-next image tags to ${{ github.sha }}"
             git push
           else
-            echo "No changes detected. Dev image tag is already up to date."
+            echo "No changes detected. Image tags are already up to date."
           fi
