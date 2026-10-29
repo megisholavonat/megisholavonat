@@ -141,7 +141,11 @@ export function TrainTitle({
                 destination && (
                     <>
                         <ArrowRight className="size-4 shrink-0" aria-hidden />
-                        <span className="truncate">{destination}</span>
+                        {/* Two lines before it is cut: the destination is
+                            what a rider checks first */}
+                        <span className="line-clamp-2 min-w-0 break-words">
+                            {destination}
+                        </span>
                     </>
                 )
             )}
@@ -188,6 +192,8 @@ function isEstimate(stop: StopView, stale: boolean): boolean {
  * "Szolnok 17:28 ~~17:05~~": the next stop with its expected time. At the
  * first stop it is the departure ("ind. 22:40"); a passed stop is where the
  * train arrived ("érkezett 01:20", actual time, never an estimate).
+ * The destination is already in the title: "érkezik ≈06:32" alone.
+ * The name is never cut for the time: the time wraps under it instead.
  */
 export function NextStopLine({
     stop,
@@ -199,30 +205,37 @@ export function NextStopLine({
     const t = useTranslations("Train");
     const { timing } = stop;
     const late = timing.delay >= 1;
+    const atEnd = stop.isLast && stop.index > 0;
     const prefix = stop.passed
         ? t("arrived_at")
         : stop.index === 0
           ? t("departs_at")
-          : null;
+          : atEnd
+            ? t("arrives_at")
+            : null;
     return (
-        <span className="flex min-w-0 items-baseline gap-1.5 text-headline">
-            <span className="truncate">{stop.name}</span>
-            {prefix && (
-                <span className="shrink-0 text-caption font-normal text-ink-2">
-                    {prefix}
-                </span>
+        <span className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 text-headline">
+            {!atEnd && (
+                <span className="min-w-0 max-w-full truncate">{stop.name}</span>
             )}
-            <TimeText
-                seconds={timing.expected}
-                estimated={isEstimate(stop, stale)}
-                level={null}
-                className="shrink-0"
-            />
-            {late && (
-                <s className="tnum shrink-0 text-caption font-normal text-ink-2">
-                    {formatSecondsAsTime(timing.scheduled)}
-                </s>
-            )}
+            <span className="inline-flex shrink-0 items-baseline gap-1.5">
+                {prefix && (
+                    <span className="shrink-0 text-caption font-normal text-ink-2">
+                        {prefix}
+                    </span>
+                )}
+                <TimeText
+                    seconds={timing.expected}
+                    estimated={isEstimate(stop, stale)}
+                    level={null}
+                    className="shrink-0"
+                />
+                {late && (
+                    <s className="tnum shrink-0 text-caption font-normal text-ink-2">
+                        {formatSecondsAsTime(timing.scheduled)}
+                    </s>
+                )}
+            </span>
         </span>
     );
 }
@@ -1026,6 +1039,7 @@ function StopRow({
     const level = levelOf(timing.delay);
     const estimated = isEstimate(stop, stale);
     const strong = stop.isNext || stop.isLast;
+    const [countyShown, setCountyShown] = useState(false);
     const name = (
         <span
             className={cn(
@@ -1057,13 +1071,30 @@ function StopRow({
             </span>
             <span className="flex min-w-0 flex-col">
                 {stop.county ? (
-                    <TapTip
-                        label={`${stop.name}, ${t("county", { county: stop.county })}`}
-                        content={t("county", { county: stop.county })}
-                        className="min-w-0"
-                    >
-                        {name}
-                    </TapTip>
+                    // The county on tap, under the name: no popover and no
+                    // tab stop per stop. Screen readers get it with the name.
+                    <>
+                        <button
+                            type="button"
+                            tabIndex={-1}
+                            aria-hidden
+                            onClick={() => setCountyShown((shown) => !shown)}
+                            className="min-w-0 cursor-pointer text-left"
+                        >
+                            {name}
+                        </button>
+                        <span className="sr-only">
+                            {`${stop.name}, ${t("county", { county: stop.county })}`}
+                        </span>
+                        {countyShown && (
+                            <span
+                                aria-hidden
+                                className="text-caption text-ink-2"
+                            >
+                                {t("county", { county: stop.county })}
+                            </span>
+                        )}
+                    </>
                 ) : (
                     name
                 )}
