@@ -339,7 +339,7 @@ export function TrainSheet({
                     rows={rows}
                     services={services.byStop}
                     nextPlatformPrediction={nextPrediction}
-                    stale={stale}
+                    stale={!running}
                     running={running}
                     level={display.level}
                 />
