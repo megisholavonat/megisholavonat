@@ -66,7 +66,11 @@ export function useTrainDetails(vehicleId: string | null) {
     });
 }
 
-export function useTrainView(vehicleId: string | null): {
+export function useTrainView(
+    vehicleId: string | null,
+    /** The train's list entry, for details cached without `activity` */
+    listed: TrainFeatureProperties | null = null,
+): {
     view: TrainView | null;
     isError: boolean;
 } {
@@ -84,7 +88,17 @@ export function useTrainView(vehicleId: string | null): {
 
     const view = useMemo((): TrainView | null => {
         if (!vehicle) return null;
-        const display = trainDisplay(vehicle, new Date(now));
+        // Details without `activity` borrow the list's flag, as the map does
+        const flag =
+            vehicle.activity == null &&
+            listed?.vehicleId === vehicle.vehicleId &&
+            listed.lastUpdated === vehicle.lastUpdated
+                ? listed.isStale
+                : undefined;
+        const display = trainDisplay(
+            { ...vehicle, isStale: flag },
+            new Date(now),
+        );
         // Idle and cancelled trains have no delay to carry forward or forecast
         const live = display.delay != null;
         const byStation = new Map<string, TrainRouteStation>();
@@ -164,7 +178,7 @@ export function useTrainView(vehicleId: string | null): {
                     : null,
             ),
         };
-    }, [vehicle, history.data, now]);
+    }, [vehicle, history.data, now, listed]);
 
     return { view, isError: details.isError };
 }
