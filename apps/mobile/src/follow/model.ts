@@ -209,7 +209,11 @@ export function nextRun(
     if (follow.kind === "trip") {
         if (!follow.serviceDate) return null;
         // OTP dates HÉVs after midnight a day early and train 10 a day late
-        const run = tripRun(asTrip(follow, follow.serviceDate), board.time, now);
+        const run = tripRun(
+            asTrip(follow, follow.serviceDate),
+            board.time,
+            now,
+        );
         const departure = run.at * 1000;
         const alight = follow.stops[follow.to];
         const end = alight
@@ -390,7 +394,5 @@ export function findFollowFor(
     now: Date = new Date(),
 ): LocalFollow | null {
     const serviceDate = effectiveServiceDate(details.trip, now);
-    return (
-        follows.find((f) => isRunOf(f, serviceDate, details, now)) ?? null
-    );
+    return follows.find((f) => isRunOf(f, serviceDate, details, now)) ?? null;
 }

@@ -53,10 +53,10 @@ import { useNow } from "@/hooks/useNow";
 import { trainShareData } from "@/lib/shareTrain";
 import {
     destinationOf,
+    runStops,
     type TrainAlert,
     type TrainReason,
     trainName,
-    runStops,
     trainNumber,
 } from "@/lib/train";
 import { cn } from "@/lib/utils";

@@ -8,8 +8,8 @@ import {
     getTrainDetailsOptions,
     getTrainHistoryOptions,
 } from "@megisholavonat/api-client/react-query";
-import { type TrainDisplay, trainDisplay } from "@megisholavonat/core/display";
 import { tripRun } from "@megisholavonat/core/commute";
+import { type TrainDisplay, trainDisplay } from "@megisholavonat/core/display";
 import { decodePolyline } from "@megisholavonat/core/polyline";
 import { ticketUrl } from "@megisholavonat/core/ticket";
 import { useQuery } from "@tanstack/react-query";
@@ -297,7 +297,8 @@ export function useShownDelay(
     const now = useNow();
     // The list's delay is already clamped at a dwell by the API
     const display =
-        view?.display ?? (fallback ? trainDisplay(fallback, new Date(now)) : null);
+        view?.display ??
+        (fallback ? trainDisplay(fallback, new Date(now)) : null);
     if (!display) return { delay: null, stale: true };
     return { delay: display.delay, stale: display.state !== "running" };
 }

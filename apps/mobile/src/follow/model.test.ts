@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
     createBody,
     defaultDraft,
-    isExpired,
     findFollowFor,
+    isExpired,
     isRunOf,
     type LocalFollow,
     nextRun,

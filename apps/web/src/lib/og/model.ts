@@ -6,10 +6,7 @@ import type {
     VehiclePositionWithDelay,
 } from "@megisholavonat/api-client";
 import { type DelayLevel, getDelayLevel } from "@megisholavonat/core/delay";
-import {
-    type TrainDisplay,
-    trainDisplay,
-} from "@megisholavonat/core/display";
+import { type TrainDisplay, trainDisplay } from "@megisholavonat/core/display";
 import { decodePolyline } from "@megisholavonat/core/polyline";
 import {
     type DepartureShareInfo,
@@ -218,19 +215,19 @@ export function trainCard(
     const stoptime = stoptimes[nextIdx];
     const next =
         stoptime && (running || waiting)
-        ? {
-              name: stoptime.stop.name,
-              time: formatSecondsAsTime(
-                  stopTiming(
-                      stoptime,
-                      nextIdx,
-                      false,
-                      running ? (display.delay ?? 0) : 0,
-                      running ? predicted : undefined,
-                  ).expected,
-              ),
-          }
-        : null;
+            ? {
+                  name: stoptime.stop.name,
+                  time: formatSecondsAsTime(
+                      stopTiming(
+                          stoptime,
+                          nextIdx,
+                          false,
+                          running ? (display.delay ?? 0) : 0,
+                          running ? predicted : undefined,
+                      ).expected,
+                  ),
+              }
+            : null;
     const delay = running ? Math.max(0, Math.round(display.delay ?? 0)) : 0;
     const total = vehicle.totalRouteDistance;
     const progress = waiting

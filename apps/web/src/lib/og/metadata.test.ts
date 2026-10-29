@@ -14,12 +14,7 @@ import {
     previewImagePath,
     previewTarget,
 } from "./metadata";
-import {
-    glyphText,
-    stationCard,
-    trainCard,
-    trainShareInfo,
-} from "./model";
+import { glyphText, stationCard, trainCard, trainShareInfo } from "./model";
 
 const ORIGIN = "https://megisholavonat.info";
 const APP = {

@@ -8,8 +8,8 @@ import {
     getTrainStationHistoryOptions,
     getTrainsOptions,
 } from "@megisholavonat/api-client/react-query";
-import { trainDisplay } from "@megisholavonat/core/display";
 import { tripRun } from "@megisholavonat/core/commute";
+import { trainDisplay } from "@megisholavonat/core/display";
 import {
     shareUrl,
     trainShareStatus,
@@ -238,9 +238,7 @@ export function TrainSheet({
     const onTicket = () => {
         const from = next ?? first;
         const departure =
-            details && from
-                ? tripRun(details.trip, from.scheduled).at
-                : null;
+            details && from ? tripRun(details.trip, from.scheduled).at : null;
         WebBrowser.openBrowserAsync(ticketUrl(from?.uic, last?.uic, departure));
     };
 

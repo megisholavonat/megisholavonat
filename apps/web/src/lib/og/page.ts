@@ -4,7 +4,12 @@ import { headers } from "next/headers";
 import { getTranslations } from "next-intl/server";
 import { buildMetadata, type Preview, previewTarget } from "@/lib/og/metadata";
 import { stationCard, trainCard } from "@/lib/og/model";
-import { fetchBoard, fetchTrain, SEARCH_HEADER, siteUrl } from "@/lib/og/server";
+import {
+    fetchBoard,
+    fetchTrain,
+    SEARCH_HEADER,
+    siteUrl,
+} from "@/lib/og/server";
 
 /** The preview a page query asks for; none when it is unknown or fails. */
 async function previewOf(search: string): Promise<Preview> {

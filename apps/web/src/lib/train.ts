@@ -5,12 +5,12 @@ import type {
     TrainRouteStation,
     VehiclePositionWithDelay,
 } from "@megisholavonat/api-client";
+import { tripRun } from "@megisholavonat/core/commute";
 import { type DelayLevel, getDelayLevel } from "@megisholavonat/core/delay";
 import {
     type DelayReasonCode,
     delayReasonCode,
 } from "@megisholavonat/core/delayReasons";
-import { tripRun } from "@megisholavonat/core/commute";
 import { secondsIntoServiceDay } from "@megisholavonat/core/time";
 import { DISPLAY_RULES } from "@megisholavonat/core/tokens";
 
