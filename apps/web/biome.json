@@ -12,7 +12,8 @@
             "!build",
             "!e2e/fixtures",
             "!e2e/test-results",
-            "!e2e/report"
+            "!e2e/report",
+            "!public/map-lab"
         ]
     },
     "linter": {
