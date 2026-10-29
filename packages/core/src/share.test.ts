@@ -130,6 +130,9 @@ describe("trainShareText", () => {
         expect(trainShareText("en", { ...info, status: "arrived" })).toBe(
             "Train 10 has arrived",
         );
+        expect(
+            trainShareText("hu", { ...info, status: "offRoute" }),
+        ).not.toMatch(/friss adat/);
         expect(trainShareText("en", { ...info, status: "noData" })).toBe(
             "No fresh data on train 10",
         );
@@ -172,8 +175,17 @@ describe("trainShareStatus", () => {
                 activity: "beforeDeparture",
             }),
         ).toBe("waiting");
+        // Fresh, but off its route: no delay, yet not "no fresh data"
         expect(
             trainShareStatus({ ...base, state: "idle", activity: "offRoute" }),
+        ).toBe("offRoute");
+        expect(
+            trainShareStatus({
+                ...base,
+                state: "idle",
+                activity: "offRoute",
+                outdated: true,
+            }),
         ).toBe("noData");
         expect(
             trainShareStatus({
