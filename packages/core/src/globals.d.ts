@@ -4,3 +4,7 @@
 declare const console: {
     warn(...data: unknown[]): void;
 };
+
+// Timers too (the analytics debounce).
+declare function setTimeout(handler: () => void, ms?: number): unknown;
+declare function clearTimeout(handle: unknown): void;

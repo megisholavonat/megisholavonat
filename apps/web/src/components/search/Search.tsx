@@ -34,6 +34,7 @@ import {
 import { DelayChip } from "@/components/ui/Delay";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
 import { useNow } from "@/hooks/useNow";
+import { track } from "@/lib/analytics";
 import { trainName, trainNumber } from "@/lib/train";
 import { cn } from "@/lib/utils";
 import {
@@ -166,6 +167,14 @@ export function useSearchState(
         ? [...trainItems, ...stationItems]
         : [...stationItems, ...trainItems];
     const select = (item: Item) => {
+        track("search_result_selected", {
+            type: item.kind,
+            position:
+                items.indexOf(item) >= 0 ? items.indexOf(item) : undefined,
+            query_length: query.trim().length,
+            trains: results.trains.length,
+            stations: results.stations.length,
+        });
         setQuery("");
         if (item.kind === "station") handlers.onSelectStation(item.station);
         else handlers.onSelectTrain(item.train);
@@ -729,7 +738,11 @@ export function DesktopSearch({
                     ref={inputRef}
                     value={state.query}
                     onChange={state.setQuery}
-                    onFocus={() => setFocused(true)}
+                    onFocus={() => {
+                        if (!focused)
+                            track("search_opened", { surface: "panel" });
+                        setFocused(true);
+                    }}
                     onKeyDown={(e) => {
                         if (e.key === "Escape") {
                             e.stopPropagation();
