@@ -136,7 +136,7 @@ export function TrainSheetHeader({
 }) {
     const next = view?.next;
     return (
-        <>
+        <div data-focus-layer="" className="contents">
             <SheetClose onClick={onClose} />
             {detent === "full" && view ? (
                 <div className="flex flex-col gap-3 px-4 pb-3">
@@ -180,7 +180,7 @@ export function TrainSheetHeader({
                     }
                 />
             )}
-        </>
+        </div>
     );
 }
 
@@ -196,7 +196,11 @@ export function TrainSheetBody({
 }) {
     const listRef = useScrollToCurrentStop(view, detent === "full");
     return (
-        <div ref={listRef} className="flex flex-col gap-3 px-4 pb-6">
+        <div
+            ref={listRef}
+            data-focus-layer=""
+            className="flex flex-col gap-3 px-4 pb-6"
+        >
             {!view ? (
                 <StopListSkeleton />
             ) : detent === "full" ? (
