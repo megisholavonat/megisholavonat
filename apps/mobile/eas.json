@@ -5,16 +5,13 @@
     },
     "build": {
         "base": {
-            "pnpm": "10.33.0",
-            "env": {
-                "EXPO_PUBLIC_API_URL": "https://megisholavonat.info/api",
-                "EXPO_PUBLIC_TILE_CACHE_URL": "https://tc.megisholavonat.info"
-            }
+            "pnpm": "10.33.0"
         },
         "development": {
             "extends": "base",
             "developmentClient": true,
-            "distribution": "internal"
+            "distribution": "internal",
+            "environment": "development"
         },
         "development-simulator": {
             "extends": "development",
@@ -24,11 +21,19 @@
         },
         "preview": {
             "extends": "base",
-            "distribution": "internal"
+            "distribution": "internal",
+            "env": {
+                "EXPO_PUBLIC_API_URL": "https://megisholavonat.info/api",
+                "EXPO_PUBLIC_TILE_CACHE_URL": "https://tc.megisholavonat.info"
+            }
         },
         "production": {
             "extends": "base",
-            "autoIncrement": true
+            "autoIncrement": true,
+            "env": {
+                "EXPO_PUBLIC_API_URL": "https://megisholavonat.info/api",
+                "EXPO_PUBLIC_TILE_CACHE_URL": "https://tc.megisholavonat.info"
+            }
         }
     },
     "submit": {
