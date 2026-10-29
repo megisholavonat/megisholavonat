@@ -12,7 +12,13 @@
         "ios": {
             "bundleIdentifier": "info.megisholavonat.app",
             "appleTeamId": "YMX8RUHNUC",
+            "icon": {
+                "light": "./assets/images/icon.png",
+                "dark": "./assets/images/icon-dark.png",
+                "tinted": "./assets/images/icon-tinted.png"
+            },
             "supportsTablet": true,
+            "associatedDomains": ["applinks:megisholavonat.info"],
             "entitlements": {
                 "com.apple.security.application-groups": [
                     "group.info.megisholavonat.app"
@@ -56,9 +62,29 @@
             "package": "info.megisholavonat.app",
             "adaptiveIcon": {
                 "foregroundImage": "./assets/images/adaptive-icon.png",
-                "backgroundColor": "#FFFFFF"
+                "monochromeImage": "./assets/images/adaptive-icon-monochrome.png",
+                "backgroundColor": "#16181C"
             },
             "predictiveBackGestureEnabled": false,
+            "intentFilters": [
+                {
+                    "action": "VIEW",
+                    "autoVerify": true,
+                    "data": [
+                        {
+                            "scheme": "https",
+                            "host": "megisholavonat.info",
+                            "path": "/hu"
+                        },
+                        {
+                            "scheme": "https",
+                            "host": "megisholavonat.info",
+                            "path": "/en"
+                        }
+                    ],
+                    "category": ["BROWSABLE", "DEFAULT"]
+                }
+            ],
             "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"],
             "blockedPermissions": [
                 "android.permission.SYSTEM_ALERT_WINDOW",
@@ -88,10 +114,11 @@
                 "expo-splash-screen",
                 {
                     "image": "./assets/images/splash-icon.png",
-                    "imageWidth": 160,
-                    "backgroundColor": "#FFFFFF",
+                    "imageWidth": 120,
+                    "backgroundColor": "#F4F5F7",
                     "dark": {
-                        "backgroundColor": "#0B1220"
+                        "image": "./assets/images/splash-icon-dark.png",
+                        "backgroundColor": "#111316"
                     }
                 }
             ],
