@@ -1,7 +1,6 @@
 import {
     boardRegion,
     expect,
-    knownGap,
     openHome,
     STATIONS,
     TRAINS,
@@ -51,7 +50,6 @@ test("a board row opens its train", async ({ page }) => {
 });
 
 test("P1: a board row on time shows no delay reason", async ({ page }) => {
-    knownGap("P1/B8: board rows show the reason without a delay");
     const board = await openBoard(page);
     const row = board.getByRole("button").filter({ hasText: "6009" });
     await expect(row).toBeVisible();
