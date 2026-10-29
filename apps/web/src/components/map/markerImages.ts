@@ -46,6 +46,13 @@ export function stationImageId(scheme: ColorScheme): string {
     return `${PREFIX}${scheme}-station`;
 }
 
+export function followImageId(scheme: ColorScheme): string {
+    return `${PREFIX}${scheme}-follow`;
+}
+
+/** Diameter of the followed-train star badge */
+export const FOLLOW_BADGE_SIZE = 16;
+
 interface Paint {
     fill: string;
     outline: Outline;
@@ -276,8 +283,46 @@ function station(scheme: ColorScheme) {
     return data ? { data, meta: { pixelRatio: PIXEL_RATIO } } : null;
 }
 
+/** Followed train: a small ink disc with a star, pinned to the marker. */
+function follow(scheme: ColorScheme) {
+    const ring = 1.5;
+    const size = FOLLOW_BADGE_SIZE + ring * 2;
+    const canvas = document.createElement("canvas");
+    canvas.width = size * PIXEL_RATIO;
+    canvas.height = size * PIXEL_RATIO;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+    ctx.scale(PIXEL_RATIO, PIXEL_RATIO);
+    const c = size / 2;
+    ctx.beginPath();
+    ctx.arc(c, c, c, 0, Math.PI * 2);
+    ctx.fillStyle = COLORS[scheme].surface;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(c, c, FOLLOW_BADGE_SIZE / 2, 0, Math.PI * 2);
+    ctx.fillStyle = COLORS[scheme].ink;
+    ctx.fill();
+    // Five-pointed star
+    const outer = 4.6;
+    const inner = outer * 0.45;
+    ctx.beginPath();
+    for (let i = 0; i < 10; i++) {
+        const r = i % 2 === 0 ? outer : inner;
+        const a = -Math.PI / 2 + (i * Math.PI) / 5;
+        const x = c + r * Math.cos(a);
+        const y = c + 0.4 + r * Math.sin(a);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fillStyle = COLORS[scheme].surface;
+    ctx.fill();
+    const data = toImage(canvas);
+    return data ? { data, meta: { pixelRatio: PIXEL_RATIO } } : null;
+}
+
 const ID_PATTERN =
-    /^mhav-(light|dark)-(?:(dot|pill)-(onTime|slight|moderate|severe|stale)-(train|hev)(-sel)?|(arrow)|(station))$/;
+    /^mhav-(light|dark)-(?:(dot|pill)-(onTime|slight|moderate|severe|stale)-(train|hev)(-sel)?|(arrow)|(station)|(follow))$/;
 
 /** Builds the sprite for one of our ids, or null for other ids. */
 export function markerImage(
@@ -288,6 +333,7 @@ export function markerImage(
     const scheme = match[1] as ColorScheme;
     if (match[6]) return arrow(scheme);
     if (match[7]) return station(scheme);
+    if (match[8]) return follow(scheme);
     const kind = match[2];
     const level = match[3] as MarkerLevel;
     const shape = match[4] as MarkerShape;

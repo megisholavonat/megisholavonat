@@ -148,7 +148,9 @@ export function trainReason(alerts: Alert[] | undefined): TrainReason | null {
 
 /** Plain-words "usually late" level, or null if the train is usually fine. */
 export function usuallyLate(
-    station: TrainRouteStation | undefined,
+    station:
+        | Pick<TrainRouteStation, "insufficientData" | "n" | "medianDelayMin">
+        | undefined,
 ): "late" | "veryLate" | null {
     const rule = DISPLAY_RULES.usuallyLate;
     if (!station || station.insufficientData || station.n < rule.minRuns) {

@@ -1,32 +1,25 @@
 "use client";
 
 import type { BoardEntry, Station } from "@megisholavonat/api-client";
-import {
-    getStationBoardOptions,
-    getStationPlatformsOptions,
-} from "@megisholavonat/api-client/react-query";
+import { getStationBoardOptions } from "@megisholavonat/api-client/react-query";
 import {
     DELAY_REASONS,
     type DelayReasonCode,
 } from "@megisholavonat/core/delayReasons";
 import type { Locale } from "@megisholavonat/core/i18n";
-import { DISPLAY_RULES } from "@megisholavonat/core/tokens";
 import { useQuery } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { useMemo } from "react";
 import { BottomSheet, type Detent } from "@/components/sheet/BottomSheet";
 import { BackButton, CloseButton } from "@/components/train/TrainParts";
 import { DelayChip } from "@/components/ui/Delay";
 import { PlatformBadge } from "@/components/ui/Platform";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
+import { usePredictedPlatforms } from "@/hooks/usePredictedPlatforms";
 import { trainNumber } from "@/lib/train";
 import { cn } from "@/lib/utils";
 
 export type BoardKind = "departures" | "arrivals";
-
-const HOUR = 60 * 60 * 1000;
-const MIN_PLATFORM_RUNS = 5;
 
 const timeFormat = new Intl.DateTimeFormat("hu-HU", {
     hour: "2-digit",
@@ -46,24 +39,7 @@ function useBoard(stationId: string, kind: BoardKind) {
         }),
         refetchInterval: 30_000,
     });
-    const platforms = useQuery({
-        ...getStationPlatformsOptions({ path: { stationId } }),
-        staleTime: HOUR,
-        retry: false,
-    });
-    // Train number -> platform it usually uses here, when we are sure enough
-    const predicted = useMemo(() => {
-        const map = new Map<string, string>();
-        for (const p of platforms.data?.predictions ?? []) {
-            if (
-                p.confidence >= DISPLAY_RULES.predictedPlatform.minConfidence &&
-                p.n >= MIN_PLATFORM_RUNS
-            ) {
-                map.set(p.trainNumber, p.platform);
-            }
-        }
-        return map;
-    }, [platforms.data]);
+    const predicted = usePredictedPlatforms(stationId);
     return { board, predicted };
 }
 

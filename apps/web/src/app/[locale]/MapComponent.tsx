@@ -58,6 +58,7 @@ import {
 import { MapControls } from "@/components/map/MapControls";
 import {
     arrowImageId,
+    followImageId,
     labelSize,
     markerImage,
     PILL_PADDING_X,
@@ -193,10 +194,42 @@ const ARROW_OFFSET = ((): ExpressionSpecification => {
     ] as unknown as ExpressionSpecification;
 })();
 
+// The star of a followed train sits on the marker's top-right edge, bucketed
+// the same way: x by the label width, y by the marker height
+const FOLLOW_X_MIN = 6;
+const FOLLOW_X_MAX = 40;
+const FOLLOW_HEIGHTS = [
+    ...new Set([
+        MARKER.levels.onTime.height,
+        ...(["slight", "moderate", "severe", "stale"] as const).map(pillHeight),
+    ]),
+];
+function followKey(x: number, height: number): string {
+    return `${x}:${height}`;
+}
+const FOLLOW_OFFSET = ((): ExpressionSpecification => {
+    const cases: (string | ExpressionSpecification)[] = [];
+    for (const height of FOLLOW_HEIGHTS) {
+        for (let x = FOLLOW_X_MIN; x <= FOLLOW_X_MAX; x += 2) {
+            cases.push(followKey(x, height), [
+                "literal",
+                [x, -height / 2],
+            ] as unknown as ExpressionSpecification);
+        }
+    }
+    return [
+        "match",
+        ["get", "followKey"],
+        ...cases,
+        ["literal", [FOLLOW_X_MIN, -MARKER.levels.onTime.height / 2]],
+    ] as unknown as ExpressionSpecification;
+})();
+
 /** Marker level, shape and label, precomputed per train for the layers. */
 function enrich(
     props: TrainFeatureProperties,
     nowS: number,
+    followed: boolean,
 ): Record<string, unknown> {
     const stale = !!props.isStale;
     const level = stale ? "stale" : getDelayLevel(props.delay);
@@ -209,9 +242,19 @@ function enrich(
     const halfWidth = label
         ? (label.length * labelSize(level) * 0.62) / 2 + PILL_PADDING_X
         : MARKER.levels.onTime.height / 2;
+    const height =
+        level === "onTime" ? MARKER.levels.onTime.height : pillHeight(level);
     return {
         ...props,
         level,
+        followed,
+        followKey: followKey(
+            Math.min(
+                FOLLOW_X_MAX,
+                Math.max(FOLLOW_X_MIN, Math.round((halfWidth + 2) / 2) * 2),
+            ),
+            height,
+        ),
         shape: props.type === "hev" ? "hev" : "train",
         label,
         arrowOffset: Math.min(
@@ -222,8 +265,8 @@ function enrich(
                     ARROW_OFFSET_STEP,
             ),
         ),
-        // Bigger delays draw on top; stale trains at the bottom
-        sortKey: stale ? -1 : props.delay,
+        // Followed trains on top, then bigger delays; stale at the bottom
+        sortKey: followed ? 50000 : stale ? -1 : props.delay,
     };
 }
 
@@ -243,6 +286,7 @@ export interface MapInsets {
 export default function MapComponent({
     trains,
     selectedId,
+    followedIds,
     onSelectTrain,
     train,
     station,
@@ -252,6 +296,8 @@ export default function MapComponent({
 }: {
     trains: TrainFeatureCollection | undefined;
     selectedId: string | null;
+    /** Vehicles of followed trains, starred on the map */
+    followedIds: ReadonlySet<string>;
     onSelectTrain: (vehicleId: string | null) => void;
     train: VehiclePositionWithDelay | undefined;
     station: Station | null;
@@ -303,11 +349,16 @@ export default function MapComponent({
             features: features.map((feature) => ({
                 type: "Feature" as const,
                 geometry: feature.geometry as unknown as Point,
-                properties: enrich(feature.properties, nowS),
+                properties: enrich(
+                    feature.properties,
+                    nowS,
+                    followedIds.has(feature.properties.vehicleId),
+                ),
             })),
         };
     }, [
         trains,
+        followedIds,
         settings.showTrains,
         settings.showTramTrains,
         settings.showHev,
@@ -999,6 +1050,21 @@ export default function MapComponent({
                             "icon-opacity": markerOpacity,
                             "text-opacity": markerOpacity,
                         }}
+                    />
+                    {/* Followed trains: a star on the marker */}
+                    <Layer
+                        id={LAYER_IDS.TRAIN_FOLLOW}
+                        type="symbol"
+                        minzoom={MARKER.labelMinZoom}
+                        filter={["==", ["get", "followed"], true]}
+                        layout={{
+                            "icon-image": followImageId(scheme),
+                            "icon-offset": FOLLOW_OFFSET,
+                            "icon-allow-overlap": true,
+                            "icon-ignore-placement": true,
+                            "symbol-sort-key": sortKey,
+                        }}
+                        paint={{ "icon-opacity": markerOpacity }}
                     />
                 </Source>
                 {selectedInfo && (
