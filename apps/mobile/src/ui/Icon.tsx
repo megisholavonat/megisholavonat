@@ -30,6 +30,8 @@ export const ICONS = {
     position: symbol("arrowtriangle.right.fill", "play_arrow"),
     back: symbol("chevron.left", "arrow_back"),
     collapse: symbol("chevron.down", "keyboard_arrow_down"),
+    follow: symbol("star", "star_border"),
+    followed: symbol("star.fill", "star"),
     // Delay reasons, by the lucide names in core/delayReasons
     construction: symbol("hammer", "construction"),
     wrench: symbol("wrench.and.screwdriver", "build"),
