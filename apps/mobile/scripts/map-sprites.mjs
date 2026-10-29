@@ -18,7 +18,7 @@ import {
 } from "node:fs";
 import { registerHooks } from "node:module";
 import { fileURLToPath } from "node:url";
-import { deflateSync } from "node:zlib";
+import { deflateSync, inflateSync } from "node:zlib";
 
 // The tokens are TypeScript with extensionless imports: let Node find them
 registerHooks({
@@ -226,6 +226,33 @@ function png({ pw, ph, data }) {
     ]);
 }
 
+// Header and raw rows of a PNG this script wrote. Deflate output differs
+// between zlib builds, so --check compares these instead of the file bytes.
+function decode(file) {
+    const parts = { IHDR: [], IDAT: [] };
+    for (let at = 8; at < file.length; ) {
+        const length = file.readUInt32BE(at);
+        const type = file.toString("ascii", at + 4, at + 8);
+        parts[type]?.push(file.subarray(at + 8, at + 8 + length));
+        at += 12 + length;
+    }
+    return {
+        header: Buffer.concat(parts.IHDR),
+        rows: inflateSync(Buffer.concat(parts.IDAT)),
+    };
+}
+
+// Same size and every channel within 1, which absorbs float differences
+// between Node versions in the antialiased edges
+function samePixels(a, b) {
+    const x = decode(a);
+    const y = decode(b);
+    if (!x.header.equals(y.header) || x.rows.length !== y.rows.length) {
+        return false;
+    }
+    return x.rows.every((value, i) => Math.abs(value - y.rows[i]) <= 1);
+}
+
 // --- sprites --------------------------------------------------------------
 
 /** A train mark: halo, outline and fill, or hollow with a dashed outline. */
@@ -387,7 +414,7 @@ if (process.argv.includes("--check")) {
     for (const name of new Set([...files.keys(), ...onDisk])) {
         const want = files.get(name);
         const have = read(`${outDir}${name}`);
-        if (!want || !have || !want.equals(have)) stale.push(name);
+        if (!want || !have || !samePixels(want, have)) stale.push(name);
     }
     if (read(tableFile)?.toString() !== table) stale.push("spriteImages.ts");
     if (stale.length > 0) {
