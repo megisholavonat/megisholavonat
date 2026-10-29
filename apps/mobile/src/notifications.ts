@@ -55,6 +55,15 @@ export async function expoPushToken(): Promise<string | null> {
     }
 }
 
+/**
+ * Stops this install receiving pushes and clears the alerts already shown
+ * (data deletion). Following a train again registers a new token.
+ */
+export async function forgetPushToken(): Promise<void> {
+    await Notifications.dismissAllNotificationsAsync().catch(() => {});
+    await Notifications.unregisterForNotificationsAsync().catch(() => {});
+}
+
 function dataField(
     response: Notifications.NotificationResponse,
     name: "vehicleId" | "followId",

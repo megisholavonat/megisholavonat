@@ -9,7 +9,12 @@ import {
     Text,
     Toggle,
 } from "@expo/ui/swift-ui";
-import { foregroundStyle, pickerStyle, tag } from "@expo/ui/swift-ui/modifiers";
+import {
+    disabled,
+    foregroundStyle,
+    pickerStyle,
+    tag,
+} from "@expo/ui/swift-ui/modifiers";
 import { StyleSheet } from "react-native";
 import { useSettingsRows } from "./useSettingsRows";
 
@@ -115,6 +120,15 @@ export function SettingsScreen() {
                         onPress={s.openRailwayData}
                     />
                     <ValueRow label={s.t("source")} onPress={s.openSource} />
+                </Section>
+                <Section>
+                    {/* biome-ignore lint/a11y/useValidAriaRole: SwiftUI button role */}
+                    <Button
+                        role="destructive"
+                        label={s.t("delete_data")}
+                        onPress={s.deleteData}
+                        modifiers={[disabled(s.deleting)]}
+                    />
                 </Section>
             </Form>
         </Host>

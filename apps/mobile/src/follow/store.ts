@@ -43,6 +43,18 @@ export function replaceFollows(next: LocalFollow[]): void {
     set(next);
 }
 
+/** Forgets every follow and deletes the file (data deletion). */
+export function clearFollows(): void {
+    follows = [];
+    try {
+        if (file.exists) file.delete();
+    } catch {
+        // Overwritten with the empty list below instead
+        file.write("[]").catch(() => {});
+    }
+    for (const listener of listeners) listener();
+}
+
 /** Remembers the vehicle running a followed train, for the next launch. */
 export function rememberVehicle(id: string, vehicleId: string): void {
     const follow = follows.find((f) => f.id === id);
