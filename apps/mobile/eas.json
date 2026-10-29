@@ -27,16 +27,37 @@
                 "EXPO_PUBLIC_TILE_CACHE_URL": "https://tc.megisholavonat.info"
             }
         },
+        "beta": {
+            "extends": "base",
+            "distribution": "store",
+            "autoIncrement": true,
+            "env": {
+                "EXPO_PUBLIC_API_URL": "https://api.megisholavonat.info",
+                "EXPO_PUBLIC_TILE_CACHE_URL": "https://tc.megisholavonat.info"
+            }
+        },
         "production": {
             "extends": "base",
             "autoIncrement": true,
             "env": {
-                "EXPO_PUBLIC_API_URL": "https://megisholavonat.info/api",
+                "EXPO_PUBLIC_API_URL": "https://api.megisholavonat.info",
                 "EXPO_PUBLIC_TILE_CACHE_URL": "https://tc.megisholavonat.info"
             }
         }
     },
     "submit": {
-        "production": {}
+        "beta": {
+            "ios": {},
+            "android": {
+                "track": "internal",
+                "releaseStatus": "completed"
+            }
+        },
+        "production": {
+            "android": {
+                "track": "production",
+                "releaseStatus": "completed"
+            }
+        }
     }
 }
