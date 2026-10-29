@@ -189,6 +189,8 @@ async def test_gps_delay_wins_and_picks_the_live_duplicate(
             "transferMinutes": 9,
             "expectedTransferMinutes": 2,
             "missRisk": None,
+            "risk": None,
+            "riskSource": None,
         }
     ]
 
@@ -236,6 +238,8 @@ async def test_transfer_minutes_and_ticket_url(
             "transferMinutes": 35,
             "expectedTransferMinutes": 35,
             "missRisk": None,
+            "risk": None,
+            "riskSource": None,
         }
     ]
     # From the first train's boarding station to the last one's destination,

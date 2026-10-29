@@ -183,7 +183,8 @@ export const planJourneysQueryKey = (options: Options<PlanJourneysData>) => crea
 /**
  * Plan Journeys
  *
- * Itineraries between two rail stations, with live delays and ticket links
+ * Itineraries between two rail stations, with live delays, the risk of
+ * missing each transfer and ticket links
  */
 export const planJourneysOptions = (options: Options<PlanJourneysData>) => queryOptions<PlanJourneysResponse, AxiosError<DefaultError>, PlanJourneysResponse, ReturnType<typeof planJourneysQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
