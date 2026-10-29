@@ -84,6 +84,7 @@ function Row({
     return (
         <button
             type="button"
+            data-focus-key={`follow:${row.follow.id}`}
             onClick={() => onOpen(row)}
             className={cn(
                 "flex w-full cursor-pointer items-center gap-3 text-left",

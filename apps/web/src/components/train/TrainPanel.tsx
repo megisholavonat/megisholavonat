@@ -48,6 +48,7 @@ export function TrainPanel({
     const shown = useShownDelay(view, fallback);
     return (
         <section
+            data-focus-layer=""
             aria-label={t("sheet_label")}
             className="floating-card flex h-full w-[400px] max-w-full flex-col overflow-hidden rounded-sheet"
         >
