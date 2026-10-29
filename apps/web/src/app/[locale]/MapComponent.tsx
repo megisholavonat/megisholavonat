@@ -609,6 +609,18 @@ export interface MapInsets {
     left: number;
 }
 
+/**
+ * The theme on <html> before the provider has resolved it: a language
+ * switch remounts the provider, but the page keeps its class, so the map is
+ * built in the theme on screen rather than in light first
+ */
+function domTheme(): string | undefined {
+    if (typeof document === "undefined") return undefined;
+    return document.documentElement.classList.contains("dark")
+        ? "dark"
+        : undefined;
+}
+
 export default function MapComponent({
     trains,
     selectedId,
@@ -636,7 +648,8 @@ export default function MapComponent({
 }) {
     const settings = useSettings();
     const { resolvedTheme } = useTheme();
-    const scheme: ColorScheme = resolvedTheme === "dark" ? "dark" : "light";
+    const scheme: ColorScheme =
+        (resolvedTheme ?? domTheme()) === "dark" ? "dark" : "light";
     const locale = useLocale();
     const t = useTranslations("Map");
     // The style the map is created with; later themes go through setStyle
@@ -1410,19 +1423,23 @@ export default function MapComponent({
         else map.once("style.load", () => setMapLoaded(true));
     }, []);
 
-    // A theme switch swaps the basemap in place: the transform carries the
-    // app's sources and layers (and their draw order) over to the new style,
-    // so the camera, the selection and the layer order all stay
-    const appliedSchemeRef = useRef(scheme);
+    // A theme or language switch swaps the basemap in place: the transform
+    // carries the app's sources and layers (and their draw order) over to
+    // the new style, so the camera, the selection and the layer order all
+    // stay. The ref holds what the map was built with: a switch that lands
+    // before the map exists (a language switch remounts the map while the
+    // theme is still resolving) is applied once it is ready, not dropped
+    const appliedStyleRef = useRef(`${scheme}:${locale}`);
     useEffect(() => {
         const map = mapRef.current?.getMap();
-        if (!map || appliedSchemeRef.current === scheme) return;
-        appliedSchemeRef.current = scheme;
+        const key = `${scheme}:${locale}`;
+        if (!map || !mapLoaded || appliedStyleRef.current === key) return;
+        appliedStyleRef.current = key;
         map.setStyle(mapStyle(scheme, locale), {
             diff: true,
             transformStyle: basemapTransform(),
         });
-    }, [scheme, locale]);
+    }, [scheme, locale, mapLoaded]);
 
     // On the dark map the overlay's tiles are inverted (and hue-rotated back),
     // so its dark-blue station names turn light and stay readable; mostly
