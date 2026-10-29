@@ -5,6 +5,7 @@ import {
     openSearch,
     openTrain,
     STATIONS,
+    stationLabel,
     TRAINS,
     t,
     test,
@@ -74,10 +75,7 @@ test("a search sends lengths and counts, never the query", async ({
     await field.fill("Szolnok");
     await page
         .getByRole("option", {
-            name: t.Search.station_label.replace(
-                "{station}",
-                STATIONS.szolnok.name,
-            ),
+            name: stationLabel(STATIONS.szolnok.name),
             exact: true,
         })
         .click();

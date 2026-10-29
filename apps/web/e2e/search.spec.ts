@@ -5,6 +5,7 @@ import {
     openHome,
     openSearch,
     STATIONS,
+    stationLabel,
     t,
     test,
     trainRegion,
@@ -107,7 +108,7 @@ test("L17: 'Bud' ranks the Budapest stations first", async ({ page }) => {
     const field = await openSearch(page);
     await field.fill("Bud");
     const stations = page.getByRole("option", {
-        name: new RegExp(t.Search.station_label.replace("{station}", ".+")),
+        name: new RegExp(`^${stationLabel(".+")}$`),
     });
     await expect(stations.first()).toBeVisible();
     const names = await stations.allTextContents();
@@ -117,6 +118,33 @@ test("L17: 'Bud' ranks the Budapest stations first", async ({ page }) => {
         "Budapest-Kelenföld",
         "Budapest-Déli",
     ]);
+});
+
+test("search tells HÉV and tram-train stops from railway stations", async ({
+    page,
+}) => {
+    await openHome(page);
+    const field = await openSearch(page);
+    await field.fill("Szeged");
+    const option = (name: string, type?: "tramtrain") =>
+        page.getByRole("option", {
+            name: stationLabel(name, type),
+            exact: true,
+        });
+    // The railway station has no label; the tram-train stop outside it has
+    await expect(option("Szeged")).toBeVisible();
+    await expect(option("Szeged")).not.toContainText(t.StationType.rail);
+    await expect(option("Szeged vasútállomás", "tramtrain")).toContainText(
+        t.StationType.tramtrain,
+    );
+
+    await field.fill("Budakalász");
+    await expect(
+        page.getByRole("option", {
+            name: stationLabel("Budakalász H", "hev"),
+            exact: true,
+        }),
+    ).toContainText(t.StationType.hev);
 });
 
 test("D47: a board row says 'usually late' before departure", async ({
