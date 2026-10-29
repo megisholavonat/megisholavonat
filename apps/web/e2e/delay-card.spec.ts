@@ -1,5 +1,13 @@
 import type { Page } from "@playwright/test";
-import { expect, openHome, openTrain, t, test } from "./support/test";
+import {
+    expect,
+    openHome,
+    openTrain,
+    TRAINS,
+    t,
+    test,
+    trainRegion,
+} from "./support/test";
 
 const c = t.DelayCard;
 
@@ -48,10 +56,39 @@ test("the card page tells a finished run with its measurement note", async ({
         "content",
         "https://megisholavonat.info/hu/kesesek/5009/2026-10-27",
     );
-    await expect(page.getByRole("link", { name: c.open_map })).toHaveAttribute(
-        "href",
-        "/hu",
+});
+
+test("the card's map button opens today's run of the train", async ({
+    page,
+}) => {
+    // Train 9 ran on the 28th and is on the map again today
+    await page.goto("/hu/kesesek/9/2026-10-28");
+    await page.getByRole("link", { name: c.open_map }).click();
+    await expect(page).toHaveURL(
+        `/hu?vehicleId=${encodeURIComponent(TRAINS.late.id)}`,
     );
+    await expect(trainRegion(page)).toBeVisible();
+    await expect(trainRegion(page)).toContainText("Budapest-Keleti");
+});
+
+test("without a run today the map button opens the boarding station", async ({
+    page,
+}) => {
+    // 5009 is not on the map now: its departures from Miskolc-Tiszai list
+    // a later run today
+    await page.goto("/hu/kesesek/5009/2026-10-27");
+    await expect(page.getByRole("link", { name: c.open_map })).toHaveCount(0);
+    await page
+        .getByRole("link", {
+            name: c.open_station.replace("{station}", "Miskolc-Tiszai"),
+        })
+        .click();
+    await expect(page).toHaveURL("/hu?station=005511387");
+    await expect(
+        page.getByRole("region", {
+            name: new RegExp(t.Station.board_of.replace("{station}", ".+")),
+        }),
+    ).toBeVisible();
 });
 
 test("the card page keeps the rider's stops and drops bad ones", async ({
