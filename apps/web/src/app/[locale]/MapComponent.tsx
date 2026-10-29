@@ -47,7 +47,7 @@ import {
     setWorkerUrl,
 } from "maplibre-gl";
 import { useReducedMotion } from "motion/react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import {
     memo,
     type Ref,
@@ -58,6 +58,11 @@ import {
     useRef,
     useState,
 } from "react";
+import {
+    basemapTransform,
+    SLOTS,
+    STYLE_URLS,
+} from "@/components/map/basemapStyle";
 import { MapAttribution } from "@/components/map/MapAttribution";
 import { MapControls } from "@/components/map/MapControls";
 import {
@@ -69,10 +74,12 @@ import {
     markerImage,
     PILL_PADDING_X,
     pillHeight,
+    prewarmMarkerImages,
     stationImageId,
 } from "@/components/map/markerImages";
 import { markerDisplay } from "@/components/map/markerState";
 import { TrainTooltip } from "@/components/map/TrainTooltip";
+import { warmUpShaders } from "@/components/map/warmUpShaders";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
 import { useTheme } from "@/components/ui/ThemeProvider";
 import { useSettings } from "@/hooks/useSettings";
@@ -129,28 +136,12 @@ const CLUSTER_MAX_ZOOM = 15;
 const CLUSTER_LIST_SPREAD_PX = 36;
 const CLUSTER_LIST_MAX = 30;
 
-const STYLE_URLS: Record<ColorScheme, string> = {
-    light: "https://tiles.openfreemap.org/styles/positron",
-    dark: "https://tiles.openfreemap.org/styles/dark",
-};
-
 const SOURCES = {
     base: "vehicles-source",
     pinned: "vehicles-pinned-source",
     selected: "vehicles-selected-source",
 } as const;
 type Group = keyof typeof SOURCES;
-
-/**
- * Empty, hidden layers that hold the draw order: overlays added later go
- * below their slot, so the route, stops and station never cover the trains.
- */
-const SLOTS = {
-    route: "slot-route",
-    stops: "slot-stops",
-    station: "slot-station",
-    trains: "slot-trains",
-} as const;
 
 const PINNED = (id: string) => `${id}-pinned`;
 const SEL = {
@@ -561,6 +552,21 @@ export default function MapComponent({
     const settings = useSettings();
     const { resolvedTheme } = useTheme();
     const scheme: ColorScheme = resolvedTheme === "dark" ? "dark" : "light";
+    const locale = useLocale();
+    const t = useTranslations("Map");
+    // The style the map is created with; later themes go through setStyle
+    const [initialStyle] = useState(() => ({
+        url: STYLE_URLS[scheme],
+        transform: basemapTransform(scheme, locale),
+    }));
+    const mapLocale = useMemo(
+        () => ({
+            "Map.Title": t("map_title"),
+            "Marker.Title": t("marker"),
+            "Popup.Close": t("close_popup"),
+        }),
+        [t],
+    );
     const prefersReducedMotion = useReducedMotion() ?? false;
     const animating = settings.animateVehicles && !prefersReducedMotion;
     const nowMs = useClock();
@@ -1202,6 +1208,16 @@ export default function MapComponent({
         };
     }, [selectedId, mapLoaded, prefersReducedMotion, ringRadius]);
 
+    // Draw the scheme's marker sprites in idle time once trains are on the
+    // map, so selecting one doesn't stall on canvas work
+    const hasTrains = !!trains;
+    useEffect(() => {
+        if (!mapLoaded || !hasTrains) return;
+        const map = mapRef.current?.getMap();
+        if (!map) return;
+        return prewarmMarkerImages(map, scheme);
+    }, [mapLoaded, hasTrains, scheme]);
+
     // Marker sprites are drawn on first use. The resolver goes in as soon as
     // the map exists, before any layer asks for an image.
     const attachMap = useCallback((ref: MapRef | null) => {
@@ -1223,33 +1239,19 @@ export default function MapComponent({
         else map.once("style.load", () => setMapLoaded(true));
     }, []);
 
-    // Match the basemap's land colour to the one the marker colours were
-    // checked against
+    // A theme switch swaps the basemap in place: the transform carries the
+    // app's sources and layers (and their draw order) over to the new style,
+    // so the camera, the selection and the layer order all stay
+    const appliedSchemeRef = useRef(scheme);
     useEffect(() => {
-        if (!mapLoaded) return;
         const map = mapRef.current?.getMap();
-        if (!map) return;
-        const paintBackground = () => {
-            for (const id of ["background", "Background"]) {
-                if (map.getLayer(id)) {
-                    map.setPaintProperty(
-                        id,
-                        "background-color",
-                        COLORS[scheme].map,
-                    );
-                }
-            }
-        };
-        paintBackground();
-        map.on("style.load", paintBackground);
-        return () => {
-            try {
-                map.off("style.load", paintBackground);
-            } catch {
-                /* Map may already be removed. */
-            }
-        };
-    }, [mapLoaded, scheme]);
+        if (!map || appliedSchemeRef.current === scheme) return;
+        appliedSchemeRef.current = scheme;
+        map.setStyle(STYLE_URLS[scheme], {
+            diff: true,
+            transformStyle: basemapTransform(scheme, locale),
+        });
+    }, [scheme, locale]);
 
     // On the dark map the overlay's tiles are inverted (and hue-rotated back),
     // so its dark-blue station names turn light and stay readable
@@ -1427,6 +1429,127 @@ export default function MapComponent({
 
     const colors = COLORS[scheme];
 
+    // The selected train's route and stops, shared with the shader warm-up
+    const routeLine = useMemo(
+        () => ({
+            paint: {
+                "line-color": colors.ink,
+                "line-opacity": 0.72,
+                "line-width": 4,
+            },
+            layout: {
+                "line-cap": "round",
+                "line-join": "round",
+            } as const,
+        }),
+        [colors],
+    );
+    const stopCircle = useMemo(
+        () => ({
+            "circle-radius": 4.5,
+            "circle-color": [
+                "case",
+                ["boolean", ["get", "hasPassed"], false],
+                colors.ink2,
+                colors.surface,
+            ] as ExpressionSpecification,
+            "circle-stroke-width": 2,
+            "circle-stroke-color": colors.ink,
+        }),
+        [colors],
+    );
+    const stopLabel = useMemo(
+        () => ({
+            layout: {
+                "text-field": ["get", "name"] as ExpressionSpecification,
+                "text-size": 13,
+                "text-offset": [0, 1] as [number, number],
+                "text-anchor": "top" as const,
+                "text-font": ["Noto Sans Bold"],
+            },
+            paint: {
+                "text-color": colors.ink,
+                "text-halo-color": colors.map,
+                "text-halo-width": 2,
+            },
+        }),
+        [colors],
+    );
+
+    // Compile those shaders in idle time, before any train is opened
+    // biome-ignore lint/correctness/useExhaustiveDependencies: once per map, the programs stay compiled
+    useEffect(() => {
+        if (!mapLoaded || !hasTrains) return;
+        const map = mapRef.current?.getMap();
+        if (!map) return;
+        const id = (name: string) => `mhav-warmup-${name}`;
+        const hint = 0.01;
+        return warmUpShaders(map, [
+            {
+                id: id("route"),
+                type: "line",
+                source: "mhav-warmup",
+                layout: routeLine.layout,
+                paint: { ...routeLine.paint, "line-opacity": hint },
+            },
+            {
+                id: id("stops"),
+                type: "circle",
+                source: "mhav-warmup",
+                filter: ["==", ["geometry-type"], "Point"],
+                paint: {
+                    ...stopCircle,
+                    "circle-opacity": hint,
+                    "circle-stroke-opacity": hint,
+                },
+            },
+            {
+                id: id("labels"),
+                type: "symbol",
+                source: "mhav-warmup",
+                filter: ["==", ["geometry-type"], "Point"],
+                layout: stopLabel.layout,
+                paint: { ...stopLabel.paint, "text-opacity": hint },
+            },
+            // Zoomed out, a phone shows only dots; the "+N" pills of a
+            // zoomed-in train and the selected dot draw for the first time
+            // when a train opens
+            {
+                id: id("dot"),
+                type: "circle",
+                source: "mhav-warmup",
+                filter: ["==", ["geometry-type"], "Point"],
+                paint: {
+                    ...dotPaint,
+                    "circle-opacity": hint,
+                    "circle-stroke-opacity": hint,
+                },
+            },
+            {
+                id: id("pill"),
+                type: "symbol",
+                source: "mhav-warmup",
+                filter: ["==", ["geometry-type"], "Point"],
+                layout: {
+                    "icon-image": imageId("pill"),
+                    "icon-text-fit": "both",
+                    "icon-allow-overlap": true,
+                    "icon-ignore-placement": true,
+                    "text-field": ["get", "label"],
+                    "text-font": ["Noto Sans Bold"],
+                    "text-size": pillTextSize,
+                    "text-allow-overlap": true,
+                    "text-ignore-placement": true,
+                },
+                paint: {
+                    "text-color": pillTextColor,
+                    "icon-opacity": hint,
+                    "text-opacity": hint,
+                },
+            },
+        ]);
+    }, [mapLoaded, hasTrains]);
+
     // The label and tooltip start where the animation drew their train (the
     // feed's raw position would make them jump ahead of a gliding marker)
     const placedSelected = useMemo(
@@ -1454,7 +1577,9 @@ export default function MapComponent({
                 touchPitch={false}
                 attributionControl={false}
                 style={{ width: "100%", height: "100%" }}
-                mapStyle={STYLE_URLS[scheme]}
+                mapStyle={initialStyle.url}
+                transformStyle={initialStyle.transform}
+                locale={mapLocale}
                 interactiveLayerIds={markerLayerIds}
                 cursor={cursor ?? undefined}
                 onClick={onClick}
@@ -1471,15 +1596,6 @@ export default function MapComponent({
                     isDesktop={isDesktop}
                     skipInitialFly={!!selectedId || !!station}
                 />
-                {/* Draw-order slots, bottom to top; must come first */}
-                {Object.values(SLOTS).map((id) => (
-                    <Layer
-                        key={id}
-                        id={id}
-                        type="background"
-                        layout={{ visibility: "none" }}
-                    />
-                ))}
                 {settings.showRailwayOverlay && (
                     <Source
                         id="railway-source"
@@ -1505,15 +1621,8 @@ export default function MapComponent({
                             id={LAYER_IDS.ROUTE_LINE}
                             type="line"
                             beforeId={SLOTS.stops}
-                            paint={{
-                                "line-color": colors.ink,
-                                "line-opacity": 0.72,
-                                "line-width": 4,
-                            }}
-                            layout={{
-                                "line-cap": "round",
-                                "line-join": "round",
-                            }}
+                            paint={routeLine.paint}
+                            layout={routeLine.layout}
                         />
                     </Source>
                 )}
@@ -1527,34 +1636,16 @@ export default function MapComponent({
                             id={LAYER_IDS.STOP_CIRCLES}
                             type="circle"
                             beforeId={SLOTS.station}
-                            paint={{
-                                "circle-radius": 4.5,
-                                "circle-color": [
-                                    "case",
-                                    ["boolean", ["get", "hasPassed"], false],
-                                    colors.ink2,
-                                    colors.surface,
-                                ],
-                                "circle-stroke-width": 2,
-                                "circle-stroke-color": colors.ink,
-                            }}
+                            paint={stopCircle}
                         />
                         {settings.showStationNames && (
                             <Layer
                                 id={LAYER_IDS.STOP_LABELS}
                                 type="symbol"
                                 beforeId={SLOTS.station}
-                                layout={{
-                                    "text-field": ["get", "name"],
-                                    "text-size": 13,
-                                    "text-offset": [0, 1],
-                                    "text-anchor": "top",
-                                    "text-font": ["Noto Sans Bold"],
-                                }}
+                                layout={stopLabel.layout}
                                 paint={{
-                                    "text-color": colors.ink,
-                                    "text-halo-color": colors.map,
-                                    "text-halo-width": 2,
+                                    ...stopLabel.paint,
                                     "text-opacity":
                                         settings.stationNamesOpacity,
                                 }}

@@ -10,7 +10,10 @@
         "zoom_out": "Kicsinyítés",
         "inactive": "nem halad",
         "cluster": "{count} vonat itt",
-        "map_data": "Térképadatok"
+        "map_data": "Térképadatok",
+        "map_title": "Térkép",
+        "marker": "Térképjelölő",
+        "close_popup": "Bezárás"
     },
     "Sheet": {
         "resize": "Panel átméretezése",

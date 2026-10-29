@@ -10,7 +10,10 @@
         "zoom_out": "Zoom out",
         "inactive": "not running",
         "cluster": "{count} trains here",
-        "map_data": "Map data"
+        "map_data": "Map data",
+        "map_title": "Map",
+        "marker": "Map marker",
+        "close_popup": "Close"
     },
     "Sheet": {
         "resize": "Resize panel",
