@@ -539,8 +539,15 @@ function MapScreen() {
     });
     const station = useMemo((): Station | null => {
         if (!stationId) return null;
-        if (pickedStation?.id === stationId) return pickedStation;
-        return board.data?.station ?? null;
+        const loaded = board.data?.station;
+        if (pickedStation?.id === stationId) {
+            // A recent station saved before stations had a type gets it
+            // from the board
+            return pickedStation.type || !loaded
+                ? pickedStation
+                : { ...pickedStation, type: loaded.type };
+        }
+        return loaded ?? null;
     }, [stationId, pickedStation, board.data]);
 
     // A station that does not exist (a bad or outdated link) is dropped

@@ -128,7 +128,7 @@
         "recent_stations": "Legutóbbi állomások",
         "popular_stations": "Gyakori állomások",
         "not_running": "{subject} most nem közlekedik",
-        "station_label": "{station} állomás",
+        "station_label": "{station} {type, select, hev {HÉV-megálló} tramtrain {villamos-megálló} childrens_railway {gyermekvasút-állomás} other {állomás}}",
         "cancel": "Mégse",
         "stations": "Állomások",
         "late_now": "Most késnek",
@@ -314,9 +314,9 @@
     },
     "Pages": {
         "map_link": "Megnézem a térképen",
-        "station": "Állomás",
+        "station": "{type, select, hev {HÉV-megálló} tramtrain {Villamos-megálló} childrens_railway {Gyermekvasút-állomás} other {Állomás}}",
         "train": "Vonat",
-        "station_title": "{station}: indulások, érkezések, késések",
+        "station_title": "{station}{type, select, hev { HÉV-megálló} tramtrain { villamos-megálló} childrens_railway { (Gyermekvasút)} other {}}: indulások, érkezések, késések",
         "station_description": "{station} vonatai élőben: indulások és érkezések késéssel, peronnal és zavarokkal, és hogy mennyire pontosak itt a vonatok.",
         "train_title": "{train}: késés élőben, megállók",
         "train_description": "Hol jár most {subject}{route, select, none {} other { ({route})}}? Élő késés, megállók, és hogy mennyire szokott pontos lenni.",
@@ -345,5 +345,11 @@
         "image_alt": "Késéskártya: {sentence}",
         "not_found": "Nincs ilyen menet",
         "not_found_hint": "Ennek a vonatnak ezen a napon nincs mért menete."
+    },
+    "StationType": {
+        "rail": "vasútállomás",
+        "hev": "HÉV-megálló",
+        "tramtrain": "villamos-megálló",
+        "childrens_railway": "Gyermekvasút"
     }
 }

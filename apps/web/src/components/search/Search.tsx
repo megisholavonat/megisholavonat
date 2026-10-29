@@ -7,6 +7,7 @@ import type {
 } from "@megisholavonat/api-client";
 import { trainDisplay } from "@megisholavonat/core/display";
 import { huTrainSubject } from "@megisholavonat/core/share";
+import { isOtherStop, stationType } from "@megisholavonat/core/stationType";
 import type {
     SortDirection,
     TrainSortOption,
@@ -19,7 +20,6 @@ import {
     ChevronLeft,
     ChevronRight,
     Search as SearchIcon,
-    Signpost,
     TrainFront,
     X,
 } from "lucide-react";
@@ -31,6 +31,10 @@ import {
     useRef,
     useState,
 } from "react";
+import {
+    StationTypeIcon,
+    StationTypeLabel,
+} from "@/components/station/StationType";
 import { DelayChip } from "@/components/ui/Delay";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
 import { useNow } from "@/hooks/useNow";
@@ -358,12 +362,22 @@ function ResultRow({
         return (
             <button
                 {...common}
-                aria-label={t("station_label", { station: item.station.name })}
+                aria-label={t("station_label", {
+                    station: item.station.name,
+                    type: stationType(item.station),
+                })}
             >
-                <Signpost className="size-5 shrink-0 text-ink-2" aria-hidden />
+                <StationTypeIcon
+                    station={item.station}
+                    className="size-5 shrink-0 text-ink-2"
+                />
                 <span className="truncate text-body">
                     <Highlighted text={item.station.name} query={query} />
                 </span>
+                <StationTypeLabel
+                    station={item.station}
+                    className="ml-auto shrink-0 pl-2"
+                />
             </button>
         );
     }
@@ -633,8 +647,14 @@ function QuickChips({
                         key={station.id}
                         type="button"
                         onClick={() => onSelect(station)}
-                        className="h-8 cursor-pointer rounded-full bg-surface-2 px-3 text-sm font-semibold text-ink transition-colors hover:bg-line"
+                        className="flex h-8 cursor-pointer items-center gap-1.5 rounded-full bg-surface-2 px-3 text-sm font-semibold text-ink transition-colors hover:bg-line"
                     >
+                        {isOtherStop(station) && (
+                            <StationTypeIcon
+                                station={station}
+                                className="size-3.5 shrink-0 text-ink-2"
+                            />
+                        )}
                         {station.name}
                     </button>
                 ))}
@@ -903,13 +923,17 @@ export function SheetSearchBody({
                         onClick={() => handlers.onSelectStation(station)}
                         className={cn(rowClass, "hover:bg-surface-2/60")}
                     >
-                        <Signpost
+                        <StationTypeIcon
+                            station={station}
                             className="size-5 shrink-0 text-ink-2"
-                            aria-hidden
                         />
                         <span className="min-w-0 flex-1 truncate text-body">
                             {station.name}
                         </span>
+                        <StationTypeLabel
+                            station={station}
+                            className="shrink-0"
+                        />
                         <ArrowRight className="size-4 text-ink-2" aria-hidden />
                     </button>
                 ))}

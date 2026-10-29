@@ -19,6 +19,7 @@ import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 import { StationDisruptions } from "@/components/disruptions/Disruptions";
 import { SheetClose } from "@/components/sheet/BottomSheet";
+import { StationTypeLabel } from "@/components/station/StationType";
 import { StationHistoryLink } from "@/components/stats/HistoryLinks";
 import { BackButton } from "@/components/train/TrainParts";
 import { DelayChip } from "@/components/ui/Delay";
@@ -401,6 +402,16 @@ function BoardList({
     );
 }
 
+/** The station's name, and what kind of stop it is unless a railway station. */
+function StationTitle({ station }: { station: Station }) {
+    return (
+        <div className="flex min-w-0 flex-1 flex-col">
+            <h2 className="truncate text-title">{station.name}</h2>
+            <StationTypeLabel station={station} className="truncate" />
+        </div>
+    );
+}
+
 /** Mobile station sheet header (half · full): name, history, board switch. */
 export function StationSheetHeader({
     station,
@@ -418,9 +429,7 @@ export function StationSheetHeader({
             <SheetClose onClick={onClose} />
             <div className="flex flex-col gap-3 px-4 pb-2">
                 <div className="flex min-h-9 items-center gap-2 pr-8">
-                    <h2 className="min-w-0 flex-1 truncate text-title">
-                        {station.name}
-                    </h2>
+                    <StationTitle station={station} />
                     <StationHistoryLink station={station} />
                 </div>
                 <KindSwitch kind={kind} onChange={onKindChange} />
@@ -484,9 +493,7 @@ export function StationPanel({
             >
                 <div className="flex min-w-0 flex-1 items-center gap-3">
                     <BackButton onClick={onClose} />
-                    <h2 className="min-w-0 flex-1 truncate text-title">
-                        {station.name}
-                    </h2>
+                    <StationTitle station={station} />
                     {!wide && (
                         <StationHistoryLink
                             station={station}

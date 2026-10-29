@@ -128,7 +128,7 @@
         "recent_stations": "Recent stations",
         "popular_stations": "Busy stations",
         "not_running": "{subject} is not running now",
-        "station_label": "{station} station",
+        "station_label": "{station} {type, select, hev {HÉV stop} tramtrain {tram-train stop} childrens_railway {Children's Railway station} other {station}}",
         "cancel": "Cancel",
         "stations": "Stations",
         "late_now": "Late now",
@@ -314,9 +314,9 @@
     },
     "Pages": {
         "map_link": "Show on the map",
-        "station": "Station",
+        "station": "{type, select, hev {HÉV stop} tramtrain {Tram-train stop} childrens_railway {Children's Railway station} other {Station}}",
         "train": "Train",
-        "station_title": "{station}: departures, arrivals and delays",
+        "station_title": "{station}{type, select, hev { HÉV stop} tramtrain { tram-train stop} childrens_railway { (Children's Railway)} other {}}: departures, arrivals and delays",
         "station_description": "Trains at {station} live: departures and arrivals with delays, platforms and disruptions, and how punctual trains are here.",
         "train_title": "{train}: live delay and stops",
         "train_description": "Where is {subject}{route, select, none {} other { ({route})}} now? Live delay, stops, and how punctual it usually is.",
@@ -345,5 +345,11 @@
         "image_alt": "Delay card: {sentence}",
         "not_found": "No such run",
         "not_found_hint": "We have no measured run of this train on that day."
+    },
+    "StationType": {
+        "rail": "railway station",
+        "hev": "HÉV stop",
+        "tramtrain": "tram-train stop",
+        "childrens_railway": "Children's Railway"
     }
 }

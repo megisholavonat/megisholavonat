@@ -14,6 +14,10 @@ import {
     type TrainShareStatus,
     trainShareStatus,
 } from "@megisholavonat/core/share";
+import {
+    type StationType,
+    stationType,
+} from "@megisholavonat/core/stationType";
 import { formatSecondsAsTime } from "@megisholavonat/core/time";
 import {
     beforeDeparture,
@@ -62,6 +66,7 @@ export interface TrainCard {
 
 export interface StationCard {
     name: string;
+    type: StationType;
     departures: (DepartureShareInfo & {
         number: string;
         glyph: string | null;
@@ -286,6 +291,7 @@ export function stationCard(
 ): StationCard {
     return {
         name: board.station.name,
+        type: stationType(board.station),
         departures: board.entries.slice(0, limit).map((entry) => {
             const delay = departureDelay(entry, now);
             return {

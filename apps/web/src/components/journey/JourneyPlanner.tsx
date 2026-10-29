@@ -16,7 +16,6 @@ import {
     ArrowUpRight,
     Footprints,
     RefreshCw,
-    Signpost,
     X,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -28,6 +27,10 @@ import {
     useSearch,
 } from "@/components/search/useSearch";
 import { SheetClose } from "@/components/sheet/BottomSheet";
+import {
+    StationTypeIcon,
+    StationTypeLabel,
+} from "@/components/station/StationType";
 import { BackButton, IconButton } from "@/components/train/TrainParts";
 import { DelayChip } from "@/components/ui/Delay";
 import { PlatformBadge } from "@/components/ui/Platform";
@@ -358,11 +361,15 @@ function Suggestions({
                         phone && "border-b border-line last:border-b-0",
                     )}
                 >
-                    <Signpost
+                    <StationTypeIcon
+                        station={station}
                         className="size-5 shrink-0 text-ink-2"
-                        aria-hidden
                     />
                     <span className="truncate text-body">{station.name}</span>
+                    <StationTypeLabel
+                        station={station}
+                        className="ml-auto shrink-0 pl-2"
+                    />
                 </button>
             ))}
         </div>

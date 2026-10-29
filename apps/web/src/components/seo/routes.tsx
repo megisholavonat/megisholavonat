@@ -3,6 +3,7 @@
 
 import type { Locale } from "@megisholavonat/core/i18n";
 import { huTrainSubject } from "@megisholavonat/core/share";
+import { stationType } from "@megisholavonat/core/stationType";
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import { hasLocale } from "next-intl";
@@ -71,7 +72,10 @@ export function stationRoute(expected: Locale) {
             appTitle: tHome("app_title"),
             kind: "station",
             segment: found.segment,
-            title: t("station_title", { station: name }),
+            title: t("station_title", {
+                station: name,
+                type: stationType(found.station),
+            }),
             description: t("station_description", { station: name }),
             image: `/${locale}/og/station/${encodeURIComponent(found.station.id)}`,
             imageAlt: name,
