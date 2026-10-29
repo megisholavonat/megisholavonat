@@ -12,7 +12,8 @@ import {
     type Occurrence,
     tripRun,
 } from "./commute";
-import { type DelayLevel, getDelayLevel } from "./delay";
+import { ON_TIME_MAX_MIN } from "./constants";
+import { type DelayLevel, getDelayLevel, roundMinutes } from "./delay";
 import type { DelayReasonCode } from "./delayReasons";
 import type { Locale } from "./i18n";
 import { huSuffix, huVowelStart } from "./share";
@@ -25,9 +26,6 @@ import {
 
 /** Path segment of the card page, in both locales (the link is stable). */
 export const DELAY_SUMMARY_SEGMENT = "kesesek";
-
-/** At most this many minutes late counts as on time ("pontos"). */
-export const ON_TIME_MAX_MIN = 5;
 
 /** The measurement note every card and page carries. */
 export const MEASUREMENT_NOTE: Record<Locale, string> = {
@@ -194,11 +192,6 @@ function trainName(tripShortName: string): string | null {
     return named.length > 0 ? named.join(" ") : null;
 }
 
-/** On time up to ON_TIME_MAX_MIN; the level colour otherwise. */
-export function summaryLevel(delay: number): DelayLevel {
-    return delay <= ON_TIME_MAX_MIN ? "onTime" : getDelayLevel(delay);
-}
-
 /**
  * The card of a run for the stops a rider gave: the delay at the alighting
  * stop (the destination without one). A run still on its way, or one whose
@@ -236,7 +229,7 @@ export function delaySummary(
     const measured = summary.stops[measuredIdx];
     const minutes =
         measured?.delayMin != null
-            ? Math.max(0, Math.round(measured.delayMin))
+            ? Math.max(0, roundMinutes(measured.delayMin))
             : null;
     const outcome: DelayOutcome = cancelled
         ? "cancelled"
@@ -259,7 +252,7 @@ export function delaySummary(
                 : null,
         outcome,
         delay: shown ? minutes : null,
-        level: shown && minutes != null ? summaryLevel(minutes) : "onTime",
+        level: shown && minutes != null ? getDelayLevel(minutes) : "onTime",
         soFar: shown && !summary.finished && measuredIdx !== toIdx,
         reason: (summary.reason?.code as DelayReasonCode | undefined) ?? null,
     };

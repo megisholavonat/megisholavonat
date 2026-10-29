@@ -7,13 +7,14 @@ import SwiftUI
 enum DelayLevel {
     case onTime, slight, moderate, severe
 
-    /// Thresholds of packages/core/src/constants.ts
+    /// Thresholds of packages/core/src/constants.ts: up to +5 is on time
+    /// (ON_TIME_MAX_MIN), yellow from 6
     init(minutes: Int) {
         if minutes >= 60 {
             self = .severe
         } else if minutes >= 15 {
             self = .moderate
-        } else if minutes >= 5 {
+        } else if minutes > 5 {
             self = .slight
         } else {
             self = .onTime
