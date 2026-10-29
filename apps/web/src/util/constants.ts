@@ -22,6 +22,8 @@ export const LAYER_IDS = {
     STOP_CIRCLES: "stops-layer",
     STOP_LABELS: "stops-labels",
     STATION: "station-layer",
+    STATION_RING: "station-ring",
+    STATION_LABEL: "station-label",
     TRAIN_DOT: "marker-dot",
     TRAIN_HEADING: "marker-heading",
     TRAIN_PLAIN: "marker-plain",
