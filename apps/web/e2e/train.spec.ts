@@ -40,8 +40,9 @@ test("P4: a stale train marks its delay as uncertain", async ({ page }) => {
 test("P4: an inactive HÉV does not show a live delay", async ({ page }) => {
     const region = await openTrain(page, "hev", "peek");
     await expect(region).toContainText("H8000");
-    // The feed calls it stale or inactive: no solid "+127"
-    await expect(delayNumber(region)).not.toHaveText(/^\s*\+\s?127\s*$/);
+    // Standing at its terminus: no delay at all, the tile shows "–"
+    await expect(region.getByText("–", { exact: true }).first()).toBeVisible();
+    await expect(region.getByText(/\+\s?127/)).toHaveCount(0);
 });
 
 test("P1: the delay reason says it is the cause of the delay", async ({
