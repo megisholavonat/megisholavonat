@@ -1749,6 +1749,10 @@ export type VehiclePositionWithDelay = {
      * Activity
      */
     activity?: 'running' | 'beforeDeparture' | 'arrived' | 'offRoute' | 'cancelled' | null;
+    /**
+     * Dwellstopindex
+     */
+    dwellStopIndex?: number | null;
 };
 
 /**

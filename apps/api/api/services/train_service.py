@@ -166,7 +166,7 @@ class TrainService:
                     "totalRouteDistance": delay_data["totalRouteDistance"],
                     "processedStops": delay_data["processedStops"],
                     "vehicleProgress": delay_data["vehicleProgress"],
-                    # Stop it stands at, if any (not in the schema)
+                    # Stop it stands at, if any
                     "dwellStopIndex": delay_data["dwellStopIndex"],
                     "routeLengthKm": route.length_km,
                 }

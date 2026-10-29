@@ -4386,6 +4386,17 @@
               }
             ],
             "title": "Activity"
+          },
+          "dwellStopIndex": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dwellstopindex"
           }
         },
         "type": "object",

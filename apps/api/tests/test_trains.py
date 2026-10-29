@@ -61,6 +61,7 @@ async def test_train_details(
     assert body["trip"]["stoptimes"]
     assert body["processedStops"]
     assert body["vehicleProgress"]["lastStop"]
+    assert "dwellStopIndex" in body
 
 
 async def test_train_details_not_found(client: httpx.AsyncClient) -> None:

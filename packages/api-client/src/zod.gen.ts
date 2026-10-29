@@ -819,7 +819,8 @@ export const zVehiclePositionWithDelay = z.object({
         'arrived',
         'offRoute',
         'cancelled'
-    ]).nullish()
+    ]).nullish(),
+    dwellStopIndex: z.int().nullish()
 });
 
 /**
