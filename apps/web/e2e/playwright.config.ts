@@ -10,9 +10,7 @@ export default defineConfig({
     fullyParallel: true,
     forbidOnly: !!process.env.CI,
     retries: process.env.CI ? 1 : 0,
-    // GitHub runners for public repos have 4 cores. The suite waits on the
-    // page more than it computes: 4 workers there take ~2/3 the time of 2
-    workers: process.env.CI ? 4 : undefined,
+    workers: process.env.CI ? 2 : undefined,
     // On CI each test is listed as it ends, so a slow or stuck one shows in
     // the log while the run is still going
     reporter: process.env.CI
@@ -35,6 +33,12 @@ export default defineConfig({
         // SwiftShader provides without a GPU
         channel: "chromium",
         locale: "hu-HU",
+        // SwiftShader draws WebGL on the CPU. On a CI runner's few slow
+        // cores the map's camera eases starve the compositor: panel fades
+        // stall mid-way and a closed panel stays on screen. Reduced motion
+        // skips those there; local runs keep full motion, and motion.spec
+        // sets its own
+        contextOptions: process.env.CI ? { reducedMotion: "reduce" } : {},
         timezoneId: "Europe/Budapest",
         trace: "retain-on-failure",
         screenshot: "only-on-failure",
