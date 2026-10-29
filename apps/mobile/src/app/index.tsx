@@ -21,6 +21,7 @@ import { markerCollection } from "../map/markers";
 import { TrainMap } from "../map/TrainMap";
 import { useSettings } from "../settings/SettingsProvider";
 import { useAppTheme } from "../theme/ThemeProvider";
+import { useNow } from "../ui/useNow";
 
 /** Screen 1: the live map with search, settings and location controls. */
 export default function MapScreen() {
@@ -34,17 +35,14 @@ export default function MapScreen() {
     const {
         data: trains,
         isError,
-        dataUpdatedAt,
         refetch,
     } = useQuery({
         ...getTrainsOptions(),
         refetchInterval: POLL_INTERVAL_MS,
     });
-    // Staleness is judged at fetch time, so markers change with the feed
-    const now = useMemo(
-        () => new Date(dataUpdatedAt || Date.now()),
-        [dataUpdatedAt],
-    );
+    // The shared clock: markers judge staleness at the same instant as the
+    // train sheet and the rows
+    const now = useNow();
     const visible = useMemo(
         () => markerCollection(trains, theme, now).features.length,
         [trains, theme, now],

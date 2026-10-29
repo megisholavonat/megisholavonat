@@ -1,23 +1,24 @@
-import type { TrainFeatureProperties } from "@megisholavonat/api-client";
+import type {
+    TrainFeatureCollection,
+    TrainFeatureProperties,
+} from "@megisholavonat/api-client";
 import {
     getStationPlatformsOptions,
     getTrainDetailsOptions,
     getTrainStationHistoryOptions,
     getTrainsOptions,
 } from "@megisholavonat/api-client/react-query";
-import { getDelayLevel } from "@megisholavonat/core/delay";
-import { DELAY_REASONS } from "@megisholavonat/core/delayReasons";
+import { trainDisplay } from "@megisholavonat/core/display";
 import { shareUrl, trainShareText } from "@megisholavonat/core/share";
-import { minutesSinceUpdate, staleness } from "@megisholavonat/core/stale";
 import { ticketUrl } from "@megisholavonat/core/ticket";
 import {
     formatSecondsAsTime,
     serviceDayStart,
 } from "@megisholavonat/core/time";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
-import { type ReactNode, useMemo } from "react";
+import { type ReactNode, useEffect, useMemo } from "react";
 import {
     Platform,
     ScrollView,
@@ -30,31 +31,38 @@ import { useLocale, useTranslations } from "use-intl";
 import { WEB_URL } from "../config";
 import { findFollowFor } from "../follow/model";
 import { useFollows } from "../follow/store";
-import { withAlpha } from "../theme/palette";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { CloseButton } from "../ui/CloseButton";
-import { delayTextColor, PlatformBadge, Skeleton, StateBlock } from "../ui/ds";
-import { Icon, isIconName } from "../ui/Icon";
+import { PlatformBadge, Skeleton, StateBlock } from "../ui/ds";
+import { Icon } from "../ui/Icon";
+import { RollingText } from "../ui/motion";
 import { SheetHandle } from "../ui/SheetHandle";
+import { useNow } from "../ui/useNow";
+import { type DelayTileModel, delayTile, reasonTone } from "./delayDisplay";
 import { RouteIcon } from "./RouteIcon";
 import { StopList } from "./StopList";
 import { TrainActions } from "./TrainActions";
+import { AlertList, ReasonLine, ServiceList } from "./TrainInfo";
 import {
     beforeDeparture,
     isUsuallyLate,
-    mainAlert,
     predictedPlatform,
+    type StopRow,
+    serviceGroups,
+    sortedAlerts,
     stopRows,
     trainTitle,
 } from "./trainData";
+import { patchFeed } from "./trainState";
 
 const DETAILS_REFRESH_MS = 15_000;
 const HISTORY_STALE_MS = 6 * 3600_000;
 
 /**
  * The train sheet body: header, delay at the next stop, actions, delay
- * reason and the stop list. Presented in a native sheet with peek, half and
- * full detents (see the root layout); the peek shows the first two rows.
+ * reason, alerts, services and the stop list. Presented in a native sheet
+ * with peek, half and full detents (see the root layout); the peek shows
+ * the first two rows.
  */
 export function TrainSheet({
     vehicleId,
@@ -69,6 +77,7 @@ export function TrainSheet({
     const locale = useLocale();
     const router = useRouter();
     const follows = useFollows();
+    const now = useNow();
 
     // The map's feed is cached, so the header shows before the details load
     const { data: feature } = useQuery({
@@ -87,7 +96,38 @@ export function TrainSheet({
         refetchInterval: DETAILS_REFRESH_MS,
     });
 
-    const rows = useMemo(() => (details ? stopRows(details) : []), [details]);
+    // Newer details move this train's marker and delay on the map too, so
+    // the marker and the sheet agree between feed polls
+    const queryClient = useQueryClient();
+    useEffect(() => {
+        if (!details) return;
+        queryClient.setQueryData<TrainFeatureCollection>(
+            getTrainsOptions().queryKey,
+            (feed) => patchFeed(feed, details),
+        );
+    }, [details, queryClient]);
+
+    // One state for the tile, the times and the rail, by the same rules as
+    // the map marker
+    const input = details ?? feature;
+    const display = input ? trainDisplay(input, now) : null;
+    const running = display?.state === "running";
+    const stale = display?.state === "stale";
+
+    const rows = useMemo(
+        () => (details ? stopRows(details, display?.state !== "idle") : []),
+        [details, display?.state],
+    );
+    const services = useMemo(
+        () =>
+            details
+                ? serviceGroups(
+                      details.trip.infoServices,
+                      details.trip.stoptimes.length,
+                  )
+                : { whole: [], byStop: [] },
+        [details],
+    );
     const next = rows.find((r) => r.state === "next") ?? null;
     const last = rows.at(-1) ?? null;
     const first = rows[0] ?? null;
@@ -98,7 +138,7 @@ export function TrainSheet({
         : null;
     const trainNumber = title?.number ?? "";
 
-    const notYetDeparted = details ? beforeDeparture(details) : false;
+    const notYetDeparted = details ? beforeDeparture(details, now) : false;
     const { data: history } = useQuery({
         ...getTrainStationHistoryOptions({
             path: { trainNumber, stationId: first?.uic ?? "" },
@@ -121,11 +161,6 @@ export function TrainSheet({
 
     const routeShortName =
         details?.trip.route.shortName ?? feature?.routeShortName;
-    const lastUpdated = details?.lastUpdated ?? feature?.lastUpdated;
-    const stale =
-        feature?.isStale === true ||
-        (lastUpdated !== undefined && staleness(lastUpdated) !== "fresh");
-    const delay = Math.round(details?.delay ?? feature?.delay ?? 0);
 
     if (isError && !details) {
         return (
@@ -142,26 +177,11 @@ export function TrainSheet({
         );
     }
 
-    const alert = details ? mainAlert(details.trip.alerts) : null;
-    const reason = alert?.reason ?? feature?.reason ?? null;
-    const reasonInfo = reason ? DELAY_REASONS[reason.code] : null;
-
-    const delayColor = delayTextColor(theme, delay, stale);
-    const onTime = getDelayLevel(delay) === "onTime";
-    const delayLabel = onTime ? tc("on_time") : tc("delay_short", { delay });
-    // Stale: the last known delay, marked uncertain ("+23?")
-    const bigDelay = stale ? `${delayLabel}?` : delayLabel;
-
-    const nowLabel = details
-        ? [
-              details.vehicleProgress.lastStop,
-              details.speed != null && details.speed > 0
-                  ? t("speed", { speed: Math.round(details.speed) })
-                  : null,
-          ]
-              .filter(Boolean)
-              .join(" · ")
-        : null;
+    const alerts = details ? sortedAlerts(details.trip.alerts) : [];
+    const reason =
+        alerts.find((a) => a.reason)?.reason ?? feature?.reason ?? null;
+    // The cause only for a train that is actually late, in its colour
+    const tone = display ? reasonTone(display.delay, stale) : null;
 
     const onShare = () => {
         // Same link and text as the web share button
@@ -170,7 +190,7 @@ export function TrainSheet({
         const name = title
             ? trainShareText(locale, {
                   number: title.number,
-                  delay: Math.max(0, delay),
+                  delay: Math.max(0, display?.delay ?? 0),
                   waiting: notYetDeparted,
                   next: stop
                       ? {
@@ -220,22 +240,11 @@ export function TrainSheet({
             </Header>
 
             <View style={styles.summary}>
-                <Text
-                    style={[
-                        theme.type.delayXl,
-                        theme.tabularNums,
-                        styles.bigDelay,
-                        onTime && styles.bigOnTime,
-                        { color: delayColor },
-                    ]}
-                    accessibilityLabel={
-                        onTime ? tc("on_time") : tc("delay_a11y", { delay })
-                    }
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                >
-                    {bigDelay}
-                </Text>
+                {display ? (
+                    <DelayTile tile={delayTile(display)} first={first} />
+                ) : (
+                    <Skeleton width={64} height={44} radius={10} />
+                )}
                 <View
                     style={[
                         styles.nextStop,
@@ -300,13 +309,11 @@ export function TrainSheet({
                 ) : null}
             </View>
 
-            {stale && lastUpdated !== undefined ? (
+            {display?.outdated ? (
                 <View style={styles.inline}>
                     <Icon name="stale" size={16} color={theme.colors.ink2} />
                     <Text style={[styles.note, { color: theme.colors.ink2 }]}>
-                        {t("stale", {
-                            minutes: minutesSinceUpdate(lastUpdated),
-                        })}
+                        {t("stale", { minutes: display.minutesSinceUpdate })}
                     </Text>
                 </View>
             ) : null}
@@ -317,6 +324,9 @@ export function TrainSheet({
                         {t("usually_late")}
                     </Text>
                 </View>
+            ) : null}
+            {reason && tone ? (
+                <ReasonLine reason={reason.code} tone={tone} />
             ) : null}
 
             {details ? (
@@ -333,65 +343,18 @@ export function TrainSheet({
                 </View>
             )}
 
-            {alert || reasonInfo ? (
-                <View
-                    style={[
-                        styles.reason,
-                        {
-                            backgroundColor: withAlpha(
-                                theme.delay.moderate.fill,
-                                theme.dark ? 0.18 : 0.1,
-                            ),
-                        },
-                    ]}
-                    accessible
-                >
-                    <Icon
-                        name={
-                            reasonInfo && isIconName(reasonInfo.icon)
-                                ? reasonInfo.icon
-                                : "warning"
-                        }
-                        size={20}
-                        color={theme.delay.moderate.text}
-                    />
-                    <View style={styles.flex}>
-                        {reasonInfo ? (
-                            <Text
-                                style={[
-                                    styles.reasonLabel,
-                                    { color: theme.colors.ink },
-                                ]}
-                            >
-                                {reasonInfo[locale]}
-                            </Text>
-                        ) : null}
-                        {alert?.text && (!reasonInfo || locale === "hu") ? (
-                            <Text
-                                style={[
-                                    reasonInfo
-                                        ? styles.reasonText
-                                        : styles.reasonLabel,
-                                    {
-                                        color: reasonInfo
-                                            ? theme.colors.ink2
-                                            : theme.colors.ink,
-                                    },
-                                ]}
-                            >
-                                {alert.text}
-                            </Text>
-                        ) : null}
-                    </View>
-                </View>
-            ) : null}
+            <ServiceList services={services.whole} />
+            <AlertList alerts={alerts} />
 
-            {details ? (
+            {details && display ? (
                 <StopList
+                    details={details}
                     rows={rows}
-                    nowLabel={nowLabel}
+                    services={services.byStop}
                     nextPlatformPrediction={nextPrediction}
-                    stale={stale}
+                    stale={!running}
+                    running={running}
+                    level={display.level}
                 />
             ) : (
                 <View style={styles.skeletonList}>
@@ -406,6 +369,82 @@ export function TrainSheet({
                 </View>
             )}
         </ScrollView>
+    );
+}
+
+/**
+ * The big delay: always a number ("+2" with "pontos" under it when on
+ * time, "−1" when early, "+23?" for old data), rolling to each new value;
+ * "–" with what the train is doing when it isn't under way.
+ */
+function DelayTile({
+    tile,
+    first,
+}: {
+    tile: DelayTileModel;
+    first: StopRow | null;
+}) {
+    const theme = useAppTheme();
+    const t = useTranslations("Train");
+    const tc = useTranslations("Common");
+    const color =
+        tile.level === "stale"
+            ? theme.stale.text
+            : theme.delay[tile.level].text;
+    const caption = (() => {
+        switch (tile.caption?.kind) {
+            case "on_time":
+                return tc("on_time");
+            case "early":
+                return t("early");
+            case "departs":
+                return first
+                    ? t("departs", {
+                          time: formatSecondsAsTime(first.expected),
+                      })
+                    : null;
+            case "arrived":
+                return t("arrived");
+            case "not_running":
+                return t("not_running");
+            case "cancelled":
+                return t("cancelled");
+            default:
+                return null;
+        }
+    })();
+    const label = [
+        tile.delay !== null && tile.delay > 0
+            ? tc("delay_a11y", { delay: tile.delay })
+            : tile.delay !== null
+              ? tile.text
+              : null,
+        caption,
+    ]
+        .filter(Boolean)
+        .join(", ");
+    return (
+        <View style={styles.tile} accessible accessibilityLabel={label}>
+            <RollingText
+                text={tile.text}
+                lineHeight={theme.type.delayXl.lineHeight}
+                style={[
+                    theme.type.delayXl,
+                    theme.tabularNums,
+                    styles.bigDelay,
+                    { color },
+                ]}
+            />
+            {caption ? (
+                <Text
+                    style={[styles.caption, { color }]}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                >
+                    {caption}
+                </Text>
+            ) : null}
+        </View>
     );
 }
 
@@ -450,8 +489,9 @@ const styles = StyleSheet.create({
     },
     header: { flexDirection: "row", alignItems: "center", gap: 8 },
     summary: { flexDirection: "row", alignItems: "center", gap: 14 },
-    bigDelay: { minWidth: 56, maxWidth: 140, letterSpacing: -0.5 },
-    bigOnTime: { fontSize: 28, lineHeight: 34 },
+    tile: { minWidth: 56, maxWidth: 140, alignItems: "flex-start" },
+    bigDelay: { letterSpacing: -0.5 },
+    caption: { fontSize: 13, fontWeight: "600", marginTop: -2 },
     nextStop: {
         flex: 1,
         borderLeftWidth: StyleSheet.hairlineWidth * 2,
@@ -467,15 +507,5 @@ const styles = StyleSheet.create({
     note: { fontSize: 15, fontWeight: "600" },
     flex: { flex: 1 },
     gap6: { marginTop: 6 },
-    reason: {
-        flexDirection: "row",
-        alignItems: "flex-start",
-        gap: 10,
-        borderRadius: 16,
-        paddingHorizontal: 14,
-        paddingVertical: 12,
-    },
-    reasonLabel: { fontSize: 15, fontWeight: "600" },
-    reasonText: { fontSize: 13, marginTop: 2 },
     skeletonList: { gap: 18, paddingTop: 6 },
 });

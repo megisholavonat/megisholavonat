@@ -3,27 +3,30 @@ import {
     getTrainsOptions,
     searchStationsOptions,
 } from "@megisholavonat/api-client/react-query";
-import { minutesSinceUpdate, staleness } from "@megisholavonat/core/stale";
 import { useQuery } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
-import { type ReactNode, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
     Platform,
     Pressable,
     ScrollView,
     StyleSheet,
     Text,
+    TextInput,
     View,
 } from "react-native";
 import { useTranslations } from "use-intl";
-import { highlight, searchTrains } from "../search/search";
+import { Group, Row, rowStyles, TrainRow } from "../search/rows";
+import { highlight, lateTrains, searchTrains } from "../search/search";
 import { useAppTheme } from "../theme/ThemeProvider";
-import { RouteIcon } from "../train/RouteIcon";
-import { trainTitle } from "../train/trainData";
-import { DelayChip, SectionLabel, StateBlock } from "../ui/ds";
+import { SectionLabel, StateBlock } from "../ui/ds";
 import { Icon } from "../ui/Icon";
+import { useNow } from "../ui/useNow";
 
 const DEBOUNCE_MS = 250;
+/** Late trains in the empty search, before "All trains" */
+const LATE_PREVIEW = 5;
+const ios = Platform.OS === "ios";
 
 function useDebounced<T>(value: T, ms: number): T {
     const [debounced, setDebounced] = useState(value);
@@ -34,62 +37,64 @@ function useDebounced<T>(value: T, ms: number): T {
     return debounced;
 }
 
-function Group({ children }: { children: ReactNode }) {
+/**
+ * iOS: the search field at the top of the search sheet (Apple Maps style),
+ * so the map stays in view behind it. Android searches in the app bar.
+ */
+function SheetSearchField({
+    value,
+    onChange,
+    onCancel,
+}: {
+    value: string;
+    onChange: (text: string) => void;
+    onCancel: () => void;
+}) {
     const theme = useAppTheme();
+    const t = useTranslations("Search");
+    const th = useTranslations("Home");
     return (
-        <View
-            style={[
-                styles.group,
-                {
-                    backgroundColor: theme.colors.surface,
-                    borderRadius: Platform.OS === "ios" ? theme.radii.lg : 20,
-                },
-            ]}
-        >
-            {children}
+        <View style={styles.fieldRow}>
+            <View
+                style={[
+                    styles.field,
+                    { backgroundColor: theme.colors.surface2 },
+                ]}
+            >
+                <Icon name="search" size={17} color={theme.colors.ink2} />
+                <TextInput
+                    value={value}
+                    onChangeText={onChange}
+                    placeholder={th("search_placeholder")}
+                    placeholderTextColor={theme.colors.ink2}
+                    autoFocus
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    clearButtonMode="while-editing"
+                    returnKeyType="search"
+                    enablesReturnKeyAutomatically
+                    style={[styles.input, { color: theme.colors.ink }]}
+                    accessibilityLabel={t("title")}
+                />
+            </View>
+            <Pressable
+                onPress={onCancel}
+                accessibilityRole="button"
+                hitSlop={8}
+                style={({ pressed }) => pressed && styles.pressed}
+            >
+                <Text style={[styles.cancel, { color: theme.colors.ink }]}>
+                    {t("cancel")}
+                </Text>
+            </Pressable>
         </View>
     );
 }
 
-function Row({
-    leading,
-    children,
-    trailing,
-    onPress,
-    first,
-}: {
-    leading: ReactNode;
-    children: ReactNode;
-    trailing?: ReactNode;
-    onPress: () => void;
-    first: boolean;
-}) {
-    const theme = useAppTheme();
-    return (
-        <Pressable
-            onPress={onPress}
-            accessibilityRole="button"
-            android_ripple={{ color: theme.colors.line }}
-            style={({ pressed }) => [
-                styles.row,
-                !first && {
-                    borderTopWidth: StyleSheet.hairlineWidth,
-                    borderTopColor: theme.colors.line,
-                },
-                pressed &&
-                    Platform.OS === "ios" && {
-                        backgroundColor: theme.colors.surface2,
-                    },
-            ]}
-        >
-            <View style={styles.leading}>{leading}</View>
-            <View style={styles.flex}>{children}</View>
-            {trailing}
-        </Pressable>
-    );
-}
-
-/** Screen 3: search for stations (API) and live trains (map feed). */
+/**
+ * Screen 3: search for stations (API) and live trains (map feed). Empty, it
+ * offers the journey planner and the trains running late.
+ */
 export default function SearchScreen() {
     const router = useRouter();
     const theme = useAppTheme();
@@ -97,6 +102,7 @@ export default function SearchScreen() {
     const th = useTranslations("Home");
     const [query, setQuery] = useState("");
     const debounced = useDebounced(query.trim(), DEBOUNCE_MS);
+    const now = useNow();
 
     const stations = useQuery({
         ...searchStationsOptions({ query: { q: debounced, limit: 8 } }),
@@ -107,7 +113,8 @@ export default function SearchScreen() {
         ...getTrainsOptions(),
         refetchOnMount: false,
     });
-    const trains = searchTrains(feed, query);
+    const trains = searchTrains(feed, query, now);
+    const late = lateTrains(feed, now, LATE_PREVIEW);
     const stationList: Station[] =
         debounced.length >= 2 ? (stations.data ?? []) : [];
 
@@ -123,40 +130,54 @@ export default function SearchScreen() {
         router.back();
         router.push({ pathname: "/train/[vehicleId]", params: { vehicleId } });
     };
-
     const openPlanner = () => {
         router.back();
         router.push("/journey");
     };
+    const openTrains = () => {
+        router.back();
+        router.push("/trains");
+    };
 
+    const empty = query.trim() === "";
     const nothing =
         debounced.length >= 2 &&
         !stations.isFetching &&
         stationList.length === 0 &&
         trains.length === 0;
 
+    const chevron = <Icon name="chevron" size={16} color={theme.colors.ink2} />;
+
     return (
         <>
-            <Stack.Screen
-                options={{
-                    headerSearchBarOptions: {
-                        placeholder: th("search_placeholder"),
-                        autoFocus: true,
-                        hideWhenScrolling: false,
-                        autoCapitalize: "none",
-                        onChangeText: (event) =>
-                            setQuery(event.nativeEvent.text),
-                        onCancelButtonPress: () => router.back(),
-                    },
-                }}
-            />
+            {ios ? null : (
+                <Stack.Screen
+                    options={{
+                        headerSearchBarOptions: {
+                            placeholder: th("search_placeholder"),
+                            autoFocus: true,
+                            hideWhenScrolling: false,
+                            autoCapitalize: "none",
+                            onChangeText: (event) =>
+                                setQuery(event.nativeEvent.text),
+                        },
+                    }}
+                />
+            )}
+            {ios ? (
+                <SheetSearchField
+                    value={query}
+                    onChange={setQuery}
+                    onCancel={() => router.back()}
+                />
+            ) : null}
             <ScrollView
                 contentInsetAdjustmentBehavior="automatic"
                 keyboardShouldPersistTaps="handled"
                 keyboardDismissMode="on-drag"
                 contentContainerStyle={styles.content}
             >
-                {query.trim() === "" ? (
+                {empty ? (
                     <Group>
                         <Row
                             first
@@ -168,13 +189,7 @@ export default function SearchScreen() {
                                     color={theme.colors.ink2}
                                 />
                             }
-                            trailing={
-                                <Icon
-                                    name="chevron"
-                                    size={16}
-                                    color={theme.colors.ink2}
-                                />
-                            }
+                            trailing={chevron}
                         >
                             <Text
                                 style={[
@@ -186,6 +201,45 @@ export default function SearchScreen() {
                             </Text>
                         </Row>
                     </Group>
+                ) : null}
+                {empty ? (
+                    <View>
+                        {late.length > 0 ? (
+                            <SectionLabel>{t("late_now")}</SectionLabel>
+                        ) : null}
+                        <Group>
+                            {late.map((train, index) => (
+                                <TrainRow
+                                    key={train.vehicleId}
+                                    train={train}
+                                    first={index === 0}
+                                    now={now}
+                                    onPress={() => openTrain(train.vehicleId)}
+                                />
+                            ))}
+                            <Row
+                                first={late.length === 0}
+                                onPress={openTrains}
+                                leading={
+                                    <Icon
+                                        name="list"
+                                        size={22}
+                                        color={theme.colors.ink2}
+                                    />
+                                }
+                                trailing={chevron}
+                            >
+                                <Text
+                                    style={[
+                                        theme.type.body,
+                                        { color: theme.colors.ink },
+                                    ]}
+                                >
+                                    {t("all_trains")}
+                                </Text>
+                            </Row>
+                        </Group>
+                    </View>
                 ) : null}
                 {stationList.length > 0 ? (
                     <View>
@@ -218,7 +272,7 @@ export default function SearchScreen() {
                                                     key={i}
                                                     style={
                                                         part.match
-                                                            ? styles.bold
+                                                            ? rowStyles.bold
                                                             : undefined
                                                     }
                                                 >
@@ -236,57 +290,15 @@ export default function SearchScreen() {
                     <View>
                         <SectionLabel>{t("trains")}</SectionLabel>
                         <Group>
-                            {trains.map((train, index) => {
-                                const title = trainTitle(
-                                    train.tripShortName,
-                                    null,
-                                );
-                                const stale =
-                                    train.isStale ||
-                                    staleness(train.lastUpdated) !== "fresh";
-                                return (
-                                    <Row
-                                        key={train.vehicleId}
-                                        first={index === 0}
-                                        onPress={() =>
-                                            openTrain(train.vehicleId)
-                                        }
-                                        leading={
-                                            <RouteIcon
-                                                routeShortName={
-                                                    train.routeShortName
-                                                }
-                                                color={theme.colors.ink}
-                                            />
-                                        }
-                                        trailing={
-                                            <DelayChip
-                                                delay={train.delay}
-                                                staleMinutes={
-                                                    stale
-                                                        ? minutesSinceUpdate(
-                                                              train.lastUpdated,
-                                                          )
-                                                        : null
-                                                }
-                                            />
-                                        }
-                                    >
-                                        <Text
-                                            style={[
-                                                theme.type.body,
-                                                { color: theme.colors.ink },
-                                            ]}
-                                            numberOfLines={1}
-                                        >
-                                            <Text style={styles.bold}>
-                                                {title.number}
-                                            </Text>
-                                            {title.name ? ` ${title.name}` : ""}
-                                        </Text>
-                                    </Row>
-                                );
-                            })}
+                            {trains.map((train, index) => (
+                                <TrainRow
+                                    key={train.vehicleId}
+                                    train={train}
+                                    first={index === 0}
+                                    now={now}
+                                    onPress={() => openTrain(train.vehicleId)}
+                                />
+                            ))}
                         </Group>
                     </View>
                 ) : null}
@@ -302,17 +314,25 @@ export default function SearchScreen() {
 
 const styles = StyleSheet.create({
     content: { padding: 16, gap: 16 },
-    group: { overflow: "hidden" },
-    row: {
+    empty: { paddingTop: 24 },
+    fieldRow: {
         flexDirection: "row",
         alignItems: "center",
-        gap: 14,
+        gap: 12,
         paddingHorizontal: 16,
-        minHeight: 56,
-        paddingVertical: 10,
+        paddingTop: 18,
+        paddingBottom: 4,
     },
-    leading: { width: 32, alignItems: "center" },
-    flex: { flex: 1 },
-    bold: { fontWeight: "700" },
-    empty: { paddingTop: 24 },
+    field: {
+        flex: 1,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 6,
+        height: 40,
+        borderRadius: 12,
+        paddingLeft: 10,
+    },
+    input: { flex: 1, height: 40, fontSize: 17 },
+    cancel: { fontSize: 17 },
+    pressed: { opacity: 0.5 },
 });

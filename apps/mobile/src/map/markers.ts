@@ -1,6 +1,7 @@
 import type { TrainFeatureCollection } from "@megisholavonat/api-client";
-import { type DelayLevel, getDelayLevel } from "@megisholavonat/core/delay";
-import { minutesSinceUpdate, staleness } from "@megisholavonat/core/stale";
+import type { DelayLevel } from "@megisholavonat/core/delay";
+import { trainDisplay } from "@megisholavonat/core/display";
+import { staleness } from "@megisholavonat/core/stale";
 import { MARKER } from "@megisholavonat/core/tokens";
 import type { NativeTheme } from "@megisholavonat/core/tokens/native";
 
@@ -60,18 +61,23 @@ export function markerCollection(
     const features: GeoJSON.Feature<GeoJSON.Point, MarkerProperties>[] = [];
     for (const feature of trains?.features ?? []) {
         const p = feature.properties;
-        const state = staleness(p.lastUpdated, now);
-        if (state === "hidden") continue;
+        if (staleness(p.lastUpdated, now) === "hidden") continue;
+        const display = trainDisplay(p, now);
 
         let props: Omit<MarkerProperties, "followed">;
-        if (state === "stale" || p.isStale) {
+        if (display.level === "stale" || display.delay === null) {
+            // Old data: hollow grey with its age ("6′"). A train waiting at
+            // a terminus or arrived has fresh data: a solid grey dot without
+            // a label, so it doesn't read as "no data for 0 minutes"
             const spec = MARKER.stale;
-            const label = MARKER.label.stale(
-                minutesSinceUpdate(p.lastUpdated, now),
-            );
+            const label = display.outdated
+                ? MARKER.label.stale(display.minutesSinceUpdate)
+                : "";
             props = {
                 vehicleId: p.vehicleId,
-                fill: theme.stale.background,
+                fill: display.outdated
+                    ? theme.stale.background
+                    : theme.stale.fill,
                 stroke: theme.stale.outline.color,
                 strokeWidth: theme.stale.outline.width,
                 halo: "",
@@ -83,11 +89,11 @@ export function markerCollection(
                 sort: 0,
             };
         } else {
-            const level = getDelayLevel(p.delay);
+            const level = display.level;
             const spec = MARKER.levels[level];
             const colors = theme.delay[level];
             const label =
-                level === "onTime" ? "" : MARKER.label.delayed(p.delay);
+                level === "onTime" ? "" : MARKER.label.delayed(display.delay);
             props = {
                 vehicleId: p.vehicleId,
                 fill: colors.fill,

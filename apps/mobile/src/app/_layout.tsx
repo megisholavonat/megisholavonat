@@ -29,6 +29,8 @@ const ios = Platform.OS === "ios";
 const TRAIN_DETENTS = [0.22, 0.5, 1];
 /** Station board: half and full. */
 const STATION_DETENTS = [0.6, 1];
+/** Search on iOS: medium (map in view) and large (typing). */
+const SEARCH_DETENTS = [0.55, 1];
 
 /** Notifications already routed, so a re-render doesn't open them again */
 const routedNotifications = new Set<string>();
@@ -116,9 +118,29 @@ function AppStack() {
             />
             <Stack.Screen
                 name="search"
+                // iOS: a sheet over the map (Apple Maps), large while
+                // typing, medium with the map usable above it. Android: the
+                // full-screen Material search in the app bar.
+                options={
+                    ios
+                        ? {
+                              ...sheet,
+                              sheetAllowedDetents: SEARCH_DETENTS,
+                              sheetInitialDetentIndex: 1,
+                              sheetLargestUndimmedDetentIndex: 0,
+                          }
+                        : {
+                              ...header,
+                              title: t("Search.title"),
+                              presentation: "card",
+                          }
+                }
+            />
+            <Stack.Screen
+                name="trains"
                 options={{
                     ...header,
-                    title: t("Search.title"),
+                    title: t("Trains.title"),
                     presentation: ios ? "modal" : "card",
                 }}
             />
