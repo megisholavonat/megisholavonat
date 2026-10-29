@@ -165,7 +165,9 @@ export function locateOnRoute(
         const dy = b[1] - a[1];
         const len2 = dx * dx + dy * dy;
         const t =
-            len2 > 0 ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / len2)) : 0;
+            len2 > 0
+                ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / len2))
+                : 0;
         const px = ax + dx * t;
         const py = ay + dy * t;
         const d2 = px * px + py * py;
