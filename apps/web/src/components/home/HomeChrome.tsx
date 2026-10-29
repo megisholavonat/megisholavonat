@@ -10,9 +10,10 @@ import {
     Settings as SettingsIcon,
     TriangleAlert,
 } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { FILL_CLASS, type Level } from "@/components/ui/Delay";
 import {
     Popover,
@@ -70,6 +71,8 @@ const LEGEND: { level: Level; key: string }[] = [
     { level: "stale", key: "stale" },
 ];
 
+const EASE_SHEET = [0.32, 0.72, 0, 1] as const;
+
 function Swatch({ level }: { level: Level }) {
     return (
         <span
@@ -77,70 +80,174 @@ function Swatch({ level }: { level: Level }) {
             className={cn(
                 "size-2.5 shrink-0 rounded-full",
                 level === "stale"
-                    ? "border border-dashed border-stale"
+                    ? "border-[1.5px] border-dashed border-stale"
                     : FILL_CLASS[level],
             )}
         />
     );
 }
 
+/** "5+ perc" for the delay steps, the plain label otherwise. */
+function useLegendLabel() {
+    const t = useTranslations("Legend");
+    return (level: Level, key: string, withUnit: boolean) =>
+        withUnit && level !== "onTime" && level !== "stale"
+            ? `${t(key)} ${t("minutes")}`
+            : t(key);
+}
+
 /**
- * Delay colours. Desktop: one quiet row. Phone: just the dots, tapping
- * shows the labels.
+ * Delay colours. Desktop: one quiet row, "Késés" first so the steps read as
+ * minutes late. Phone: just the dots; tapping opens the labelled list above
+ * the pill.
  */
 export function Legend({ isDesktop }: { isDesktop: boolean }) {
     const t = useTranslations("Legend");
+    const label = useLegendLabel();
     const [open, setOpen] = useState(false);
-    const expanded = isDesktop || open;
-    const content = (
-        <span className={cn("flex items-center", expanded ? "gap-3" : "gap-1")}>
-            {LEGEND.map(({ level, key }) => (
-                <span key={key} className="flex items-center gap-1.5">
-                    <Swatch level={level} />
-                    {expanded && (
-                        <span className="text-caption font-semibold whitespace-nowrap text-ink">
-                            {t(key)}
-                        </span>
-                    )}
-                </span>
-            ))}
-        </span>
-    );
+    const reduceMotion = useReducedMotion() ?? false;
+    const rootRef = useRef<HTMLDivElement>(null);
+    const listId = useId();
+
+    // Tap anywhere else (or Esc) folds it back
+    useEffect(() => {
+        if (!open) return;
+        const onPointer = (e: PointerEvent) => {
+            if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+        };
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === "Escape") setOpen(false);
+        };
+        document.addEventListener("pointerdown", onPointer);
+        document.addEventListener("keydown", onKey);
+        return () => {
+            document.removeEventListener("pointerdown", onPointer);
+            document.removeEventListener("keydown", onKey);
+        };
+    }, [open]);
+
     if (isDesktop) {
         return (
             <div
                 role="img"
-                aria-label={t("label")}
-                className="floating-card rounded-md px-3 py-2"
+                aria-label={`${t("label")}: ${LEGEND.map(({ level, key }) => label(level, key, true)).join(", ")}`}
+                className="floating-card flex items-center gap-3 rounded-md px-3 py-2 dark:ring-1 dark:ring-line"
             >
-                {content}
+                <span className="text-caption font-normal text-ink-2">
+                    {t("title")}
+                </span>
+                {LEGEND.map(({ level, key }) => (
+                    <span key={key} className="flex items-center gap-1.5">
+                        <Swatch level={level} />
+                        <span className="text-caption font-semibold whitespace-nowrap text-ink">
+                            {key === "severe"
+                                ? label(level, key, true)
+                                : t(key)}
+                        </span>
+                    </span>
+                ))}
             </div>
         );
     }
     return (
-        <button
-            type="button"
-            onClick={() => setOpen(!open)}
-            aria-expanded={open}
-            aria-label={t("label")}
-            className="floating-card flex h-11 cursor-pointer items-center rounded-full px-4"
-        >
-            {content}
-        </button>
+        <div ref={rootRef} className="relative">
+            <AnimatePresence>
+                {open && (
+                    <motion.div
+                        id={listId}
+                        key="legend"
+                        initial={{
+                            opacity: 0,
+                            scale: reduceMotion ? 1 : 0.92,
+                            y: reduceMotion ? 0 : 8,
+                        }}
+                        animate={{
+                            opacity: 1,
+                            scale: 1,
+                            y: 0,
+                            transition: {
+                                duration: reduceMotion ? 0.12 : 0.24,
+                                ease: EASE_SHEET,
+                            },
+                        }}
+                        exit={{
+                            opacity: 0,
+                            scale: reduceMotion ? 1 : 0.96,
+                            y: reduceMotion ? 0 : 4,
+                            transition: { duration: 0.15, ease: "easeIn" },
+                        }}
+                        style={{ transformOrigin: "bottom left" }}
+                        className="floating-card absolute bottom-full left-0 mb-2 flex min-w-40 flex-col gap-2 rounded-lg px-3.5 py-3 dark:ring-1 dark:ring-line"
+                    >
+                        <span className="text-caption font-normal text-ink-2">
+                            {t("title")}
+                        </span>
+                        <ul
+                            aria-label={t("label")}
+                            className="flex flex-col gap-2"
+                        >
+                            {LEGEND.map(({ level, key }) => (
+                                <li
+                                    key={key}
+                                    className="flex items-center gap-2.5"
+                                >
+                                    <Swatch level={level} />
+                                    <span className="text-sm font-semibold whitespace-nowrap text-ink">
+                                        {label(level, key, true)}
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+            <button
+                type="button"
+                onClick={() => setOpen(!open)}
+                aria-expanded={open}
+                aria-controls={open ? listId : undefined}
+                aria-label={t("label")}
+                className="floating-card pressable flex h-11 cursor-pointer items-center gap-1 rounded-full px-4 dark:ring-1 dark:ring-line"
+            >
+                {LEGEND.map(({ level, key }) => (
+                    <Swatch key={key} level={level} />
+                ))}
+            </button>
+        </div>
     );
 }
 
-/** "7 perce nincs friss adat" pill at the top of the map. */
-export function StaleBanner({ minutes }: { minutes: number }) {
+/**
+ * "7 perce nincs friss adat" pill at the top of the map. Pass `null` (and
+ * keep it mounted) to let it fade out instead of vanishing.
+ */
+export function StaleBanner({ minutes }: { minutes: number | null }) {
     const t = useTranslations("States");
+    const reduceMotion = useReducedMotion() ?? false;
     return (
-        <div
-            role="status"
-            className="floating-card flex h-9 items-center gap-2 rounded-full px-3.5 text-sm font-semibold"
-        >
-            <Clock className="size-4" aria-hidden />
-            {t("stale", { minutes })}
-        </div>
+        <AnimatePresence>
+            {minutes !== null && (
+                <motion.div
+                    key="stale"
+                    role="status"
+                    initial={{ opacity: 0, y: reduceMotion ? 0 : -8 }}
+                    animate={{
+                        opacity: 1,
+                        y: 0,
+                        transition: { duration: 0.24, ease: EASE_SHEET },
+                    }}
+                    exit={{
+                        opacity: 0,
+                        y: reduceMotion ? 0 : -8,
+                        transition: { duration: 0.2, ease: "easeIn" },
+                    }}
+                    className="floating-card flex h-9 items-center gap-2 rounded-full px-3.5 text-sm font-semibold dark:ring-1 dark:ring-line"
+                >
+                    <Clock className="size-4" aria-hidden />
+                    {t("stale", { minutes })}
+                </motion.div>
+            )}
+        </AnimatePresence>
     );
 }
 
@@ -161,7 +268,7 @@ export function FeedMessage({
     const t = useTranslations("States");
     if (state.kind === "empty") {
         return (
-            <div className="flex items-center gap-3">
+            <div className="flex animate-in items-center gap-3 duration-200 fade-in-0 motion-reduce:animate-none">
                 <span className="flex size-11 items-center justify-center rounded-md bg-surface-2">
                     <Moon className="size-5" aria-hidden />
                 </span>
@@ -173,7 +280,10 @@ export function FeedMessage({
         return null;
     }
     return (
-        <div className="flex flex-col gap-3" role="alert">
+        <div
+            className="flex animate-in flex-col gap-3 duration-200 fade-in-0 motion-reduce:animate-none"
+            role="alert"
+        >
             <div className="flex items-center gap-3">
                 <span className="flex size-11 shrink-0 items-center justify-center rounded-md bg-delay-moderate-tint">
                     <TriangleAlert
@@ -187,11 +297,15 @@ export function FeedMessage({
                             ? t("source_down")
                             : t("unreachable")}
                     </p>
-                    {state.kind === "source_down" && state.since && (
-                        <p className="text-sm text-ink-2">
-                            {t("since", {
-                                time: timeFormat.format(state.since),
-                            })}
+                    {state.kind === "source_down" && (
+                        // Boards and the planner keep working from the
+                        // timetable while the live feed is out
+                        <p className="tnum text-sm text-ink-2">
+                            {state.since
+                                ? `${t("since", {
+                                      time: timeFormat.format(state.since),
+                                  })} · ${t("timetable")}`
+                                : t("timetable")}
                         </p>
                     )}
                 </div>
@@ -199,7 +313,7 @@ export function FeedMessage({
             <button
                 type="button"
                 onClick={onRetry}
-                className="flex h-11 cursor-pointer items-center justify-center gap-2 rounded-full bg-action text-[15px] font-semibold text-on-action"
+                className="pressable flex h-11 cursor-pointer items-center justify-center gap-2 rounded-full bg-action text-[15px] font-semibold text-on-action"
             >
                 <RefreshCw className="size-4" aria-hidden />
                 {t("retry")}
@@ -222,7 +336,7 @@ export function SettingsButton({
             onClick={onClick}
             aria-label={t("title")}
             title={t("title")}
-            className={className ?? "map-button"}
+            className={cn("pressable", className ?? "map-button")}
         >
             <SettingsIcon className="size-5" aria-hidden />
         </button>
