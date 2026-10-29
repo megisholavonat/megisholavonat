@@ -677,6 +677,7 @@ function MapScreen() {
                 flyTarget={flyTarget}
                 insets={insets}
                 isDesktop={isDesktop}
+                panelOpen={desktopPanel !== "home"}
             />
             <KeepTrainVisible
                 selectedId={selectedId}
@@ -692,9 +693,12 @@ function MapScreen() {
 
             {isDesktop ? (
                 <>
-                    <div className="absolute top-4 right-4 z-20">
-                        <LayersButton />
-                    </div>
+                    {/* Zoom only while a panel is open (D46) */}
+                    {desktopPanel === "home" && (
+                        <div className="absolute top-4 right-4 z-20">
+                            <LayersButton />
+                        </div>
+                    )}
                     <AnimatePresence initial={false}>
                         {desktopPanel === "home" && (
                             <DockedPanel key="home" className="top-4 left-4">

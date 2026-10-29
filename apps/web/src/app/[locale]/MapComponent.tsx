@@ -537,6 +537,7 @@ export default function MapComponent({
     flyTarget,
     insets,
     isDesktop,
+    panelOpen = false,
 }: {
     trains: TrainFeatureCollection | undefined;
     selectedId: string | null;
@@ -548,6 +549,8 @@ export default function MapComponent({
     flyTarget: FlyTarget | null;
     insets: MapInsets;
     isDesktop: boolean;
+    /** Desktop: a side panel is open, so only the zoom buttons stay */
+    panelOpen?: boolean;
 }) {
     const settings = useSettings();
     const { resolvedTheme } = useTheme();
@@ -1596,6 +1599,7 @@ export default function MapComponent({
                 <MapControls
                     isDesktop={isDesktop}
                     skipInitialFly={!!selectedId || !!station}
+                    showLocate={!isDesktop || !panelOpen}
                 />
                 {settings.showRailwayOverlay && (
                     <Source

@@ -170,6 +170,14 @@ test("an open train leaves the map controls usable", async ({
         legend: _legend,
         ...rest
     } = controls(page, isPhone);
+    if (!isPhone) {
+        // D46: beside a panel the desktop keeps only the zoom buttons
+        const { locate, layers, ...zoom } = rest;
+        await expect(locate).toBeHidden();
+        await expect(layers).toBeHidden();
+        await expectNoOverlap(page, { ...zoom, train: trainRegion(page) });
+        return;
+    }
     await expectNoOverlap(page, { ...rest, train: trainRegion(page) });
 });
 
