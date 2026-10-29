@@ -9,6 +9,7 @@ import {
     serviceGroups,
     sortedAlerts,
     stopRows,
+    trainStop,
     trainTitle,
 } from "./trainData";
 
@@ -105,6 +106,66 @@ describe("stopRows", () => {
     it("never forecasts an early train", () => {
         const [, b] = stopRows(vehicle(1, -3));
         expect(b?.delay).toBe(0);
+    });
+
+    it("passes every stop of an arrived train, with its actual arrival", () => {
+        // The position still points at the final stop
+        const rows = stopRows({ ...vehicle(3, 0), activity: "arrived" }, false);
+        expect(rows.map((r) => r.state)).toEqual([
+            "passed",
+            "passed",
+            "passed",
+            "passed",
+        ]);
+        expect(rows[3]).toMatchObject({
+            expected: 19 * H,
+            approximate: false,
+        });
+    });
+
+    it("waits at the first stop before departure", () => {
+        const rows = stopRows(
+            { ...vehicle(1, 0), activity: "beforeDeparture" },
+            false,
+        );
+        expect(rows.map((r) => r.state)).toEqual([
+            "next",
+            "upcoming",
+            "upcoming",
+            "upcoming",
+        ]);
+        expect(rows[0]?.standing).toBe(true);
+    });
+
+    it("shows when a train standing out a stop leaves it", () => {
+        // Past B's point on the route, but still standing there
+        const rows = stopRows({ ...vehicle(2, 4), dwellStopIndex: 1 });
+        expect(rows.map((r) => r.state)).toEqual([
+            "passed",
+            "next",
+            "upcoming",
+            "upcoming",
+        ]);
+        expect(rows[1]).toMatchObject({
+            standing: true,
+            scheduled: 17 * H + 60,
+            expected: 17 * H + 60 + 4 * 60,
+            secondary: { kind: "arrival", expected: 17 * H + 23 * 60 },
+        });
+    });
+});
+
+describe("trainStop", () => {
+    it("follows the position while running", () => {
+        expect(trainStop(vehicle(2, 0))).toEqual({
+            next: 2,
+            standing: null,
+            arrived: false,
+        });
+    });
+
+    it("ignores a dwell index off the trip", () => {
+        expect(trainStop({ ...vehicle(2, 0), dwellStopIndex: 9 }).next).toBe(2);
     });
 });
 

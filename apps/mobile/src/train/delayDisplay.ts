@@ -83,6 +83,19 @@ export function delayTile(display: TrainDisplay): DelayTileModel {
 }
 
 /**
+ * A train standing at a stop leaves on time at the earliest, so it is never
+ * "early" there; older APIs could report a long dwell as minutes early.
+ */
+export function notEarlyWhileStanding(
+    display: TrainDisplay,
+    standing: boolean,
+): TrainDisplay {
+    return standing && display.delay !== null && display.delay < 0
+        ? { ...display, delay: 0 }
+        : display;
+}
+
+/**
  * The tint of a delay reason, or null when it shouldn't be shown as the
  * cause of a delay: only for a train that is actually late (≥ 5 min), in
  * the colour of its level; grey when its data is old.
