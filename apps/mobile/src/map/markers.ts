@@ -3,12 +3,11 @@ import type {
     TrainFeatureProperties,
     VehiclePositionWithDelay,
 } from "@megisholavonat/api-client";
-import { withDetails } from "@megisholavonat/core/display";
+import { delayLabel, withDetails } from "@megisholavonat/core/display";
 import { staleness } from "@megisholavonat/core/stale";
 import {
     type ColorScheme,
     DELAY_SCALE,
-    MARKER,
     STALE_COLORS,
 } from "@megisholavonat/core/tokens";
 import { shownDisplay } from "../train/delayDisplay";
@@ -46,10 +45,10 @@ export interface MarkerProperties {
     ring: string;
     /** Sprite of the "+N" chip ("" for none), selected and followed only */
     chip: string;
-    /** The chip's text: "+N", or the minutes since an old update ("6′") */
+    /** The chip's text: "+N", or the last known "+N?" of old data */
     label: string;
     labelColor: string;
-    /** "+N" beside an unselected late train ("6′" for old data), from city zoom; "" for none */
+    /** "+N" beside an unselected late train ("+N?" for old data), from city zoom; "" for none */
     text: string;
     textColor: string;
     /** Minutes late, so the biggest delays get their number first */
@@ -121,20 +120,21 @@ export function markerCollection(
         let textColor = "";
         let delay = 0;
         if (display.level === "stale" || display.delay === null) {
-            // Old data: hollow grey, its age on the chip ("6′"). A train
-            // waiting at a terminus or arrived has fresh data: a solid grey
-            // mark without a number, so it doesn't read as "no data for 0′"
+            // Old data: hollow grey, its last delay with a "?" ("+23?"), as
+            // on the web. A train waiting at a terminus, arrived or
+            // cancelled has no delay: a grey mark without a number
             level = display.outdated ? "stale" : "inactive";
-            if (display.outdated) {
-                label = MARKER.label.stale(display.minutesSinceUpdate);
+            if (display.state === "stale" && display.delay !== null) {
+                label = delayLabel(display.delay, true).text ?? "";
                 text = label;
                 textColor = STALE_COLORS[scheme].text;
             }
         } else {
             level = display.level;
             if (level !== "onTime") {
-                delay = Math.round(display.delay);
-                label = MARKER.label.delayed(display.delay);
+                const shown = delayLabel(display.delay);
+                delay = shown.minutes ?? 0;
+                label = shown.text ?? "";
                 text = label;
                 textColor = DELAY_SCALE[scheme][level].text;
             }

@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { TrainDisruptions } from "@/components/disruptions/Disruptions";
 import { TrainHistoryLink } from "@/components/stats/HistoryLinks";
 import { TrainDelayShare } from "@/components/train/DelayShare";
-import { DelayTile } from "@/components/ui/Delay";
+import { DelayTile, StaleNote } from "@/components/ui/Delay";
 import { PlatformBadge } from "@/components/ui/Platform";
 import { destinationOf, trainName } from "@/lib/train";
 import {
@@ -87,6 +87,7 @@ export function TrainPanel({
                         ) : (
                             <span className="h-5 w-40 motion-safe:animate-pulse rounded-sm bg-surface-2" />
                         )}
+                        <StaleNote note={shown.note} />
                         {view?.usuallyLate && (
                             <span className="text-caption text-delay-slight">
                                 {t(

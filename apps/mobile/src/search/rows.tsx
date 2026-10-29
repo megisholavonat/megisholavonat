@@ -66,7 +66,7 @@ export function Row({
 
 /**
  * A live train: route glyph, number and name, and the delay its marker
- * shows ("6′" for old data; none while it waits or has arrived).
+ * shows ("+23?" for old data; none while it waits or has arrived).
  */
 export function TrainRow({
     train,
@@ -96,11 +96,7 @@ export function TrainRow({
                 display.delay !== null ? (
                     <DelayChip
                         delay={display.delay}
-                        staleMinutes={
-                            display.state === "stale"
-                                ? display.minutesSinceUpdate
-                                : null
-                        }
+                        stale={display.state === "stale"}
                     />
                 ) : null
             }

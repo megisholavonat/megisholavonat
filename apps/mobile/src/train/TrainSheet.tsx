@@ -10,6 +10,11 @@ import {
 } from "@megisholavonat/api-client/react-query";
 import { tripRun } from "@megisholavonat/core/commute";
 import { runDate } from "@megisholavonat/core/delaySummary";
+import {
+    type DelayTileModel,
+    delayTile,
+    staleNote,
+} from "@megisholavonat/core/display";
 import { shareUrl } from "@megisholavonat/core/share";
 import { ticketUrl } from "@megisholavonat/core/ticket";
 import { formatSecondsAsTime } from "@megisholavonat/core/time";
@@ -33,12 +38,7 @@ import { SheetHandle } from "../ui/SheetHandle";
 import { shareLink } from "../ui/shareLink";
 import { useNow } from "../ui/useNow";
 import { DelayShareRow } from "./DelayShare";
-import {
-    type DelayTileModel,
-    delayTile,
-    reasonTone,
-    shownDisplay,
-} from "./delayDisplay";
+import { reasonTone, shownDisplay } from "./delayDisplay";
 import { RouteIcon } from "./RouteIcon";
 import { StopList } from "./StopList";
 import { TrainActions } from "./TrainActions";
@@ -115,6 +115,8 @@ export function TrainSheet({
     const display = input ? shownDisplay(input, now) : null;
     const running = display?.state === "running";
     const stale = display?.state === "stale";
+    // Old data: how old, and the delay it had, to explain the tile's "?"
+    const note = display ? staleNote(display) : null;
 
     const rows = useMemo(
         () => (details ? stopRows(details, display?.state !== "idle") : []),
@@ -303,11 +305,20 @@ export function TrainSheet({
                 ) : null}
             </View>
 
-            {display?.outdated ? (
+            {note ? (
                 <View style={styles.inline}>
                     <Icon name="stale" size={16} color={theme.colors.ink2} />
                     <Text style={[styles.note, { color: theme.colors.ink2 }]}>
-                        {t("stale", { minutes: display.minutesSinceUpdate })}
+                        {note.delay === null
+                            ? t("stale", { minutes: note.minutes })
+                            : t("stale_last", {
+                                  minutes: note.minutes,
+                                  delay: note.onTime
+                                      ? tc("on_time")
+                                      : t("delay_minutes", {
+                                            delay: note.delay,
+                                        }),
+                              })}
                     </Text>
                 </View>
             ) : null}
@@ -442,7 +453,9 @@ function DelayTile({
     })();
     const label = [
         tile.delay !== null && tile.delay > 0
-            ? tc("delay_a11y", { delay: tile.delay })
+            ? tc(tile.stale ? "delay_stale_a11y" : "delay_a11y", {
+                  delay: tile.delay,
+              })
             : tile.delay !== null
               ? tile.text
               : null,

@@ -6,7 +6,11 @@ import type {
     VehiclePositionWithDelay,
 } from "@megisholavonat/api-client";
 import { tripRun } from "@megisholavonat/core/commute";
-import { type DelayLevel, getDelayLevel } from "@megisholavonat/core/delay";
+import {
+    getDelayLevel,
+    roundMinutes,
+    secondsToMinutes,
+} from "@megisholavonat/core/delay";
 import {
     type DelayReasonCode,
     delayReasonCode,
@@ -83,7 +87,7 @@ export function stopTiming(
             return { expected: realtime ?? scheduled, estimated: false };
         if (predicted != null) {
             return {
-                expected: scheduled + Math.round(predicted) * 60,
+                expected: scheduled + roundMinutes(predicted) * 60,
                 estimated: true,
             };
         }
@@ -125,7 +129,7 @@ export function stopTiming(
     return {
         scheduled,
         expected,
-        delay: Math.round((expected - scheduled) / 60),
+        delay: secondsToMinutes(expected - scheduled),
         estimated,
         departure,
     };
@@ -314,10 +318,6 @@ export function predictedPlatform(
 ): string | null {
     if (!station?.typicalPlatform || station.insufficientData) return null;
     return station.typicalPlatform;
-}
-
-export function delayLevel(delay: number, stale = false): DelayLevel | "stale" {
-    return stale ? "stale" : getDelayLevel(delay);
 }
 
 /** What deciding on "≈" needs of a stop */

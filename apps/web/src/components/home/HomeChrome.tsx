@@ -2,6 +2,7 @@
 
 import type { TrainFeatureCollection } from "@megisholavonat/api-client";
 import { STALE_GREY_AFTER_S } from "@megisholavonat/core/constants";
+import { LEVEL_FROM_MIN } from "@megisholavonat/core/delay";
 import {
     Clock,
     Layers,
@@ -66,10 +67,10 @@ export function feedState(
 type LegendLevel = Level | "inactive";
 
 const LEGEND: { level: LegendLevel; key: string; from?: string }[] = [
-    { level: "onTime", key: "on_time", from: "0" },
-    { level: "slight", key: "slight", from: "5" },
-    { level: "moderate", key: "moderate", from: "15" },
-    { level: "severe", key: "severe", from: "60+" },
+    { level: "onTime", key: "on_time", from: `${LEVEL_FROM_MIN.onTime}` },
+    { level: "slight", key: "slight", from: `${LEVEL_FROM_MIN.slight}` },
+    { level: "moderate", key: "moderate", from: `${LEVEL_FROM_MIN.moderate}` },
+    { level: "severe", key: "severe", from: `${LEVEL_FROM_MIN.severe}+` },
     { level: "stale", key: "stale" },
     { level: "inactive", key: "inactive" },
 ];
@@ -78,12 +79,12 @@ const STEPS = LEGEND.filter((l) => l.from);
 
 const EASE_SHEET = [0.32, 0.72, 0, 1] as const;
 
-/** A stale marker's label, as the map writes the data's age */
-const STALE_SAMPLE = "7′";
+/** A stale marker's label: its last known delay with a "?" */
+const STALE_SAMPLE = "+12?";
 
 function Swatch({ level }: { level: LegendLevel }) {
     if (level === "stale") {
-        // The map's hollow dashed pill, with its age in minutes
+        // The map's hollow dashed pill, with its last delay and a "?"
         return (
             <span
                 aria-hidden
@@ -106,7 +107,7 @@ function Swatch({ level }: { level: LegendLevel }) {
     );
 }
 
-/** "5+ perc" for the delay steps, the plain label otherwise. */
+/** "6+ perc" for the delay steps, the plain label otherwise. */
 function useLegendLabel() {
     const t = useTranslations("Legend");
     return (level: LegendLevel, key: string, withUnit: boolean) =>

@@ -6,6 +6,7 @@ import type {
     StopTimeWithCounty,
     VehiclePositionWithDelay,
 } from "@megisholavonat/api-client";
+import { roundMinutes, secondsToMinutes } from "@megisholavonat/core/delay";
 import { secondsIntoServiceDay } from "@megisholavonat/core/time";
 import { DISPLAY_RULES } from "@megisholavonat/core/tokens";
 import { splitTripName } from "./labels";
@@ -107,7 +108,7 @@ export function stopRows(
 ): StopRow[] {
     const stoptimes = details.trip.stoptimes;
     const { next, standing } = trainStop(details);
-    const liveDelay = carryDelay ? Math.max(0, Math.round(details.delay)) : 0;
+    const liveDelay = carryDelay ? Math.max(0, roundMinutes(details.delay)) : 0;
 
     return stoptimes.map((st, index) => {
         const isFirst = index === 0;
@@ -128,10 +129,10 @@ export function stopRows(
         let estimated = false;
         if (state === "passed") {
             expected = useDeparture ? st.realtimeDeparture : st.realtimeArrival;
-            delay = Math.round((expected - scheduled) / 60);
+            delay = secondsToMinutes(expected - scheduled);
         } else {
             const predicted = predictedDelay(st);
-            delay = Math.max(0, Math.round(predicted ?? liveDelay));
+            delay = Math.max(0, roundMinutes(predicted ?? liveDelay));
             expected = scheduled + delay * 60;
             estimated = predicted !== null || delay > 0;
         }

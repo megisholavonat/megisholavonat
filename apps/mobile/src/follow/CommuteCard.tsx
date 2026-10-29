@@ -160,12 +160,7 @@ function CommuteRow({
                     <PlatformBadge platform={predicted} predicted />
                 ) : null}
                 {delay !== null ? (
-                    <DelayChip
-                        delay={delay}
-                        staleMinutes={
-                            stale ? (display?.minutesSinceUpdate ?? 0) : null
-                        }
-                    />
+                    <DelayChip delay={delay} stale={stale} />
                 ) : null}
                 <DelayShareIcon
                     target={

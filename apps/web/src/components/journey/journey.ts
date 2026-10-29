@@ -3,6 +3,7 @@ import type {
     Transfer,
     TransitLeg,
 } from "@megisholavonat/api-client";
+import { secondsToMinutes } from "@megisholavonat/core/delay";
 
 export type RiskLevel = NonNullable<Transfer["risk"]>;
 
@@ -55,10 +56,10 @@ export function legDelays(leg: TransitLeg): {
     live: boolean;
 } {
     return {
-        departure: Math.round(
-            (leg.expectedDeparture - leg.scheduledDeparture) / 60,
+        departure: secondsToMinutes(
+            leg.expectedDeparture - leg.scheduledDeparture,
         ),
-        arrival: Math.round((leg.expectedArrival - leg.scheduledArrival) / 60),
+        arrival: secondsToMinutes(leg.expectedArrival - leg.scheduledArrival),
         live: leg.realtime || leg.delaySource === "gps",
     };
 }

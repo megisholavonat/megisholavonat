@@ -32,6 +32,10 @@ test("P3: an early train shows a signed number", async ({ page }) => {
 test("P4: a stale train marks its delay as uncertain", async ({ page }) => {
     const region = await openTrain(page, "stale", "peek");
     await expect(delayNumber(region)).toHaveText(/\?/);
+    // The "?" is explained: how old the data is and the delay it had
+    await expect(region).toContainText(
+        /Utolsó adat \d+ perce: (pontos|\+\d+ perc)/,
+    );
 });
 
 test("P4: an inactive HÉV does not show a live delay", async ({ page }) => {

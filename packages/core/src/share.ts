@@ -4,7 +4,7 @@
  * the preview carries what the train or station is doing.
  */
 
-import { getDelayLevel } from "./delay";
+import { getDelayLevel, roundMinutes } from "./delay";
 import type { TrainDisplay } from "./display";
 import type { Locale } from "./i18n";
 
@@ -106,7 +106,7 @@ export interface TrainShareInfo {
 export function trainShareText(locale: Locale, info: TrainShareInfo): string {
     const state = info.status ?? (info.waiting ? "waiting" : "running");
     const onTime = getDelayLevel(info.delay) === "onTime";
-    const late = Math.round(info.delay);
+    const late = roundMinutes(info.delay);
     const subject =
         locale === "hu" ? huTrainSubject(info.number) : `Train ${info.number}`;
     const status =
@@ -163,7 +163,7 @@ export function departureText(
           ? locale === "hu"
               ? "pontos"
               : "on time"
-          : `+${Math.round(departure.delay ?? 0)}`;
+          : `+${roundMinutes(departure.delay ?? 0)}`;
     return `${plain} ${status}`;
 }
 

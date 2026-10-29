@@ -95,13 +95,13 @@ test("p-E: the phone legend gives each colour its minutes", async ({
     await openHome(page);
     const legend = page.getByRole("button", { name: t.Legend.label });
     await expect(legend).toContainText(t.Legend.title);
-    for (const step of ["0", "5", "15", "60+", t.Legend.minutes]) {
+    for (const step of ["0", "6", "15", "60+", t.Legend.minutes]) {
         await expect(legend).toContainText(step);
     }
     await legend.click();
     const list = page.getByRole("list", { name: t.Legend.label });
-    // The stale marker's "7′" and the grey dot are explained
-    await expect(list).toContainText("7′");
+    // The stale marker's "+12?" (old data) and the grey dot are explained
+    await expect(list).toContainText("+12?");
     await expect(list).toContainText(t.Legend.stale);
     await expect(list).toContainText(t.Legend.inactive);
 });

@@ -9,7 +9,7 @@ export interface RowDelay {
 
 /**
  * The time a row shows: the expected time when its live delay is late
- * (5+ min, the scheduled time struck through beside it), else the
+ * (6+ min, the scheduled time struck through beside it), else the
  * scheduled time, as "pontos" means. The board is sorted by this time, so
  * its rows always read in order.
  */

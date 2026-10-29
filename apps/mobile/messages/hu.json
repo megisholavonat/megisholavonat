@@ -4,9 +4,8 @@
         "done": "Kész",
         "retry": "Újra",
         "on_time": "pontos",
-        "delay_short": "+{delay}",
         "delay_a11y": "{delay} perc késés",
-        "stale_minutes": "{minutes}′",
+        "delay_stale_a11y": "utolsó ismert késés: {delay} perc",
         "platform": "{platform}. vágány",
         "platform_predicted": "valószínűleg {platform}. vágány"
     },
@@ -25,6 +24,15 @@
         "follow_cta": "Kövesd a vonatodat",
         "tomorrow": "holnap",
         "cluster": "{count} vonat itt"
+    },
+    "Legend": {
+        "label": "Késés jelmagyarázat",
+        "title": "Késés",
+        "minutes": "perc",
+        "on_time": "pontos",
+        "from": "{minutes}+ perc",
+        "stale": "régi adat",
+        "inactive": "nincs élő késés"
     },
     "Consent": {
         "question": "Névtelen statisztika?",
@@ -63,6 +71,8 @@
         "speed": "{speed} km/h",
         "usually_late": "Általában késik",
         "stale": "{minutes} perce nincs friss adat",
+        "stale_last": "Utolsó adat {minutes} perce: {delay}",
+        "delay_minutes": "{delay} perc",
         "not_found": "Ez a vonat már nem látszik a térképen",
         "passed": "elhaladt",
         "departs": "indul {time}",

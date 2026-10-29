@@ -1,5 +1,6 @@
 import type { VehiclePositionWithDelay } from "@megisholavonat/api-client";
 import * as turf from "@turf/turf";
+import { secondsToMinutes } from "./delay";
 import type { TrainActivity } from "./display";
 import { decodePolyline } from "./polyline";
 import { staleness } from "./stale";
@@ -181,8 +182,8 @@ export function dataAppearsFalsified(
             relevantStop.realtimeArrival || relevantStop.realtimeDeparture;
 
         if (scheduledTime && realtimeTime) {
-            const scheduledDelayMinutes = Math.round(
-                (realtimeTime - scheduledTime) / 60,
+            const scheduledDelayMinutes = secondsToMinutes(
+                realtimeTime - scheduledTime,
             );
 
             // Our delay > 10 min, and difference > 5 min
