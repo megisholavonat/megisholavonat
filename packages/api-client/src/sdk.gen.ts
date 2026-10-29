@@ -96,7 +96,8 @@ export const getStationBoard = <ThrowOnError extends boolean = false>(options: O
 /**
  * Plan Journeys
  *
- * Itineraries between two rail stations, with live delays and ticket links
+ * Itineraries between two rail stations, with live delays, the risk of
+ * missing each transfer and ticket links
  */
 export const planJourneys = <ThrowOnError extends boolean = false>(options: Options<PlanJourneysData, ThrowOnError>) => (options.client ?? client).get<PlanJourneysResponses, PlanJourneysErrors, ThrowOnError>({
     responseType: 'json',

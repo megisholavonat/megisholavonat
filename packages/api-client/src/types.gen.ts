@@ -1254,6 +1254,14 @@ export type Transfer = {
      * Missrisk
      */
     missRisk?: number | null;
+    /**
+     * Risk
+     */
+    risk?: 'safe' | 'tight' | 'likely_missed' | null;
+    /**
+     * Risksource
+     */
+    riskSource?: 'forecast' | 'history' | 'canceled' | null;
 };
 
 /**

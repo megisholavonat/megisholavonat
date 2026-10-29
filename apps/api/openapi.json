@@ -279,7 +279,7 @@
           "journeys"
         ],
         "summary": "Plan Journeys",
-        "description": "Itineraries between two rail stations, with live delays and ticket links",
+        "description": "Itineraries between two rail stations, with live delays, the risk of\nmissing each transfer and ticket links",
         "operationId": "planJourneys",
         "parameters": [
           {
@@ -3465,6 +3465,38 @@
               }
             ],
             "title": "Missrisk"
+          },
+          "risk": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "safe",
+                  "tight",
+                  "likely_missed"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Risk"
+          },
+          "riskSource": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "forecast",
+                  "history",
+                  "canceled"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Risksource"
           }
         },
         "type": "object",
