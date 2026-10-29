@@ -68,7 +68,13 @@ function tint(level: DelayLevel): string {
     return `#${mix(0)}${mix(2)}${mix(4)}`;
 }
 
-const asset = (...parts: string[]) => readFile(join(process.cwd(), ...parts));
+// Literal paths, so the build traces exactly these files
+const FONT_FILES = {
+    400: () => readFile(join(process.cwd(), "src/lib/og/fonts/Inter-400.woff")),
+    600: () => readFile(join(process.cwd(), "src/lib/og/fonts/Inter-600.woff")),
+    700: () => readFile(join(process.cwd(), "src/lib/og/fonts/Inter-700.woff")),
+    800: () => readFile(join(process.cwd(), "src/lib/og/fonts/Inter-800.woff")),
+} as const;
 
 let fontsPromise: Promise<
     { name: string; data: Buffer; weight: 400 | 600 | 700 | 800 }[]
@@ -78,10 +84,10 @@ function loadFonts() {
     fontsPromise ??= Promise.all([
         ...([400, 600, 700, 800] as const).map(async (weight) => ({
             name: "Inter",
-            data: await asset("src/lib/og/fonts", `Inter-${weight}.woff`),
+            data: await FONT_FILES[weight](),
             weight,
         })),
-        asset("src/app/MNR2007.ttf").then((data) => ({
+        readFile(join(process.cwd(), "src/app/MNR2007.ttf")).then((data) => ({
             name: "MNR2007",
             data,
             weight: 400 as const,
@@ -93,9 +99,9 @@ function loadFonts() {
 let iconPromise: Promise<string> | null = null;
 
 function loadIcon(): Promise<string> {
-    iconPromise ??= asset("public/web-app-manifest-192x192.png").then(
-        (data) => `data:image/png;base64,${data.toString("base64")}`,
-    );
+    iconPromise ??= readFile(
+        join(process.cwd(), "public/web-app-manifest-192x192.png"),
+    ).then((data) => `data:image/png;base64,${data.toString("base64")}`);
     return iconPromise;
 }
 
