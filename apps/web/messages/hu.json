@@ -97,6 +97,7 @@
         "position": "A vonat helyzete"
     },
     "Station": {
+        "scheduled_time": "menetrend szerint",
         "board": "Menetrendi tábla",
         "board_of": "{station} indulási és érkezési táblája",
         "departures": "Indulás",

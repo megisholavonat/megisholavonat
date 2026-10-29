@@ -97,6 +97,7 @@
         "position": "Train position"
     },
     "Station": {
+        "scheduled_time": "scheduled",
         "board": "Timetable board",
         "board_of": "Departures and arrivals at {station}",
         "departures": "Departures",
