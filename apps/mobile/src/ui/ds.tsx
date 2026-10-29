@@ -304,12 +304,12 @@ export function SectionLabel({ children }: { children: ReactNode }) {
 const styles = StyleSheet.create({
     chip: {
         alignSelf: "flex-start",
-        height: 22,
+        minHeight: 22,
         paddingHorizontal: 8,
         borderRadius: 999,
         justifyContent: "center",
     },
-    chipSmall: { height: 20, paddingHorizontal: 7 },
+    chipSmall: { minHeight: 20, paddingHorizontal: 7 },
     chipText: { fontSize: 13, fontWeight: "700" },
     chipTextSmall: { fontSize: 12 },
     platform: {
@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
     stateText: { flex: 1, gap: 2 },
     subtitle: { fontSize: 14 },
     primary: {
-        height: 48,
+        minHeight: 48,
         borderRadius: 12,
         flexDirection: "row",
         alignItems: "center",

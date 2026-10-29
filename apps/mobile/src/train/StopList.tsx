@@ -483,7 +483,7 @@ const styles = StyleSheet.create({
     platformCell: { width: 34, alignItems: "flex-end" },
     now: {
         justifyContent: "center",
-        height: 30,
+        minHeight: 30,
         paddingLeft: 26,
     },
     nowText: { fontSize: 13, fontWeight: "700" },

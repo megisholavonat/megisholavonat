@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
     consentButtons: { flexDirection: "row", gap: 8 },
     consentButton: {
         flex: 1,
-        height: 44,
+        minHeight: 44,
         borderRadius: 10,
         borderWidth: 1.5,
         alignItems: "center",

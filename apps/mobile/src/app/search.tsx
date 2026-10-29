@@ -328,11 +328,11 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         gap: 6,
-        height: 40,
+        minHeight: 40,
         borderRadius: 12,
         paddingLeft: 10,
     },
-    input: { flex: 1, height: 40, fontSize: 17 },
+    input: { flex: 1, minHeight: 40, fontSize: 17 },
     cancel: { fontSize: 17 },
     pressed: { opacity: 0.5 },
 });

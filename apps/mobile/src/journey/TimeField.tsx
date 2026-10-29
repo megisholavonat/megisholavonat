@@ -123,7 +123,7 @@ export function TimeField({ value, onChange }: TimeFieldProps) {
 const styles = StyleSheet.create({
     group: { flexDirection: "row", gap: 2, alignSelf: "flex-start" },
     button: {
-        height: 48,
+        minHeight: 48,
         paddingHorizontal: 18,
         alignItems: "center",
         justifyContent: "center",
