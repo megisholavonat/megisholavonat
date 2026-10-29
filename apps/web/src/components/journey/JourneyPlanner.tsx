@@ -1,6 +1,7 @@
 "use client";
 
 import type {
+    CityLeg,
     Itinerary,
     JourneyStop,
     Station,
@@ -8,13 +9,27 @@ import type {
     TransitLeg,
     WalkLeg,
 } from "@megisholavonat/api-client";
-import { planJourneysOptions } from "@megisholavonat/api-client/react-query";
+import {
+    getStationBoardOptions,
+    planJourneysOptions,
+} from "@megisholavonat/api-client/react-query";
 import { getDelayLevel } from "@megisholavonat/core/delay";
+import {
+    ANY_BUDAPEST,
+    alightingElsewhere,
+    boardingElsewhere,
+    collapseTwinStations,
+    isAnyBudapest,
+    legChain,
+    matchesBudapest,
+} from "@megisholavonat/core/planner";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
     ArrowUpDown,
     ArrowUpRight,
+    Building2,
     Footprints,
+    MapPin,
     RefreshCw,
     Signpost,
     X,
@@ -37,6 +52,7 @@ import {
     usePlannerSearched,
 } from "@/lib/analyticsEvents";
 import { cn } from "@/lib/utils";
+import { CityChip } from "./CityChip";
 import {
     formatTime,
     legDelays,
@@ -52,6 +68,38 @@ import {
 import type { PlannerState } from "./PlannerButton";
 
 type Field = "from" | "to";
+
+/** A station's name; "Budapest (any station)" in the reader's language. */
+function useStationName() {
+    const t = useTranslations("Journey");
+    return (station: Station) =>
+        isAnyBudapest(station) ? t("any_budapest") : station.name || "…";
+}
+
+/**
+ * A station from a shared link is known by its id only: its name comes
+ * with its board.
+ */
+function useStationNameLookup(
+    station: Station | null,
+    onFound: (station: Station) => void,
+) {
+    const stub = !!station && !station.name;
+    const board = useQuery({
+        ...getStationBoardOptions({
+            path: { stationId: station?.id ?? "" },
+            query: { limit: 1 },
+        }),
+        enabled: stub,
+        staleTime: Number.POSITIVE_INFINITY,
+    });
+    const found = stub ? board.data?.station : undefined;
+    const onFoundRef = useRef(onFound);
+    onFoundRef.current = onFound;
+    useEffect(() => {
+        if (found) onFoundRef.current(found);
+    }, [found]);
+}
 
 /** Desktop: a floating panel in place of the home card. */
 export function JourneyPanel(props: PlannerProps) {
@@ -107,9 +155,19 @@ function Planner({
         state.from ? (state.to ? null : "to") : "from",
     );
     const [query, setQuery] = useState("");
+    // Both names may arrive before the next render
+    const latest = useRef(state);
+    latest.current = state;
+    const found = (field: Field) => (station: Station) => {
+        latest.current = { ...latest.current, [field]: station };
+        onChange(latest.current);
+    };
+    useStationNameLookup(state.from, found("from"));
+    useStationNameLookup(state.to, found("to"));
 
     const pick = (field: Field, station: Station) => {
-        rememberStation(station);
+        // Not a station with a board: kept out of the recent stations
+        if (!isAnyBudapest(station)) rememberStation(station);
         const next = { ...state, [field]: station };
         onChange(next);
         setQuery("");
@@ -251,6 +309,8 @@ function EndpointField({
     onDone: () => void;
 }) {
     const t = useTranslations("Journey");
+    const stationName = useStationName();
+    const name = station ? stationName(station) : null;
     const inputRef = useRef<HTMLInputElement>(null);
     useEffect(() => {
         if (editing) inputRef.current?.focus();
@@ -270,7 +330,7 @@ function EndpointField({
                     ref={inputRef}
                     type="search"
                     aria-label={label}
-                    placeholder={station?.name ?? label}
+                    placeholder={name ?? label}
                     value={query}
                     onChange={(e) => onQuery(e.target.value)}
                     onKeyDown={(e) => {
@@ -284,13 +344,13 @@ function EndpointField({
                 <button
                     type="button"
                     onClick={onEdit}
-                    aria-label={station ? `${label}: ${station.name}` : label}
+                    aria-label={name ? `${label}: ${name}` : label}
                     className={cn(
                         "min-w-0 flex-1 cursor-text truncate text-left text-body",
                         station ? "text-ink" : "text-ink-2",
                     )}
                 >
-                    {station?.name ?? label}
+                    {name ?? label}
                 </button>
             )}
             {/* Only a field with something in it has something to clear */}
@@ -320,12 +380,17 @@ function Suggestions({
     phone: boolean;
 }) {
     const tSearch = useTranslations("Search");
+    const stationName = useStationName();
     const results = useSearch(query, undefined);
     const recent = useRecentStations();
     const typed = query.trim().length >= 2;
     const stations = (
         typed
-            ? results.stations
+            ? [
+                  // First: the trains may leave from any of its stations
+                  ...(matchesBudapest(query) ? [ANY_BUDAPEST] : []),
+                  ...collapseTwinStations(results.stations),
+              ]
             : [
                   ...recent,
                   ...DEFAULT_STATIONS.filter(
@@ -358,11 +423,20 @@ function Suggestions({
                         phone && "border-b border-line last:border-b-0",
                     )}
                 >
-                    <Signpost
-                        className="size-5 shrink-0 text-ink-2"
-                        aria-hidden
-                    />
-                    <span className="truncate text-body">{station.name}</span>
+                    {isAnyBudapest(station) ? (
+                        <Building2
+                            className="size-5 shrink-0 text-ink-2"
+                            aria-hidden
+                        />
+                    ) : (
+                        <Signpost
+                            className="size-5 shrink-0 text-ink-2"
+                            aria-hidden
+                        />
+                    )}
+                    <span className="truncate text-body">
+                        {stationName(station)}
+                    </span>
                 </button>
             ))}
         </div>
@@ -468,6 +542,8 @@ function Results({
                 time: state.time ?? undefined,
                 arriveBy: state.arriveBy,
                 limit: 6,
+                // Metro, tram and bus to and from the trains
+                cityTransit: true,
             },
         }),
         enabled: !!state.from && !!state.to,
@@ -537,6 +613,8 @@ function Results({
                 >
                     <ItineraryRow
                         itinerary={itinerary}
+                        fromId={state.from?.id}
+                        toId={state.to?.id}
                         open={open === i}
                         onToggle={() => {
                             if (open !== i) plannerResultExpanded(i, itinerary);
@@ -568,16 +646,23 @@ function Duration({ minutes }: { minutes: number }) {
 
 function ItineraryRow({
     itinerary,
+    fromId,
+    toId,
     open,
     onToggle,
 }: {
     itinerary: Itinerary;
+    fromId: string | undefined;
+    toId: string | undefined;
     open: boolean;
     onToggle: () => void;
 }) {
     const tTrain = useTranslations("Train");
     const t = useTranslations("Journey");
     const legs = rides(itinerary);
+    const chain = legChain(itinerary);
+    const boarding = boardingElsewhere(itinerary, fromId);
+    const alighting = alightingElsewhere(itinerary, toId);
     const first = legs[0];
     const firstDelay = first ? legDelays(first) : null;
     const canceled = legs.some((leg) => leg.canceled);
@@ -619,22 +704,34 @@ function ItineraryRow({
                     <Duration minutes={itinerary.durationMinutes} />
                 </span>
             </span>
-            <span className="flex w-full min-w-0 items-center gap-2 text-sm text-ink-2">
-                <span className="flex min-w-0 items-center gap-1 truncate">
-                    {legs.map((leg, i) => (
+            {/* The chain wraps rather than running under the badge */}
+            <span className="flex w-full min-w-0 items-start gap-2 text-sm text-ink-2">
+                <span
+                    data-testid="leg-chain"
+                    className="flex min-h-6 min-w-0 flex-1 flex-wrap items-center gap-x-1 gap-y-1"
+                >
+                    {chain.map((leg, i) => (
                         <span
-                            key={`${leg.tripId}-${leg.scheduledDeparture}`}
+                            key={`${leg.type}-${leg.scheduledDeparture}-${leg.type === "city" ? leg.line : leg.tripId}`}
                             className="flex shrink-0 items-center gap-1"
                         >
                             {i > 0 && <span aria-hidden>›</span>}
-                            <RouteGlyph routeShortName={leg.routeShortName} />
-                            <span className="tnum text-ink">
-                                {leg.trainNumber}
-                            </span>
+                            {leg.type === "city" ? (
+                                <CityChip leg={leg} />
+                            ) : (
+                                <>
+                                    <RouteGlyph
+                                        routeShortName={leg.routeShortName}
+                                    />
+                                    <span className="tnum text-ink">
+                                        {leg.trainNumber}
+                                    </span>
+                                </>
+                            )}
                         </span>
                     ))}
                 </span>
-                <span className="ml-auto flex shrink-0 items-center gap-2">
+                <span className="flex min-h-6 shrink-0 items-center gap-2">
                     {canceled ? (
                         <RiskPill level="likely_missed" label={t("canceled")} />
                     ) : worst?.risk && worst.risk !== "safe" ? (
@@ -650,6 +747,23 @@ function ItineraryRow({
                     )}
                 </span>
             </span>
+            {(boarding || alighting) && (
+                // The train leaves from (arrives at) another station than
+                // the one picked: say which
+                <span className="flex w-full min-w-0 items-center gap-1 text-caption font-semibold text-ink">
+                    <MapPin className="size-3.5 shrink-0" aria-hidden />
+                    <span className="min-w-0 truncate">
+                        {[
+                            boarding &&
+                                t("from_station", { station: boarding }),
+                            alighting &&
+                                t("to_station", { station: alighting }),
+                        ]
+                            .filter(Boolean)
+                            .join(" · ")}
+                    </span>
+                </span>
+            )}
         </button>
     );
 }
@@ -681,6 +795,8 @@ function ItineraryDetail({
     onSelectTrain: (vehicleId: string) => void;
 }) {
     const tTrain = useTranslations("Train");
+    const t = useTranslations("Journey");
+    const byCity = itinerary.legs.some((leg) => leg.type === "city");
     const transferTo = new Map<number, Transfer>(
         itinerary.transfers.map((tr) => [tr.toLeg, tr]),
     );
@@ -705,6 +821,8 @@ function ItineraryDetail({
                                 leg={leg}
                                 onSelectTrain={onSelectTrain}
                             />
+                        ) : leg.type === "city" ? (
+                            <CityBlock leg={leg} />
                         ) : (
                             <WalkRow leg={leg} />
                         )}
@@ -720,6 +838,44 @@ function ItineraryDetail({
                 {tTrain("ticket")}
                 <ArrowUpRight className="size-4" aria-hidden />
             </a>
+            {/* The MÁV ticket covers the trains only */}
+            {byCity && (
+                <p className="mt-1.5 text-center text-caption text-ink-2">
+                    {t("city_ticket")}
+                </p>
+            )}
+        </div>
+    );
+}
+
+/** A metro, tram or bus ride: its line, then where it leaves and stops. */
+function CityBlock({ leg }: { leg: CityLeg }) {
+    return (
+        <div className="flex flex-col" data-testid="city-leg">
+            <StopLine
+                stop={leg.fromStop}
+                time={leg.scheduledDeparture}
+                delay={0}
+                live={false}
+                canceled={false}
+                terminal="start"
+                minor
+            />
+            <div className="ml-[4px] flex min-h-8 items-center gap-1.5 border-l-2 border-dotted border-ink-2/40 py-1 pl-[18px] text-sm text-ink-2">
+                <CityChip leg={leg} />
+                {leg.headsign && (
+                    <span className="min-w-0 truncate">→ {leg.headsign}</span>
+                )}
+            </div>
+            <StopLine
+                stop={leg.toStop}
+                time={leg.scheduledArrival}
+                delay={0}
+                live={false}
+                canceled={false}
+                terminal="end"
+                minor
+            />
         </div>
     );
 }
@@ -787,6 +943,7 @@ function StopLine({
     live,
     canceled,
     terminal,
+    minor = false,
 }: {
     stop: JourneyStop;
     time: number;
@@ -794,9 +951,16 @@ function StopLine({
     live: boolean;
     canceled: boolean;
     terminal: "start" | "end";
+    /** A city stop: smaller, so the trains stand out */
+    minor?: boolean;
 }) {
     return (
-        <div className="flex min-h-10 items-center gap-3">
+        <div
+            className={cn(
+                "flex items-center gap-3",
+                minor ? "min-h-8 text-ink-2" : "min-h-10",
+            )}
+        >
             <span
                 aria-hidden
                 className={cn(
@@ -806,7 +970,8 @@ function StopLine({
             />
             <span
                 className={cn(
-                    "tnum w-11 shrink-0 text-[15px] font-semibold",
+                    "tnum w-11 shrink-0 font-semibold",
+                    minor ? "text-sm" : "text-[15px]",
                     canceled && "text-ink-2 line-through",
                 )}
             >
@@ -815,7 +980,12 @@ function StopLine({
             {live && !canceled && delay > 0 ? (
                 <DelayChip delay={delay} />
             ) : null}
-            <span className="min-w-0 flex-1 truncate text-[15px]">
+            <span
+                className={cn(
+                    "min-w-0 flex-1 truncate",
+                    minor ? "text-sm" : "text-[15px]",
+                )}
+            >
                 {stop.name}
             </span>
             <span className="flex w-9 shrink-0 justify-end">
