@@ -5,6 +5,7 @@ import { Link } from "@/i18n/navigation";
 /** A delay card link to a run we have no record of. */
 export default async function NotFound() {
     const t = await getTranslations("DelayCard");
+    const tPages = await getTranslations("Pages");
     return (
         <main className="mx-auto flex min-h-dvh max-w-2xl flex-col items-center justify-center gap-3 px-4 text-center">
             <span className="flex size-12 items-center justify-center rounded-full bg-surface-2 text-ink-2">
@@ -16,7 +17,7 @@ export default async function NotFound() {
                 href="/"
                 className="pressable mt-2 flex h-11 items-center rounded-full bg-surface-2 px-5 font-semibold hover:bg-line"
             >
-                {t("open_map")}
+                {tPages("to_map")}
             </Link>
         </main>
     );

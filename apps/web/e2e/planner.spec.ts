@@ -165,3 +165,114 @@ test("on a 360 px phone the risk badge never covers the trains", async ({
         );
     }
 });
+
+test("the time choice has no hidden fields and sets the query", async ({
+    page,
+}) => {
+    await openHome(page);
+    await page.getByRole("button", { name: t.Journey.open }).click();
+    const planned = (check: (q: URLSearchParams) => boolean) =>
+        page.waitForRequest((request) => {
+            const url = new URL(request.url());
+            return (
+                url.pathname.endsWith("/v1/journeys") && check(url.searchParams)
+            );
+        });
+    // Planning for now sends no time: the server takes its own clock
+    const now = planned((q) => !q.has("time") && q.get("arriveBy") === "false");
+    await pick(page, t.Journey.from, "Szoln", STATIONS.szolnok.name);
+    await pick(page, t.Journey.to, "Eger", STATIONS.eger.name);
+    await now;
+
+    const group = page.getByRole("group", { name: t.Journey.time });
+    const segment = (name: string) => group.locator("label", { hasText: name });
+    const date = group.getByLabel(t.Journey.date);
+    const clock = group.getByLabel(t.Journey.time_of_day);
+
+    // "Now" is a plain choice: tapping it focuses no field, and there is
+    // no field at all, visible or not
+    await segment(t.Journey.now).click();
+    await expect(
+        group.getByRole("radio", { name: t.Journey.now }),
+    ).toBeChecked();
+    await expect(group.locator("input:not([type=radio])")).toHaveCount(0);
+    const focused = await page.evaluate(
+        () => (document.activeElement as HTMLInputElement | null)?.type ?? "",
+    );
+    expect(focused).not.toMatch(/date|time/);
+
+    // A set time starts from the current one (the fixed clock: 03:00)
+    let request = planned(
+        (q) =>
+            q.get("time") === "2026-10-29T03:00" &&
+            q.get("arriveBy") === "false",
+    );
+    await segment(t.Journey.depart).click();
+    await request;
+    await expect(date).toBeVisible();
+    await expect(date).toHaveValue("2026-10-29");
+    await expect(clock).toBeVisible();
+    await expect(clock).toHaveValue("03:00");
+
+    request = planned((q) => q.get("time") === "2026-10-30T03:00");
+    await date.fill("2026-10-30");
+    await request;
+    request = planned(
+        (q) =>
+            q.get("time") === "2026-10-30T08:15" &&
+            q.get("arriveBy") === "false",
+    );
+    await clock.fill("08:15");
+    await request;
+
+    // Arrow keys move between the choices and keep the time
+    request = planned(
+        (q) =>
+            q.get("time") === "2026-10-30T08:15" &&
+            q.get("arriveBy") === "true",
+    );
+    await group.getByRole("radio", { name: t.Journey.depart }).focus();
+    await page.keyboard.press("ArrowRight");
+    await request;
+    await expect(
+        group.getByRole("radio", { name: t.Journey.arrive }),
+    ).toBeChecked();
+
+    // Back to now (its results are still fresh in the cache): the fields go
+    await segment(t.Journey.now).click();
+    await expect(
+        group.getByRole("radio", { name: t.Journey.now }),
+    ).toBeChecked();
+    await expect(group.locator("input:not([type=radio])")).toHaveCount(0);
+});
+
+test("a shared link sets the time control, and the control writes the link", async ({
+    page,
+}) => {
+    const planned = page.waitForRequest((request) => {
+        const url = new URL(request.url());
+        return (
+            url.pathname.endsWith("/v1/journeys") &&
+            url.searchParams.get("time") === "2026-10-30T08:15" &&
+            url.searchParams.get("arriveBy") === "true"
+        );
+    });
+    await openHome(
+        page,
+        `?from=${STATIONS.szolnok.id}&to=${STATIONS.eger.id}&time=2026-10-30T08:15&arriveBy=1`,
+    );
+    await planned;
+    const group = page.getByRole("group", { name: t.Journey.time });
+    await expect(
+        group.getByRole("radio", { name: t.Journey.arrive }),
+    ).toBeChecked();
+    await expect(group.getByLabel(t.Journey.date)).toHaveValue("2026-10-30");
+    await expect(group.getByLabel(t.Journey.time_of_day)).toHaveValue("08:15");
+
+    // Changing it rewrites the link; "now" drops the time from it
+    await group.getByLabel(t.Journey.time_of_day).fill("09:40");
+    await expect(page).toHaveURL(/time=2026-10-30T09%3A40&arriveBy=1/);
+    await group.locator("label", { hasText: t.Journey.now }).click();
+    await expect(page).not.toHaveURL(/time=|arriveBy=/);
+    await expect(page).toHaveURL(/from=005513748&to=005512401/);
+});

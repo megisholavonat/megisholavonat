@@ -86,16 +86,18 @@ export function SettingsScreen() {
                 <FieldGroup.Section title={s.t("map")}>
                     <ListItem
                         onPress={() =>
-                            s.setRailwayLayer(!s.settings.railwayLayer)
+                            s.setDetailedRailwayMap(
+                                !s.settings.detailedRailwayMap,
+                            )
                         }
                         trailing={
                             <Switch
-                                value={s.settings.railwayLayer}
-                                onValueChange={s.setRailwayLayer}
+                                value={s.settings.detailedRailwayMap}
+                                onValueChange={s.setDetailedRailwayMap}
                             />
                         }
                     >
-                        {s.t("railways")}
+                        {s.t("detailed_railway_map")}
                     </ListItem>
                 </FieldGroup.Section>
                 <FieldGroup.Section>
