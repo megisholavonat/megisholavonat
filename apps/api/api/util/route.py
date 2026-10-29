@@ -118,6 +118,85 @@ def snapped_stops(route: RouteGeometry, stops: StopsKey) -> tuple[dict[str, Any]
     )
 
 
+@dataclass(frozen=True)
+class Candidate:
+    """A place on the route the GPS position may be matched to."""
+
+    # Distance along the line, in the line's (degree) units like line.project
+    along: float
+    # Metres from the GPS position
+    metres: float
+    # Bearing of the route there, in degrees
+    bearing: float
+
+
+# Metres per degree of latitude, and of longitude at the equator
+_M_PER_DEG_LAT = 110_540.0
+_M_PER_DEG_LON = 111_320.0
+
+
+def projection_candidates(
+    coords: np.ndarray, x: float, y: float, slack_m: float
+) -> list[Candidate]:
+    """
+    Every place where the route passes the point (x, y) = (lon, lat): the
+    nearest point of each pass, i.e. each local minimum of the distance along
+    the line, if it is at most `slack_m` further than the nearest one. A route
+    that passes a place once has one candidate; a loop, an out-and-back or a
+    near self-intersection has one per pass, in route order.
+    """
+    if len(coords) < 2:
+        return []
+    p1 = coords[:-1]
+    p2 = coords[1:]
+    vec = p2 - p1
+    seg_len = np.sqrt(vec[:, 0] ** 2 + vec[:, 1] ** 2)
+
+    # The foot point in degrees, as shapely's project, so the nearest pass
+    # is where line.project puts it
+    with np.errstate(divide="ignore", invalid="ignore"):
+        t = ((x - p1[:, 0]) * vec[:, 0] + (y - p1[:, 1]) * vec[:, 1]) / seg_len**2
+    t = np.clip(np.nan_to_num(t), 0.0, 1.0)
+    # Its distance in local equirectangular metres around the point
+    kx = _M_PER_DEG_LON * math.cos(math.radians(y))
+    ky = _M_PER_DEG_LAT
+    metres = np.hypot(
+        (x - (p1[:, 0] + t * vec[:, 0])) * kx, (y - (p1[:, 1] + t * vec[:, 1])) * ky
+    )
+    metres = np.where(seg_len != 0, metres, np.inf)
+
+    # Local minima; on a plateau (the point projects onto a shared vertex) the
+    # last segment of it
+    left = np.r_[np.inf, metres[:-1]]
+    right = np.r_[metres[1:], np.inf]
+    nearest = float(metres.min())
+    keep = (metres <= left) & (metres < right) & (metres <= nearest + slack_m)
+    indices = np.flatnonzero(keep)
+
+    offsets = np.r_[0.0, np.cumsum(seg_len)]
+    lat1 = np.radians(p1[indices, 1])
+    lat2 = np.radians(p2[indices, 1])
+    d_lon = np.radians(p2[indices, 0] - p1[indices, 0])
+    bearing = (
+        np.degrees(
+            np.arctan2(
+                np.sin(d_lon) * np.cos(lat2),
+                np.cos(lat1) * np.sin(lat2)
+                - np.sin(lat1) * np.cos(lat2) * np.cos(d_lon),
+            )
+        )
+        + 360
+    ) % 360
+    return [
+        Candidate(
+            along=float(offsets[i] + t[i] * seg_len[i]),
+            metres=float(metres[i]),
+            bearing=float(b),
+        )
+        for i, b in zip(indices, bearing, strict=True)
+    ]
+
+
 def best_aligned_projection(
     coords: np.ndarray, x: float, y: float, heading: float
 ) -> float | None:
