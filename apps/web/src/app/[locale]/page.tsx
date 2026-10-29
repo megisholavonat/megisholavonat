@@ -231,9 +231,14 @@ function syncHistory(next: Nav, backPending: { current: boolean }) {
 
 type NoticeKind = "train_gone" | "station_unknown";
 
-/** An answer from the API (a 404 for an unknown station), not a lost request */
+/**
+ * The API said no (a 404 for an unknown station, a 422 for a malformed
+ * id), as opposed to a lost request or a server error worth retrying.
+ */
 function isApiError(error: unknown): boolean {
-    return typeof error === "object" && error !== null && "detail" in error;
+    const status = (error as { response?: { status?: number } } | null)
+        ?.response?.status;
+    return typeof status === "number" && status >= 400 && status < 500;
 }
 
 /** A short note at the top of the map that goes away by itself */
@@ -884,7 +889,7 @@ function MapScreen() {
                             )
                             ?.focus()
                     }
-                    className="sr-only z-50 cursor-pointer rounded-full bg-ink px-4 py-2 text-sm font-semibold text-surface focus:not-sr-only focus:absolute focus:top-4 focus:left-1/2 focus:-translate-x-1/2"
+                    className="sr-only z-50 cursor-pointer rounded-full bg-ink px-4 py-2 text-sm font-semibold text-surface focus:not-sr-only focus:absolute focus:top-4 focus:px-4 focus:py-2 focus:left-1/2 focus:-translate-x-1/2"
                 >
                     {tShell("skip_to_search")}
                 </button>
