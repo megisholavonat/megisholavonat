@@ -1,4 +1,5 @@
 import type { Disruption } from "@megisholavonat/api-client";
+import { trainNumber } from "./trainName";
 
 // Line and network disruptions from /v1/alerts/disruptions: which ones touch
 // a train, a station or the user's own trains, and in what order to list
@@ -20,7 +21,7 @@ const SEVERITY_RANK: Record<Disruption["severity"], number> = {
 
 /** "2909 személyvonat" -> "2909", "H1500 HÉV" -> "H1500" */
 function numberOf(tripShortName: string | null | undefined): string | null {
-    return tripShortName?.trim().split(/\s+/)[0] || null;
+    return tripShortName ? trainNumber(tripShortName) || null : null;
 }
 
 /** Station ids a disruption names: its stations and both ends of its stretch. */

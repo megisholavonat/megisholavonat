@@ -4,6 +4,7 @@ import { trainDisplay } from "./display";
 import { matchesMavRoute } from "./mavRoutes";
 import { normalizeSearchText } from "./search";
 import { staleness } from "./stale";
+import { trainNumber } from "./trainName";
 
 export type TrainSortOption = "number" | "delay" | "speed";
 export type SortDirection = "asc" | "desc";
@@ -30,9 +31,9 @@ export function matchesTrainQuery(
 
     if (isNumericQuery(searchQuery)) {
         const digits = searchQuery.replace(/[\s-]/g, "");
-        const number = (result.tripShortName ?? "").trim().split(/\s+/)[0];
+        const number = trainNumber(result.tripShortName ?? "");
         return (
-            !!number?.startsWith(digits) ||
+            number.startsWith(digits) ||
             (digits.length >= MIN_VEHICLE_DIGITS &&
                 !!result.vehicleId &&
                 result.vehicleId.slice(2).includes(digits))
