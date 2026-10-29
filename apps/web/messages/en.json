@@ -306,5 +306,28 @@
         "train_gone": "This train is no longer running",
         "station_unknown": "No such station",
         "skip_to_search": "Skip to search"
+    },
+    "Pages": {
+        "map_link": "Show on the map",
+        "station": "Station",
+        "train": "Train",
+        "station_title": "{station}: departures, arrivals and delays",
+        "station_description": "Trains at {station} live: departures and arrivals with delays, platforms and disruptions, and how punctual trains are here.",
+        "train_title": "{train}: live delay and stops",
+        "train_description": "Where is {subject}{route, select, none {} other { ({route})}} now? Live delay, stops, and how punctual it usually is.",
+        "departures": "Departures",
+        "arrivals": "Arrivals",
+        "disruptions": "Disruptions",
+        "punctuality": "Punctuality",
+        "now": "Now",
+        "not_running": "Not on its way now",
+        "stops": "Stops",
+        "stops_today": "Today's stops",
+        "usual_route": "Stops, by the usual timetable",
+        "few_data": "Not enough data on punctuality yet.",
+        "station_not_found": "No such station",
+        "train_not_found": "No such train",
+        "not_found_hint": "There may be a typo in the address.",
+        "to_map": "Back to the map"
     }
 }
