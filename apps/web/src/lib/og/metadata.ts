@@ -32,9 +32,16 @@ export function previewTarget(
 }
 
 /** "10 TRANSCARPATHIA → Záhony" */
-export function trainTitle(card: TrainCard): string {
+export function trainTitle(
+    card: Pick<TrainCard, "number" | "name" | "destination">,
+): string {
     const name = card.name ? ` ${card.name}` : "";
     return `${card.number}${name} → ${card.destination}`;
+}
+
+/** "650 TOKAJ → Budapest-Keleti · Mégis hol a vonat?", or the app's own. */
+export function documentTitle(appTitle: string, subject: string | null) {
+    return subject ? `${subject} · ${appTitle}` : appTitle;
 }
 
 /**
@@ -95,8 +102,9 @@ export function buildMetadata({
     };
     return {
         metadataBase: new URL(origin),
-        // The tab title stays the app's: the selection changes client-side
-        title: appTitle,
+        // The tab names the selection too; the map keeps it in step as the
+        // selection changes client-side (`documentTitle`)
+        title: documentTitle(appTitle, preview.kind === "none" ? null : title),
         description,
         openGraph: {
             type: "website",

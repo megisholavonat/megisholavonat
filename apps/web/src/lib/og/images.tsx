@@ -393,11 +393,7 @@ export function trainImage(card: TrainCard, locale: Locale) {
                 }}
             >
                 <div style={{ display: "flex", alignItems: "center" }}>
-                    <Glyph
-                        glyph={card.glyph}
-                        color={card.glyphColor}
-                        size={60}
-                    />
+                    <Glyph glyph={card.glyph} color={C.ink} size={60} />
                     <div
                         style={{
                             fontSize: 64,
@@ -516,7 +512,7 @@ export function trainImage(card: TrainCard, locale: Locale) {
                                     color: C.ink2,
                                 }}
                             >
-                                {card.next.time}
+                                {`${card.next.estimated ? "≈" : ""}${card.next.time}`}
                             </div>
                         </div>
                     )}
@@ -629,7 +625,7 @@ export function stationImage(card: StationCard, locale: Locale) {
                             >
                                 <Glyph
                                     glyph={d.glyph}
-                                    color={d.glyphColor}
+                                    color={C.ink2}
                                     size={36}
                                 />
                                 <div
@@ -665,30 +661,37 @@ export function stationImage(card: StationCard, locale: Locale) {
                                     {t.platform(d.platform)}
                                 </div>
                             )}
-                            <div
-                                style={{
-                                    display: "flex",
-                                    justifyContent: "center",
-                                    marginLeft: 24,
-                                    minWidth: 120,
-                                    padding: "6px 18px",
-                                    borderRadius: 999,
-                                    background: d.canceled
-                                        ? C.surface2
-                                        : tint(d.level),
-                                    color: d.canceled
-                                        ? C.ink2
-                                        : SCALE[d.level].text,
-                                    fontSize: 30,
-                                    fontWeight: 800,
-                                }}
-                            >
-                                {d.canceled
-                                    ? t.canceled
-                                    : d.level === "onTime"
-                                      ? t.onTime
-                                      : `+${d.delay}`}
-                            </div>
+                            {d.canceled || d.level ? (
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        justifyContent: "center",
+                                        marginLeft: 24,
+                                        minWidth: 120,
+                                        padding: "6px 18px",
+                                        borderRadius: 999,
+                                        background: d.level
+                                            ? tint(d.level)
+                                            : C.surface2,
+                                        color: d.level
+                                            ? SCALE[d.level].text
+                                            : C.ink2,
+                                        fontSize: 30,
+                                        fontWeight: 800,
+                                    }}
+                                >
+                                    {d.canceled || !d.level
+                                        ? t.canceled
+                                        : d.level === "onTime"
+                                          ? t.onTime
+                                          : `+${d.delay}`}
+                                </div>
+                            ) : (
+                                // Not live yet: the plain time, as on the board
+                                <div
+                                    style={{ marginLeft: 24, minWidth: 120 }}
+                                />
+                            )}
                         </div>
                     ))}
                 </div>

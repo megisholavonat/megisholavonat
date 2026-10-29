@@ -53,7 +53,7 @@ describe("trainShareText", () => {
                 waiting: false,
                 next,
             }),
-        ).toBe("A 10-es vonat +9 perc késésben, Debrecen 02:06");
+        ).toBe("A 10-es vonat 9 percet késik, Debrecen 02:06");
         expect(
             trainShareText("en", {
                 number: "10",
@@ -61,7 +61,26 @@ describe("trainShareText", () => {
                 waiting: false,
                 next,
             }),
-        ).toBe("Train 10 is running 9 min late, Debrecen 02:06");
+        ).toBe("Train 10 is 9 min late, Debrecen 02:06");
+    });
+
+    it("marks a forecast time with ≈", () => {
+        expect(
+            trainShareText("hu", {
+                number: "650",
+                delay: 15,
+                waiting: false,
+                next: { name: "Szolnok", time: "06:07", estimated: true },
+            }),
+        ).toBe("A 650-es vonat 15 percet késik, Szolnok ≈06:07");
+        expect(
+            trainShareText("en", {
+                number: "650",
+                delay: 15,
+                waiting: false,
+                next: { name: "Szolnok", time: "06:07", estimated: true },
+            }),
+        ).toBe("Train 650 is 15 min late, Szolnok ≈06:07");
     });
 
     it("calls small delays on time", () => {
@@ -94,7 +113,7 @@ describe("trainShareText", () => {
                 waiting: false,
                 next: null,
             }),
-        ).toBe("A 10-es vonat +30 perc késésben");
+        ).toBe("A 10-es vonat 30 percet késik");
     });
 
     it("tells no delay for a train that is not running", () => {
@@ -185,9 +204,15 @@ describe("stationShareText", () => {
                     canceled: false,
                 },
                 { time: "04:20", headsign: "Cegléd", delay: 0, canceled: true },
+                {
+                    time: "04:30",
+                    headsign: "Vác",
+                    delay: null,
+                    canceled: false,
+                },
             ]),
         ).toBe(
-            "Indulások: 04:00 Miskolc-Tiszai pontos · 04:10 Szolnok +7 · 04:20 Cegléd törölve",
+            "Indulások: 04:00 Miskolc-Tiszai pontos · 04:10 Szolnok +7 · 04:20 Cegléd törölve · 04:30 Vác",
         );
     });
 

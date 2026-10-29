@@ -32,6 +32,7 @@ export function trainShareData(
                 ? {
                       name: next.name,
                       time: formatSecondsAsTime(next.timing.expected),
+                      estimated: !next.passed && next.timing.estimated,
                   }
                 : null,
         }),

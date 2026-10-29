@@ -89,11 +89,14 @@ export interface TrainShareInfo {
     waiting: boolean;
     /** Wins over `waiting` when given */
     status?: TrainShareStatus;
-    /** Next stop and its expected time ("02:06") */
-    next: { name: string; time: string } | null;
+    /**
+     * Next stop and its expected time ("02:06"); `estimated` when the time
+     * is a forecast (told with "≈", as in the sheet)
+     */
+    next: { name: string; time: string; estimated?: boolean } | null;
 }
 
-/** "A 10-es vonat +9 perc késésben, Debrecen 02:06" */
+/** "A 10-es vonat 9 percet késik, Debrecen ≈02:06" */
 export function trainShareText(locale: Locale, info: TrainShareInfo): string {
     const state = info.status ?? (info.waiting ? "waiting" : "running");
     const onTime = getDelayLevel(info.delay) === "onTime";
@@ -103,48 +106,57 @@ export function trainShareText(locale: Locale, info: TrainShareInfo): string {
     const status =
         locale === "hu"
             ? {
-                  running: `${subject} ${onTime ? "pontos" : `+${late} perc késésben`}`,
+                  running: `${subject} ${onTime ? "pontos" : `${late} percet késik`}`,
                   waiting: `${subject} indulásra vár`,
                   cancelled: `${subject} törölve`,
                   arrived: `${subject} megérkezett`,
                   noData: `${subject}ról nincs friss adat`,
               }[state]
             : {
-                  running: `${subject} is ${onTime ? "on time" : `running ${late} min late`}`,
+                  running: `${subject} is ${onTime ? "on time" : `${late} min late`}`,
                   waiting: `${subject} is waiting to depart`,
                   cancelled: `${subject} is cancelled`,
                   arrived: `${subject} has arrived`,
                   noData: `No fresh data on train ${info.number}`,
               }[state];
-    // The next stop's time carries the delay: only for a train on its way
-    return info.next && (state === "running" || state === "waiting")
-        ? `${status}, ${info.next.name} ${info.next.time}`
-        : status;
+    // The next stop's expected time goes with the delay: only for a train
+    // on its way
+    if (!info.next || (state !== "running" && state !== "waiting")) {
+        return status;
+    }
+    const time = `${info.next.estimated ? "≈" : ""}${info.next.time}`;
+    return `${status}, ${info.next.name} ${time}`;
 }
 
 export interface DepartureShareInfo {
     /** "04:10", the scheduled time */
     time: string;
     headsign: string;
-    delay: number;
+    /**
+     * Minutes late; null when there is no live delay to tell (a train still
+     * waiting to leave on time is not "on time" yet, as on the board)
+     */
+    delay: number | null;
     canceled: boolean;
 }
 
-/** "04:00 Miskolc-Tiszai pontos" */
+/** "04:00 Miskolc-Tiszai pontos", "04:10 Szolnok" before it is live */
 export function departureText(
     locale: Locale,
     departure: DepartureShareInfo,
 ): string {
+    const plain = `${departure.time} ${departure.headsign}`;
+    if (!departure.canceled && departure.delay === null) return plain;
     const status = departure.canceled
         ? locale === "hu"
             ? "törölve"
             : "cancelled"
-        : getDelayLevel(departure.delay) === "onTime"
+        : getDelayLevel(departure.delay ?? 0) === "onTime"
           ? locale === "hu"
               ? "pontos"
               : "on time"
-          : `+${Math.round(departure.delay)}`;
-    return `${departure.time} ${departure.headsign} ${status}`;
+          : `+${Math.round(departure.delay ?? 0)}`;
+    return `${plain} ${status}`;
 }
 
 /** "Indulások: 04:00 Miskolc-Tiszai pontos · 04:10 Szolnok +3" */
