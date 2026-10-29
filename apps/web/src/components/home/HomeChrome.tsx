@@ -63,24 +63,43 @@ export function feedState(
     return { kind: "ok" };
 }
 
-const LEGEND: { level: Level; key: string }[] = [
-    { level: "onTime", key: "on_time" },
-    { level: "slight", key: "slight" },
-    { level: "moderate", key: "moderate" },
-    { level: "severe", key: "severe" },
+type LegendLevel = Level | "inactive";
+
+const LEGEND: { level: LegendLevel; key: string; from?: string }[] = [
+    { level: "onTime", key: "on_time", from: "0" },
+    { level: "slight", key: "slight", from: "5" },
+    { level: "moderate", key: "moderate", from: "15" },
+    { level: "severe", key: "severe", from: "60+" },
     { level: "stale", key: "stale" },
+    { level: "inactive", key: "inactive" },
 ];
+/** The delay steps, each with the minute it starts from */
+const STEPS = LEGEND.filter((l) => l.from);
 
 const EASE_SHEET = [0.32, 0.72, 0, 1] as const;
 
-function Swatch({ level }: { level: Level }) {
+/** A stale marker's label, as the map writes the data's age */
+const STALE_SAMPLE = "7′";
+
+function Swatch({ level }: { level: LegendLevel }) {
+    if (level === "stale") {
+        // The map's hollow dashed pill, with its age in minutes
+        return (
+            <span
+                aria-hidden
+                className="tnum flex h-4 shrink-0 items-center rounded-full border-[1.5px] border-dashed border-stale px-1 text-[10px] leading-none font-bold text-stale"
+            >
+                {STALE_SAMPLE}
+            </span>
+        );
+    }
     return (
         <span
             aria-hidden
             className={cn(
                 "size-2.5 shrink-0 rounded-full",
-                level === "stale"
-                    ? "border-[1.5px] border-dashed border-stale"
+                level === "inactive"
+                    ? "bg-stale-fill ring-1 ring-stale"
                     : FILL_CLASS[level],
             )}
         />
@@ -90,16 +109,21 @@ function Swatch({ level }: { level: Level }) {
 /** "5+ perc" for the delay steps, the plain label otherwise. */
 function useLegendLabel() {
     const t = useTranslations("Legend");
-    return (level: Level, key: string, withUnit: boolean) =>
-        withUnit && level !== "onTime" && level !== "stale"
+    return (level: LegendLevel, key: string, withUnit: boolean) =>
+        withUnit &&
+        level !== "onTime" &&
+        level !== "stale" &&
+        level !== "inactive"
             ? `${t(key)} ${t("minutes")}`
-            : t(key);
+            : level === "stale"
+              ? `${STALE_SAMPLE} ${t(key)}`
+              : t(key);
 }
 
 /**
  * Delay colours. Desktop: one quiet row, "Késés" first so the steps read as
- * minutes late. Phone: "Késés" and the dots; tapping opens the labelled list above
- * the pill.
+ * minutes late. Phone: a slim pill with each colour and the minute it starts
+ * from; tapping opens the full list above it, the grey markers included.
  */
 export function Legend({ isDesktop }: { isDesktop: boolean }) {
     const t = useTranslations("Legend");
@@ -191,9 +215,13 @@ export function Legend({ isDesktop }: { isDesktop: boolean }) {
                                     key={key}
                                     className="flex items-center gap-2.5"
                                 >
-                                    <Swatch level={level} />
+                                    <span className="flex w-6 shrink-0 justify-center">
+                                        <Swatch level={level} />
+                                    </span>
                                     <span className="text-sm font-semibold whitespace-nowrap text-ink">
-                                        {label(level, key, true)}
+                                        {level === "stale"
+                                            ? t(key)
+                                            : label(level, key, true)}
                                     </span>
                                 </li>
                             ))}
@@ -207,18 +235,31 @@ export function Legend({ isDesktop }: { isDesktop: boolean }) {
                 aria-expanded={open}
                 aria-controls={open ? listId : undefined}
                 aria-label={t("label")}
-                className="floating-card pressable flex h-11 cursor-pointer items-center gap-1 rounded-full px-4 dark:ring-1 dark:ring-line"
+                // Slim over the map, with a 44 px tap target all the same
+                className="floating-card pressable relative flex h-8 cursor-pointer items-center gap-2 rounded-full px-3 before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-[''] dark:ring-1 dark:ring-line"
             >
                 {/* The dots say what they are: never a context-free key */}
                 <span
                     aria-hidden
-                    className="mr-1 text-caption font-semibold text-ink-2"
+                    className="text-caption font-semibold text-ink-2"
                 >
                     {t("title")}
                 </span>
-                {LEGEND.map(({ level, key }) => (
-                    <Swatch key={key} level={level} />
+                {STEPS.map(({ level, key, from }) => (
+                    <span
+                        key={key}
+                        aria-hidden
+                        className="flex items-center gap-1"
+                    >
+                        <Swatch level={level} />
+                        <span className="tnum text-caption font-semibold text-ink">
+                            {from}
+                        </span>
+                    </span>
                 ))}
+                <span aria-hidden className="text-caption text-ink-2">
+                    {t("minutes")}
+                </span>
             </button>
         </div>
     );

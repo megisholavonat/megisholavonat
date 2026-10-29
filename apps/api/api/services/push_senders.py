@@ -35,7 +35,7 @@ EXPO_BATCH_SIZE = 100
 EXPO_RECEIPTS_BATCH_SIZE = 1000
 # Android notification channel of every alert. The app must create it (the
 # mobile scaffold will), or Android 8+ does not show the notification
-ANDROID_CHANNEL_ID = "alerts"
+ANDROID_CHANNEL_ID = "train-alerts"
 
 APNS_HOST = "https://api.push.apple.com"
 APNS_SANDBOX_HOST = "https://api.sandbox.push.apple.com"
