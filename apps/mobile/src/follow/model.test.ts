@@ -90,6 +90,11 @@ describe("stations and numbers", () => {
 });
 
 describe("draft", () => {
+    it("never boards at a stop the train has passed", () => {
+        expect(defaultDraft(details(2)).from).toBe(2);
+        expect(defaultDraft(details(3)).from).toBe(2);
+    });
+
     it("boards at the next stop and alights at the terminus", () => {
         expect(defaultDraft(details(1))).toMatchObject({
             weekdays: [],
@@ -175,6 +180,26 @@ describe("nextRun", () => {
         expect(
             nextRun(follow(), new Date("2026-10-30T17:30:00Z"))?.dayOffset,
         ).toBe(3);
+    });
+
+    it("keeps a commute until it arrives", () => {
+        // Újpest 17:24 -> Vác 18:00; Thursday 18:20 local
+        const run = nextRun(follow(), new Date("2026-10-29T17:20:00Z"));
+        expect(run?.dayOffset).toBe(0);
+    });
+
+    it("keeps today's run of a train followed after it left", () => {
+        // Boarded at Budapest-Nyugati 17:00; 18:30 local, still running late
+        const fromOrigin = follow({ from: 0 });
+        const now = new Date("2026-10-29T17:30:00Z");
+        expect(nextRun(fromOrigin, now)?.dayOffset).toBe(1);
+        expect(nextRun(fromOrigin, now, true)).toMatchObject({
+            dayOffset: 0,
+            serviceDate: "2026-10-29",
+        });
+        expect(
+            upcoming([fromOrigin], now, new Set(["2423"]))[0]?.run.dayOffset,
+        ).toBe(0);
     });
 
     it("ends a trip after its arrival", () => {

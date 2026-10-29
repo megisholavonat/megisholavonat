@@ -16,7 +16,7 @@ import {
     FollowPrompt,
 } from "../follow/CommuteCard";
 import { useFollowedVehicleIds, useLiveFollows } from "../follow/live";
-import { upcoming } from "../follow/model";
+import { runningNumbers, upcoming } from "../follow/model";
 import { useFollows } from "../follow/store";
 import { feedState } from "../map/feedState";
 import { ConsentCard, FeedStateCard, StaleBanner } from "../map/HomeCards";
@@ -55,7 +55,11 @@ export default function MapScreen() {
 
     // My commute: the next run of every follow, live once on the map
     const follows = useFollows();
-    const runs = useMemo(() => upcoming(follows, now), [follows, now]);
+    const running = useMemo(() => runningNumbers(trains), [trains]);
+    const runs = useMemo(
+        () => upcoming(follows, now, running),
+        [follows, now, running],
+    );
     const live = useLiveFollows(runs, trains);
     const followed = useFollowedVehicleIds(live);
     const commute: CommuteItem[] = runs.map((r) => ({
