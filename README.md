@@ -113,6 +113,29 @@ This repository is a pnpm monorepo with:
 - `pnpm test` – Run the API test suite (needs the compose Postgres; tests use a
   separate `<database>_test` database, or `TEST_DATABASE_URL` if set)
 
+### Mobile app against a local API
+
+The app uses production unless `EXPO_PUBLIC_API_URL` says otherwise. Every
+request goes there: the API client, the map's network and stations data, and
+the Live Activity tokens the native side posts. Development builds show the
+URL at the bottom of Settings.
+
+1. Run the API (`pnpm --filter @megisholavonat/api dev`, on :8000).
+2. Over Tailscale, give it HTTPS on this machine's ts.net name:
+   `tailscale serve --bg 8000` (it prints the URL; `tailscale serve reset`
+   stops it). iOS refuses plain http to a ts.net name (App Transport
+   Security); the ts.net certificate is a real one, so no exception is needed.
+   On the same Wi-Fi, `http://<LAN address>:8000` also works.
+3. Put the URL in `apps/mobile/.env` (see `apps/mobile/.env.example`):
+   `EXPO_PUBLIC_API_URL=https://<host>.<tailnet>.ts.net`, then
+   `pnpm --filter @megisholavonat/mobile dev --clear` and open the dev client.
+
+EAS: preview and production builds pin the production URLs in `eas.json`.
+The development profile reads `EXPO_PUBLIC_API_URL` from the EAS
+`development` environment (`eas env:create --environment development`) and
+falls back to production. `EXPO_PUBLIC_*` values end up in the JS bundle in
+plain text: never put a secret in one.
+
 ### Web end-to-end tests
 
 `apps/web/e2e` is a Playwright suite (phone 390x844 and desktop 1440x900,
