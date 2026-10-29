@@ -573,6 +573,9 @@
                   },
                   {
                     "$ref": "#/components/schemas/LiveActivityPushTokenCreate"
+                  },
+                  {
+                    "$ref": "#/components/schemas/LiveActivityStartTokenCreate"
                   }
                 ],
                 "title": "Body",
@@ -580,7 +583,8 @@
                   "propertyName": "type",
                   "mapping": {
                     "expo": "#/components/schemas/ExpoPushTokenCreate",
-                    "liveactivity": "#/components/schemas/LiveActivityPushTokenCreate"
+                    "liveactivity": "#/components/schemas/LiveActivityPushTokenCreate",
+                    "liveactivity_start": "#/components/schemas/LiveActivityStartTokenCreate"
                   }
                 }
               }
@@ -802,7 +806,7 @@
           "follows"
         ],
         "summary": "Update Follow",
-        "description": "Change alert preferences, or a commute's days, stations or label",
+        "description": "Change alert preferences, the Live Activity, or a commute's days,\nstations or label",
         "operationId": "updateFollow",
         "security": [
           {
@@ -1112,6 +1116,134 @@
                 }
               }
             }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/history/directory": {
+      "get": {
+        "tags": [
+          "history"
+        ],
+        "summary": "Get Directory",
+        "description": "Domestic stations with a train on most days and train numbers that run at\nleast weekly, for the website's sitemap",
+        "operationId": "getDirectory",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 365,
+              "minimum": 1,
+              "description": "Number of service dates to look back",
+              "default": 28,
+              "title": "Days"
+            },
+            "description": "Number of service dates to look back"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Directory"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/history/runs/{trainNumber}/{serviceDate}": {
+      "get": {
+        "tags": [
+          "history"
+        ],
+        "summary": "Get Run Summary",
+        "description": "One run of a train: its recorded delay at each stop, for sharing",
+        "operationId": "getRunSummary",
+        "parameters": [
+          {
+            "name": "trainNumber",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9A-Za-z]{1,12}$",
+              "description": "e.g. 10 for 10 TRANSCARPATHIA",
+              "title": "Trainnumber"
+            },
+            "description": "e.g. 10 for 10 TRANSCARPATHIA"
+          },
+          {
+            "name": "serviceDate",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "description": "The day the run's stoptimes count from: the date it leaves its origin",
+              "title": "Servicedate"
+            },
+            "description": "The day the run's stoptimes count from: the date it leaves its origin"
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[0-9]{1,12}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "UIC code of the boarding station; finds a run leaving it after midnight by the date of boarding",
+              "title": "From"
+            },
+            "description": "UIC code of the boarding station; finds a run leaving it after midnight by the date of boarding"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunSummary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such run on record"
           },
           "422": {
             "description": "Validation Error",
@@ -1648,6 +1780,16 @@
             "type": "boolean",
             "title": "Notifyplatformchange"
           },
+          "liveActivity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LiveActivitySetup"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -1732,6 +1874,16 @@
             "type": "boolean",
             "title": "Notifyplatformchange",
             "default": true
+          },
+          "liveActivity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LiveActivitySetup"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "kind": {
             "type": "string",
@@ -1991,6 +2143,84 @@
         ],
         "title": "DeviceInfo",
         "description": "The calling device"
+      },
+      "Directory": {
+        "properties": {
+          "window": {
+            "$ref": "#/components/schemas/HistoryWindow"
+          },
+          "stations": {
+            "items": {
+              "$ref": "#/components/schemas/DirectoryStation"
+            },
+            "type": "array",
+            "title": "Stations"
+          },
+          "trains": {
+            "items": {
+              "$ref": "#/components/schemas/DirectoryTrain"
+            },
+            "type": "array",
+            "title": "Trains"
+          }
+        },
+        "type": "object",
+        "required": [
+          "window",
+          "stations",
+          "trains"
+        ],
+        "title": "Directory",
+        "description": "Stations and train numbers with regular service in the window: the pages\nthe website lists for search engines"
+      },
+      "DirectoryStation": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "DirectoryStation",
+        "description": "A domestic station with regular service"
+      },
+      "DirectoryTrain": {
+        "properties": {
+          "trainNumber": {
+            "type": "string",
+            "title": "Trainnumber"
+          },
+          "tripShortName": {
+            "type": "string",
+            "title": "Tripshortname"
+          },
+          "routeShortName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Routeshortname"
+          }
+        },
+        "type": "object",
+        "required": [
+          "trainNumber",
+          "tripShortName"
+        ],
+        "title": "DirectoryTrain",
+        "description": "A train number that runs regularly"
       },
       "Disruption": {
         "properties": {
@@ -2342,11 +2572,21 @@
               }
             ],
             "title": "Label"
+          },
+          "liveActivity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LiveActivitySetup"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
         "title": "FollowUpdate",
-        "description": "Partial update. Weekdays, stations and label only apply to commutes;\ntoStationId and label can be cleared with null."
+        "description": "Partial update. Weekdays, stations and label only apply to commutes;\ntoStationId, label and liveActivity can be cleared with null."
       },
       "HTTPValidationError": {
         "properties": {
@@ -2652,6 +2892,97 @@
         ],
         "title": "LiveActivityPushTokenCreate",
         "description": "The ActivityKit push token of one followed trip's iOS Live Activity. It\nreceives `update` events while the train runs and `end` once it has passed\nthe alighting station; alerts about that follow are shown on it instead of\nas a separate notification."
+      },
+      "LiveActivitySetup": {
+        "properties": {
+          "badge": {
+            "type": "string",
+            "maxLength": 16,
+            "minLength": 1,
+            "title": "Badge"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "fromName": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Fromname"
+          },
+          "toName": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Toname"
+          },
+          "departureS": {
+            "type": "integer",
+            "maximum": 172800.0,
+            "minimum": 0.0,
+            "title": "Departures"
+          },
+          "arrivalS": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 172800.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arrivals"
+          },
+          "platform": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 16,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Platform"
+          }
+        },
+        "type": "object",
+        "required": [
+          "badge",
+          "title",
+          "fromName",
+          "toName",
+          "departureS"
+        ],
+        "title": "LiveActivitySetup",
+        "description": "iOS: the follow's Live Activity, started by the API with a push some\nminutes before departure (iOS 17.2+). What the activity shows until the\ntrain is live, as the app saw the train when following it."
+      },
+      "LiveActivityStartTokenCreate": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "liveactivity_start",
+            "title": "Type"
+          },
+          "token": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{16,512}$",
+            "title": "Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "token"
+        ],
+        "title": "LiveActivityStartTokenCreate",
+        "description": "The device's ActivityKit push-to-start token (iOS 17.2+). The API starts\nthe Live Activity of a follow with `liveActivity` set with it shortly\nbefore departure; the started activity's own token is then registered as\n`liveactivity`. A device has one: registering another replaces it."
       },
       "MapLineString": {
         "properties": {
@@ -3011,7 +3342,8 @@
             "type": "string",
             "enum": [
               "expo",
-              "liveactivity"
+              "liveactivity",
+              "liveactivity_start"
             ],
             "title": "Type"
           },
@@ -3273,6 +3605,143 @@
         ],
         "title": "Route",
         "description": "Route information"
+      },
+      "RunStop": {
+        "properties": {
+          "stationId": {
+            "type": "string",
+            "title": "Stationid"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "scheduledArrivalS": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scheduledarrivals"
+          },
+          "scheduledDepartureS": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scheduleddepartures"
+          },
+          "delayMin": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delaymin"
+          },
+          "cancelled": {
+            "type": "boolean",
+            "title": "Cancelled",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "stationId",
+          "name"
+        ],
+        "title": "RunStop",
+        "description": "A stop of the run, with our GPS-derived delay where it was recorded"
+      },
+      "RunSummary": {
+        "properties": {
+          "trainNumber": {
+            "type": "string",
+            "title": "Trainnumber"
+          },
+          "tripShortName": {
+            "type": "string",
+            "title": "Tripshortname"
+          },
+          "routeShortName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Routeshortname"
+          },
+          "lineName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linename"
+          },
+          "serviceDate": {
+            "type": "string",
+            "format": "date",
+            "title": "Servicedate"
+          },
+          "stops": {
+            "items": {
+              "$ref": "#/components/schemas/RunStop"
+            },
+            "type": "array",
+            "title": "Stops"
+          },
+          "complete": {
+            "type": "boolean",
+            "title": "Complete"
+          },
+          "cancelled": {
+            "type": "boolean",
+            "title": "Cancelled"
+          },
+          "finished": {
+            "type": "boolean",
+            "title": "Finished"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DelayReason"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "trainNumber",
+          "tripShortName",
+          "serviceDate",
+          "stops",
+          "complete",
+          "cancelled",
+          "finished"
+        ],
+        "title": "RunSummary",
+        "description": "One run of a train on one service date, from the delay history (and the\ntimetable for the stops the recorder did not see)"
       },
       "Station": {
         "properties": {
@@ -4325,6 +4794,16 @@
             "type": "boolean",
             "title": "Notifyplatformchange"
           },
+          "liveActivity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LiveActivitySetup"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -4407,6 +4886,16 @@
             "type": "boolean",
             "title": "Notifyplatformchange",
             "default": true
+          },
+          "liveActivity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LiveActivitySetup"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "kind": {
             "type": "string",

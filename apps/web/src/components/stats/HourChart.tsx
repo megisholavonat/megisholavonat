@@ -4,7 +4,10 @@ import type { HourPunctuality } from "@megisholavonat/api-client";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { overallShare } from "./figures";
 import { Of10Text, of10 } from "./StatsParts";
+
+export { overallShare };
 
 /** Hours with fewer passages than this are left empty */
 const MIN_HOUR_SAMPLES = 20;
@@ -127,19 +130,4 @@ export function HourChart({ hours }: { hours: HourPunctuality[] }) {
             </div>
         </figure>
     );
-}
-
-/** On-time share over all hours, weighted by passages. */
-export function overallShare(hours: HourPunctuality[]): {
-    share: number;
-    n: number;
-} | null {
-    let n = 0;
-    let onTime = 0;
-    for (const h of hours) {
-        if (h.onTimeShare == null) continue;
-        n += h.n;
-        onTime += h.onTimeShare * h.n;
-    }
-    return n > 0 ? { share: onTime / n, n } : null;
 }

@@ -143,11 +143,17 @@ class FakeLiveActivity:
     def __init__(self) -> None:
         self.sent: list[LiveActivityMessage] = []
         self.outcomes: dict[str, Outcome] = {}
+        # token -> APNs reason sent with a failed outcome
+        self.errors: dict[str, str] = {}
 
     async def send(self, messages: Sequence[LiveActivityMessage]) -> list[SendResult]:
         self.sent.extend(messages)
         return [
-            SendResult(m.token_id, self.outcomes.get(m.token, Outcome.OK))
+            SendResult(
+                m.token_id,
+                self.outcomes.get(m.token, Outcome.OK),
+                self.errors.get(m.token),
+            )
             for m in messages
         ]
 

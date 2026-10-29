@@ -2,6 +2,7 @@ import { defineConfig } from "@playwright/test";
 
 const PORT = Number(process.env.E2E_PORT ?? 3210);
 const baseURL = `http://127.0.0.1:${PORT}`;
+const STUB_API_PORT = PORT + 1;
 
 export default defineConfig({
     testDir: ".",
@@ -63,13 +64,25 @@ export default defineConfig({
             use: { viewport: { width: 1440, height: 900 } },
         },
     ],
-    webServer: {
-        // Serves the production build: run `next build` first (turbo's e2e
-        // task does)
-        command: `pnpm exec next start -p ${PORT} -H 127.0.0.1`,
-        url: baseURL,
-        reuseExistingServer: !process.env.CI,
-        timeout: 60_000,
-        cwd: "..",
-    },
+    webServer: [
+        {
+            // The API the Next server itself asks (the delay card pages)
+            command: "node e2e/support/stub-api.mjs",
+            url: `http://127.0.0.1:${STUB_API_PORT}/`,
+            env: { STUB_API_PORT: String(STUB_API_PORT) },
+            reuseExistingServer: !process.env.CI,
+            timeout: 10_000,
+            cwd: "..",
+        },
+        {
+            // Serves the production build: run `next build` first (turbo's
+            // e2e task does)
+            command: `pnpm exec next start -p ${PORT} -H 127.0.0.1`,
+            url: baseURL,
+            env: { API_URL: `http://127.0.0.1:${STUB_API_PORT}` },
+            reuseExistingServer: !process.env.CI,
+            timeout: 60_000,
+            cwd: "..",
+        },
+    ],
 });

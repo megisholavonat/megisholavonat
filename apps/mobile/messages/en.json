@@ -116,7 +116,16 @@
         "map_data_value": "© OpenStreetMap",
         "railway_data_value": "© OpenRailwayMap",
         "railway_data": "Detailed railway map",
-        "source": "GitHub"
+        "source": "GitHub",
+        "delete_data": "Delete my data",
+        "delete_title": "Delete your data?",
+        "delete_body": "Your followed trains and alerts are deleted from our server and this phone, along with your statistics choice.",
+        "delete_confirm": "Delete",
+        "cancel": "Cancel",
+        "deleted_title": "Your data is deleted",
+        "deleted_body": "Everything we stored about this phone is gone.",
+        "deleted_pending": "Deleted from this phone. You're offline, so it's deleted from our server the next time the app opens.",
+        "delete_failed": "Couldn't delete your data. Try again."
     },
     "Follow": {
         "title": "Follow",
@@ -142,7 +151,8 @@
         "unfollow": "Stop following",
         "error": "Couldn't save",
         "channel": "Train alerts",
-        "stop_time": "{name} {time}"
+        "stop_time": "{name} {time}",
+        "live_activity": "Live Activity"
     },
     "Journey": {
         "title": "Journey",
@@ -173,5 +183,9 @@
         "sort_delay": "Delay",
         "sort_number": "Number",
         "empty": "No trains running now"
+    },
+    "DelayCard": {
+        "share": "Share the delay",
+        "share_so_far": "Share the delay so far"
     }
 }

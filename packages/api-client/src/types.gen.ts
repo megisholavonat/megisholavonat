@@ -178,6 +178,7 @@ export type CommuteFollow = {
      * Notifyplatformchange
      */
     notifyPlatformChange: boolean;
+    liveActivity?: LiveActivitySetup | null;
     /**
      * Createdat
      */
@@ -227,6 +228,7 @@ export type CommuteFollowCreate = {
      * Notifyplatformchange
      */
     notifyPlatformChange?: boolean;
+    liveActivity?: LiveActivitySetup | null;
     /**
      * Kind
      */
@@ -357,6 +359,60 @@ export type DeviceInfo = {
      * Lastseenat
      */
     lastSeenAt: string;
+};
+
+/**
+ * Directory
+ *
+ * Stations and train numbers with regular service in the window: the pages
+ * the website lists for search engines
+ */
+export type Directory = {
+    window: HistoryWindow;
+    /**
+     * Stations
+     */
+    stations: Array<DirectoryStation>;
+    /**
+     * Trains
+     */
+    trains: Array<DirectoryTrain>;
+};
+
+/**
+ * DirectoryStation
+ *
+ * A domestic station with regular service
+ */
+export type DirectoryStation = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Name
+     */
+    name: string;
+};
+
+/**
+ * DirectoryTrain
+ *
+ * A train number that runs regularly
+ */
+export type DirectoryTrain = {
+    /**
+     * Trainnumber
+     */
+    trainNumber: string;
+    /**
+     * Tripshortname
+     */
+    tripShortName: string;
+    /**
+     * Routeshortname
+     */
+    routeShortName?: string | null;
 };
 
 /**
@@ -498,7 +554,7 @@ export type ExpoPushTokenCreate = {
  * FollowUpdate
  *
  * Partial update. Weekdays, stations and label only apply to commutes;
- * toStationId and label can be cleared with null.
+ * toStationId, label and liveActivity can be cleared with null.
  */
 export type FollowUpdate = {
     /**
@@ -529,6 +585,7 @@ export type FollowUpdate = {
      * Label
      */
     label?: string | null;
+    liveActivity?: LiveActivitySetup | null;
 };
 
 /**
@@ -738,6 +795,63 @@ export type LiveActivityPushTokenCreate = {
      * Followid
      */
     followId: string;
+};
+
+/**
+ * LiveActivitySetup
+ *
+ * iOS: the follow's Live Activity, started by the API with a push some
+ * minutes before departure (iOS 17.2+). What the activity shows until the
+ * train is live, as the app saw the train when following it.
+ */
+export type LiveActivitySetup = {
+    /**
+     * Badge
+     */
+    badge: string;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Fromname
+     */
+    fromName: string;
+    /**
+     * Toname
+     */
+    toName: string;
+    /**
+     * Departures
+     */
+    departureS: number;
+    /**
+     * Arrivals
+     */
+    arrivalS?: number | null;
+    /**
+     * Platform
+     */
+    platform?: string | null;
+};
+
+/**
+ * LiveActivityStartTokenCreate
+ *
+ * The device's ActivityKit push-to-start token (iOS 17.2+). The API starts
+ * the Live Activity of a follow with `liveActivity` set with it shortly
+ * before departure; the started activity's own token is then registered as
+ * `liveactivity`. A device has one: registering another replaces it.
+ */
+export type LiveActivityStartTokenCreate = {
+    /**
+     * Type
+     */
+    type: 'liveactivity_start';
+    /**
+     * Token
+     */
+    token: string;
 };
 
 /**
@@ -954,7 +1068,7 @@ export type PushToken = {
     /**
      * Type
      */
-    type: 'expo' | 'liveactivity';
+    type: 'expo' | 'liveactivity' | 'liveactivity_start';
     /**
      * Followid
      */
@@ -1089,6 +1203,84 @@ export type Route = {
      * Longname
      */
     longName: string;
+};
+
+/**
+ * RunStop
+ *
+ * A stop of the run, with our GPS-derived delay where it was recorded
+ */
+export type RunStop = {
+    /**
+     * Stationid
+     */
+    stationId: string;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Scheduledarrivals
+     */
+    scheduledArrivalS?: number | null;
+    /**
+     * Scheduleddepartures
+     */
+    scheduledDepartureS?: number | null;
+    /**
+     * Delaymin
+     */
+    delayMin?: number | null;
+    /**
+     * Cancelled
+     */
+    cancelled?: boolean;
+};
+
+/**
+ * RunSummary
+ *
+ * One run of a train on one service date, from the delay history (and the
+ * timetable for the stops the recorder did not see)
+ */
+export type RunSummary = {
+    /**
+     * Trainnumber
+     */
+    trainNumber: string;
+    /**
+     * Tripshortname
+     */
+    tripShortName: string;
+    /**
+     * Routeshortname
+     */
+    routeShortName?: string | null;
+    /**
+     * Linename
+     */
+    lineName?: string | null;
+    /**
+     * Servicedate
+     */
+    serviceDate: string;
+    /**
+     * Stops
+     */
+    stops: Array<RunStop>;
+    /**
+     * Complete
+     */
+    complete: boolean;
+    /**
+     * Cancelled
+     */
+    cancelled: boolean;
+    /**
+     * Finished
+     */
+    finished: boolean;
+    reason?: DelayReason | null;
 };
 
 /**
@@ -1683,6 +1875,7 @@ export type TripFollow = {
      * Notifyplatformchange
      */
     notifyPlatformChange: boolean;
+    liveActivity?: LiveActivitySetup | null;
     /**
      * Createdat
      */
@@ -1731,6 +1924,7 @@ export type TripFollowCreate = {
      * Notifyplatformchange
      */
     notifyPlatformChange?: boolean;
+    liveActivity?: LiveActivitySetup | null;
     /**
      * Kind
      */
@@ -2332,7 +2526,9 @@ export type RegisterPushTokenData = {
         type: 'expo';
     } & ExpoPushTokenCreate) | ({
         type: 'liveactivity';
-    } & LiveActivityPushTokenCreate);
+    } & LiveActivityPushTokenCreate) | ({
+        type: 'liveactivity_start';
+    } & LiveActivityStartTokenCreate);
     path?: never;
     query?: never;
     url: '/v1/devices/me/push-tokens';
@@ -2687,6 +2883,87 @@ export type GetStationPlatformsResponses = {
 };
 
 export type GetStationPlatformsResponse = GetStationPlatformsResponses[keyof GetStationPlatformsResponses];
+
+export type GetDirectoryData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Days
+         *
+         * Number of service dates to look back
+         */
+        days?: number;
+    };
+    url: '/v1/history/directory';
+};
+
+export type GetDirectoryErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetDirectoryError = GetDirectoryErrors[keyof GetDirectoryErrors];
+
+export type GetDirectoryResponses = {
+    /**
+     * Successful Response
+     */
+    200: Directory;
+};
+
+export type GetDirectoryResponse = GetDirectoryResponses[keyof GetDirectoryResponses];
+
+export type GetRunSummaryData = {
+    body?: never;
+    path: {
+        /**
+         * Trainnumber
+         *
+         * e.g. 10 for 10 TRANSCARPATHIA
+         */
+        trainNumber: string;
+        /**
+         * Servicedate
+         *
+         * The day the run's stoptimes count from: the date it leaves its origin
+         */
+        serviceDate: string;
+    };
+    query?: {
+        /**
+         * From
+         *
+         * UIC code of the boarding station; finds a run leaving it after midnight by the date of boarding
+         */
+        from?: string | null;
+    };
+    url: '/v1/history/runs/{trainNumber}/{serviceDate}';
+};
+
+export type GetRunSummaryErrors = {
+    /**
+     * No such run on record
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetRunSummaryError = GetRunSummaryErrors[keyof GetRunSummaryErrors];
+
+export type GetRunSummaryResponses = {
+    /**
+     * Successful Response
+     */
+    200: RunSummary;
+};
+
+export type GetRunSummaryResponse = GetRunSummaryResponses[keyof GetRunSummaryResponses];
 
 export type GetRankingsData = {
     body?: never;

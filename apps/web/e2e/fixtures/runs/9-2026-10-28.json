@@ -1,0 +1,85 @@
+{
+  "trainNumber": "9",
+  "tripShortName": "9 TRANSCARPATHIA gyorsvonat",
+  "routeShortName": "<span class=\"MNR2007\">&#473;</span>",
+  "lineName": null,
+  "serviceDate": "2026-10-28",
+  "complete": true,
+  "cancelled": false,
+  "finished": false,
+  "reason": null,
+  "stops": [
+    {
+      "stationId": "002232030",
+      "name": "Kyiv-Pas.",
+      "scheduledArrivalS": 33480,
+      "scheduledDepartureS": 33480,
+      "delayMin": 8.0,
+      "cancelled": false
+    },
+    {
+      "stationId": "002237000",
+      "name": "Lviv",
+      "scheduledArrivalS": 55320,
+      "scheduledDepartureS": 56760,
+      "delayMin": 8.0,
+      "cancelled": false
+    },
+    {
+      "stationId": "002238000",
+      "name": "Mukachevo",
+      "scheduledArrivalS": 68760,
+      "scheduledDepartureS": 68880,
+      "delayMin": 8.0,
+      "cancelled": false
+    },
+    {
+      "stationId": "002238010",
+      "name": "Chop",
+      "scheduledArrivalS": 71640,
+      "scheduledDepartureS": 81180,
+      "delayMin": 8.0,
+      "cancelled": false
+    },
+    {
+      "stationId": "005514175",
+      "name": "Záhony",
+      "scheduledArrivalS": 82200,
+      "scheduledDepartureS": 86400,
+      "delayMin": 8.0,
+      "cancelled": false
+    },
+    {
+      "stationId": "005514019",
+      "name": "Nyíregyháza",
+      "scheduledArrivalS": 89880,
+      "scheduledDepartureS": 90780,
+      "delayMin": 8.0,
+      "cancelled": false
+    },
+    {
+      "stationId": "005513912",
+      "name": "Debrecen",
+      "scheduledArrivalS": 93240,
+      "scheduledDepartureS": 93360,
+      "delayMin": 8.0,
+      "cancelled": false
+    },
+    {
+      "stationId": "005513748",
+      "name": "Szolnok",
+      "scheduledArrivalS": 99300,
+      "scheduledDepartureS": 101160,
+      "delayMin": null,
+      "cancelled": false
+    },
+    {
+      "stationId": "005510017",
+      "name": "Budapest-Keleti",
+      "scheduledArrivalS": 108000,
+      "scheduledDepartureS": 108000,
+      "delayMin": null,
+      "cancelled": false
+    }
+  ]
+}

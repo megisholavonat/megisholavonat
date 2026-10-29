@@ -421,7 +421,7 @@ export function StationSheetHeader({
                     <h2 className="min-w-0 flex-1 truncate text-title">
                         {station.name}
                     </h2>
-                    <StationHistoryLink stationId={station.id} />
+                    <StationHistoryLink station={station} />
                 </div>
                 <KindSwitch kind={kind} onChange={onKindChange} />
             </div>
@@ -489,17 +489,14 @@ export function StationPanel({
                     </h2>
                     {!wide && (
                         <StationHistoryLink
-                            stationId={station.id}
+                            station={station}
                             className="size-9"
                         />
                     )}
                 </div>
                 <KindSwitch kind={kind} onChange={onKindChange} />
                 {wide && (
-                    <StationHistoryLink
-                        stationId={station.id}
-                        className="size-9"
-                    />
+                    <StationHistoryLink station={station} className="size-9" />
                 )}
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto px-4">

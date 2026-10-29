@@ -8,6 +8,7 @@ import {
 import { fillMaxWidth } from "@expo/ui/jetpack-compose/modifiers";
 import { StyleSheet } from "react-native";
 import { dynamicColorSupported } from "../theme/dynamicColor";
+import { useAppTheme } from "../theme/ThemeProvider";
 import { ComposeHost } from "../ui/ComposeHost";
 import { useSettingsRows } from "./useSettingsRows";
 
@@ -49,6 +50,7 @@ function Choice<T extends string>({
  */
 export function SettingsScreen() {
     const s = useSettingsRows();
+    const theme = useAppTheme();
     return (
         <ComposeHost style={StyleSheet.absoluteFill}>
             <FieldGroup>
@@ -130,6 +132,15 @@ export function SettingsScreen() {
                         {s.t("railway_data")}
                     </ListItem>
                     <ListItem onPress={s.openSource}>{s.t("source")}</ListItem>
+                </FieldGroup.Section>
+                <FieldGroup.Section>
+                    <ListItem
+                        onPress={s.deleting ? undefined : s.deleteData}
+                        // Material's error red, as for destructive actions
+                        colors={{ contentColor: theme.delay.severe.text }}
+                    >
+                        {s.t("delete_data")}
+                    </ListItem>
                 </FieldGroup.Section>
             </FieldGroup>
         </ComposeHost>

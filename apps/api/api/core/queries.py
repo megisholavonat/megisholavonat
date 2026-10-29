@@ -201,6 +201,33 @@ ALERTS_QUERY = """
   }
 """
 
+# One trip's stops on one service date (YYYYMMDD), with their realtime state,
+# and its alerts: the timetable side of a run's delay summary
+RUN_TRIP_QUERY = """
+  query RunTrip($id: String!, $date: String!) {
+    trip(id: $id) {
+      gtfsId
+      tripShortName
+      route {
+        shortName
+      }
+      stoptimesForDate(serviceDate: $date) {
+        scheduledArrival
+        scheduledDeparture
+        realtimeState
+        stop {
+          gtfsId
+          stationUicPricingCode
+          name
+        }
+      }
+      alerts {
+        alertDescriptionText
+      }
+    }
+  }
+"""
+
 # Journeys between two rail stations. Upstream only supports the legacy `plan`
 # query (`planConnection` fails). Places are parent stations (`1:<UIC>`), so
 # no walk to or from the station is added. Times are in ms, delays in s.

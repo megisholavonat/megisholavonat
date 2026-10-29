@@ -26,6 +26,21 @@ async function stored(): Promise<string | null> {
     return credentials;
 }
 
+/** The stored `<deviceId>.<token>`, or null; a failed read throws. */
+export async function storedCredentials(): Promise<string | null> {
+    return stored();
+}
+
+/**
+ * Forgets the device on this phone (data deletion). The next follow
+ * registers a new one.
+ */
+export async function clearDevice(): Promise<void> {
+    await registering?.catch(() => {});
+    credentials = null;
+    await SecureStore.deleteItemAsync(KEY, OPTIONS);
+}
+
 /** Whether this install has registered a device yet. */
 export async function hasDevice(): Promise<boolean> {
     return (await stored()) !== null;

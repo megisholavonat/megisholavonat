@@ -13,11 +13,13 @@ import { getFollows } from "../follow/store";
 import { syncFollows } from "../follow/sync";
 import { I18nProvider } from "../i18n";
 import { notificationTarget } from "../notifications";
+import { retryPendingErasure } from "../privacy/erase";
 import { SettingsProvider } from "../settings/SettingsProvider";
 import { AppThemeProvider, useAppTheme } from "../theme/ThemeProvider";
 import { MNR2007_FONT } from "../train/RouteIcon";
 import { liquidGlass } from "../ui/platform";
 import { useAnalytics } from "../useAnalytics";
+import "../live/eraseHook";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -77,6 +79,11 @@ function AppStack() {
     useEffect(() => {
         syncFollows(locale);
     }, [locale]);
+
+    // "Delete my data" made offline reaches the API on a later launch
+    useEffect(() => {
+        retryPendingErasure();
+    }, []);
 
     const sheet = {
         presentation: "formSheet",

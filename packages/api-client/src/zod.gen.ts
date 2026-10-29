@@ -35,42 +35,6 @@ export const zAlertTrip = z.object({
 });
 
 /**
- * CommuteFollow
- */
-export const zCommuteFollow = z.object({
-    id: z.uuid(),
-    tripShortName: z.string(),
-    alertsEnabled: z.boolean(),
-    delayThresholdMin: z.int(),
-    notifyPlatformChange: z.boolean(),
-    createdAt: z.iso.datetime(),
-    updatedAt: z.iso.datetime(),
-    kind: z.literal('commute'),
-    weekdays: z.array(z.int()),
-    fromStationId: z.string(),
-    toStationId: z.string().nullable(),
-    label: z.string().nullable()
-});
-
-/**
- * CommuteFollowCreate
- *
- * Follow a train taken regularly. Train numbers are not unique within a day,
- * so the boarding station is required to pick the right trip.
- */
-export const zCommuteFollowCreate = z.object({
-    alertsEnabled: z.boolean().optional().default(true),
-    delayThresholdMin: z.int().gte(0).lte(240).optional().default(5),
-    notifyPlatformChange: z.boolean().optional().default(true),
-    kind: z.literal('commute'),
-    tripShortName: z.string().min(1).max(128),
-    weekdays: z.array(z.int().gte(1).lte(7)).min(1),
-    fromStationId: z.string().regex(/^\d{1,16}$/),
-    toStationId: z.string().regex(/^\d{1,16}$/).nullish(),
-    label: z.string().min(1).max(64).nullish()
-});
-
-/**
  * DelayReason
  *
  * A known delay reason of a train, parsed from its alert text. The label is
@@ -192,6 +156,27 @@ export const zDeviceInfo = z.object({
 });
 
 /**
+ * DirectoryStation
+ *
+ * A domestic station with regular service
+ */
+export const zDirectoryStation = z.object({
+    id: z.string(),
+    name: z.string()
+});
+
+/**
+ * DirectoryTrain
+ *
+ * A train number that runs regularly
+ */
+export const zDirectoryTrain = z.object({
+    trainNumber: z.string(),
+    tripShortName: z.string(),
+    routeShortName: z.string().nullish()
+});
+
+/**
  * DisruptionLine
  *
  * A line glyph to show, deduplicated across the affected routes
@@ -269,22 +254,6 @@ export const zExpoPushTokenCreate = z.object({
 });
 
 /**
- * FollowUpdate
- *
- * Partial update. Weekdays, stations and label only apply to commutes;
- * toStationId and label can be cleared with null.
- */
-export const zFollowUpdate = z.object({
-    alertsEnabled: z.boolean().nullish(),
-    delayThresholdMin: z.int().gte(0).lte(240).nullish(),
-    notifyPlatformChange: z.boolean().nullish(),
-    weekdays: z.array(z.int().gte(1).lte(7)).min(1).nullish(),
-    fromStationId: z.string().regex(/^\d{1,16}$/).nullish(),
-    toStationId: z.string().regex(/^\d{1,16}$/).nullish(),
-    label: z.string().min(1).max(64).nullish()
-});
-
-/**
  * HistoryWindow
  *
  * Service dates the statistics cover: the last `days` up to today
@@ -293,6 +262,18 @@ export const zHistoryWindow = z.object({
     start: z.iso.date(),
     end: z.iso.date(),
     days: z.int()
+});
+
+/**
+ * Directory
+ *
+ * Stations and train numbers with regular service in the window: the pages
+ * the website lists for search engines
+ */
+export const zDirectory = z.object({
+    window: zHistoryWindow,
+    stations: z.array(zDirectoryStation),
+    trains: z.array(zDirectoryTrain)
 });
 
 /**
@@ -344,6 +325,91 @@ export const zLiveActivityPushTokenCreate = z.object({
     type: z.literal('liveactivity'),
     token: z.string().regex(/^[0-9a-fA-F]{16,512}$/),
     followId: z.uuid()
+});
+
+/**
+ * LiveActivitySetup
+ *
+ * iOS: the follow's Live Activity, started by the API with a push some
+ * minutes before departure (iOS 17.2+). What the activity shows until the
+ * train is live, as the app saw the train when following it.
+ */
+export const zLiveActivitySetup = z.object({
+    badge: z.string().min(1).max(16),
+    title: z.string().min(1).max(128),
+    fromName: z.string().min(1).max(128),
+    toName: z.string().min(1).max(128),
+    departureS: z.int().gte(0).lte(172800),
+    arrivalS: z.int().gte(0).lte(172800).nullish(),
+    platform: z.string().min(1).max(16).nullish()
+});
+
+/**
+ * CommuteFollow
+ */
+export const zCommuteFollow = z.object({
+    id: z.uuid(),
+    tripShortName: z.string(),
+    alertsEnabled: z.boolean(),
+    delayThresholdMin: z.int(),
+    notifyPlatformChange: z.boolean(),
+    liveActivity: zLiveActivitySetup.nullish(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    kind: z.literal('commute'),
+    weekdays: z.array(z.int()),
+    fromStationId: z.string(),
+    toStationId: z.string().nullable(),
+    label: z.string().nullable()
+});
+
+/**
+ * CommuteFollowCreate
+ *
+ * Follow a train taken regularly. Train numbers are not unique within a day,
+ * so the boarding station is required to pick the right trip.
+ */
+export const zCommuteFollowCreate = z.object({
+    alertsEnabled: z.boolean().optional().default(true),
+    delayThresholdMin: z.int().gte(0).lte(240).optional().default(5),
+    notifyPlatformChange: z.boolean().optional().default(true),
+    liveActivity: zLiveActivitySetup.nullish(),
+    kind: z.literal('commute'),
+    tripShortName: z.string().min(1).max(128),
+    weekdays: z.array(z.int().gte(1).lte(7)).min(1),
+    fromStationId: z.string().regex(/^\d{1,16}$/),
+    toStationId: z.string().regex(/^\d{1,16}$/).nullish(),
+    label: z.string().min(1).max(64).nullish()
+});
+
+/**
+ * FollowUpdate
+ *
+ * Partial update. Weekdays, stations and label only apply to commutes;
+ * toStationId, label and liveActivity can be cleared with null.
+ */
+export const zFollowUpdate = z.object({
+    alertsEnabled: z.boolean().nullish(),
+    delayThresholdMin: z.int().gte(0).lte(240).nullish(),
+    notifyPlatformChange: z.boolean().nullish(),
+    weekdays: z.array(z.int().gte(1).lte(7)).min(1).nullish(),
+    fromStationId: z.string().regex(/^\d{1,16}$/).nullish(),
+    toStationId: z.string().regex(/^\d{1,16}$/).nullish(),
+    label: z.string().min(1).max(64).nullish(),
+    liveActivity: zLiveActivitySetup.nullish()
+});
+
+/**
+ * LiveActivityStartTokenCreate
+ *
+ * The device's ActivityKit push-to-start token (iOS 17.2+). The API starts
+ * the Live Activity of a follow with `liveActivity` set with it shortly
+ * before departure; the started activity's own token is then registered as
+ * `liveactivity`. A device has one: registering another replaces it.
+ */
+export const zLiveActivityStartTokenCreate = z.object({
+    type: z.literal('liveactivity_start'),
+    token: z.string().regex(/^[0-9a-fA-F]{16,512}$/)
 });
 
 /**
@@ -446,7 +512,11 @@ export const zPosthogKey = z.object({
  */
 export const zPushToken = z.object({
     id: z.uuid(),
-    type: z.enum(['expo', 'liveactivity']),
+    type: z.enum([
+        'expo',
+        'liveactivity',
+        'liveactivity_start'
+    ]),
     followId: z.uuid().nullable(),
     createdAt: z.iso.datetime()
 });
@@ -507,6 +577,39 @@ export const zRoute = z.object({
     textColor: z.string(),
     shortName: z.string(),
     longName: z.string()
+});
+
+/**
+ * RunStop
+ *
+ * A stop of the run, with our GPS-derived delay where it was recorded
+ */
+export const zRunStop = z.object({
+    stationId: z.string(),
+    name: z.string(),
+    scheduledArrivalS: z.int().nullish(),
+    scheduledDepartureS: z.int().nullish(),
+    delayMin: z.number().nullish(),
+    cancelled: z.boolean().optional().default(false)
+});
+
+/**
+ * RunSummary
+ *
+ * One run of a train on one service date, from the delay history (and the
+ * timetable for the stops the recorder did not see)
+ */
+export const zRunSummary = z.object({
+    trainNumber: z.string(),
+    tripShortName: z.string(),
+    routeShortName: z.string().nullish(),
+    lineName: z.string().nullish(),
+    serviceDate: z.iso.date(),
+    stops: z.array(zRunStop),
+    complete: z.boolean(),
+    cancelled: z.boolean(),
+    finished: z.boolean(),
+    reason: zDelayReason.nullish()
 });
 
 /**
@@ -761,6 +864,7 @@ export const zTripFollow = z.object({
     alertsEnabled: z.boolean(),
     delayThresholdMin: z.int(),
     notifyPlatformChange: z.boolean(),
+    liveActivity: zLiveActivitySetup.nullish(),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
     kind: z.literal('trip'),
@@ -779,6 +883,7 @@ export const zTripFollowCreate = z.object({
     alertsEnabled: z.boolean().optional().default(true),
     delayThresholdMin: z.int().gte(0).lte(240).optional().default(5),
     notifyPlatformChange: z.boolean().optional().default(true),
+    liveActivity: zLiveActivitySetup.nullish(),
     kind: z.literal('trip'),
     tripId: z.string().min(1).max(128),
     serviceDate: z.iso.date(),
@@ -1051,7 +1156,8 @@ export const zRotateDeviceTokenResponse = zDeviceCredentials;
  */
 export const zRegisterPushTokenBody = z.discriminatedUnion('type', [
     zExpoPushTokenCreate.extend({ type: z.literal('expo') }),
-    zLiveActivityPushTokenCreate.extend({ type: z.literal('liveactivity') })
+    zLiveActivityPushTokenCreate.extend({ type: z.literal('liveactivity') }),
+    zLiveActivityStartTokenCreate.extend({ type: z.literal('liveactivity_start') })
 ]);
 
 /**
@@ -1162,6 +1268,29 @@ export const zGetStationPlatformsQuery = z.object({
  * Successful Response
  */
 export const zGetStationPlatformsResponse = zStationPlatforms;
+
+export const zGetDirectoryQuery = z.object({
+    days: z.int().gte(1).lte(365).optional().default(28)
+});
+
+/**
+ * Successful Response
+ */
+export const zGetDirectoryResponse = zDirectory;
+
+export const zGetRunSummaryPath = z.object({
+    trainNumber: z.string().regex(/^[0-9A-Za-z]{1,12}$/),
+    serviceDate: z.iso.date()
+});
+
+export const zGetRunSummaryQuery = z.object({
+    from: z.string().regex(/^[0-9]{1,12}$/).nullish()
+});
+
+/**
+ * Successful Response
+ */
+export const zGetRunSummaryResponse = zRunSummary;
 
 export const zGetRankingsQuery = z.object({
     kind: z.enum([

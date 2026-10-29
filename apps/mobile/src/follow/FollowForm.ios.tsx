@@ -195,6 +195,13 @@ export function FollowForm({ form }: { form: Form_ }) {
                                 isOn={draft.notifyPlatformChange}
                                 onIsOnChange={form.setPlatform}
                             />
+                            {form.liveActivityOffered ? (
+                                <Toggle
+                                    label={t("live_activity")}
+                                    isOn={draft.liveActivity}
+                                    onIsOnChange={form.setLiveActivity}
+                                />
+                            ) : null}
                         </Section>
                         {form.existing ? (
                             <Section>

@@ -1,5 +1,3 @@
-export { stationName, trainTitle } from "@/lib/stats/lookup";
-
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { subpageMetadata } from "@/lib/og/metadata";
@@ -26,13 +24,24 @@ export async function statsMetadata({
 }): Promise<Metadata> {
     const t = await getTranslations({ locale, namespace: "Stats" });
     const tHome = await getTranslations({ locale, namespace: "Home" });
-    return subpageMetadata({
-        locale,
-        origin: siteUrl(),
-        appTitle: tHome("app_title"),
-        path,
-        title: title ?? t("title"),
-        description: description ?? t("description"),
-        missing,
-    });
+    const origin = siteUrl();
+    return {
+        ...subpageMetadata({
+            locale,
+            origin,
+            appTitle: tHome("app_title"),
+            path,
+            title: title ?? t("title"),
+            description: description ?? t("description"),
+            missing,
+        }),
+        alternates: {
+            canonical: `${origin}/${locale}${path}`,
+            languages: {
+                hu: `${origin}/hu${path}`,
+                en: `${origin}/en${path}`,
+                "x-default": `${origin}/hu${path}`,
+            },
+        },
+    };
 }

@@ -98,6 +98,26 @@ test("a search sends lengths and counts, never the query", async ({
     }
 });
 
+test("station and train pages count as stats views", async ({
+    page,
+    events,
+}) => {
+    await page.goto("/hu/allomas/szolnok");
+    expect(await waitFor(events, "stats_viewed")).toMatchObject({
+        kind: "station",
+        station_id: STATIONS.szolnok.id,
+        days: expect.any(Number),
+    });
+
+    events.length = 0;
+    await page.goto("/hu/vonat/8");
+    expect(await waitFor(events, "stats_viewed")).toMatchObject({
+        kind: "train",
+        train_number: "8",
+        days: expect.any(Number),
+    });
+});
+
 test.describe("consent", () => {
     test.use({ consent: "pending" });
 

@@ -116,7 +116,16 @@
         "map_data_value": "© OpenStreetMap",
         "railway_data_value": "© OpenRailwayMap",
         "railway_data": "Részletes vasúti térkép",
-        "source": "GitHub"
+        "source": "GitHub",
+        "delete_data": "Adataim törlése",
+        "delete_title": "Törlöd az adataidat?",
+        "delete_body": "A követett vonataid és az értesítések törlődnek a szerverről és erről a telefonról, a statisztikai hozzájárulásoddal együtt.",
+        "delete_confirm": "Törlés",
+        "cancel": "Mégse",
+        "deleted_title": "Adataid törölve",
+        "deleted_body": "Mindent töröltünk, amit erről a telefonról tároltunk.",
+        "deleted_pending": "Erről a telefonról töröltük. Most nincs internet, ezért a szerverről az app következő indításakor töröljük.",
+        "delete_failed": "Nem sikerült törölni. Próbáld újra."
     },
     "Follow": {
         "title": "Követés",
@@ -142,7 +151,8 @@
         "unfollow": "Követés leállítása",
         "error": "Nem sikerült menteni",
         "channel": "Vonatriasztások",
-        "stop_time": "{name} {time}"
+        "stop_time": "{name} {time}",
+        "live_activity": "Élő tevékenység"
     },
     "Journey": {
         "title": "Útvonal",
@@ -173,5 +183,9 @@
         "sort_delay": "Késés",
         "sort_number": "Szám",
         "empty": "Most nem jár vonat"
+    },
+    "DelayCard": {
+        "share": "Megosztom a késést",
+        "share_so_far": "Késés megosztása eddig"
     }
 }

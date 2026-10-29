@@ -9,6 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.core.config import settings
 from api.models.devices import Device, Follow, NotificationState, PushToken
 from api.models.history import Stop, StopDelayObservation
 from api.services import insights, push_alerts
@@ -22,6 +23,9 @@ from api.services.push_alerts import (
     decide,
     evaluate_alerts,
     find_train_ahead,
+    live_activity_content,
+    live_activity_due,
+    live_activity_relevance,
     platform_of_stop,
     receipts_key,
     train_label,
@@ -657,28 +661,135 @@ async def test_live_activity_updates_and_ends(
     [update] = live_activity.sent
     assert update.event == "update"
     assert update.alert == ("S70 · +12 perc · Kelenföld 14:32", None)
-    assert update.content_state["delayMin"] == 12
-    assert update.content_state["platform"] == "3"
-    assert update.content_state["nextStop"] == "Kelenföld"
-    # 15:30 + 12 minutes in Budapest
-    assert update.content_state["eta"] == int(
-        datetime.fromisoformat("2026-10-27T15:42:00+01:00").timestamp()
-    )
+    assert update.stale_date == int(NOW.timestamp()) + 10 * 60
+    # Departing 14:44 at 14:00
+    assert update.relevance_score == 56.0
+    # Before departure: the boarding station, its expected departure
+    assert update.content_state == {
+        "delayMin": 12,
+        "nextStop": "Kelenföld",
+        "nextStopAt": budapest("2026-10-27T14:44"),
+        "platform": "3",
+        "platformSure": True,
+        "eta": budapest("2026-10-27T15:42"),
+        "progress": 0.0,
+        "departed": False,
+    }
 
-    # Same content: no update; moved on: silent update
+    # Same content: no update; moved on: silent update at once
     await run(db_session, redis, senders, NOW + MIN)
     assert len(live_activity.sent) == 1
     await set_live(redis, location(delay=13, passed=1))
     await run(db_session, redis, senders, NOW + 2 * MIN)
-    assert live_activity.sent[-1].alert is None
-    assert live_activity.sent[-1].content_state["nextStop"] == "Érd"
+    last = live_activity.sent[-1]
+    assert last.alert is None
+    assert last.relevance_score == 100.0
+    assert last.content_state["nextStop"] == "Érd"
+    assert last.content_state["nextStopAt"] == budapest("2026-10-27T14:58")
+    assert last.content_state["platform"] == "2"
+    assert last.content_state["departed"] is True
 
     # Past the alighting station: end, and the token is gone
     await set_live(redis, location(delay=13, passed=3))
     await run(db_session, redis, senders, NOW + 60 * MIN)
     assert live_activity.sent[-1].event == "end"
+    assert live_activity.sent[-1].content_state["progress"] == 1.0
     assert await db_session.get(PushToken, la.id, populate_existing=True) is None
     assert expo.sent == []
+
+
+def budapest(local: str) -> int:
+    return int(datetime.fromisoformat(f"{local}+01:00").timestamp())
+
+
+async def test_live_activity_progress_is_throttled(
+    db_session: AsyncSession,
+    redis: fakeredis.FakeAsyncRedis,
+    senders: Senders,
+    live_activity: FakeLiveActivity,
+) -> None:
+    device = await add_device(db_session)
+    follow = await follow_trip(db_session, device, delay_threshold_min=30)
+    await add_token(db_session, device, LA_TOKEN, follow)
+    # On board between Érd (14:45) and Székesfehérvár (15:30), on time
+    await set_live(redis, location(delay=0, passed=2))
+    start = datetime.fromisoformat("2026-10-27T15:00:00+01:00")
+
+    await run(db_session, redis, senders, start)
+    assert len(live_activity.sent) == 1
+    assert live_activity.sent[-1].content_state["progress"] == 0.48
+    # Only the progress moved: held for a minute
+    await run(db_session, redis, senders, start + timedelta(seconds=30))
+    assert len(live_activity.sent) == 1
+    await run(db_session, redis, senders, start + MIN)
+    assert len(live_activity.sent) == 2
+    assert live_activity.sent[-1].content_state["progress"] == 0.5
+    # A new delay goes out at once
+    await set_live(redis, location(delay=2, passed=2))
+    await run(db_session, redis, senders, start + MIN + timedelta(seconds=20))
+    assert len(live_activity.sent) == 3
+    assert live_activity.sent[-1].content_state["delayMin"] == 2
+
+
+async def test_live_activity_kill_switch(
+    db_session: AsyncSession,
+    redis: fakeredis.FakeAsyncRedis,
+    senders: Senders,
+    expo: FakeExpo,
+    live_activity: FakeLiveActivity,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "LIVE_ACTIVITY_PUSH_ENABLED", False)
+    device = await add_device(db_session)
+    await add_token(db_session, device)
+    follow = await follow_trip(db_session, device)
+    await add_token(db_session, device, LA_TOKEN, follow)
+    await set_live(redis, location(delay=12, passed=-1))
+
+    await run(db_session, redis, senders)
+    # The alert goes out as a notification instead
+    assert live_activity.sent == []
+    assert len(expo.sent) == 1
+
+
+def observation(**kw: Any) -> Observation:
+    values: dict[str, Any] = {
+        "trip_id": "1:s70",
+        "service_date": TODAY,
+        "context": TrainContext("S70", "Kelenföld", "14:32"),
+        "delay_min": 3,
+        "platform": None,
+        "scheduled_platform": None,
+        "departed": False,
+        "finished": False,
+        "next_stop": "Kelenföld",
+        "next_stop_at": 1_800_000_000,
+    }
+    return Observation(**{**values, **kw})
+
+
+def test_live_activity_platform_guess_and_relevance() -> None:
+    # Only the usual platform: shown as a guess
+    content = live_activity_content(observation(scheduled_platform="4"))
+    assert (content["platform"], content["platformSure"]) == ("4", False)
+    content = live_activity_content(observation(platform="5", scheduled_platform="4"))
+    assert (content["platform"], content["platformSure"]) == ("5", True)
+    # Negative delays show as on time
+    assert live_activity_content(observation(delay_min=-2))["delayMin"] == 0
+
+    soon = observation(next_stop_at=1_800_000_000)
+    assert live_activity_relevance(soon, 1_800_000_000 - 10 * 60) == 90.0
+    assert live_activity_relevance(soon, 1_800_000_000 - 5 * 3600) == 1.0
+    assert live_activity_relevance(observation(departed=True), 0) == 100.0
+
+
+def test_live_activity_due() -> None:
+    a = {"delayMin": 1, "nextStop": "Érd", "progress": 0.1}
+    assert live_activity_due(a, None, None, 100)
+    assert not live_activity_due(a, a, 0, 1000)
+    assert not live_activity_due({**a, "progress": 0.2}, a, 50, 100)
+    assert live_activity_due({**a, "progress": 0.2}, a, 40, 100)
+    assert live_activity_due({**a, "delayMin": 2}, a, 99, 100)
 
 
 async def test_one_failing_follow_does_not_stop_others(

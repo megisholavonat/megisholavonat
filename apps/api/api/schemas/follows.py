@@ -29,6 +29,32 @@ def _strip_name(v: str) -> str:
     return v
 
 
+ShortText = Annotated[str, Field(min_length=1, max_length=128)]
+# Seconds since midnight of the service date (above 86400 past midnight)
+ServiceSeconds = Annotated[int, Field(ge=0, le=2 * 86400)]
+
+
+class LiveActivitySetup(BaseModel):
+    """
+    iOS: the follow's Live Activity, started by the API with a push some
+    minutes before departure (iOS 17.2+). What the activity shows until the
+    train is live, as the app saw the train when following it.
+    """
+
+    # Line badge, e.g. "S70" or "IC"
+    badge: Annotated[str, Field(min_length=1, max_length=16)]
+    # e.g. "2423 → Vác"
+    title: ShortText
+    fromName: ShortText
+    toName: ShortText
+    # Scheduled departure from the boarding station and arrival at the
+    # alighting station; commutes repeat them on their weekdays
+    departureS: ServiceSeconds
+    arrivalS: ServiceSeconds | None = None
+    # Platform at the boarding station (a commute's may change from day to day)
+    platform: Annotated[str, Field(min_length=1, max_length=16)] | None = None
+
+
 class AlertPrefs(BaseModel):
     """Alert preferences of a follow"""
 
@@ -36,6 +62,8 @@ class AlertPrefs(BaseModel):
     # Alert when the train is more than this many minutes late
     delayThresholdMin: DelayThreshold = DEFAULT_DELAY_THRESHOLD_MIN
     notifyPlatformChange: bool = True
+    # iOS: start the follow's Live Activity by push; null or absent: don't
+    liveActivity: LiveActivitySetup | None = None
 
 
 class TripFollowCreate(AlertPrefs):
@@ -77,7 +105,7 @@ FollowCreate = Annotated[
 class FollowUpdate(BaseModel):
     """
     Partial update. Weekdays, stations and label only apply to commutes;
-    toStationId and label can be cleared with null.
+    toStationId, label and liveActivity can be cleared with null.
     """
 
     alertsEnabled: bool | None = None
@@ -87,6 +115,7 @@ class FollowUpdate(BaseModel):
     fromStationId: StationId | None = None
     toStationId: StationId | None = None
     label: Label | None = None
+    liveActivity: LiveActivitySetup | None = None
 
     _weekdays = field_validator("weekdays")(_normalize_weekdays)
 
@@ -97,6 +126,7 @@ class FollowBase(BaseModel):
     alertsEnabled: bool
     delayThresholdMin: int
     notifyPlatformChange: bool
+    liveActivity: LiveActivitySetup | None = None
     createdAt: datetime
     updatedAt: datetime
 

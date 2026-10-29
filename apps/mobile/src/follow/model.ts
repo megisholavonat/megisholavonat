@@ -10,6 +10,10 @@ import {
     tripRun,
 } from "@megisholavonat/core/commute";
 import {
+    recentRun,
+    SHARE_RUN_WITHIN_S,
+} from "@megisholavonat/core/delaySummary";
+import {
     budapestDate,
     effectiveServiceDate,
     serviceDayStart,
@@ -61,6 +65,8 @@ export interface LocalFollow {
     vehicleId: string | null;
     delayThresholdMin: number;
     notifyPlatformChange: boolean;
+    /** iOS: show the run on the lock screen as a Live Activity (local only) */
+    liveActivity?: boolean;
 }
 
 /** What the follow screen edits. */
@@ -70,6 +76,7 @@ export interface FollowDraft {
     to: number;
     delayThresholdMin: number;
     notifyPlatformChange: boolean;
+    liveActivity: boolean;
 }
 
 /** UIC station code of a stop, as the API derives it (util/stop.py). */
@@ -113,6 +120,7 @@ export function defaultDraft(details: VehiclePositionWithDelay): FollowDraft {
         to: count - 1,
         delayThresholdMin: DEFAULT_THRESHOLD_MIN,
         notifyPlatformChange: true,
+        liveActivity: false,
     };
 }
 
@@ -123,6 +131,7 @@ export function draftOf(follow: LocalFollow): FollowDraft {
         to: follow.to,
         delayThresholdMin: follow.delayThresholdMin,
         notifyPlatformChange: follow.notifyPlatformChange,
+        liveActivity: follow.liveActivity ?? false,
     };
 }
 
@@ -141,7 +150,7 @@ export function toggleWeekday(weekdays: number[], day: number): number[] {
 export function createBody(
     train: Pick<LocalFollow, "tripShortName" | "stops" | "tripId">,
     serviceDate: string | null,
-    draft: FollowDraft,
+    draft: Omit<FollowDraft, "liveActivity">,
 ): TripFollowCreate | CommuteFollowCreate | null {
     const from = train.stops[draft.from];
     const to = train.stops[draft.to];
@@ -246,6 +255,38 @@ export function nextRun(
         departure: runOn(serviceDate),
         dayOffset: occurrence.daysAhead,
     };
+}
+
+/**
+ * The service date of the follow's run that left its boarding stop most
+ * recently (within core's SHARE_RUN_WITHIN_S), for sharing its delay; null
+ * before it leaves.
+ */
+export function recentRunDate(
+    follow: LocalFollow,
+    now: Date = new Date(),
+): string | null {
+    const board = follow.stops[follow.from];
+    if (!board) return null;
+    if (follow.kind === "trip") {
+        if (!follow.serviceDate) return null;
+        const run = tripRun(
+            asTrip(follow, follow.serviceDate),
+            board.time,
+            now,
+        );
+        const ago = now.getTime() / 1000 - run.at;
+        return ago >= 0 && ago <= SHARE_RUN_WITHIN_S ? run.serviceDate : null;
+    }
+    const daysPast = Math.floor(board.time / DAY_S);
+    const run = recentRun(
+        {
+            weekdays: follow.weekdays,
+            departureS: board.time - daysPast * DAY_S,
+        },
+        now,
+    );
+    return run ? shiftDate(run.date, -daysPast) : null;
 }
 
 /** A follow's stops as a trip's stoptimes, for the service-day resolution. */
@@ -373,7 +414,8 @@ function isFollow(value: unknown): value is LocalFollow {
         Array.isArray(v.weekdays) &&
         v.weekdays.every((d) => Number.isInteger(d) && d >= 1 && d <= 7) &&
         typeof v.delayThresholdMin === "number" &&
-        typeof v.notifyPlatformChange === "boolean"
+        typeof v.notifyPlatformChange === "boolean" &&
+        (v.liveActivity === undefined || typeof v.liveActivity === "boolean")
     );
 }
 

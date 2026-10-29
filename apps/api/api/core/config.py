@@ -53,6 +53,14 @@ class Settings(BaseSettings):
     APNS_PRIVATE_KEY: str | None = None
     APNS_BUNDLE_ID: str | None = None
     APNS_USE_SANDBOX: bool = False
+    # Kill switch for Live Activity pushes. Off: follows with a Live Activity
+    # get their alerts as Expo notifications, and the activities go stale.
+    LIVE_ACTIVITY_PUSH_ENABLED: bool = True
+    # iOS 17.2+: start a follow's Live Activity by push (push-to-start) this
+    # many minutes before departure. Off: only the app starts them, from the
+    # foreground. Needs LIVE_ACTIVITY_PUSH_ENABLED too.
+    LIVE_ACTIVITY_PUSH_TO_START_ENABLED: bool = True
+    LIVE_ACTIVITY_START_WINDOW_MIN: int = 40
     # Push tokens failing this many times in a row are deleted by housekeeping
     PUSH_TOKEN_MAX_FAILURES: int = 10
 

@@ -44,6 +44,9 @@ APNS_JWT_TTL_S = 50 * 60
 APNS_CONCURRENCY = 20
 # APNs reasons meaning the token will never work again
 APNS_GONE_REASONS = frozenset({"BadDeviceToken", "Unregistered", "ExpiredToken"})
+# APNs reasons meaning "too many": the token (TooManyRequests) or the provider
+# token (TooManyProviderTokenUpdates) needs a pause
+APNS_THROTTLE_REASONS = frozenset({"TooManyRequests", "TooManyProviderTokenUpdates"})
 
 TIMEOUT = httpx.Timeout(15.0, connect=5.0)
 
@@ -56,6 +59,8 @@ class Outcome(StrEnum):
     UNREGISTERED = "unregistered"
     # Not sent: the sender has no credentials
     SKIPPED = "skipped"
+    # APNs asked to slow down (429); try again later
+    THROTTLED = "throttled"
 
 
 @dataclass(frozen=True, slots=True)
@@ -80,14 +85,20 @@ class ExpoMessage:
 class LiveActivityMessage:
     token_id: uuid.UUID
     token: str
-    event: Literal["update", "end"]
+    event: Literal["start", "update", "end"]
     content_state: dict[str, Any]
     # Unix seconds; APNs drops updates older than the last one it delivered
     timestamp: int
+    # event = start (push-to-start): the ActivityAttributes type name in the
+    # app and its static attributes
+    attributes_type: str | None = None
+    attributes: dict[str, Any] | None = None
     # Shown as a banner with the update (title, body)
     alert: tuple[str, str | None] | None = None
     stale_date: int | None = None
     dismissal_date: int | None = None
+    # Orders this app's activities in the Dynamic Island (higher first)
+    relevance_score: float | None = None
 
 
 class PushSender[M](Protocol):
@@ -250,10 +261,19 @@ def live_activity_payload(message: LiveActivityMessage) -> dict[str, Any]:
         aps["stale-date"] = message.stale_date
     if message.dismissal_date is not None:
         aps["dismissal-date"] = message.dismissal_date
+    if message.relevance_score is not None:
+        aps["relevance-score"] = message.relevance_score
+    if message.event == "start":
+        aps["attributes-type"] = message.attributes_type
+        aps["attributes"] = message.attributes or {}
+        # Ask for the started activity's own token (update / end pushes)
+        aps["input-push-token"] = 1
     if message.alert is not None:
         title, body = message.alert
         aps["alert"] = {"title": title, "body": body or ""}
-        aps["sound"] = "default"
+        # A start is announced without a sound: the activity itself is the news
+        if message.event != "start":
+            aps["sound"] = "default"
     return {"aps": aps}
 
 
@@ -339,9 +359,15 @@ class ApnsLiveActivitySender:
                 "apns-push-type": "liveactivity",
                 "apns-topic": f"{self.bundle_id}.push-type.liveactivity",
                 # 10 wakes the device and counts against the activity's
-                # budget, so only updates carrying an alert or the end use it
-                "apns-priority": "10" if m.alert or m.event == "end" else "5",
+                # budget, so only a start, the end and updates carrying an
+                # alert use it
+                "apns-priority": "10"
+                if m.alert or m.event in ("start", "end")
+                else "5",
             }
+            # An update held for an offline phone is worthless once stale
+            if m.stale_date is not None:
+                headers["apns-expiration"] = str(m.stale_date)
             response = await self._http().post(
                 f"{self.host}/3/device/{m.token}",
                 json=live_activity_payload(m),
@@ -361,7 +387,10 @@ class ApnsLiveActivitySender:
             self._jwt = None
         if response.status_code == 410 or reason in APNS_GONE_REASONS:
             return SendResult(m.token_id, Outcome.UNREGISTERED, reason)
-        logger.warning(f"APNs rejected a Live Activity update: {reason}")
+        if response.status_code == 429 or reason in APNS_THROTTLE_REASONS:
+            logger.warning(f"APNs throttled a Live Activity push: {reason}")
+            return SendResult(m.token_id, Outcome.THROTTLED, reason)
+        logger.warning(f"APNs rejected a Live Activity {m.event}: {reason}")
         return SendResult(m.token_id, Outcome.FAILED, reason)
 
     async def aclose(self) -> None:

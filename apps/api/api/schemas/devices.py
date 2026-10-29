@@ -70,8 +70,21 @@ class LiveActivityPushTokenCreate(BaseModel):
     followId: uuid.UUID
 
 
+class LiveActivityStartTokenCreate(BaseModel):
+    """
+    The device's ActivityKit push-to-start token (iOS 17.2+). The API starts
+    the Live Activity of a follow with `liveActivity` set with it shortly
+    before departure; the started activity's own token is then registered as
+    `liveactivity`. A device has one: registering another replaces it.
+    """
+
+    type: Literal["liveactivity_start"]
+    token: LiveActivityToken
+
+
 PushTokenCreate = Annotated[
-    ExpoPushTokenCreate | LiveActivityPushTokenCreate, Field(discriminator="type")
+    ExpoPushTokenCreate | LiveActivityPushTokenCreate | LiveActivityStartTokenCreate,
+    Field(discriminator="type"),
 ]
 
 
@@ -79,6 +92,6 @@ class PushToken(BaseModel):
     """A registered push token; the token itself is not echoed back"""
 
     id: uuid.UUID
-    type: Literal["expo", "liveactivity"]
+    type: Literal["expo", "liveactivity", "liveactivity_start"]
     followId: uuid.UUID | None
     createdAt: datetime

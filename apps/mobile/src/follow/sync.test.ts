@@ -96,6 +96,7 @@ const draft = {
     to: 1,
     delayThresholdMin: 5,
     notifyPlatformChange: true,
+    liveActivity: false,
 };
 const follow = (id: string): LocalFollow => ({
     ...train,
