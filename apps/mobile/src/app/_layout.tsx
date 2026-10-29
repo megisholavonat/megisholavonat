@@ -20,6 +20,10 @@ import { liquidGlass } from "../ui/platform";
 
 SplashScreen.preventAutoHideAsync();
 
+// A link or an alert straight to a train or station still opens over the
+// map, so closing its sheet goes back to the map rather than nowhere
+export const unstable_settings = { anchor: "index" };
+
 const ios = Platform.OS === "ios";
 
 /**
