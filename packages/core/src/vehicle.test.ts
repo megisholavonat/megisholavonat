@@ -1,6 +1,7 @@
 import type { VehiclePositionWithDelay } from "@megisholavonat/api-client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { dataAppearsFalsified, isActive } from "./vehicle";
+import { STALE_GREY_AFTER_S, STALE_HIDE_AFTER_S } from "./constants";
+import { dataAppearsFalsified, isActive, isStale } from "./vehicle";
 
 function stoptime(scheduled: number, realtime: number) {
     return {
@@ -124,5 +125,24 @@ describe("isActive", () => {
     ])("across the spring DST change at %s", (now, active) => {
         const train = atOrigin("2026-03-28", 27 * 3600);
         expect(isActive(train, cest(now))).toBe(active);
+    });
+});
+
+describe("isStale", () => {
+    const now = new Date("2026-08-14T08:00:00Z");
+    const updatedAgo = (seconds: number) =>
+        ({
+            lastUpdated: now.getTime() / 1000 - seconds,
+        }) as unknown as VehiclePositionWithDelay;
+
+    it("greys after 5 minutes and the API hides after 30", () => {
+        expect(STALE_GREY_AFTER_S).toBe(300);
+        expect(STALE_HIDE_AFTER_S).toBe(1800);
+    });
+
+    it("is stale only after STALE_GREY_AFTER_S without an update", () => {
+        expect(isStale(updatedAgo(60), now)).toBe(false);
+        expect(isStale(updatedAgo(STALE_GREY_AFTER_S), now)).toBe(false);
+        expect(isStale(updatedAgo(STALE_GREY_AFTER_S + 1), now)).toBe(true);
     });
 });

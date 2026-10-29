@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DELAY_COLORS, getDelayLevel } from "./delay";
+import { DELAY_COLORS, getDelayLevel, NO_DATA_COLOR } from "./delay";
 
 describe("getDelayLevel", () => {
     it.each([
@@ -18,12 +18,13 @@ describe("getDelayLevel", () => {
 });
 
 describe("DELAY_COLORS", () => {
-    it("keeps the map colours", () => {
+    it("uses the design-system light fills", () => {
         expect(DELAY_COLORS).toEqual({
-            onTime: "#4AD94A",
-            slight: "#E4DE3A",
-            moderate: "#DF9227",
-            severe: "#D9564A",
+            onTime: "#1A6CCF",
+            slight: "#F2C230",
+            moderate: "#E5660B",
+            severe: "#C41E16",
         });
+        expect(NO_DATA_COLOR).toBe("#9AA0A8");
     });
 });
