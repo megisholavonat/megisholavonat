@@ -3,10 +3,11 @@ import { expect, openHome, STATIONS, t, test } from "./support/test";
 
 async function pick(page: Page, field: string, query: string, name: string) {
     const input = page.getByRole("searchbox", { name: field });
-    // The first empty field opens in edit mode
-    if (!(await input.isVisible())) {
-        await page.getByRole("button", { name: field, exact: true }).click();
-    }
+    const button = page.getByRole("button", { name: field, exact: true });
+    // The first empty field opens in edit mode. The planner loads on
+    // demand, so wait for either before choosing
+    await expect(input.or(button).first()).toBeVisible();
+    if (!(await input.isVisible())) await button.click();
     await input.fill(query);
     await page.getByRole("button", { name, exact: true }).click();
     await expect(
