@@ -38,6 +38,7 @@ from api.services.live_trips import (
 )
 from api.services.station_board import keep_best
 from api.services.station_index import RAIL_FEED, load_station_index
+from api.util.delay import to_minutes
 from api.util.ticket import ticket_url
 from api.util.time import BUDAPEST_TZ
 from api.util.trip import train_number
@@ -186,10 +187,6 @@ def _feed(leg: dict[str, Any]) -> str:
     return str(gtfs_id).partition(":")[0]
 
 
-def _minutes(seconds: int) -> int:
-    return round(seconds / 60)
-
-
 def _transfers(legs: list[JourneyLeg], interlined: list[bool]) -> list[Transfer]:
     """
     One transfer per pair of consecutive trains, including any walk or city
@@ -209,10 +206,10 @@ def _transfers(legs: list[JourneyLeg], interlined: list[bool]) -> list[Transfer]
                     fromLeg=previous,
                     toLeg=i,
                     station=arriving.toStop.name,
-                    transferMinutes=_minutes(
+                    transferMinutes=to_minutes(
                         leg.scheduledDeparture - arriving.scheduledArrival
                     ),
-                    expectedTransferMinutes=_minutes(
+                    expectedTransferMinutes=to_minutes(
                         leg.expectedDeparture - arriving.expectedArrival
                     ),
                 )
@@ -296,7 +293,7 @@ def _itinerary(
         expectedDeparture=begin[1],
         scheduledArrival=finish[2],
         expectedArrival=finish[3],
-        durationMinutes=_minutes(finish[2] - begin[0]),
+        durationMinutes=to_minutes(finish[2] - begin[0]),
         transferCount=len(transfers),
         legs=legs,
         transfers=transfers,
