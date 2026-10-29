@@ -5,6 +5,10 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import type * as React from "react";
 import { getQueryClient } from "@/clients/query";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
+import { rememberLanding } from "@/lib/landing";
+
+// Before any client navigation: the stats back button needs the first page
+rememberLanding();
 
 export default function Providers({ children }: { children: React.ReactNode }) {
     const queryClient = getQueryClient();

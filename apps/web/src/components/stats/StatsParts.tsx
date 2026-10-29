@@ -8,6 +8,7 @@ import { parseAsInteger, useQueryState } from "nuqs";
 import { type ReactNode, useId } from "react";
 import { FILL_CLASS, type Level, TINT_CLASS } from "@/components/ui/Delay";
 import { useRouter } from "@/i18n/navigation";
+import { cameFromApp } from "@/lib/landing";
 import { cn } from "@/lib/utils";
 
 /** Service dates the statistics look back on, as the API defaults to */
@@ -137,12 +138,9 @@ export function StatsHeader({
     const t = useTranslations("Stats");
     const router = useRouter();
     const back = () => {
-        // Back to wherever the page was opened from (the map keeps its
-        // selection in the URL); a direct visit goes up one level
-        const internal =
-            document.referrer &&
-            new URL(document.referrer).origin === window.location.origin;
-        if (internal && window.history.length > 1) router.back();
+        // Back to wherever the page was opened from in the app (the map
+        // keeps its selection in the URL); a direct visit goes up one level
+        if (cameFromApp()) router.back();
         else router.push(fallbackHref);
     };
     return (
