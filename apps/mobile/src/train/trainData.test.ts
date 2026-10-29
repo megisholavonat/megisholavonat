@@ -5,6 +5,9 @@ import {
     isUsuallyLate,
     mainAlert,
     predictedPlatform,
+    serviceGlyph,
+    serviceGroups,
+    sortedAlerts,
     stopRows,
     trainTitle,
 } from "./trainData";
@@ -184,5 +187,107 @@ describe("mainAlert", () => {
             text: "Pálya állapota miatti késés",
         });
         expect(mainAlert([])).toBeNull();
+    });
+});
+
+describe("stopRows secondary times", () => {
+    it("adds the departure of an upcoming stop where the train waits", () => {
+        const rows = stopRows(
+            vehicle(1, 10, [
+                st("A", 16 * H, 16 * H),
+                st("B", 17 * H, 17 * H, { scheduledDeparture: 17 * H + 300 }),
+                st("C", 18 * H, 18 * H),
+            ]),
+        );
+        expect(rows[1]?.secondary).toEqual({
+            kind: "departure",
+            expected: 17 * H + 300 + 600,
+        });
+        // First and last stops have only one time
+        expect(rows[0]?.secondary).toBeNull();
+        expect(rows[2]?.secondary).toBeNull();
+    });
+
+    it("adds the actual arrival of a passed stop", () => {
+        const [, b] = stopRows(vehicle(2, 23));
+        expect(b?.secondary).toEqual({
+            kind: "arrival",
+            expected: 17 * H + 23 * 60,
+        });
+    });
+
+    it("shows one time for a short stop", () => {
+        const rows = stopRows(
+            vehicle(0, 0, [
+                st("A", 16 * H, 16 * H),
+                st("B", 17 * H, 17 * H, { scheduledDeparture: 17 * H + 30 }),
+                st("C", 18 * H, 18 * H),
+            ]),
+        );
+        expect(rows[1]?.secondary).toBeNull();
+    });
+
+    it("doesn't carry a delay for a train not under way", () => {
+        const [, , c] = stopRows(vehicle(2, 109), false);
+        expect(c).toMatchObject({ delay: 0, expected: 18 * H });
+    });
+});
+
+describe("sortedAlerts", () => {
+    const alert = (text: string, reason = false) => ({
+        alertDescriptionText: text,
+        effectiveStartDate: 0,
+        effectiveEndDate: 0,
+        reason: reason
+            ? { code: "other_train" as const, label: "Más vonat" }
+            : null,
+    });
+
+    it("puts reasons first and drops repeated texts", () => {
+        expect(
+            sortedAlerts([
+                alert("Pótlóbusz Vácon"),
+                alert("Más vonat miatti késés", true),
+                alert(" Pótlóbusz Vácon "),
+            ]).map((a) => a.alertDescriptionText),
+        ).toEqual(["Más vonat miatti késés", "Pótlóbusz Vácon"]);
+    });
+});
+
+describe("serviceGroups", () => {
+    const service = (
+        name: string,
+        from: number,
+        till: number,
+        shown = true,
+    ) => ({
+        name,
+        fromStopIndex: from,
+        tillStopIndex: till,
+        fontCharSet: "MNR2007",
+        fontCode: 100,
+        displayable: shown,
+    });
+
+    it("splits whole-trip services from per-stop ones", () => {
+        const groups = serviceGroups(
+            [
+                service("bike", 0, 3),
+                service("buffet", 1, 2),
+                service("hidden", 0, 3, false),
+            ],
+            4,
+        );
+        expect(groups.whole.map((s) => s.name)).toEqual(["bike"]);
+        expect(groups.byStop.map((s) => s.map((x) => x.name))).toEqual([
+            [],
+            ["buffet"],
+            ["buffet"],
+            [],
+        ]);
+    });
+
+    it("draws the font glyph from the code", () => {
+        expect(serviceGlyph(service("bike", 0, 1))).toBe("d");
     });
 });
