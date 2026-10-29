@@ -145,9 +145,11 @@ function Rankings({ days }: { days: number }) {
                 options={ORDERS.map((o) => ({ value: o, label: t(o) }))}
                 onChange={(o) => void setOrder(o)}
             />
-            <div className="flex justify-end pr-6.5 text-caption text-ink-2">
-                {t("column")}
-            </div>
+            {(rankings.isPending || (entries && entries.length > 0)) && (
+                <div className="flex justify-end pr-6.5 text-caption text-ink-2">
+                    {t("column")}
+                </div>
+            )}
             {rankings.isPending ? (
                 <RowsSkeleton rows={8} />
             ) : rankings.isError ? (

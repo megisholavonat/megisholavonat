@@ -83,9 +83,10 @@ const EASE_SHEET = [0.32, 0.72, 0, 1] as const;
 
 /**
  * Non-modal analytics prompt. On the map it floats above the legend and the
- * locate button (which sit just above the bottom sheet), below the sheets,
- * the search and the dialogs in z-order, and steps aside while a train or
- * station is open.
+ * locate button (which sit just above the bottom sheet). In z-order it is
+ * above the map controls (z-10) but below the map chrome (z-20: the opened
+ * legend, settings), the sheets, the search and the dialogs, and it steps
+ * aside while a train or station is open.
  */
 export default function ConsentBanner() {
     const t = useTranslations("Consent");
@@ -120,10 +121,10 @@ export default function ConsentBanner() {
                         transition: { duration: 0.2, ease: "easeIn" },
                     }}
                     className={cn(
-                        "floating-card fixed inset-x-4 z-[25] flex flex-col gap-3 rounded-lg p-4 transition-[bottom] duration-300 ease-sheet dark:ring-1 dark:ring-line md:right-auto md:w-80",
+                        "floating-card fixed inset-x-4 z-[15] flex flex-col gap-3 rounded-lg p-4 transition-[bottom] duration-300 ease-sheet dark:ring-1 dark:ring-line md:right-auto md:w-80",
                         onMap
                             ? // Above the legend / locate row: sheet + 36 px + 44 px + 12 px
-                              "bottom-[calc(var(--mhav-sheet-inset,0px)+5.75rem)] md:bottom-16"
+                              "bottom-[calc(var(--mhav-sheet-inset,0px)+5.75rem)] md:bottom-18"
                             : "bottom-[max(env(safe-area-inset-bottom),16px)] md:bottom-4 md:left-4",
                     )}
                 >

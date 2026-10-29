@@ -131,7 +131,7 @@ export function Legend({ isDesktop }: { isDesktop: boolean }) {
             <div
                 role="img"
                 aria-label={`${t("label")}: ${LEGEND.map(({ level, key }) => label(level, key, true)).join(", ")}`}
-                className="floating-card flex items-center gap-3 rounded-md px-3 py-2 dark:ring-1 dark:ring-line"
+                className="floating-card mb-2 flex items-center gap-3 rounded-md px-3 py-2 dark:ring-1 dark:ring-line"
             >
                 <span className="text-caption font-normal text-ink-2">
                     {t("title")}
