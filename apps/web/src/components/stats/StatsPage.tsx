@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { HourChart, overallShare } from "./HourChart";
 import {
     Card,
+    EmptyState,
     LateChip,
     LoadError,
     lateLevel,
@@ -144,9 +145,11 @@ function Rankings({ days }: { days: number }) {
                 options={ORDERS.map((o) => ({ value: o, label: t(o) }))}
                 onChange={(o) => void setOrder(o)}
             />
-            <div className="flex justify-end pr-6.5 text-caption text-ink-2">
-                {t("column")}
-            </div>
+            {(rankings.isPending || (entries && entries.length > 0)) && (
+                <div className="flex justify-end pr-6.5 text-caption text-ink-2">
+                    {t("column")}
+                </div>
+            )}
             {rankings.isPending ? (
                 <RowsSkeleton rows={8} />
             ) : rankings.isError ? (
@@ -163,7 +166,7 @@ function Rankings({ days }: { days: number }) {
                     ))}
                 </ol>
             ) : (
-                <p className="py-8 text-center text-ink-2">{t("no_data")}</p>
+                <EmptyState />
             )}
         </Card>
     );
@@ -194,7 +197,7 @@ function NetworkByHour({ days }: { days: number }) {
                     <HourChart hours={query.data.hours} />
                 </>
             ) : (
-                <p className="py-8 text-center text-ink-2">{t("no_data")}</p>
+                <EmptyState />
             )}
         </Card>
     );

@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { expect, knownGap, openHome, openTrain, t, test } from "./support/test";
+import { expect, openHome, openTrain, t, test } from "./support/test";
 
 test.use({ contextOptions: { reducedMotion: "reduce" } });
 
@@ -91,9 +91,7 @@ async function motionSince(page: Page) {
 
 test("L19: reduced motion: the sheet and the train open without animation", async ({
     page,
-    isPhone,
 }) => {
-    knownGap("L19: the legend slides with the sheet inset", isPhone);
     await openHome(page);
     expect(await motionSince(page)).toEqual([]);
 
@@ -109,7 +107,6 @@ test("L19: reduced motion: the sheet and the train open without animation", asyn
 test("L20: reduced motion: settings open without animation", async ({
     page,
 }) => {
-    knownGap("L20: dialogs animate in despite reduced motion");
     await openHome(page);
     await motionSince(page);
     await page.getByRole("button", { name: t.Settings.title }).click();

@@ -70,7 +70,7 @@ export function IconButton({
             aria-label={label}
             title={label}
             className={cn(
-                "flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-full bg-surface-2 text-ink transition-colors hover:bg-line",
+                "pressable flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-full bg-surface-2 text-ink hover:bg-line",
                 className,
             )}
         >

@@ -12,6 +12,7 @@ import { Link } from "@/i18n/navigation";
 import { HourChart, overallShare } from "./HourChart";
 import {
     Card,
+    EmptyState,
     LoadError,
     Of10Text,
     StatsHeader,
@@ -74,7 +75,7 @@ export function StationHistoryPage({ stationId }: { stationId: string }) {
                         href={`/?station=${stationId}`}
                         aria-label={t("show_on_map")}
                         title={t("show_on_map")}
-                        className="flex size-11 shrink-0 items-center justify-center rounded-full bg-surface text-ink hover:bg-surface-2"
+                        className="pressable flex size-11 shrink-0 items-center justify-center rounded-full bg-surface text-ink hover:bg-surface-2"
                     >
                         <MapIcon className="size-5" aria-hidden />
                     </Link>
@@ -101,9 +102,7 @@ export function StationHistoryPage({ stationId }: { stationId: string }) {
                 </Card>
             ) : (
                 <Card>
-                    <p className="py-8 text-center text-ink-2">
-                        {t("no_data")}
-                    </p>
+                    <EmptyState />
                 </Card>
             )}
         </main>

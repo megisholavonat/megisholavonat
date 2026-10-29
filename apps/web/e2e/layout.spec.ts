@@ -142,7 +142,6 @@ test("L1: the consent card leaves the controls usable", async ({
     page,
     isPhone,
 }) => {
-    knownGap("L1: the consent card covers the legend and locate", isPhone);
     await promptConsent(page);
     await openHome(page);
     await expectNoOverlap(page, {
@@ -152,22 +151,12 @@ test("L1: the consent card leaves the controls usable", async ({
     });
 });
 
-test("L2: the consent card does not cover an open train", async ({
-    page,
-    isPhone,
-}) => {
-    knownGap(
-        isPhone
-            ? "L2: the consent card floats over the full sheet"
-            : "L2: the consent card sits on the train panel",
-    );
+test("L2: the consent card does not cover an open train", async ({ page }) => {
     await promptConsent(page);
     await openTrain(page, "delayed", "full");
-    const items: Record<string, Locator> = {
-        train: trainRegion(page),
-        consent: consentCard(page),
-    };
-    await expectNoOverlap(page, items);
+    // The card waits while a train is open
+    await expect(consentCard(page)).toHaveCount(0);
+    await expectNoOverlap(page, { train: trainRegion(page) });
 });
 
 test("an open train leaves the map controls usable", async ({
@@ -190,10 +179,7 @@ test("L3: the consent card stays out of the search", async ({ page }) => {
     await field.fill("Bud");
     const results = page.getByRole("listbox", { name: t.Search.results });
     await expect(results.getByRole("option").nth(5)).toBeVisible();
-    const items: Record<string, Locator> = { search: field, results };
-    // Hiding the card while searching is fine too
-    if (await consentCard(page).isVisible()) {
-        items.consent = consentCard(page);
-    }
-    await expectNoOverlap(page, items);
+    // The card waits while the search is in use
+    await expect(consentCard(page)).toHaveCount(0);
+    await expectNoOverlap(page, { search: field, results });
 });

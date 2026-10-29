@@ -91,6 +91,7 @@
         "source_down": "A MÁV-adat nem érkezik",
         "unreachable": "Nem érjük el a szervert",
         "since": "{time} óta",
+        "timetable": "menetrend szerint mutatjuk",
         "load_error": "Nem sikerült betölteni",
         "retry": "Újra"
     },
@@ -108,7 +109,9 @@
         "slight": "5+",
         "moderate": "15+",
         "severe": "60+",
-        "stale": "nincs adat"
+        "stale": "nincs adat · áll",
+        "title": "Késés",
+        "minutes": "perc"
     },
     "Settings": {
         "title": "Beállítások",
@@ -136,7 +139,9 @@
         "changelog": "Változások",
         "changelog_unavailable": "A változások most nem érhetők el.",
         "contact": "Kapcsolat",
-        "punctuality": "Pontosság"
+        "punctuality": "Pontosság",
+        "license": "Licenc",
+        "open_source": "Az alkalmazás nyílt forráskódú. Hibát, ötletet és segítséget a GitHubon várunk."
     },
     "Consent": {
         "title": "Használati statisztika?",
@@ -201,6 +206,7 @@
         "by_stop": "Megállónként",
         "few_data": "kevés adat",
         "no_data": "Még kevés az adat",
+        "no_data_hint": "Gyűjtjük a menetadatokat, pár nap múlva nézz vissza.",
         "show_on_map": "Megnyitás a térképen"
     },
     "Journey": {
