@@ -187,7 +187,8 @@ export async function mockApi(page: Page, baseURL: string) {
     await page.route(/^https:\/\/[^/]*openfreemap\.org\/fonts\//, (route) =>
         route.fulfill({ status: 200, body: "" }),
     );
-    await page.route(/openrailwaymap\.org/, (route) =>
+    // The detailed railway map, direct or through the tile cache
+    await page.route(/openrailwaymap\.org|\/orm\/\d+\/\d+\/\d+\.png/, (route) =>
         route.fulfill({ status: 204 }),
     );
     await page.route(/\/relay-OfoJ\//, (route) => {
