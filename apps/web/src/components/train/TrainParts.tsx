@@ -42,6 +42,7 @@ import { PlatformBadge } from "@/components/ui/Platform";
 import { ReasonIcon } from "@/components/ui/ReasonIcon";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
 import { findFollow, useFollows } from "@/hooks/useFollows";
+import { trainShareData } from "@/lib/shareTrain";
 import {
     destinationOf,
     type TrainReason,
@@ -285,12 +286,12 @@ export function TrainActions({
     const tFollow = useTranslations("Follow");
     const followed = useIsFollowed(view);
     const [copied, setCopied] = useState(false);
+    const locale = useLocale() as Locale;
     const share = async () => {
-        const url = window.location.href;
-        const title = `${trainNumber(view.vehicle.trip.tripShortName)} → ${destinationOf(view.vehicle)}`;
+        const { title, text, url } = trainShareData(view, locale);
         try {
             if (navigator.share) {
-                await navigator.share({ title, url });
+                await navigator.share({ title, text, url });
                 return;
             }
             await navigator.clipboard.writeText(url);
