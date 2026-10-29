@@ -57,6 +57,9 @@ MATCH_SLACK_M = 500.0
 # 3.2 km from its geometry's first km, and 2 m from its last.
 IMPLAUSIBLY_EARLY_S = 10 * 60
 FAR_MATCH_M = 5000.0
+# Still this early, passes at any distance compete: by Üllő 650 was 5.5 km
+# from its first pass and 3.6 km from its last
+ABSURDLY_EARLY_S = 60 * 60
 # Stops are snapped the same way, keeping them in timetable order
 STOP_SLACK_M = 1000.0
 OUT_OF_ORDER_M = 50_000.0
@@ -410,7 +413,8 @@ def locate_on_route(
     expected by its timetable, its previous position and its heading. Each
     costs seconds (see the constants above); the cheapest wins. If even that
     one would make the train more than IMPLAUSIBLY_EARLY_S early, passes up
-    to FAR_MATCH_M away compete too (at METRE_COST_S per extra metre).
+    to FAR_MATCH_M away compete too (at METRE_COST_S per extra metre), and
+    if that is still more than ABSURDLY_EARLY_S early, every pass.
 
     None when the route passes by only once and the nearest point is
     plausible: the caller keeps its plain projection.
@@ -441,11 +445,17 @@ def locate_on_route(
         return total
 
     best = min(near, key=cost)
-    if timetable.implied_delay(best.along, now) >= -IMPLAUSIBLY_EARLY_S:
+    if timetable.implied_delay(best.along, now) >= -IMPLAUSIBLY_EARLY_S or len(
+        candidates
+    ) == len(near):
         return best.along if len(near) > 1 else None
-    if len(candidates) == len(near):
-        return best.along if len(near) > 1 else None
-    return min(candidates, key=cost).along
+    reach = max(FAR_MATCH_M, nearest + MATCH_SLACK_M)
+    best = min((c for c in candidates if c.metres <= reach), key=cost)
+    if timetable.implied_delay(best.along, now) < -ABSURDLY_EARLY_S:
+        # Hours early on every pass nearby: the train is on another line than
+        # its geometry, and any pass is a better guess
+        best = min(candidates, key=cost)
+    return best.along
 
 
 def dwell_stop_index(
@@ -568,11 +578,7 @@ def get_delay_and_position(
     if route.line is not None:
         line = route.line
         vehicle_point = Point(lon, lat)
-        candidates = [
-            c
-            for c in projection_candidates(route.coords_array, lon, lat, FAR_MATCH_M)
-            if c.metres <= FAR_MATCH_M
-        ] or projection_candidates(route.coords_array, lon, lat, MATCH_SLACK_M)
+        candidates = projection_candidates(route.coords_array, lon, lat, math.inf)
         if previous is not None and not math.isclose(
             previous.line_length, line.length, rel_tol=1e-6
         ):

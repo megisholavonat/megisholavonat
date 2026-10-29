@@ -6,9 +6,10 @@ km away, so its first and last km pass the same places. 650 TOKAJ of
 2026-10-29 left Nyugati on a track 3.2 km from its geometry's first km and
 2 m from its last; matched to the nearest point of the line it read "-381"
 (six hours early) with "Budapest-Keleti 12:47" as its next stop.
-The fixture is that train in four snapshots between 06:19 and 06:31. It ran
-via Maglód (line 120a) while its geometry goes via Cegléd, so by 06:31 it was
-5 km from any part of its route and is shown as off route.
+The fixture is that train in five snapshots between 06:19 and 06:31. It ran
+via Maglód (line 120a) while its geometry goes via Cegléd, so from 06:25 it
+was km away from any part of its route (shown as off route), and nearer the
+last pass (3.6 km at 06:28) than the first (5.5 km).
 """
 
 import copy
@@ -65,7 +66,7 @@ def test_nearest_point_of_the_line_is_the_end_of_the_loop() -> None:
 def test_650_leaving_nyugati_is_at_the_start_of_its_route() -> None:
     located = [_process(vehicle) for vehicle in _snapshots()]
 
-    assert [loc["activity"] for loc in located] == ["running"] * 3 + ["offRoute"]
+    assert [loc["activity"] for loc in located] == ["running"] * 3 + ["offRoute"] * 2
     for loc in located:
         progress = loc["vehicleProgress"]
         assert progress["lastStop"] == "Budapest-Nyugati"
