@@ -82,24 +82,30 @@ function useSelectionOpen(): boolean {
 /**
  * Whether the user is busy with something that sits above the map: a modal
  * (full-screen search, planner) or a focused search field. The card waits.
+ * Watches the page only while `enabled` (the prompt is still unanswered).
  */
-function useBusy(): boolean {
+function useBusy(enabled: boolean): boolean {
     const [busy, setBusy] = useState(false);
     useEffect(() => {
+        if (!enabled) {
+            setBusy(false);
+            return;
+        }
         let frame = 0;
+        const measure = () => {
+            const active = document.activeElement;
+            setBusy(
+                !!document.querySelector('[aria-modal="true"]') ||
+                    !!active?.matches(
+                        'input[type="search"], [role="combobox"], [role="searchbox"]',
+                    ),
+            );
+        };
         const check = () => {
             cancelAnimationFrame(frame);
-            frame = requestAnimationFrame(() => {
-                const active = document.activeElement;
-                setBusy(
-                    !!document.querySelector('[aria-modal="true"]') ||
-                        !!active?.matches(
-                            'input[type="search"], [role="combobox"], [role="searchbox"]',
-                        ),
-                );
-            });
+            frame = requestAnimationFrame(measure);
         };
-        check();
+        measure();
         const observer = new MutationObserver(check);
         observer.observe(document.body, {
             childList: true,
@@ -115,7 +121,7 @@ function useBusy(): boolean {
             document.removeEventListener("focusin", check);
             document.removeEventListener("focusout", check);
         };
-    }, []);
+    }, [enabled]);
     return busy;
 }
 
@@ -134,7 +140,7 @@ export default function ConsentBanner() {
     const pathname = usePathname();
     const promptReady = usePromptReady(consent === "pending");
     const selectionOpen = useSelectionOpen();
-    const busy = useBusy();
+    const busy = useBusy(consent === "pending" && promptReady);
     const reduceMotion = useReducedMotion() ?? false;
     const onMap = pathname === "/";
 
