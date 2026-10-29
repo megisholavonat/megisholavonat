@@ -16,7 +16,6 @@ import {
     ArrowUpRight,
     Footprints,
     RefreshCw,
-    Route as RouteIcon,
     Signpost,
     X,
 } from "lucide-react";
@@ -46,51 +45,10 @@ import {
     transferGap,
     worstTransfer,
 } from "./journey";
+import type { PlannerState } from "./PlannerButton";
 
 type Field = "from" | "to";
 
-export interface PlannerState {
-    from: Station | null;
-    to: Station | null;
-    /** Local Budapest time "YYYY-MM-DDTHH:mm", or null for now */
-    time: string | null;
-    arriveBy: boolean;
-}
-
-export function usePlannerState() {
-    const [state, setState] = useState<PlannerState>({
-        from: null,
-        to: null,
-        time: null,
-        arriveBy: false,
-    });
-    return [state, setState] as const;
-}
-
-/** Opens the planner: a round button next to the search. */
-export function PlannerButton({
-    onClick,
-    className,
-}: {
-    onClick: () => void;
-    className?: string;
-}) {
-    const t = useTranslations("Journey");
-    return (
-        <button
-            type="button"
-            onClick={onClick}
-            aria-label={t("open")}
-            title={t("open")}
-            className={cn(
-                "flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-full bg-surface-2 text-ink pressable transition-colors hover:bg-line",
-                className,
-            )}
-        >
-            <RouteIcon className="size-5" aria-hidden />
-        </button>
-    );
-}
 /** Desktop: a floating panel in place of the home card. */
 export function JourneyPanel(props: PlannerProps) {
     const t = useTranslations("Journey");

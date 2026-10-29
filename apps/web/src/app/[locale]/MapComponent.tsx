@@ -36,7 +36,6 @@ import type {
     Feature,
     FeatureCollection,
     GeoJSON as GeoJsonType,
-    LineString,
     Point,
 } from "geojson";
 import {
