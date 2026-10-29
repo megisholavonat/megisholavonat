@@ -268,6 +268,20 @@ def _from_to_segment(
     return None
 
 
+def _known_tail(name: str, ids_by_name: dict[str, str]) -> str:
+    """
+    The longest known station name ending `name`: the first name of
+    "A vonat Tárnok és Velence között" takes in the capitalised start of the
+    sentence. Unchanged when no part is known.
+    """
+    words = name.split(" ")
+    for i in range(len(words)):
+        tail = " ".join(words[i:])
+        if _resolve(tail, ids_by_name):
+            return tail
+    return name
+
+
 def find_segment(
     text: str,
     ids_by_name: dict[str, str],
@@ -283,7 +297,7 @@ def find_segment(
         names = {normalize_search_text(s.name): s.name for s in stations or []}
         return _from_to_segment(text, ids_by_name, names)
     if and_match and (not dash_match or and_match.start() <= dash_match.start()):
-        a, b = and_match["a"], and_match["b"]
+        a, b = _known_tail(and_match["a"], ids_by_name), and_match["b"]
         return DisruptionSegment(
             fromName=a,
             toName=b,
@@ -586,6 +600,105 @@ def train_disruption(text: str) -> TrainDisruption | None:
     return "no_service" if alert_effect(text) == "no_service" else None
 
 
+# A stop the train passes without stopping, as opposed to a stretch it does
+# not run on
+_SKIPPED_STOP = re.compile(r"nem áll(?:nak)? meg|nem érint", re.I)
+_NOT_RUNNING = re.compile(
+    r"nem lehetséges|nem közlekedik|nem közlekednek|szünetel|elmarad|kimarad|"
+    r"lezárás",
+    re.I,
+)
+_UNTIL_SUFFIX = re.compile(r"ig$")
+
+
+@dataclass(frozen=True)
+class TripStops:
+    """
+    A train's stops in order (`names`) and the board's station among them
+    (`here`), so a notice about part of its run marks only the stations it
+    affects. `departing` is true on a departure board.
+    """
+
+    names: list[str]
+    here: int
+    departing: bool
+
+    def stop_keys(self) -> dict[str, str]:
+        """Each stop's index by normalised name, also without "Budapest-" or
+        the HÉV " H" suffix, as notices write them."""
+        keys: dict[str, str] = {}
+        for i, name in enumerate(self.names):
+            key = normalize_search_text(name)
+            keys.setdefault(key, str(i))
+        for i, name in enumerate(self.names):
+            key = normalize_search_text(name)
+            if key.endswith(" h"):
+                keys.setdefault(key[:-2], str(i))
+            if key.startswith("budapest "):
+                keys.setdefault(key.removeprefix("budapest "), str(i))
+        return keys
+
+    def within(self, first: int, last: int) -> bool:
+        """Whether the train runs here on its stretch between two stops:
+        leaving from one of its stops but the last, or arriving at one but
+        the first."""
+        lo, hi = sorted((first, last))
+        if self.departing:
+            return lo <= self.here < hi
+        return lo < self.here <= hi
+
+
+def _named_stops(text: str, keys: dict[str, str]) -> set[int]:
+    """The train's stops a notice names, as is or with a case ending."""
+    normalized = f" {normalize_search_text(text)} "
+    found = {int(i) for key, i in keys.items() if f" {key} " in normalized}
+    for word in _INFLECTED_NAME.finditer(text):
+        station = _station_in(word[0], keys, {})
+        if station is not None and station[1] is not None:
+            found.add(int(station[1]))
+    return found
+
+
+def applies_at(text: str, stops: TripStops | None) -> bool:
+    """
+    Whether a train's notice concerns it at the board's station: a skipped
+    stop only there, a cancelled or replaced stretch ("Szolnok és Cegléd
+    között", "Gödöllőtől", "Hatvanig") only on it, anything else on its whole
+    run. Without its stops, or a stretch not found among them, the whole run.
+    """
+    if stops is None:
+        return True
+    keys = stops.stop_keys()
+    if (
+        _SKIPPED_STOP.search(text)
+        and not _NOT_RUNNING.search(text)
+        and not _EFFECTS[0][1].search(text)
+    ):
+        return stops.here in _named_stops(text, keys)
+
+    last = len(stops.names) - 1
+    segment = find_segment(text, keys)
+    if segment is not None:
+        ends = [int(i) for i in (segment.fromId, segment.toId) if i is not None]
+        if len(ends) == 2:
+            return stops.within(*ends)
+        # A stretch beyond the run's first or last stop, as for the HÉVs
+        # turned back at Cinkota while "Örs vezér tere és Cinkota között"
+        # buses replace them: the train itself runs as shown. Otherwise the
+        # stretch cannot be placed on the run, so the whole run counts.
+        return not (ends and ends[0] in (0, last))
+
+    for word in _INFLECTED_NAME.finditer(text):
+        station = _station_in(word[0], keys, {})
+        if station is None or station[1] is None:
+            continue
+        if _FROM_SUFFIX.search(word[0]):
+            return stops.within(int(station[1]), last)
+        if _UNTIL_SUFFIX.search(word[0]):
+            return stops.within(0, int(station[1]))
+    return True
+
+
 def worst_train_disruption(
     effects: Iterable[TrainDisruption | None],
 ) -> TrainDisruption | None:
@@ -601,6 +714,8 @@ class _Window:
     effect: TrainDisruption
     start: int | None
     end: int | None
+    # The event's notices, which may name the stretch it is about
+    text: str = ""
 
     def covers(self, moment: int) -> bool:
         return (self.start is None or self.start <= moment) and (
@@ -615,9 +730,17 @@ class TrainDisruptions:
     by_trip: dict[str, list[_Window]] = field(default_factory=dict)
     by_number: dict[str, list[_Window]] = field(default_factory=dict)
 
-    def of(self, trip_id: str, number: str, moment: int) -> TrainDisruption | None:
+    def of(
+        self,
+        trip_id: str,
+        number: str,
+        moment: int,
+        stops: TripStops | None = None,
+    ) -> TrainDisruption | None:
         windows = [*self.by_trip.get(trip_id, []), *self.by_number.get(number, [])]
-        return worst_train_disruption(w.effect for w in windows if w.covers(moment))
+        return worst_train_disruption(
+            w.effect for w in windows if w.covers(moment) and applies_at(w.text, stops)
+        )
 
 
 def trains_of(disruptions: list[Disruption]) -> TrainDisruptions:
@@ -630,7 +753,12 @@ def trains_of(disruptions: list[Disruption]) -> TrainDisruptions:
     for d in disruptions:
         if d.effect not in _TRAIN_DISRUPTION_RANK:
             continue
-        window = _Window(cast(TrainDisruption, d.effect), d.start, d.end)
+        window = _Window(
+            cast(TrainDisruption, d.effect),
+            d.start,
+            d.end,
+            "\n".join((d.description, *d.details)),
+        )
         for trip in d.trips:
             index.by_trip.setdefault(trip.tripId, []).append(window)
         for text in (d.description, *d.details):

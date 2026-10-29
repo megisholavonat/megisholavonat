@@ -15,6 +15,8 @@ from api.schemas.alerts import DelayReason
 from api.schemas.stations import BoardEntry, BoardKind, Station, StationBoard
 from api.services.disruptions import (
     TrainDisruptions,
+    TripStops,
+    applies_at,
     get_train_disruptions,
     train_disruption,
     worst_train_disruption,
@@ -50,11 +52,28 @@ def _is_listed(stoptime: dict[str, Any], kind: BoardKind) -> bool:
     return stoptime.get("dropoffType") != "NONE"
 
 
+def trip_stops(
+    trip: dict[str, Any], station_id: str | None, kind: BoardKind
+) -> TripStops | None:
+    """The trip's stops and the board's station among them, if listed."""
+    stops = trip.get("stops") or []
+    # Stops are platforms of a station: "1:<UIC>_<platform>"
+    uics = [(s.get("gtfsId") or "").partition(":")[2].split("_")[0] for s in stops]
+    if station_id is None or station_id not in uics:
+        return None
+    return TripStops(
+        names=[s.get("name") or "" for s in stops],
+        here=uics.index(station_id),
+        departing=kind == "departures",
+    )
+
+
 def _board_entry(
     stoptime: dict[str, Any],
     kind: BoardKind,
     live_index: dict[str, Any],
     disruptions: TrainDisruptions | None = None,
+    station_id: str | None = None,
 ) -> BoardEntry:
     trip = stoptime["trip"]
     route = trip.get("route") or {}
@@ -95,17 +114,23 @@ def _board_entry(
         realtime = True
 
     alerts = trip.get("alerts") or []
+    stops = trip_stops(trip, station_id, kind)
     # The train's own notices in effect at its time here, then line
-    # disruptions naming it
-    own = [
-        train_disruption(a.get("alertDescriptionText") or "")
+    # disruptions naming it; a notice about part of its run only counts on
+    # that part
+    in_effect = [
+        a.get("alertDescriptionText") or ""
         for a in alerts
         if (a.get("effectiveStartDate") or 0) <= scheduled
         and (not a.get("effectiveEndDate") or scheduled <= a["effectiveEndDate"])
     ]
+    own = [train_disruption(t) for t in in_effect if applies_at(t, stops)]
     named = (
         disruptions.of(
-            trip["gtfsId"], train_number(trip.get("tripShortName") or ""), scheduled
+            trip["gtfsId"],
+            train_number(trip.get("tripShortName") or ""),
+            scheduled,
+            stops,
         )
         if disruptions
         else None
@@ -202,7 +227,10 @@ async def fetch_board(
     live_index = await load_live_trip_index(redis)
     disruptions = await get_train_disruptions(redis)
     entries = merge_duplicate_trips(
-        [_board_entry(st, kind, live_index, disruptions) for st in stoptimes]
+        [
+            _board_entry(st, kind, live_index, disruptions, station_id)
+            for st in stoptimes
+        ]
     )
     entries.sort(key=lambda e: (e.expectedTime, e.scheduledTime, e.tripId))
 

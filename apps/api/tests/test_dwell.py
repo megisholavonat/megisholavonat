@@ -85,10 +85,32 @@ def test_346_forecast_never_before_szolnok_departure() -> None:
     serve.annotate_locations([loc], _Recovering())  # type: ignore[arg-type]
 
     predicted = {s["index"]: s.get("predictedDelay") for s in loc["processedStops"]}
-    assert predicted[cegled_index] == 0
-    # Every ≈ time downstream is at or after its timetable
-    assert all(v >= 0 for v in predicted.values() if v is not None)
-    assert cegled["scheduledArrival"] > szolnok["scheduledDeparture"]
+    # Leaving Szolnok on time, it can gain only its timetable's padding by
+    # Cegléd (24 min), not the ten minutes the model hopes for
+    run = cegled["scheduledDeparture"] - szolnok["scheduledDeparture"]
+    assert run == 24 * 60
+    assert predicted[cegled_index] == -1
+    # No ≈ time downstream is more than a minute or 5% of the run early
+    for stop in loc["processedStops"]:
+        value = predicted.get(stop["index"])
+        st = train["trip"]["stoptimes"][stop["index"]]
+        if value is None or st["scheduledArrival"] is None:
+            continue
+        run = st["scheduledArrival"] - szolnok["scheduledDeparture"]
+        assert value * 60 >= -max(60, 0.05 * run) - 30
+
+
+def test_forecast_lets_a_dwelling_train_gain_padding() -> None:
+    # Away from the stop it stands at, the timetable's padding may make the
+    # train early, as it does at the terminus
+    floor = serve._floor(now_s=1000, sched=4600, dwell_dep=1600, at_dwell_stop=False)
+    at_stop = serve._floor(now_s=1000, sched=1600, dwell_dep=1600, at_dwell_stop=True)
+    late = serve._floor(now_s=2200, sched=4600, dwell_dep=1600, at_dwell_stop=False)
+
+    assert floor == -150  # 5% of the 50 min run
+    assert at_stop == 0
+    # Still standing ten minutes after its departure time
+    assert late == 600 - 150
 
 
 def test_10_waiting_at_zahony_is_on_time() -> None:
@@ -125,3 +147,41 @@ def test_forecast_never_in_the_past() -> None:
 
     predicted = {s["index"]: s.get("predictedDelay") for s in loc["processedStops"]}
     assert cegled["scheduledDeparture"] + predicted[cegled_index] * 60 >= now_s - 30
+
+
+# 19915 railjet xpress of 2026-08-18, due at Budapest-Kelenföld 21:02 - 21:18:
+# at 21:11 held 512 m short of the stop, at 21:12 berthed 204 m short
+HELD_FIXTURE = Path(__file__).parent / "fixtures" / "held-19915-kelenfold.json.gz"
+
+
+def _held_19915() -> list[dict[str, Any]]:
+    with gzip.open(HELD_FIXTURE, "rt") as f:
+        vehicles: list[dict[str, Any]] = json.load(f)
+    service = TrainService(None)  # type: ignore[arg-type]
+    processed = []
+    for vehicle in vehicles:
+        service.reference_time = vehicle["lastUpdated"]
+        processed.extend(service.process_locations([vehicle]))
+    return processed
+
+
+def test_held_short_of_the_next_stop_is_late_against_its_arrival() -> None:
+    held, _ = _held_19915()
+    index, kelenfold = _stop(held, "Budapest-Kelenföld")
+    start = service_day_start(date.fromisoformat(held["trip"]["serviceDate"]))
+    now_s = held["lastUpdated"] - int(start.timestamp())
+
+    assert held["dwellStopIndex"] == index
+    assert held["vehicleProgress"]["nextStopIndex"] == index
+    # Ten minutes past its arrival time and not there yet: not "on time"
+    assert now_s - kelenfold["scheduledArrival"] == 577
+    assert held["delay"] == 10
+
+
+def test_berthed_short_of_the_stops_point_waits_on_time() -> None:
+    _, berthed = _held_19915()
+    index, _ = _stop(berthed, "Budapest-Kelenföld")
+
+    # A long platform: standing 204 m short, before its departure time
+    assert berthed["dwellStopIndex"] == index
+    assert berthed["delay"] == 0
