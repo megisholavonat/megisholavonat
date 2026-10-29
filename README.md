@@ -202,6 +202,8 @@ APNS_PRIVATE_KEY= (contents of the .p8 key; newlines may be written as \n)
 APNS_BUNDLE_ID=
 APNS_USE_SANDBOX= (optional, defaults to false; true for development builds)
 LIVE_ACTIVITY_PUSH_ENABLED= (optional, defaults to true; false stops Live Activity pushes)
+LIVE_ACTIVITY_PUSH_TO_START_ENABLED= (optional, defaults to true; false: no starts by push)
+LIVE_ACTIVITY_START_WINDOW_MIN= (optional, defaults to 40; minutes before departure)
 PUSH_TOKEN_MAX_FAILURES= (optional, defaults to 10)
 ```
 
@@ -229,12 +231,47 @@ it), and its `ContentState` is what `live_activity_content` in
 `push_alerts.py` pushes. The line is a text badge: the MÁV route glyph font is
 not licensed for bundling into the extension.
 
-The app starts an activity only in the foreground: from three hours before
-the departure of a follow with the toggle on (default on for a single trip
-leaving within three hours). Commutes need the app opened on the day. The
-activity's push token goes to `POST /v1/devices/me/push-tokens` (type
-`liveactivity`), and the API updates it from then on. Development builds get
-sandbox tokens: set `APNS_USE_SANDBOX=true` for them.
+A follow gets a Live Activity when its toggle is on (default on for a single
+trip leaving within three hours). The app sends what the activity shows
+before the train is live (`liveActivity` on the follow: badge, title,
+stations, scheduled times, platform); null turns it off.
+
+- iOS 17.2+: the API starts it by push (push-to-start) about
+  `LIVE_ACTIVITY_START_WINDOW_MIN` (40) minutes before departure, without the
+  app, once per follow and run, unless the follow already has an activity
+  token. The device's push-to-start token is registered as
+  `liveactivity_start` (one per device; a new one replaces it). When iOS
+  starts the activity it wakes the app in the background; the native module
+  (`LiveActivityObserver.swift`, started from an app delegate subscriber at
+  launch) registers the activity's own token as `liveactivity` itself, with
+  the API URL and device token JS stored in the Keychain. The app starts one
+  itself only as a fallback, within 20 minutes of departure.
+- Older iOS: the app starts it in the foreground, from three hours before
+  departure. Commutes need the app opened on the day.
+
+The activity's token goes to `POST /v1/devices/me/push-tokens` (type
+`liveactivity`), and the API updates and ends it from then on. Development
+builds get sandbox tokens: set `APNS_USE_SANDBOX=true` for them.
+
+Testing push-to-start on an iPhone (iOS 17.2+, development build, the API
+with APNs credentials and `APNS_USE_SANDBOX=true`):
+
+1. Open the app once after installing, with notifications allowed: the
+   push-to-start token is registered (`push_tokens` has a
+   `liveactivity_start` row for the device).
+2. Follow a train leaving in 45–90 minutes with the Live Activity toggle on,
+   then close the app (swipe it away).
+3. About 40 minutes before departure the activity appears on the lock
+   screen, with a silent alert. The worker logs `liveActivityStarts: 1`.
+4. Within a minute `push_tokens` has a `liveactivity` row for the follow (the
+   app registered it from the background), and once the train is live
+   the API's updates move the activity (`liveActivityUpdates`).
+5. Open the app: no second activity appears. Unfollow: the activity ends.
+
+For a quick test, set `LIVE_ACTIVITY_START_WINDOW_MIN` higher than the time
+to departure. A start is sent once per follow and run (Redis
+`device:<id>:liveactivity-start:<follow>:<departure>`); delete that key to
+send it again.
 
 Android has no counterpart yet. An ongoing notification with progress needs
 a native module (a foreground service, or `setOngoing` plus a progress style
