@@ -90,11 +90,14 @@ export function useMapAnalytics(state: MapState) {
     }, [trains]);
 
     // The first selection comes from the URL: a shared link or a reload
-    const first = useRef(true);
+    const fromUrl = useRef<boolean | null>(null);
     useEffect(() => {
-        if (!first.current) return;
-        if (!selectedId && !stationId) return;
-        first.current = false;
+        if (fromUrl.current === null) {
+            const params = new URLSearchParams(window.location.search);
+            fromUrl.current = params.has("vehicleId") || params.has("station");
+        }
+        if (!fromUrl.current || (!selectedId && !stationId)) return;
+        fromUrl.current = false;
         const navigation = performance.getEntriesByType("navigation")[0] as
             | PerformanceNavigationTiming
             | undefined;
