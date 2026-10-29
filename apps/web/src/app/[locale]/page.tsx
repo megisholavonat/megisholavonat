@@ -86,6 +86,7 @@ import {
 import { useTrainView } from "@/components/train/useTrainView";
 import { type Follow, useFollows } from "@/hooks/useFollows";
 import { useIsDesktop } from "@/hooks/useIsMobile";
+import { useMapTitle } from "@/hooks/useMapTitle";
 import { cn } from "@/lib/utils";
 import type { FlyTarget, MapInsets } from "./MapComponent";
 
@@ -507,6 +508,12 @@ function MapScreen() {
         selectedId,
         fallback,
     );
+    useMapTitle({
+        selectedId,
+        train: trainView,
+        stationId,
+        stationName: station?.name,
+    });
 
     const flyToTrain = useCallback(
         (vehicleId: string) => {
