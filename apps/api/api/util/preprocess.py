@@ -21,9 +21,12 @@ from api.util.trip import seconds_into_service_day
 MAX_HEADING_DETOUR_M = 50.0
 
 # A vehicle this close to a stop (along the route) and not moving is standing
-# at it. Long platforms and GPS noise put a standing train up to ~250 m from
-# the stop's snapped point.
-AT_STOP_M = 400.0
+# at it. Long platforms and GPS noise put a standing train's reported position
+# several hundred metres from the stop's point (~410 m for an InterCity at
+# Budapest-Keleti). At its first stop, the 1 km of api.util.vehicle's
+# NEAR_STATION_M, as `activity` uses for "beforeDeparture".
+AT_STOP_M = 600.0
+AT_ORIGIN_M = 1000.0
 # Faster than this (m/s, about 7 km/h) a train is not standing at a stop.
 # Same as api.util.vehicle.MOVING_MPS.
 STANDING_MAX_MPS = 2.0
@@ -223,9 +226,9 @@ def dwell_stop_index(
 ) -> int | None:
     """
     Index of the stop the vehicle is standing at, if any: its last passed or
-    next stop, within AT_STOP_M along the route, and not moving (an unknown
-    speed counts as standing). The final stop is never a dwell: the trip ends
-    there.
+    next stop, within AT_STOP_M (AT_ORIGIN_M at the first) along the route,
+    and not moving (an unknown speed counts as standing). The final stop is
+    never a dwell: the trip ends there.
     """
     if speed is not None and speed > STANDING_MAX_MPS:
         return None
@@ -243,7 +246,8 @@ def dwell_stop_index(
         if along is None:
             continue
         metres = abs(train_position - along) * metres_per_unit
-        if metres <= AT_STOP_M and (best is None or metres < best[0]):
+        near = AT_ORIGIN_M if index == 0 else AT_STOP_M
+        if metres <= near and (best is None or metres < best[0]):
             best = (metres, index)
     return best[1] if best else None
 
