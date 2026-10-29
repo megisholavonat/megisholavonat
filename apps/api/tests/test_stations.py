@@ -11,6 +11,7 @@ from api.schemas.stations import BoardEntry, BoardKind
 from api.services.live_trips import build_live_trip_index, match_live_trip
 from api.services.station_board import _board_entry, merge_duplicate_trips
 from api.services.station_index import index_key, rail_stations_from_otp
+from api.util.stop import station_type
 from tests.upstream import graphql_route, load_fixture, otp_responder
 
 KELENFOLD = "005501024"
@@ -50,6 +51,53 @@ def test_index_keeps_rail_parent_stations_only() -> None:
     assert all(row[0].isdigit() for row in rows)
 
 
+def test_index_types_stations_by_the_routes_serving_them() -> None:
+    stations = load_fixture("otp-stations.json")["data"]["stations"]
+
+    types = {row[0]: row[4] for row in rail_stations_from_otp(stations)}
+
+    assert types[KELENFOLD] == "rail"  # no routes in the fixture
+    assert types["005501289"] == "rail"  # Győr: MÁV and GYSEV
+    assert types["005517228"] == "rail"  # Szeged, the railway station
+    assert types["003609142"] == "hev"  # Szentendre H
+    # Szeged vasútállomás is the tram-train stop outside the station
+    assert types["005500700"] == "tramtrain"
+    assert types["005546847"] == "childrens_railway"  # Hűvösvölgy
+    # German S-Bahns are SUBURBAN_RAILWAY too, but not the HÉV
+    assert types["008022160"] == "rail"
+
+
+def test_station_type_prefers_rail_and_ignores_replacement_buses() -> None:
+    mav = "MÁV Személyszállítási Zrt."
+
+    def station(*routes: tuple[str, str]) -> dict[str, Any]:
+        return {"routes": [{"mode": m, "agency": {"name": a}} for m, a in routes]}
+
+    assert station_type(station(("TRAMTRAIN", mav), ("RAIL", mav))) == "rail"
+    assert (
+        station_type(
+            station(("RAIL_REPLACEMENT_BUS", mav), ("SUBURBAN_RAILWAY", f"{mav} (HÉV)"))
+        )
+        == "hev"
+    )
+    assert station_type(station(("RAIL_REPLACEMENT_BUS", mav))) == "rail"
+    assert station_type({"routes": None}) == "rail"
+
+
+async def test_search_carries_the_station_type(
+    client: httpx.AsyncClient, otp: respx.MockRouter
+) -> None:
+    graphql_route(otp).mock(side_effect=otp_responder())
+
+    response = await client.get("/v1/stations", params={"q": "szeged"})
+
+    # Every kind of stop is found, each with its type
+    assert [(s["name"], s["type"]) for s in response.json()] == [
+        ("Szeged", "rail"),
+        ("Szeged vasútállomás", "tramtrain"),
+    ]
+
+
 async def test_search_is_accent_insensitive_and_ranked(
     client: httpx.AsyncClient, otp: respx.MockRouter
 ) -> None:
@@ -72,6 +120,7 @@ async def test_search_is_accent_insensitive_and_ranked(
         "name": "Győr",
         "lat": 47.681944,
         "lon": 17.634722,
+        "type": "rail",
     }
 
 
@@ -139,6 +188,7 @@ async def test_departures_merge_platforms_sorted_by_expected_time(
     assert response.status_code == 200
     body = response.json()
     assert body["station"]["name"] == "Budapest-Kelenföld"
+    assert body["station"]["type"] == "rail"
     assert body["kind"] == "departures"
     entries = body["entries"]
     expected = [e["expectedTime"] for e in entries]

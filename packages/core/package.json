@@ -21,6 +21,7 @@
         "./search": "./src/search.ts",
         "./share": "./src/share.ts",
         "./stale": "./src/stale.ts",
+        "./stationType": "./src/stationType.ts",
         "./ticket": "./src/ticket.ts",
         "./time": "./src/time.ts",
         "./tokens": "./src/tokens/tokens.ts",

@@ -5,6 +5,8 @@ from typing import Literal
 
 from pydantic import BaseModel
 
+from api.util.stop import StationType
+
 
 class HistoryWindow(BaseModel):
     """Service dates the statistics cover: the last `days` up to today"""
@@ -151,6 +153,7 @@ class DirectoryStation(BaseModel):
 
     id: str
     name: str
+    type: StationType = "rail"
 
 
 class DirectoryTrain(BaseModel):

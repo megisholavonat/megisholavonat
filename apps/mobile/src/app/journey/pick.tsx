@@ -20,6 +20,7 @@ import {
 import { useTranslations } from "use-intl";
 import { type Field, planner } from "../../journey/store";
 import { highlight } from "../../search/search";
+import { StationTypeLabel, stationIcon } from "../../station/StationType";
 import { useAppTheme } from "../../theme/ThemeProvider";
 import { StateBlock } from "../../ui/ds";
 import { Icon } from "../../ui/Icon";
@@ -118,7 +119,7 @@ export default function PickStationScreen() {
                                     name={
                                         isAnyBudapest(station)
                                             ? "location"
-                                            : "station"
+                                            : stationIcon(station)
                                     }
                                     size={22}
                                     color={theme.colors.ink2}
@@ -150,6 +151,7 @@ export default function PickStationScreen() {
                                         </Text>
                                     ))}
                                 </Text>
+                                <StationTypeLabel station={station} />
                             </Pressable>
                         ))}
                     </View>

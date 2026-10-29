@@ -26,7 +26,7 @@ from api.services.live_trips import (
     match_live_trip,
 )
 from api.services.station_index import RAIL_FEED
-from api.util.stop import station_id_from_gtfs_id
+from api.util.stop import station_id_from_gtfs_id, station_type
 from api.util.time import BUDAPEST_TZ
 from api.util.trip import train_number
 
@@ -239,6 +239,7 @@ async def fetch_board(
             name=station["name"],
             lat=station["lat"],
             lon=station["lon"],
+            type=station_type(station),
         ),
         kind=kind,
         generatedAt=int(time.time()),

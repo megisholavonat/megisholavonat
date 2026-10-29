@@ -19,6 +19,7 @@ import { useTranslations } from "use-intl";
 import { noteEntry, track } from "../analytics";
 import { Group, Row, rowStyles, TrainRow } from "../search/rows";
 import { highlight, lateTrains, searchTrains } from "../search/search";
+import { StationTypeLabel, stationIcon } from "../station/StationType";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { SectionLabel, StateBlock } from "../ui/ds";
 import { Icon } from "../ui/Icon";
@@ -270,10 +271,13 @@ export default function SearchScreen() {
                                     onPress={() => openStation(station)}
                                     leading={
                                         <Icon
-                                            name="station"
+                                            name={stationIcon(station)}
                                             size={22}
                                             color={theme.colors.ink2}
                                         />
+                                    }
+                                    trailing={
+                                        <StationTypeLabel station={station} />
                                     }
                                 >
                                     <Text

@@ -4,6 +4,7 @@ import {
     openHome,
     openSearch,
     STATIONS,
+    stationLabel,
     t,
     test,
     trainRegion,
@@ -38,7 +39,7 @@ test("search finds a station and opens its board", async ({ page }) => {
     const field = await openSearch(page);
     await field.fill("Szoln");
     const option = page.getByRole("option", {
-        name: t.Search.station_label.replace("{station}", "Szolnok"),
+        name: stationLabel("Szolnok"),
         exact: true,
     });
     await expect(option).toBeVisible();

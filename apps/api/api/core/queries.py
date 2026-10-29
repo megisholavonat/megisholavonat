@@ -64,7 +64,8 @@ POSITIONS_QUERY = """
 """
 
 # Every station of every feed. Rail stations are filtered out of this when
-# building the search index.
+# building the search index; their routes give their type (see
+# api.util.stop.station_type).
 STATIONS_QUERY = """
   query Stations {
     stations {
@@ -73,6 +74,12 @@ STATIONS_QUERY = """
       lat
       lon
       vehicleMode
+      routes {
+        mode
+        agency {
+          name
+        }
+      }
     }
   }
 """
@@ -92,6 +99,13 @@ STATION_BOARD_QUERY = """
       name
       lat
       lon
+      vehicleMode
+      routes {
+        mode
+        agency {
+          name
+        }
+      }
       stoptimesWithoutPatterns(
         numberOfDepartures: $n
         timeRange: $range

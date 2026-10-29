@@ -214,5 +214,11 @@
         "title": "Delay summary",
         "share": "Share the delay",
         "share_so_far": "Share the delay so far"
+    },
+    "StationType": {
+        "rail": "railway station",
+        "hev": "HÉV stop",
+        "tramtrain": "tram-train stop",
+        "childrens_railway": "Children's Railway"
     }
 }

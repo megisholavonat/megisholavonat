@@ -214,5 +214,11 @@
         "title": "Késés-összefoglaló",
         "share": "Megosztom a késést",
         "share_so_far": "Késés megosztása eddig"
+    },
+    "StationType": {
+        "rail": "vasútállomás",
+        "hev": "HÉV-megálló",
+        "tramtrain": "villamos-megálló",
+        "childrens_railway": "Gyermekvasút"
     }
 }

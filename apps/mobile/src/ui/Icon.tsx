@@ -23,6 +23,10 @@ export const ICONS = {
     warning: symbol("exclamationmark.triangle", "warning"),
     stale: symbol("clock", "schedule"),
     station: symbol("signpost.right", "departure_board"),
+    // Stops that are not railway stations, shaped like their vehicles' markers
+    hevStop: symbol("square", "crop_square"),
+    tramTrainStop: symbol("hexagon", "hexagon"),
+    childrensRailwayStop: symbol("circle", "radio_button_unchecked"),
     chevron: symbol("chevron.right", "chevron_right"),
     external: symbol("arrow.up.right", "arrow_outward"),
     noTrains: symbol("moon.zzz", "bedtime"),
