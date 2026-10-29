@@ -9,6 +9,7 @@ import type {
     WalkLeg,
 } from "@megisholavonat/api-client";
 import { planJourneysOptions } from "@megisholavonat/api-client/react-query";
+import { getDelayLevel } from "@megisholavonat/core/delay";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
     ArrowUpDown,
@@ -42,6 +43,7 @@ import {
     type RiskLevel,
     rides,
     toLocalInput,
+    transferGap,
     worstTransfer,
 } from "./journey";
 
@@ -329,7 +331,8 @@ function EndpointField({
                     {station?.name ?? label}
                 </button>
             )}
-            {editing && (
+            {/* Only a field with something in it has something to clear */}
+            {editing && (query || station) && (
                 <button
                     type="button"
                     onClick={onDone}
@@ -627,9 +630,13 @@ function ItineraryRow({
                     {formatTime(itinerary.scheduledDeparture)} –{" "}
                     {formatTime(itinerary.scheduledArrival)}
                 </span>
-                {firstDelay?.live && !first?.canceled && (
-                    <DelayChip delay={firstDelay.departure} />
-                )}
+                {/* Beside the departure time, only a late start: a bare
+                    "pontos" there would not say which train it means */}
+                {firstDelay?.live &&
+                    !first?.canceled &&
+                    getDelayLevel(firstDelay.departure) !== "onTime" && (
+                        <DelayChip delay={firstDelay.departure} />
+                    )}
                 <span className="ml-auto shrink-0 text-sm text-ink-2">
                     <Duration minutes={itinerary.durationMinutes} />
                 </span>
@@ -706,7 +713,15 @@ function ItineraryDetail({
                 return (
                     // biome-ignore lint/suspicious/noArrayIndexKey: legs keep their order
                     <div key={i} className="flex flex-col">
-                        {transfer && <TransferRow transfer={transfer} />}
+                        {transfer && (
+                            <TransferRow
+                                transfer={transfer}
+                                gap={transferGap(
+                                    itinerary.legs[transfer.fromLeg],
+                                    itinerary.legs[transfer.toLeg],
+                                )}
+                            />
+                        )}
                         {leg.type === "transit" ? (
                             <RideBlock
                                 leg={leg}
@@ -731,16 +746,24 @@ function ItineraryDetail({
     );
 }
 
-function TransferRow({ transfer }: { transfer: Transfer }) {
+function TransferRow({
+    transfer,
+    gap,
+}: {
+    transfer: Transfer;
+    /** From the times shown on the two legs */
+    gap: { scheduled: number; expected: number } | null;
+}) {
     const t = useTranslations("Journey");
     const level: RiskLevel | null =
         transfer.riskSource === "canceled"
             ? "likely_missed"
             : (transfer.risk ?? null);
-    const minutes =
-        transfer.expectedTransferMinutes !== transfer.transferMinutes
-            ? transfer.expectedTransferMinutes
-            : transfer.transferMinutes;
+    // The minutes add up with the times printed above and below; a live
+    // forecast that differs is told beside them
+    const scheduled = gap?.scheduled ?? Math.max(transfer.transferMinutes, 0);
+    const expected =
+        gap?.expected ?? Math.max(transfer.expectedTransferMinutes, 0);
     return (
         <div className="my-1 flex items-center gap-2 rounded-md bg-surface-2/70 px-3 py-2">
             {level ? (
@@ -754,7 +777,12 @@ function TransferRow({ transfer }: { transfer: Transfer }) {
                 />
             ) : null}
             <span className="tnum min-w-0 flex-1 truncate text-sm text-ink-2">
-                {t("transfer_minutes", { m: Math.max(minutes, 0) })}
+                {expected !== scheduled
+                    ? t("transfer_minutes_expected", {
+                          m: scheduled,
+                          e: expected,
+                      })
+                    : t("transfer_minutes", { m: scheduled })}
             </span>
         </div>
     );
