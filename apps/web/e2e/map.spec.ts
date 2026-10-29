@@ -73,18 +73,24 @@ function layerIds(page: Page): Promise<string[] | null> {
 
 /**
  * The selected train's route and stops are drawn, and everything the app
- * adds sits in its slot: overlay < route < stops < station < trains.
+ * adds sits in its slot: network (and the opt-in overlay) under the place
+ * names < our stations < route < stops < station < trains.
  */
-async function expectLayerOrder(page: Page) {
+async function expectLayerOrder(page: Page, overlay = false) {
     await expect
         .poll(async () => {
             const ids = await layerIds(page);
             if (!ids) return "no map yet";
             const at = (id: string) => ids.indexOf(id);
             const order = [
-                "railway-layer",
+                "mhav-network",
+                ...(overlay ? ["railway-layer"] : []),
                 "slot-railway",
+                "place-city",
+                "mhav-station-dot-1",
+                "mhav-station-label-1",
                 "slot-route",
+                "polyline-casing",
                 "polyline-layer",
                 "slot-stops",
                 "stops-layer",
@@ -117,14 +123,18 @@ test("BL-1: switching the theme keeps the route, stops and draw order", async ({
     page,
 }) => {
     const errors = collectErrors(page);
+    // The detailed railway map is opt-in: switched on, it stays in its slot
+    await page.addInitScript(() =>
+        localStorage.setItem("mhav.settings.showRailwayOverlay", "true"),
+    );
     const region = await openTrain(page, "delayed", "peek");
-    await expectLayerOrder(page);
+    await expectLayerOrder(page, true);
 
     await switchTheme(page, t.Settings.theme_dark);
     await expect(page.locator("html")).toHaveClass(/dark/);
-    await expectLayerOrder(page);
+    await expectLayerOrder(page, true);
     await switchTheme(page, t.Settings.theme_light);
-    await expectLayerOrder(page);
+    await expectLayerOrder(page, true);
 
     // The selection survives
     await expect(region).toBeVisible();
