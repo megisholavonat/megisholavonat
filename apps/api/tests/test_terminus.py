@@ -41,6 +41,7 @@ def _replay() -> tuple[dict[str, list[Passage]], dict[str, int | None], dict]:
     """
     service = TrainService(None)  # type: ignore[arg-type]
     watermarks: dict[str, int | None] = {}
+    reported_at: dict[str, int] = {}
     passages: dict[str, list[Passage]] = {}
     stoptimes: dict[str, list[dict[str, Any]]] = {}
     with gzip.open(FIXTURE, "rt") as f:
@@ -55,8 +56,13 @@ def _replay() -> tuple[dict[str, list[Passage]], dict[str, int | None], dict]:
             for loc in locations:
                 trip_id = loc["trip"]["gtfsId"]
                 stoptimes[trip_id] = loc["trip"]["stoptimes"]
-                found, wm = detect_passages(loc, watermarks.get(trip_id))
+                found, wm = detect_passages(
+                    loc, watermarks.get(trip_id), reported_at.get(trip_id)
+                )
                 watermarks[trip_id] = wm
+                reported_at[trip_id] = max(
+                    loc["lastUpdated"], reported_at.get(trip_id, 0)
+                )
                 passages.setdefault(trip_id, []).extend(found)
     return passages, watermarks, stoptimes
 
@@ -78,10 +84,13 @@ def test_vanishing_at_terminus_is_recorded(replay: tuple) -> None:
 
     assert row is not None
     assert row["stop_id"] == replay[2][TRIP_3030][-1]["stop"]["gtfsId"]
-    # Measured against the scheduled arrival (01:58), from the last report
+    # Measured against the scheduled arrival (01:58). The report puts it 293 s
+    # late, but the previous one had it still moving 424 m out 126 s earlier:
+    # it is taken to have arrived halfway in between, which agrees with OTP's
+    # 3 minutes (MÁV reports whole minutes)
     assert row["scheduled_arrival_s"] == 7080
     assert row["observed_at"].timestamp() == 1787097772
-    assert row["delay_s"] == pytest.approx(293, abs=5)
+    assert row["delay_s"] == pytest.approx(293 - 126 // 2, abs=5)
     assert row["otp_arrival_delay_s"] == 180
 
 
@@ -91,7 +100,8 @@ def test_reassigned_to_next_trip_at_terminus_is_recorded(replay: tuple) -> None:
     assert row is not None
     assert row["scheduled_arrival_s"] == 15120
     assert row["observed_at"].timestamp() == 1787105686
-    assert row["delay_s"] == pytest.approx(172, abs=5)
+    # Standing at the report, 140 s after the previous one
+    assert row["delay_s"] == pytest.approx(172 - 140 // 2, abs=5)
     # The next trip, standing at its origin, has passed nothing yet
     assert replay[0].get(TRIP_38210, []) == []
 
@@ -103,7 +113,8 @@ def test_normal_arrival_is_recorded_once(replay: tuple) -> None:
 
     assert row is not None
     assert row["scheduled_arrival_s"] == 14460
-    # The first fix past the stop, not the later report from ~50 m before it
+    # The first fix past the stop, not the later report from ~50 m before it;
+    # still moving, so its delay stands
     assert row["observed_at"].timestamp() == 1787104886
     assert row["delay_s"] == pytest.approx(26, abs=5)
     assert [p.row["stop_sequence"] for p in passages[TRIP_4219]].count(final) == 1

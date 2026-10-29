@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.services import history
 from api.services.history import (
     MemoryWatermarks,
+    TripState,
     detect_passages,
     drop_old_partitions,
     ensure_partition,
@@ -36,7 +37,9 @@ def _unix(hh: int, mm: int, ss: int = 0) -> int:
     return int(local.timestamp())
 
 
-def _vehicle(lon: float, at: int, lat: float = LAT) -> dict[str, Any]:
+def _vehicle(
+    lon: float, at: int, lat: float = LAT, speed: float | None = 80.0
+) -> dict[str, Any]:
     stoptimes = [
         {
             "stopPosition": 10 * (i + 1),
@@ -60,7 +63,7 @@ def _vehicle(lon: float, at: int, lat: float = LAT) -> dict[str, Any]:
         "lat": lat,
         "lon": lon,
         "heading": 90.0,
-        "speed": 80.0,
+        "speed": speed,
         "lastUpdated": at,
         "trip": {
             "gtfsId": "1:trip",
@@ -75,10 +78,12 @@ def _vehicle(lon: float, at: int, lat: float = LAT) -> dict[str, Any]:
     }
 
 
-def _process(lon: float, at: int, lat: float = LAT) -> dict[str, Any]:
+def _process(
+    lon: float, at: int, lat: float = LAT, speed: float | None = 80.0
+) -> dict[str, Any]:
     service = TrainService(None)  # type: ignore[arg-type]
     service.reference_time = at
-    located = service.add_counties_to_locations([_vehicle(lon, at, lat)])
+    located = service.add_counties_to_locations([_vehicle(lon, at, lat, speed)])
     [processed] = service.process_locations(located)
     return processed
 
@@ -161,6 +166,35 @@ def test_terminus_recorded_on_arrival() -> None:
     assert passages[0].row["delay_s"] == pytest.approx(180, abs=5)
 
 
+@pytest.mark.parametrize(
+    ("speed", "previous", "delay"),
+    [
+        # Standing, previous report 80 s earlier: arrived halfway in between
+        (None, _unix(10, 16, 40), 140),
+        (0.0, _unix(10, 16, 40), 140),
+        # Still rolling in: the delay at the report is the arrival delay
+        (5.0, _unix(10, 16, 40), 180),
+        # Nothing to go on
+        (None, None, 180),
+        (None, _unix(10, 18), 180),
+        # A long silence counts as at most ten minutes
+        (None, _unix(9, 0), 180 - 300),
+    ],
+)
+def test_terminus_delay_when_standing(
+    speed: float | None, previous: int | None, delay: int
+) -> None:
+    loc = _process(19.2995, _unix(10, 18), speed=speed)
+
+    passages, _ = detect_passages(loc, 2, previous)
+
+    assert _seqs(passages) == [3]
+    assert passages[0].row["delay_s"] == pytest.approx(delay, abs=5)
+    # Only the terminus is corrected
+    earlier, _ = detect_passages(loc, 1, previous)
+    assert earlier[0].row["delay_s"] == pytest.approx(180, abs=5)
+
+
 def test_vehicle_preassigned_to_next_trip_is_ignored() -> None:
     # Vehicle is already listed on this trip at 09:30, half an hour early
     loc = _process(19.05, _unix(9, 30))
@@ -194,7 +228,9 @@ async def test_record_locations_inserts_once(db_session: AsyncSession) -> None:
 
     assert first == 2
     assert second == 0
-    assert watermarks.values == {(SERVICE_DATE, "1:trip"): 2}
+    assert watermarks.values == {
+        (SERVICE_DATE, "1:trip"): TripState(watermark=2, reported_at=_unix(10, 11))
+    }
     count = await db_session.scalar(
         text("SELECT count(*) FROM stop_delay_observations")
     )
@@ -206,6 +242,39 @@ async def test_record_locations_inserts_once(db_session: AsyncSession) -> None:
     ).scalar_one()
     assert stop == "Stop 1"
     assert "stop_delay_observations_y2026m08" in await list_partitions(db_session)
+
+
+async def test_record_locations_corrects_standing_terminus(
+    db_session: AsyncSession,
+) -> None:
+    watermarks = MemoryWatermarks()
+    approaching = _process(19.29, _unix(10, 16, 30))
+    standing = _process(19.2995, _unix(10, 18), speed=None)
+
+    await record_locations(db_session, watermarks, [approaching])
+    await record_locations(db_session, watermarks, [standing])
+
+    state = watermarks.values[(SERVICE_DATE, "1:trip")]
+    assert state == TripState(watermark=3, reported_at=_unix(10, 18))
+    delay = await db_session.scalar(
+        text("SELECT delay_s FROM stop_delay_observations WHERE stop_sequence = 3")
+    )
+    # 3 minutes late at the report, arrived ~45 s earlier
+    assert delay == pytest.approx(180 - 45, abs=5)
+
+
+async def test_redis_watermarks_round_trip(redis: fakeredis.FakeAsyncRedis) -> None:
+    store = history.RedisWatermarks(redis)
+    values = {
+        ("2026-08-14", "1:a"): TripState(watermark=3, reported_at=100),
+        ("2026-08-14", "1:b"): TripState(watermark=None, reported_at=200),
+        ("2026-08-15", "1:a"): TripState(watermark=0, reported_at=None),
+    }
+
+    await store.set_many(values)
+
+    assert await store.get_many(values) == values
+    assert await store.get_many([("2026-08-16", "1:a")]) == {}
 
 
 async def test_record_from_replayed_cache(
