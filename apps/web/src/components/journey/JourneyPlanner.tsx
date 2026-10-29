@@ -293,7 +293,7 @@ function EndpointField({
     }, [editing]);
     const label = t(field);
     return (
-        <div className="flex h-11 items-center gap-3 pr-2 pl-3.5">
+        <div className="focus-field flex h-11 items-center gap-3 rounded-md pr-2 pl-3.5">
             <span
                 aria-hidden
                 className={cn(
@@ -445,7 +445,7 @@ function TimeRow({
             </label>
             <div
                 className={cn(
-                    "relative flex h-10 min-w-0 flex-1 items-center rounded-md px-3",
+                    "focus-field relative flex h-10 min-w-0 flex-1 items-center rounded-md px-3",
                     surface,
                 )}
             >

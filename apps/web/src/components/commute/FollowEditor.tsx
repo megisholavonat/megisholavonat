@@ -315,7 +315,7 @@ export function FollowEditor({
                                             setBoardingKey(e.target.value)
                                         }
                                         disabled={setup.options.length < 2}
-                                        className="tnum h-12 w-full cursor-pointer appearance-none rounded-md border border-line bg-surface pr-10 pl-4 text-body text-ink outline-none focus-visible:ring-2 focus-visible:ring-ink disabled:cursor-default"
+                                        className="tnum h-12 w-full cursor-pointer appearance-none rounded-md border border-line bg-surface pr-10 pl-4 text-body text-ink disabled:cursor-default"
                                     >
                                         {setup.options.map((o) => (
                                             <option key={o.key} value={o.key}>
