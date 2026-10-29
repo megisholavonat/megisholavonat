@@ -4,6 +4,7 @@ import {
     expect,
     openHome,
     openTrain,
+    settle,
     t,
     test,
     trainRegion,
@@ -59,13 +60,6 @@ test("P1: no delay reason on a train that is on time", async ({ page }) => {
     await expect(region.getByText("Műszaki hiba")).toBeHidden();
 });
 
-/** Vertical centre of a locator */
-async function centerY(locator: Locator): Promise<number> {
-    const box = await locator.boundingBox();
-    if (!box) throw new Error("not rendered");
-    return box.y + box.height / 2;
-}
-
 /**
  * Where the live position sits between the last and the next stop, as a
  * share of the gap between their names (0 = last stop, 1 = next stop).
@@ -86,11 +80,11 @@ async function positionShare(
     const lastStop = list.getByText(last, { exact: true }).first();
     const nextStop = list.getByText(next, { exact: true }).first();
     await lastStop.scrollIntoViewIfNeeded();
-    const [y, a, b] = await Promise.all([
-        centerY(indicator),
-        centerY(lastStop),
-        centerY(nextStop),
-    ]);
+    // Measured at rest: the sheet's glide and the scroll to the current
+    // stop move all three, and the marker eases to its place
+    const [y, a, b] = (
+        await settle(page, [indicator, lastStop, nextStop])
+    ).map((box) => box.y + box.height / 2);
     return (y - a) / (b - a);
 }
 
