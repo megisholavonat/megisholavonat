@@ -5,7 +5,6 @@ import { X } from "lucide-react";
 import {
     AnimatePresence,
     motion,
-    useAnimate,
     usePresence,
     useReducedMotion,
 } from "motion/react";
@@ -38,6 +37,36 @@ export const SHEET_TRANSITION = {
     duration: MOTION.sheet.duration / 1000,
     ease: [...EASING.sheet.bezier] as [number, number, number, number],
 };
+/** The sheet curve as CSS, for the Web Animations API */
+const SHEET_EASING = `cubic-bezier(${EASING.sheet.bezier.join(",")})`;
+
+/**
+ * Moves an element with a compositor-run transform animation, so the sheet
+ * keeps gliding while React renders the new content. The end value stays
+ * as the inline style.
+ */
+function glide(
+    el: HTMLElement,
+    from: string,
+    to: string,
+    instant: boolean,
+): Animation | null {
+    el.style.transform = to;
+    if (instant) return null;
+    return el.animate([{ transform: from }, { transform: to }], {
+        duration: MOTION.sheet.duration,
+        easing: SHEET_EASING,
+    });
+}
+
+/** The element's current translateY in px, mid-animation too */
+function currentTranslateY(el: HTMLElement): number {
+    const transform = getComputedStyle(el).transform;
+    return transform && transform !== "none"
+        ? new DOMMatrixReadOnly(transform).m42
+        : 0;
+}
+
 /** Content swap inside the persistent sheet */
 const FADE_TRANSITION = { duration: 0.16, ease: "easeOut" } as const;
 
@@ -163,7 +192,19 @@ export function BottomSheet({
     const [headerHeight, setHeaderHeight] = useState(96);
     const [dragHeight, setDragHeight] = useState<number | null>(null);
     const [isPresent, safeToRemove] = usePresence();
-    const [scope, animate] = useAnimate<HTMLElement>();
+    /** Slides the whole sheet in and out (mount, unmount, dismiss) */
+    const scope = useRef<HTMLDivElement>(null);
+    const slide = useRef<Animation | null>(null);
+    /** Carries the detent: its height and a translateY, set by hand */
+    const sectionRef = useRef<HTMLElement>(null);
+    const box = useRef<{
+        height: number;
+        offset: number;
+        target: number;
+        anim: Animation | null;
+    }>({ height: 0, offset: 0, target: 0, anim: null });
+    /** Off screen during a dismiss: detent changes then jump */
+    const hidden = useRef(false);
     const dismissing = useRef(false);
     const drag = useRef<{
         startY: number;
@@ -175,18 +216,32 @@ export function BottomSheet({
         pointerId: number;
     } | null>(null);
 
-    const transition = reducedMotion ? { duration: 0 } : SHEET_TRANSITION;
+    /** Slides the sheet to `to`, from wherever it is now */
+    const slideTo = useCallback(
+        (to: string, from?: string) => {
+            const el = scope.current;
+            if (!el) return null;
+            const start = from ?? `translateY(${currentTranslateY(el)}px)`;
+            slide.current?.cancel();
+            slide.current = glide(el, start, to, reducedMotion);
+            return slide.current;
+        },
+        [reducedMotion],
+    );
 
     // Slide up on mount, down on unmount
     // biome-ignore lint/correctness/useExhaustiveDependencies: presence only
     useEffect(() => {
-        if (!scope.current) return;
         if (isPresent) {
-            void animate(scope.current, { y: ["100%", "0%"] }, transition);
+            slideTo("none", "translateY(100%)");
         } else {
-            void animate(scope.current, { y: "100%" }, transition).then(() =>
-                safeToRemove?.(),
-            );
+            const anim = slideTo("translateY(100%)");
+            if (anim)
+                void anim.finished.then(
+                    () => safeToRemove?.(),
+                    () => {},
+                );
+            else safeToRemove?.();
         }
     }, [isPresent]);
 
@@ -222,6 +277,65 @@ export function BottomSheet({
     );
     const height = dragHeight ?? heights[detent];
 
+    // Detents move the sheet with a transform, never by animating its
+    // height: the box takes the larger of the two heights once, glides, and
+    // settles on the new height when it arrives. So the content is laid out
+    // at most twice per change, not on every frame.
+    useLayoutEffect(() => {
+        const el = sectionRef.current;
+        if (!el) return;
+        const b = box.current;
+        const place = (boxHeight: number, offset: number) => {
+            el.style.height = `${boxHeight}px`;
+            el.style.transform = offset ? `translateY(${offset}px)` : "";
+            b.height = boxHeight;
+            b.offset = offset;
+        };
+        const offsetNow = () => {
+            if (!b.anim) return b.offset;
+            const y = currentTranslateY(el);
+            b.anim.cancel();
+            b.anim = null;
+            return y;
+        };
+        if (dragHeight !== null) {
+            offsetNow();
+            const boxHeight = Math.max(b.height, heights.full);
+            b.target = dragHeight;
+            place(boxHeight, boxHeight - dragHeight);
+            return;
+        }
+        const target = heights[detent];
+        if (b.anim && b.target === target) return;
+        const shown = b.height - offsetNow();
+        b.target = target;
+        if (
+            !b.height ||
+            reducedMotion ||
+            hidden.current ||
+            Math.abs(shown - target) < 1
+        ) {
+            place(target, 0);
+            return;
+        }
+        const boxHeight = Math.max(shown, target);
+        place(boxHeight, boxHeight - target);
+        const anim = glide(
+            el,
+            `translateY(${boxHeight - shown}px)`,
+            `translateY(${boxHeight - target}px)`,
+            false,
+        );
+        b.anim = anim;
+        if (anim) {
+            anim.onfinish = () => {
+                if (b.anim !== anim) return;
+                b.anim = null;
+                place(target, 0);
+            };
+        }
+    }, [dragHeight, detent, heights, reducedMotion]);
+
     // Map controls and the consent card float above the sheet
     useEffect(() => {
         const inset = Math.min(height, heights.half);
@@ -240,22 +354,33 @@ export function BottomSheet({
     /** Carry the sheet off screen, swap the content, bring it back up */
     const dismiss = useCallback(() => {
         if (!onDismiss || dismissing.current) return;
-        const el = scope.current;
-        if (!el || reducedMotion) {
+        const anim = reducedMotion ? null : slideTo("translateY(100%)");
+        if (!anim) {
             setDragHeight(null);
             onDismiss();
             return;
         }
         dismissing.current = true;
-        void animate(el, { y: "100%" }, SHEET_TRANSITION).then(() => {
-            setDragHeight(null);
-            onDismiss();
-            dismissing.current = false;
-            requestAnimationFrame(() => {
-                void animate(el, { y: "0%" }, SHEET_TRANSITION);
-            });
-        });
-    }, [onDismiss, scope, animate, reducedMotion]);
+        hidden.current = true;
+        void anim.finished.then(
+            () => {
+                setDragHeight(null);
+                onDismiss();
+                dismissing.current = false;
+                // The next content takes its detent off screen, then rises
+                requestAnimationFrame(() =>
+                    requestAnimationFrame(() => {
+                        hidden.current = false;
+                        slideTo("none");
+                    }),
+                );
+            },
+            () => {
+                dismissing.current = false;
+                hidden.current = false;
+            },
+        );
+    }, [onDismiss, slideTo, reducedMotion]);
 
     const settle = useCallback(
         (finalHeight: number, velocity: number) => {
@@ -346,78 +471,89 @@ export function BottomSheet({
     const fade = reducedMotion ? { duration: 0 } : FADE_TRANSITION;
 
     return (
-        // biome-ignore lint/a11y/useAriaPropsSupportedByRole: the role is dialog whenever aria-modal is set
-        <section
+        <div
             ref={scope}
-            aria-label={label}
-            role={modal ? "dialog" : undefined}
-            aria-modal={modal || undefined}
             className={cn(
-                "fixed inset-x-0 z-30 flex flex-col overflow-hidden rounded-t-sheet bg-surface",
-                "shadow-[0_-1px_3px_rgb(20_22_26/0.08),0_-8px_24px_rgb(20_22_26/0.08)]",
-                dragHeight === null &&
-                    !reducedMotion &&
-                    "transition-[height,bottom] duration-(--mhav-duration-sheet) ease-sheet",
+                "fixed inset-x-0 z-30",
+                !reducedMotion &&
+                    "transition-[bottom] duration-(--mhav-duration-sheet) ease-sheet",
             )}
             // Off screen until the enter animation runs
-            style={{ height, bottom: keyboard, transform: "translateY(100%)" }}
+            style={{ bottom: keyboard, transform: "translateY(100%)" }}
         >
-            <div
-                ref={headerRef}
-                className="relative shrink-0 touch-none select-none"
-                onPointerDown={onPointerDown}
-                onPointerMove={onPointerMove}
-                onPointerUp={endDrag}
-                onPointerCancel={endDrag}
-            >
-                <div className="flex justify-center pt-2 pb-1">
-                    <button
-                        type="button"
-                        onClick={stepUp}
-                        className="flex h-5 w-14 cursor-grab items-center justify-center"
-                        aria-label={t("resize")}
-                        disabled={available.length < 2}
-                    >
-                        <span className="h-1 w-9 rounded-full bg-line" />
-                    </button>
-                </div>
-                <AnimatePresence mode="popLayout" initial={false}>
-                    <motion.div
-                        key={contentKey}
-                        className="relative"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={fade}
-                    >
-                        {header}
-                    </motion.div>
-                </AnimatePresence>
-            </div>
-            <div
+            {/* biome-ignore lint/a11y/useAriaPropsSupportedByRole: the role is dialog whenever aria-modal is set */}
+            <section
+                ref={sectionRef}
+                aria-label={label}
+                role={modal ? "dialog" : undefined}
+                aria-modal={modal || undefined}
+                data-sheet=""
                 className={cn(
-                    "relative min-h-0 flex-1 overscroll-contain",
-                    bodyScroll
-                        ? "pb-[env(safe-area-inset-bottom)]"
-                        : "flex flex-col",
-                    scrollable ? "overflow-y-auto" : "overflow-hidden",
+                    "flex flex-col overflow-hidden rounded-t-sheet bg-surface",
+                    "shadow-[0_-1px_3px_rgb(20_22_26/0.08),0_-8px_24px_rgb(20_22_26/0.08)]",
                 )}
             >
-                <AnimatePresence mode="popLayout" initial={false}>
-                    <motion.div
-                        key={contentKey}
-                        className={cn(
-                            !bodyScroll && "flex min-h-0 flex-1 flex-col",
+                <div
+                    ref={headerRef}
+                    className="relative shrink-0 touch-none select-none"
+                    onPointerDown={onPointerDown}
+                    onPointerMove={onPointerMove}
+                    onPointerUp={endDrag}
+                    onPointerCancel={endDrag}
+                >
+                    <div className="flex justify-center pt-2 pb-1">
+                        {available.length > 1 ? (
+                            <button
+                                type="button"
+                                onClick={stepUp}
+                                className="flex h-5 w-14 cursor-grab items-center justify-center"
+                                aria-label={t("resize")}
+                            >
+                                <span className="h-1 w-9 rounded-full bg-line" />
+                            </button>
+                        ) : (
+                            // One detent: nothing to resize, keep the spacing
+                            <div className="h-5" aria-hidden />
                         )}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={fade}
-                    >
-                        {children}
-                    </motion.div>
-                </AnimatePresence>
-            </div>
-        </section>
+                    </div>
+                    <AnimatePresence mode="popLayout" initial={false}>
+                        <motion.div
+                            key={contentKey}
+                            className="relative"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={fade}
+                        >
+                            {header}
+                        </motion.div>
+                    </AnimatePresence>
+                </div>
+                <div
+                    className={cn(
+                        "relative min-h-0 flex-1 overscroll-contain",
+                        bodyScroll
+                            ? "pb-[env(safe-area-inset-bottom)]"
+                            : "flex flex-col",
+                        scrollable ? "overflow-y-auto" : "overflow-hidden",
+                    )}
+                >
+                    <AnimatePresence mode="popLayout" initial={false}>
+                        <motion.div
+                            key={contentKey}
+                            className={cn(
+                                !bodyScroll && "flex min-h-0 flex-1 flex-col",
+                            )}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={fade}
+                        >
+                            {children}
+                        </motion.div>
+                    </AnimatePresence>
+                </div>
+            </section>
+        </div>
     );
 }
