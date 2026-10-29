@@ -89,6 +89,12 @@ describe("markerCollection", () => {
             labelColor: darkTheme.stale.text,
             sort: 0,
         });
+        // Fresh but not running (waiting or arrived): grey without "0′"
+        expect(fc.features[1]?.properties).toMatchObject({
+            label: "",
+            fill: darkTheme.stale.fill,
+            sort: 0,
+        });
     });
 
     it("sizes dots by severity", () => {
