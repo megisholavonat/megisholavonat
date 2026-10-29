@@ -117,7 +117,7 @@ describe("helpers", () => {
 
     it("caps the line glyphs", () => {
         const lines = ["S50", "S51", "G43", "H8", "H9"].map((name) => ({
-            shortName: "<span>A</span>",
+            shortName: `<span>${name}</span>`,
             name,
         }));
         const { lines: shown, more } = disruptionLines(

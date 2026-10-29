@@ -105,15 +105,21 @@ export function sortDisruptions(
 }
 
 /**
- * Line glyphs to show, at most `max`: named lines (S50, H8) first, one
- * glyph per category for the rest. `more` is how many were left out.
+ * Line glyphs to show, at most `max`, one per glyph: named lines (S50, H8)
+ * first, then one per train category. `more` is how many were left out.
  */
 export function disruptionLines(
     d: Disruption,
     max = 4,
 ): { lines: Disruption["lines"]; more: number } {
+    const seen = new Set<string>();
+    const unique = d.lines.filter((line) => {
+        if (seen.has(line.shortName)) return false;
+        seen.add(line.shortName);
+        return true;
+    });
     return {
-        lines: d.lines.slice(0, max),
-        more: Math.max(0, d.lines.length - max),
+        lines: unique.slice(0, max),
+        more: Math.max(0, unique.length - max),
     };
 }
