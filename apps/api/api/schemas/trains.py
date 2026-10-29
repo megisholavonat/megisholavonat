@@ -97,6 +97,9 @@ class ProcessedStop(BaseModel):
     originalCoords: list[float]
     distanceAlongRoute: float
     stopTimeInfo: StopTimeWithCounty | None = None
+    # Forecast delay in minutes when the train passes this stop (departure,
+    # or arrival at the terminus). Only set on upcoming stops of running trains.
+    predictedDelay: int | None = None
 
 
 class VehicleProgress(BaseModel):
