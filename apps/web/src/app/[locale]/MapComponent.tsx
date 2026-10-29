@@ -37,6 +37,7 @@ import {
     MAP_FOCUS,
     MAP_MARKS,
     MAP_PALETTE,
+    MAP_STATION_MARK,
     markSizeAt,
 } from "@megisholavonat/core/tokens/map";
 import type { VehicleState } from "@megisholavonat/core/VehicleTracker";
@@ -956,9 +957,12 @@ export default function MapComponent({
         () => ({
             "text-field": ["get", "name"] as ExpressionSpecification,
             "text-font": [...MAP_FONTS.bold],
-            "text-size": 13,
+            "text-size": MAP_STATION_MARK.label.size,
             "text-anchor": "top" as const,
-            "text-offset": [0, 1.35] as [number, number],
+            "text-offset": [0, MAP_STATION_MARK.label.offsetEm] as [
+                number,
+                number,
+            ],
             "text-max-width": 12,
             "text-allow-overlap": true,
             "text-ignore-placement": true,

@@ -228,3 +228,29 @@ export function markSizeAt(zoom: number): number {
     }
     return last[1];
 }
+
+/**
+ * The chosen station on the map (css px): under the trains a clearing in
+ * the map colour, opaque to `clear` and fading out by `fade`; above them a
+ * soft ink halo, a surface disc and an ink ring; its name in a surface card
+ * below it.
+ */
+export const MAP_STATION_MARK = {
+    clear: 15,
+    fade: 18,
+    halo: { radius: 13, opacity: 0.2 },
+    ring: { radius: 9, width: 3 },
+    label: { size: 13, radius: 6, padX: 7, padY: 3, offsetEm: 1.35 },
+    /** The camera comes at least this close */
+    flyZoom: 13,
+} as const;
+
+/** A followed train's badge: an ink disc with a surface star and rim */
+export const MAP_FOLLOW_STAR = {
+    rim: 1.5,
+    /** Outer and inner radius of the five-pointed star */
+    outer: 4.6,
+    inner: 4.6 * 0.45,
+    /** Optical centring: the star sits this much lower */
+    dy: 0.4,
+} as const;
