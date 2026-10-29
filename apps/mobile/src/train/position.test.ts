@@ -84,6 +84,21 @@ describe("railPosition", () => {
         );
     });
 
+    it("puts a train waiting out a stop, at its origin or arrived on its dot", () => {
+        const at = (extra: object) =>
+            railPosition({ ...details(1, 2, 0.1), ...extra }, now, true);
+        expect(at({ dwellStopIndex: 1 })).toEqual({
+            from: 1,
+            to: 1,
+            fraction: 0,
+        });
+        expect(at({ activity: "beforeDeparture" })).toMatchObject({
+            from: 0,
+            to: 0,
+        });
+        expect(at({ activity: "arrived" })).toMatchObject({ from: 2, to: 2 });
+    });
+
     it("doesn't glide a standing train", () => {
         const d = details(0, 1, 0.3, { speed: 0, lastUpdated: nowS - 30 });
         expect(railPosition(d, now, true)?.fraction).toBe(0.3);

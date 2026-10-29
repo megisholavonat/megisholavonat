@@ -47,12 +47,24 @@ export function railPosition(
     details: Pick<
         VehiclePositionWithDelay,
         "vehicleProgress" | "speed" | "lastUpdated" | "trip"
-    >,
+    > &
+        Partial<Pick<VehiclePositionWithDelay, "activity" | "dwellStopIndex">>,
     now: Date = new Date(),
     extrapolate = false,
 ): RailPosition | null {
     const { lastStopIndex, nextStopIndex, progress } = details.vehicleProgress;
     const stops = details.trip.stoptimes;
+    // Standing at a stop (waiting to depart, out a dwell or arrived): on
+    // its dot, not a little way past it
+    const at =
+        details.activity === "arrived"
+            ? stops.length - 1
+            : details.activity === "beforeDeparture"
+              ? 0
+              : details.dwellStopIndex;
+    if (at != null && at >= 0 && at < stops.length) {
+        return { from: at, to: at, fraction: 0 };
+    }
     if (lastStopIndex == null || nextStopIndex == null) return null;
     if (
         lastStopIndex < 0 ||
