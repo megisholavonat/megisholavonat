@@ -79,6 +79,46 @@ function useSelectionOpen(): boolean {
     return !!(params.get("vehicleId") || params.get("station"));
 }
 
+/**
+ * Whether the user is busy with something that sits above the map: a modal
+ * (full-screen search, planner) or a focused search field. The card waits.
+ */
+function useBusy(): boolean {
+    const [busy, setBusy] = useState(false);
+    useEffect(() => {
+        let frame = 0;
+        const check = () => {
+            cancelAnimationFrame(frame);
+            frame = requestAnimationFrame(() => {
+                const active = document.activeElement;
+                setBusy(
+                    !!document.querySelector('[aria-modal="true"]') ||
+                        !!active?.matches(
+                            'input[type="search"], [role="combobox"], [role="searchbox"]',
+                        ),
+                );
+            });
+        };
+        check();
+        const observer = new MutationObserver(check);
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ["aria-modal"],
+        });
+        document.addEventListener("focusin", check);
+        document.addEventListener("focusout", check);
+        return () => {
+            cancelAnimationFrame(frame);
+            observer.disconnect();
+            document.removeEventListener("focusin", check);
+            document.removeEventListener("focusout", check);
+        };
+    }, []);
+    return busy;
+}
+
 const EASE_SHEET = [0.32, 0.72, 0, 1] as const;
 
 /**
@@ -94,11 +134,15 @@ export default function ConsentBanner() {
     const pathname = usePathname();
     const promptReady = usePromptReady(consent === "pending");
     const selectionOpen = useSelectionOpen();
+    const busy = useBusy();
     const reduceMotion = useReducedMotion() ?? false;
     const onMap = pathname === "/";
 
     const show =
-        consent === "pending" && promptReady && !(onMap && selectionOpen);
+        consent === "pending" &&
+        promptReady &&
+        !busy &&
+        !(onMap && selectionOpen);
 
     return (
         <AnimatePresence>

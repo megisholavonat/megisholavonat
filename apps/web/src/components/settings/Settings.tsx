@@ -467,11 +467,11 @@ export function SettingsDialog({
     return (
         <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
             <DialogPrimitive.Portal>
-                <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/40 duration-320 ease-sheet data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:duration-200 data-[state=open]:animate-in data-[state=open]:fade-in-0 motion-reduce:animate-none" />
+                <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/40 duration-320 ease-sheet data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:duration-200 data-[state=open]:animate-in data-[state=open]:fade-in-0 motion-reduce:data-[state=closed]:animate-none motion-reduce:data-[state=open]:animate-none" />
                 <DialogPrimitive.Content
                     aria-describedby={undefined}
                     className={cn(
-                        "fixed z-50 flex flex-col overflow-hidden bg-canvas outline-none ease-sheet data-[state=closed]:animate-out data-[state=open]:animate-in motion-reduce:animate-none",
+                        "fixed z-50 flex flex-col overflow-hidden bg-canvas outline-none ease-sheet data-[state=closed]:animate-out data-[state=open]:animate-in motion-reduce:data-[state=closed]:animate-none motion-reduce:data-[state=open]:animate-none",
                         isDesktop
                             ? "top-1/2 left-1/2 h-[min(85vh,720px)] w-[440px] -translate-x-1/2 -translate-y-1/2 rounded-sheet shadow-2xl duration-200 data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:duration-150 data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95"
                             : "inset-x-0 top-[max(env(safe-area-inset-top),12px)] bottom-0 rounded-t-sheet shadow-[0_-4px_20px_rgb(0_0_0/0.1)] duration-320 data-[state=closed]:slide-out-to-bottom data-[state=closed]:duration-240 data-[state=open]:slide-in-from-bottom",

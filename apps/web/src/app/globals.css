@@ -154,6 +154,11 @@
     .map-button:active:not(:disabled) {
         scale: none;
     }
+    /* Chrome that follows the sheet (legend, controls, consent card) jumps
+       with it instead of sliding */
+    .ease-sheet {
+        transition-duration: 0s;
+    }
 }
 
 @utility floating-card {
