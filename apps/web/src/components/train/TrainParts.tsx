@@ -410,7 +410,7 @@ function AlertItem({
         normalizeAlertText(alert.text),
     );
     return (
-        <li
+        <div
             className={cn(
                 "flex items-start gap-2.5",
                 framed && cn("rounded-md px-3 py-2.5", TINT_CLASS[tint]),
@@ -458,7 +458,7 @@ function AlertItem({
                     </p>
                 )}
             </div>
-        </li>
+        </div>
     );
 }
 
@@ -482,10 +482,13 @@ export function ReasonBanner({
     const label = useReasonLabel();
     const [open, setOpen] = useState(false);
     const level = levelOf(delay);
-    const alerts = reason.alerts;
+    // A delay reason explains a delay: none on a train that is on time
+    const late = level !== "onTime";
+    const alerts = late ? reason.alerts : reason.alerts.filter((a) => !a.code);
     if (detailed) {
+        if (alerts.length === 0) return null;
         return (
-            <ul className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2">
                 {alerts.map((alert) => (
                     <AlertItem
                         key={`${alert.start}-${alert.text}`}
@@ -494,10 +497,10 @@ export function ReasonBanner({
                         framed
                     />
                 ))}
-            </ul>
+            </div>
         );
     }
-    if (!reason.code) return null;
+    if (!late || !reason.code) return null;
     const others = alerts.length - 1;
     return (
         <div className={cn("rounded-md", TINT_CLASS[level])}>
@@ -533,7 +536,7 @@ export function ReasonBanner({
                 />
             </button>
             {open && (
-                <ul className="flex flex-col gap-3 border-t border-ink/8 px-3 pt-2.5 pb-3">
+                <div className="flex flex-col gap-3 border-t border-ink/8 px-3 pt-2.5 pb-3">
                     {alerts.map((alert) => (
                         <AlertItem
                             key={`${alert.start}-${alert.text}`}
@@ -542,7 +545,7 @@ export function ReasonBanner({
                             framed={false}
                         />
                     ))}
-                </ul>
+                </div>
             )}
         </div>
     );
@@ -621,24 +624,26 @@ function positionLabel(
     view: TrainView,
     fraction: number,
     t: ReturnType<typeof useTranslations<"Train">>,
-): string {
+): { place: string | null; motion: string } {
     const { position, vehicle } = view;
     const speed = Math.round((vehicle.speed ?? 0) * 3.6);
     const motion = speed > 0 ? `${speed} km/h` : t("standing");
     const segment = position.segmentKm;
-    if (segment == null) return motion;
+    if (segment == null) return { place: null, motion };
     const done = fraction * segment;
     const left = (1 - fraction) * segment;
     const from = view.stops[position.fromIndex];
-    if (done < 0.4 && from) return `${from.name} · ${motion}`;
+    if (done < 0.4 && from) return { place: from.name, motion };
     const km = left >= 2 ? Math.round(left) : Math.round(left * 10) / 10;
-    return `${t("to_go", { km })} · ${motion}`;
+    return { place: t("to_go", { km }), motion };
 }
 
 /** Rail centre, in the 18 px dot column */
 const RAIL_X = 9;
 /** Marker centre to stop-dot centre at the ends of a segment */
 const MARKER_GAP = 13;
+/** Label centre to a stop name's centre, so they never overlap */
+const LABEL_GAP = 20;
 
 /**
  * Stop list with a progress rail: passed track in ink-2, track ahead in the
@@ -704,7 +709,12 @@ export function StopList({
         return () => cancelAnimationFrame(id);
     }, [layout, animate]);
 
-    let rail: { top: number; bottom: number; train: number } | null = null;
+    let rail: {
+        top: number;
+        bottom: number;
+        train: number;
+        label: number;
+    } | null = null;
     if (layout && stops.length > 0) {
         const first = stops[0];
         const last = stops[stops.length - 1];
@@ -731,7 +741,15 @@ export function StopList({
                     upcomingOnly && layout.nowTop != null
                         ? layout.nowTop
                         : firstY;
-                rail = { top, bottom: lastY, train };
+                // The label rides with the marker, clear of the stop names
+                const low =
+                    fromDot != null
+                        ? fromDot + LABEL_GAP
+                        : (layout.nowTop ?? train) + LABEL_GAP / 2;
+                const high = toY != null ? toY - LABEL_GAP : train;
+                const label =
+                    low <= high ? Math.min(high, Math.max(low, train)) : train;
+                rail = { top, bottom: lastY, train, label };
             }
         }
     }
@@ -772,12 +790,14 @@ export function StopList({
                 {stops.map((stop) => (
                     <Fragment key={`${stop.index}-${stop.name}`}>
                         {showNow && stop.index === position.toIndex && (
-                            <li
-                                ref={nowRef}
-                                className="grid min-h-8 grid-cols-[18px_1fr] items-center gap-x-2 text-caption font-bold text-ink"
-                            >
-                                <span />
-                                <span>{positionLabel(view, fraction, t)}</span>
+                            <li ref={nowRef} className="h-9">
+                                {rail && (
+                                    <PositionLabel
+                                        {...positionLabel(view, fraction, t)}
+                                        top={rail.label}
+                                        glide={glide}
+                                    />
+                                )}
                             </li>
                         )}
                         <li>
@@ -824,6 +844,34 @@ export function StopList({
                 </span>
             )}
         </div>
+    );
+}
+
+/** "még 8 km · 112 km/h" beside the marker; placed in the list's frame. */
+function PositionLabel({
+    place,
+    motion,
+    top,
+    glide,
+}: {
+    place: string | null;
+    motion: string;
+    top: number;
+    glide: string | undefined;
+}) {
+    return (
+        <span
+            className="absolute right-0 left-[26px] flex -translate-y-1/2 items-center gap-1 truncate text-caption font-bold text-ink"
+            style={{ top, transition: glide && `top ${glide}` }}
+        >
+            {place && (
+                <>
+                    <span className="truncate">{place}</span>
+                    <span aria-hidden>·</span>
+                </>
+            )}
+            <span className="shrink-0">{motion}</span>
+        </span>
     );
 }
 
@@ -895,7 +943,7 @@ function StopRow({
     const name = (
         <span
             className={cn(
-                "block truncate text-left text-[15px]",
+                "block truncate text-left text-[15px] leading-[22px]",
                 stop.passed ? "text-ink-2" : "text-ink",
                 strong && "font-semibold",
             )}
@@ -904,8 +952,8 @@ function StopRow({
         </span>
     );
     return (
-        <div className="grid min-h-11 grid-cols-[18px_minmax(0,1fr)_auto_34px] items-center gap-x-2 py-1">
-            <span className="flex justify-center">
+        <div className="grid min-h-11 grid-cols-[18px_minmax(0,1fr)_auto_34px] items-start gap-x-2 py-[11px]">
+            <span className="flex h-[22px] items-center justify-center">
                 <span
                     ref={dotRef}
                     aria-hidden
@@ -945,7 +993,7 @@ function StopRow({
                     estimated={estimated}
                     level={level}
                     className={cn(
-                        "text-[15px] font-semibold",
+                        "text-[15px] leading-[22px] font-semibold",
                         stop.passed && "opacity-80",
                     )}
                 />
@@ -957,7 +1005,7 @@ function StopRow({
                     </span>
                 )}
             </span>
-            <span className="flex justify-end">
+            <span className="flex h-[22px] items-center justify-end">
                 {stop.platform && (
                     <PlatformBadge
                         platform={stop.platform}
