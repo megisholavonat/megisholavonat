@@ -679,7 +679,8 @@ export function StopList({
         dots: Map<number, number>;
         nowTop: number | null;
     } | null>(null);
-    const [animate, setAnimate] = useState(false);
+    // The layout the marker may glide in; a new layout places it at once
+    const [glideFor, setGlideFor] = useState<typeof layout>(null);
     const shape = `${stops.map((s) => s.index).join(",")}|${showNow}`;
 
     // biome-ignore lint/correctness/useExhaustiveDependencies: re-measure when the rows change
@@ -702,12 +703,12 @@ export function StopList({
         return () => observer.disconnect();
     }, [shape]);
 
-    // Glide only after the first placement
+    // Glide between position updates only, never on (re)layout
     useEffect(() => {
-        if (!layout || animate) return;
-        const id = requestAnimationFrame(() => setAnimate(true));
+        if (!layout || glideFor === layout) return;
+        const id = requestAnimationFrame(() => setGlideFor(layout));
         return () => cancelAnimationFrame(id);
-    }, [layout, animate]);
+    }, [layout, glideFor]);
 
     let rail: {
         top: number;
@@ -753,7 +754,8 @@ export function StopList({
             }
         }
     }
-    const glide = animate && !reduce ? "1000ms linear" : undefined;
+    const glide =
+        layout && glideFor === layout && !reduce ? "1000ms linear" : undefined;
 
     const setDot = (index: number) => (el: HTMLSpanElement | null) => {
         if (el) dots.current.set(index, el);
