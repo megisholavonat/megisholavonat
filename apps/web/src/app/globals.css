@@ -36,26 +36,10 @@
     --color-delay-slight-label: var(--mhav-delay-slight-label);
     --color-delay-moderate-label: var(--mhav-delay-moderate-label);
     --color-delay-severe-label: var(--mhav-delay-severe-label);
-    --color-delay-on-time-tint: color-mix(
-        in srgb,
-        var(--mhav-delay-on-time-fill) 14%,
-        var(--mhav-surface)
-    );
-    --color-delay-slight-tint: color-mix(
-        in srgb,
-        var(--mhav-delay-slight-fill) 22%,
-        var(--mhav-surface)
-    );
-    --color-delay-moderate-tint: color-mix(
-        in srgb,
-        var(--mhav-delay-moderate-fill) 16%,
-        var(--mhav-surface)
-    );
-    --color-delay-severe-tint: color-mix(
-        in srgb,
-        var(--mhav-delay-severe-fill) 14%,
-        var(--mhav-surface)
-    );
+    --color-delay-on-time-tint: var(--mhav-delay-on-time-tint);
+    --color-delay-slight-tint: var(--mhav-delay-slight-tint);
+    --color-delay-moderate-tint: var(--mhav-delay-moderate-tint);
+    --color-delay-severe-tint: var(--mhav-delay-severe-tint);
     --color-stale: var(--mhav-stale-text);
     --color-stale-fill: var(--mhav-stale-fill);
 

@@ -1,11 +1,14 @@
 "use client";
 
-import { type DelayLevel, getDelayLevel } from "@megisholavonat/core/delay";
+import type { DelayLevel } from "@megisholavonat/core/delay";
 import {
+    type DelayTileModel,
+    delayLabel,
+    delayTile,
     type TrainDisplayInput,
     trainDisplay,
 } from "@megisholavonat/core/display";
-import { MARKER, MOTION } from "@megisholavonat/core/tokens";
+import { MOTION } from "@megisholavonat/core/tokens";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
@@ -23,6 +26,7 @@ export const TEXT_CLASS: Record<Level, string> = {
     stale: "text-stale",
 };
 
+/** Backgrounds from the `DELAY_SCALE[scheme][level].tint` tokens */
 export const TINT_CLASS: Record<Level, string> = {
     onTime: "bg-delay-on-time-tint",
     slight: "bg-delay-slight-tint",
@@ -38,18 +42,6 @@ export const FILL_CLASS: Record<Level, string> = {
     severe: "bg-delay-severe-fill",
     stale: "bg-stale-fill",
 };
-
-export function levelOf(delay: number, stale = false): Level {
-    return stale ? "stale" : getDelayLevel(delay);
-}
-
-/** Signed minutes: "+23", "0", "−2" (a real minus sign for early trains). */
-export function formatDelay(delay: number): string {
-    const minutes = Math.round(delay);
-    if (minutes > 0) return MARKER.label.delayed(minutes);
-    if (minutes < 0) return `−${-minutes}`;
-    return "0";
-}
 
 /**
  * Text that rolls to its new value: the old one slides out, the new one in
@@ -112,9 +104,9 @@ export function RollingText({
 }
 
 /**
- * Delay as coloured text: "pontos" or "+7". A stale delay is its last number
- * with a "?", never a confident "pontos"; without a delay (an idle or
- * cancelled train) it is a grey "–".
+ * Delay as coloured text (core `delayLabel`): "pontos" up to +5, "+7"
+ * after. A stale delay is its last number with a "?", never a confident
+ * "pontos"; without a delay (an idle or cancelled train) it is a grey "–".
  */
 export function DelayText({
     delay,
@@ -126,28 +118,22 @@ export function DelayText({
     className?: string;
 }) {
     const t = useTranslations("Delay");
-    const level = levelOf(delay ?? 0, stale || delay == null);
-    if (delay == null) {
-        return (
-            <span
-                className={cn("tnum font-bold", TEXT_CLASS[level], className)}
-            >
-                –
-            </span>
-        );
+    const shown = delayLabel(delay, stale);
+    const classes = cn("tnum font-bold", TEXT_CLASS[shown.level], className);
+    if (shown.minutes == null) {
+        return <span className={classes}>{shown.text}</span>;
     }
-    const onTime = !stale && getDelayLevel(delay) === "onTime";
-    const label = onTime
-        ? t("on_time")
-        : `${formatDelay(delay)}${stale ? "?" : ""}`;
     return (
-        <span className={cn("tnum font-bold", TEXT_CLASS[level], className)}>
-            <RollingText value={label} order={onTime ? 0 : delay} />
+        <span className={classes}>
+            <RollingText
+                value={shown.text ?? t("on_time")}
+                order={shown.text == null ? 0 : shown.minutes}
+            />
         </span>
     );
 }
 
-/** Tinted chip for lists and boards: "pontos", "+5", "+74". */
+/** Tinted chip for lists and boards: "pontos", "+6", "+74", "+23?", "–". */
 export function DelayChip({
     delay,
     stale = false,
@@ -157,12 +143,12 @@ export function DelayChip({
     stale?: boolean;
     className?: string;
 }) {
-    const level = levelOf(delay ?? 0, stale || delay == null);
+    const shown = delayLabel(delay, stale);
     return (
         <span
             className={cn(
                 "inline-flex h-5 items-center rounded-full px-1.5 text-caption font-bold",
-                TINT_CLASS[level],
+                TINT_CLASS[shown.level],
                 stale && "border border-dashed border-stale",
                 className,
             )}
@@ -172,11 +158,31 @@ export function DelayChip({
     );
 }
 
+/** Core `delayTile` for a delay as the sheet passes it around. */
+export function tileOf(delay: number | null, stale: boolean): DelayTileModel {
+    return delayTile({
+        state: delay == null ? "idle" : stale ? "stale" : "running",
+        delay,
+        activity: null,
+    });
+}
+
+/** The tile's "pontos" / "korán" caption (the web shows no idle captions). */
+export function useTileCaption(): (tile: DelayTileModel) => string | null {
+    const t = useTranslations("Delay");
+    return (tile) =>
+        tile.caption?.kind === "on_time"
+            ? t("on_time")
+            : tile.caption?.kind === "early"
+              ? t("early")
+              : null;
+}
+
 /**
- * The big delay tile of the train sheet. It always shows the minutes ("+23",
- * "0", "−2"); within the on-time band a small "pontos" (or "korán") caption
- * says what the number means. Stale data reads "+23?" on a dashed tile. Tap
- * for how the delay is computed.
+ * The big delay tile of the train sheet (core `delayTile`). It always shows
+ * the minutes ("+23", "0", "−2"); within the on-time band (up to +5) a small
+ * "pontos" (or "korán") caption says what the number means. Stale data
+ * reads "+23?" on a dashed tile. Tap for how the delay is computed.
  */
 export function DelayTile({
     delay,
@@ -189,34 +195,26 @@ export function DelayTile({
     size?: "md" | "lg";
 }) {
     const t = useTranslations("Delay");
-    const none = delay == null;
-    const level = levelOf(delay ?? 0, stale || none);
-    const minutes = Math.round(delay ?? 0);
-    const caption =
-        none || stale || getDelayLevel(minutes) !== "onTime"
-            ? null
-            : minutes < 0
-              ? t("early")
-              : t("on_time");
-    const label = none ? "–" : `${formatDelay(minutes)}${stale ? "?" : ""}`;
+    const tile = tileOf(delay, stale);
+    const caption = useTileCaption()(tile);
     return (
         <TapTip
             content={t("note")}
-            label={t("tile_label", { delay: label })}
+            label={t("tile_label", { delay: tile.text })}
             className="shrink-0 rounded-lg"
         >
             <span
                 className={cn(
                     "flex flex-col items-center justify-center rounded-lg px-2",
                     size === "lg" ? "h-16 min-w-18" : "h-12 min-w-14",
-                    TINT_CLASS[level],
-                    stale && "border border-dashed border-stale",
-                    TEXT_CLASS[level],
+                    TINT_CLASS[tile.level],
+                    tile.stale && "border border-dashed border-stale",
+                    TEXT_CLASS[tile.level],
                 )}
             >
                 <RollingText
-                    value={label}
-                    order={minutes}
+                    value={tile.text}
+                    order={tile.delay ?? 0}
                     className={cn(
                         "tnum font-extrabold tracking-tight",
                         size === "lg"
@@ -231,6 +229,33 @@ export function DelayTile({
                 )}
             </span>
         </TapTip>
+    );
+}
+
+/**
+ * Under the tile when the data is old: how old, and the delay it had
+ * ("Utolsó adat 6 perce: +23 perc"), so the "?" is explained.
+ */
+export function StaleNote({
+    note,
+    className,
+}: {
+    note: { minutes: number; delay: string | null; onTime: boolean } | null;
+    className?: string;
+}) {
+    const t = useTranslations("Delay");
+    if (!note) return null;
+    return (
+        <span className={cn("text-caption text-ink-2", className)}>
+            {note.delay == null
+                ? t("stale_age", { minutes: note.minutes })
+                : t("stale_last", {
+                      minutes: note.minutes,
+                      delay: note.onTime
+                          ? t("on_time")
+                          : t("minutes", { delay: note.delay }),
+                  })}
+        </span>
     );
 }
 

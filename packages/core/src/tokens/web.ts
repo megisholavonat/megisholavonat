@@ -39,6 +39,20 @@ export function outlineShadow(outline: Outline): string {
     return rings.join(", ");
 }
 
+/** A #RRGGBBAA colour laid over an opaque #RRGGBB one, as #RRGGBB. */
+export function flatten(color: string, under: string): string {
+    const alpha = Number.parseInt(color.slice(7, 9) || "FF", 16) / 255;
+    const channels = [1, 3, 5].map((i) => {
+        const top = Number.parseInt(color.slice(i, i + 2), 16);
+        const bottom = Number.parseInt(under.slice(i, i + 2), 16);
+        return Math.round(top * alpha + bottom * (1 - alpha))
+            .toString(16)
+            .padStart(2, "0")
+            .toUpperCase();
+    });
+    return `#${channels.join("")}`;
+}
+
 /** Colour variables that differ between light and dark. */
 export function cssVariables(scheme: ColorScheme): CssVariables {
     const vars: CssVariables = {};
@@ -50,6 +64,12 @@ export function cssVariables(scheme: ColorScheme): CssVariables {
         vars[`--mhav-delay-${slug}-fill`] = colors.fill;
         vars[`--mhav-delay-${slug}-text`] = colors.text;
         vars[`--mhav-delay-${slug}-label`] = colors.label;
+        // Opaque, laid over the surface: a tinted chip on the map (the
+        // disruption chip) must not let the map through
+        vars[`--mhav-delay-${slug}-tint`] = flatten(
+            colors.tint,
+            COLORS[scheme].surface,
+        );
         vars[`--mhav-delay-${slug}-outline`] = outlineShadow(colors.outline);
     }
     const stale = STALE_COLORS[scheme];

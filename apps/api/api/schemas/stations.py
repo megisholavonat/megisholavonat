@@ -3,6 +3,7 @@ from typing import Literal
 from pydantic import BaseModel
 
 from api.schemas.alerts import DelayReason, TrainDisruption
+from api.util.stop import StationType
 
 BoardKind = Literal["departures", "arrivals"]
 DelaySource = Literal["gps", "otp"]
@@ -15,6 +16,8 @@ class Station(BaseModel):
     name: str
     lat: float
     lon: float
+    # Railway station, HÉV stop, tram-train stop or Children's Railway station
+    type: StationType = "rail"
 
 
 class BoardEntry(BaseModel):

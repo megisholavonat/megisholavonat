@@ -1,4 +1,10 @@
-import { test as base, expect, type Locator, type Page } from "@playwright/test";
+import {
+    test as base,
+    expect,
+    type Locator,
+    type Page,
+} from "@playwright/test";
+import { createTranslator } from "next-intl";
 import hu from "../../messages/hu.json";
 import {
     type CapturedEvent,
@@ -13,6 +19,16 @@ export { expect };
 
 /** The Hungarian UI strings, so tests follow copy changes */
 export const t = hu;
+
+const translate = createTranslator({ locale: "hu", messages: hu });
+
+/** A station search result's accessible name ("Szolnok állomás") */
+export function stationLabel(
+    station: string,
+    type: "rail" | "hev" | "tramtrain" | "childrens_railway" = "rail",
+): string {
+    return translate("Search.station_label", { station, type });
+}
 
 type Options = {
     /** Analytics consent stored before the first load ("pending": none) */

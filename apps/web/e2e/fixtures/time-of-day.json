@@ -8,45 +8,45 @@
   "hours": [
     {
       "hour": 0,
-      "n": 351,
-      "onTimeShare": 0.735,
-      "medianDelayMin": 2
+      "n": 287,
+      "onTimeShare": 0.679,
+      "medianDelayMin": 2.4
     },
     {
       "hour": 1,
-      "n": 128,
-      "onTimeShare": 0.734,
-      "medianDelayMin": 2
+      "n": 125,
+      "onTimeShare": 0.728,
+      "medianDelayMin": 2.1
     },
     {
       "hour": 2,
-      "n": 23,
-      "onTimeShare": 0.957,
-      "medianDelayMin": 1.2
+      "n": 29,
+      "onTimeShare": 0.897,
+      "medianDelayMin": 1.4
     },
     {
       "hour": 3,
-      "n": 1,
-      "onTimeShare": 1,
-      "medianDelayMin": -4.6
+      "n": 340,
+      "onTimeShare": 0.862,
+      "medianDelayMin": 1.3
     },
     {
       "hour": 4,
-      "n": 0,
-      "onTimeShare": null,
-      "medianDelayMin": null
+      "n": 1564,
+      "onTimeShare": 0.866,
+      "medianDelayMin": 1.5
     },
     {
       "hour": 5,
-      "n": 0,
-      "onTimeShare": null,
-      "medianDelayMin": null
+      "n": 2294,
+      "onTimeShare": 0.853,
+      "medianDelayMin": 1.6
     },
     {
       "hour": 6,
-      "n": 0,
-      "onTimeShare": null,
-      "medianDelayMin": null
+      "n": 1220,
+      "onTimeShare": 0.833,
+      "medianDelayMin": 1.6
     },
     {
       "hour": 7,
@@ -68,27 +68,27 @@
     },
     {
       "hour": 10,
-      "n": 0,
-      "onTimeShare": null,
-      "medianDelayMin": null
+      "n": 3,
+      "onTimeShare": 0.0,
+      "medianDelayMin": 43.7
     },
     {
       "hour": 11,
-      "n": 0,
-      "onTimeShare": null,
-      "medianDelayMin": null
+      "n": 1203,
+      "onTimeShare": 0.636,
+      "medianDelayMin": 3.1
     },
     {
       "hour": 12,
-      "n": 0,
-      "onTimeShare": null,
-      "medianDelayMin": null
+      "n": 1903,
+      "onTimeShare": 0.726,
+      "medianDelayMin": 2.3
     },
     {
       "hour": 13,
-      "n": 0,
-      "onTimeShare": null,
-      "medianDelayMin": null
+      "n": 92,
+      "onTimeShare": 0.989,
+      "medianDelayMin": 0.9
     },
     {
       "hour": 14,
@@ -98,57 +98,57 @@
     },
     {
       "hour": 15,
-      "n": 0,
-      "onTimeShare": null,
-      "medianDelayMin": null
+      "n": 13,
+      "onTimeShare": 0.0,
+      "medianDelayMin": 51.7
     },
     {
       "hour": 16,
-      "n": 0,
-      "onTimeShare": null,
-      "medianDelayMin": null
+      "n": 1440,
+      "onTimeShare": 0.535,
+      "medianDelayMin": 4.5
     },
     {
       "hour": 17,
-      "n": 0,
-      "onTimeShare": null,
-      "medianDelayMin": null
+      "n": 2259,
+      "onTimeShare": 0.579,
+      "medianDelayMin": 3.8
     },
     {
       "hour": 18,
-      "n": 0,
-      "onTimeShare": null,
-      "medianDelayMin": null
+      "n": 2190,
+      "onTimeShare": 0.565,
+      "medianDelayMin": 4.0
     },
     {
       "hour": 19,
-      "n": 0,
-      "onTimeShare": null,
-      "medianDelayMin": null
+      "n": 2111,
+      "onTimeShare": 0.609,
+      "medianDelayMin": 3.3
     },
     {
       "hour": 20,
-      "n": 0,
-      "onTimeShare": null,
-      "medianDelayMin": null
+      "n": 829,
+      "onTimeShare": 0.697,
+      "medianDelayMin": 2.4
     },
     {
       "hour": 21,
       "n": 8,
-      "onTimeShare": 0,
+      "onTimeShare": 0.0,
       "medianDelayMin": 35.2
     },
     {
       "hour": 22,
-      "n": 951,
-      "onTimeShare": 0.648,
-      "medianDelayMin": 2.7
+      "n": 747,
+      "onTimeShare": 0.556,
+      "medianDelayMin": 4.2
     },
     {
       "hour": 23,
-      "n": 1020,
-      "onTimeShare": 0.721,
-      "medianDelayMin": 1.8
+      "n": 775,
+      "onTimeShare": 0.632,
+      "medianDelayMin": 3.1
     }
   ]
 }

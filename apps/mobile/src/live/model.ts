@@ -2,6 +2,7 @@ import type {
     LiveActivitySetup,
     VehiclePositionWithDelay,
 } from "@megisholavonat/api-client";
+import { roundMinutes } from "@megisholavonat/core/delay";
 import { serviceDayStart } from "@megisholavonat/core/time";
 import type {
     ActivityAttributes,
@@ -172,7 +173,7 @@ export function liveState(
           ? Math.min(next, alight)
           : alight;
 
-    const delayMin = Math.max(0, Math.round(details.delay));
+    const delayMin = Math.max(0, roundMinutes(details.delay));
     const dayStart = serviceDayStart(details.trip.serviceDate) / 1000;
     const at = (seconds: number) => dayStart + seconds + delayMin * 60;
     const departure = at(stoptimes[board]?.scheduledDeparture ?? 0);
@@ -292,7 +293,7 @@ export function widgetRuns(
             title: attributes.title,
             station: board?.name ?? "",
             departure: Math.round(run.departure / 1000),
-            delayMin: delay === null ? null : Math.max(0, Math.round(delay)),
+            delayMin: delay === null ? null : Math.max(0, roundMinutes(delay)),
             platform: livePlatform ?? platformOfStop(board?.stopId ?? null),
             platformSure: true,
             url: attributes.url,

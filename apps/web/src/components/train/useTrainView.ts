@@ -9,7 +9,11 @@ import {
     getTrainHistoryOptions,
 } from "@megisholavonat/api-client/react-query";
 import { tripRun } from "@megisholavonat/core/commute";
-import { type TrainDisplay, trainDisplay } from "@megisholavonat/core/display";
+import {
+    staleNote,
+    type TrainDisplay,
+    trainDisplay,
+} from "@megisholavonat/core/display";
 import { decodePolyline } from "@megisholavonat/core/polyline";
 import { ticketUrl } from "@megisholavonat/core/ticket";
 import { useQuery } from "@tanstack/react-query";
@@ -293,12 +297,21 @@ export function useTrainView(
 export function useShownDelay(
     view: TrainView | null,
     fallback: TrainFeatureProperties | null,
-): { delay: number | null; stale: boolean } {
+): {
+    delay: number | null;
+    stale: boolean;
+    /** How old the data is, once it is old: explains the tile's "?" */
+    note: ReturnType<typeof staleNote>;
+} {
     const now = useNow();
     // The list's delay is already clamped at a dwell by the API
     const display =
         view?.display ??
         (fallback ? trainDisplay(fallback, new Date(now)) : null);
-    if (!display) return { delay: null, stale: true };
-    return { delay: display.delay, stale: display.state !== "running" };
+    if (!display) return { delay: null, stale: true, note: null };
+    return {
+        delay: display.delay,
+        stale: display.state !== "running",
+        note: staleNote(display),
+    };
 }

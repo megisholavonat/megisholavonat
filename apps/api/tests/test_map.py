@@ -149,9 +149,9 @@ def test_station_features_rank_and_name_stations() -> None:
     stations = [
         _indexed("005510017", "Budapest-Keleti", 47.500, 19.083),
         _indexed("005501289", "Győr", 47.682, 17.635),
-        _indexed("003609142", "Szentendre H", 47.667, 19.076),
-        # Replacement bus stop of the HÉV
-        _indexed("003619786", "Csinszka utca (busz)", 47.5, 19.1),
+        _indexed("003609142", "Szentendre H", 47.667, 19.076, "hev"),
+        # The tram-train is no HÉV
+        _indexed("005500700", "Szeged vasútállomás", 46.2416, 20.1415, "tramtrain"),
         _indexed("002200001", "Kyiv-Pas.", 50.44, 30.49),
         _indexed("005501024", "Budapest-Kelenföld", 47.464, 19.019),
     ]
@@ -182,6 +182,13 @@ def test_station_features_rank_and_name_stations() -> None:
             "hev": 1,
         },
         {"id": "005501289", "name": "Győr", "short": "Győr", "perDay": 0.0, "hev": 0},
+        {
+            "id": "005500700",
+            "name": "Szeged vasútállomás",
+            "short": "Szeged vasútállomás",
+            "perDay": 0.0,
+            "hev": 0,
+        },
     ]
     assert features[0]["geometry"] == {"type": "Point", "coordinates": [19.019, 47.464]}
 

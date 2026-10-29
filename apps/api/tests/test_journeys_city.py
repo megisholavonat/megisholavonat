@@ -222,6 +222,7 @@ async def test_any_budapest_station_starts_at_the_train(
         "name": "Budapest",
         "lat": 47.497912,
         "lon": 19.054916,
+        "type": "rail",
     }
     itineraries = body["itineraries"]
     assert [_chain(i) for i in itineraries] == [

@@ -312,10 +312,6 @@ STATION_LOOKBACK_DAYS = 90
 # Days with fewer observations than this share of the best day looked at were
 # only partly recorded (outages, deploys) and are skipped
 FULL_DAY_SHARE = 0.5
-# HÉV stations have UIC codes of this prefix; the other stops under it are
-# replacement bus stops
-HEV_UIC_PREFIX = "0036"
-HEV_NAME_SUFFIX = " H"
 
 
 def station_features(
@@ -327,9 +323,8 @@ def station_features(
     for station in stations:
         if not _inside((station.lat, station.lon), bbox):
             continue
-        hev = station.id.startswith(HEV_UIC_PREFIX)
-        if hev and not station.name.endswith(HEV_NAME_SUFFIX):
-            continue
+        # By the station index's type (replacement bus stops are not in it)
+        hev = station.type == "hev"
         features.append(
             {
                 "type": "Feature",

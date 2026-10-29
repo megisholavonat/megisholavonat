@@ -11,93 +11,93 @@
     "entries": [
       {
         "rank": 1,
-        "id": "H7",
-        "name": "H7",
-        "routeShortName": "<span class=\"MNR2007\">&#442;</span>",
-        "n": 61,
-        "onTimeShare": 1,
-        "medianDelayMin": -0.4
+        "id": "S36",
+        "name": "S36",
+        "routeShortName": "<span class=\"MNR2007\">&#357;</span>",
+        "n": 14,
+        "onTimeShare": 1.0,
+        "medianDelayMin": 0.4
       },
       {
         "rank": 2,
-        "id": "H9",
-        "name": "H9",
-        "routeShortName": "<span class=\"MNR2007\">&#444;</span>",
-        "n": 25,
-        "onTimeShare": 1,
-        "medianDelayMin": -0.1
+        "id": "Z432",
+        "name": "Z432",
+        "routeShortName": "<span class=\"MNR2007\">&#525;</span>",
+        "n": 17,
+        "onTimeShare": 1.0,
+        "medianDelayMin": 0.4
       },
       {
         "rank": 3,
-        "id": "H6",
-        "name": "H6",
-        "routeShortName": "<span class=\"MNR2007\">&#441;</span>",
-        "n": 63,
-        "onTimeShare": 1,
-        "medianDelayMin": 0.3
-      },
-      {
-        "rank": 4,
-        "id": "S40",
-        "name": "S40",
-        "routeShortName": "<span class=\"MNR2007\">&#358;</span>",
-        "n": 53,
-        "onTimeShare": 1,
-        "medianDelayMin": 0.3
-      },
-      {
-        "rank": 5,
-        "id": "S42",
-        "name": "S42",
-        "routeShortName": "<span class=\"MNR2007\">&#359;</span>",
-        "n": 31,
-        "onTimeShare": 1,
-        "medianDelayMin": 0.4
-      },
-      {
-        "rank": 6,
-        "id": "S750",
-        "name": "S750",
-        "routeShortName": "<span class=\"MNR2007\">&#376;</span>",
-        "n": 18,
-        "onTimeShare": 1,
+        "id": "S440",
+        "name": "S440",
+        "routeShortName": "<span class=\"MNR2007\">&#374;</span>",
+        "n": 14,
+        "onTimeShare": 1.0,
         "medianDelayMin": 0.9
       },
       {
-        "rank": 7,
+        "rank": 4,
+        "id": "S750",
+        "name": "S750",
+        "routeShortName": "<span class=\"MNR2007\">&#376;</span>",
+        "n": 23,
+        "onTimeShare": 1.0,
+        "medianDelayMin": 1.1
+      },
+      {
+        "rank": 5,
+        "id": "S780",
+        "name": "S780",
+        "routeShortName": "<span class=\"MNR2007\">&#377;</span>",
+        "n": 13,
+        "onTimeShare": 1.0,
+        "medianDelayMin": 1.3
+      },
+      {
+        "rank": 6,
         "id": "S21",
         "name": "S21",
         "routeShortName": "<span class=\"MNR2007\">&#352;</span>",
-        "n": 50,
-        "onTimeShare": 1,
-        "medianDelayMin": 1.6
+        "n": 34,
+        "onTimeShare": 0.971,
+        "medianDelayMin": 1.1
+      },
+      {
+        "rank": 7,
+        "id": "S72",
+        "name": "S72",
+        "routeShortName": "<span class=\"MNR2007\">&#365;</span>",
+        "n": 12,
+        "onTimeShare": 0.917,
+        "medianDelayMin": 1.0
       },
       {
         "rank": 8,
-        "id": "H8",
-        "name": "H8",
-        "routeShortName": "<span class=\"MNR2007\">&#443;</span>",
-        "n": 100,
-        "onTimeShare": 1,
-        "medianDelayMin": 1.7
+        "id": "Z80",
+        "name": "Z80",
+        "routeShortName": "<span class=\"MNR2007\">&#386;</span>",
+        "n": 19,
+        "onTimeShare": 0.895,
+        "medianDelayMin": 2.8
       },
       {
         "rank": 9,
-        "id": "H5",
-        "name": "H5",
-        "routeShortName": "<span class=\"MNR2007\">&#440;</span>",
-        "n": 168,
-        "onTimeShare": 0.976,
-        "medianDelayMin": 0.4
+        "id": "Z51",
+        "name": "Z51",
+        "routeShortName": "<span class=\"MNR2007\">&#383;</span>",
+        "n": 32,
+        "onTimeShare": 0.875,
+        "medianDelayMin": 1.7
       },
       {
         "rank": 10,
-        "id": "S70",
-        "name": "S70",
-        "routeShortName": "<span class=\"MNR2007\">&#363;</span>",
-        "n": 97,
-        "onTimeShare": 0.918,
-        "medianDelayMin": 1
+        "id": "S220",
+        "name": "S220",
+        "routeShortName": "<span class=\"MNR2007\">&#370;</span>",
+        "n": 15,
+        "onTimeShare": 0.867,
+        "medianDelayMin": 2.1
       }
     ]
   },
@@ -113,93 +113,93 @@
     "entries": [
       {
         "rank": 1,
-        "id": "G10",
-        "name": "G10",
-        "routeShortName": "<span class=\"MNR2007\">&#387;</span>",
-        "n": 11,
-        "onTimeShare": 0,
-        "medianDelayMin": 14.6
+        "id": "IR87",
+        "name": "IR87",
+        "routeShortName": "<span class=\"MNR2007\">&#542;</span>",
+        "n": 24,
+        "onTimeShare": 0.125,
+        "medianDelayMin": 13.5
       },
       {
         "rank": 2,
-        "id": "Z70",
-        "name": "Z70",
-        "routeShortName": "<span class=\"MNR2007\">&#417;</span>",
-        "n": 13,
-        "onTimeShare": 0,
-        "medianDelayMin": 7.2
+        "id": "Z60",
+        "name": "Z60",
+        "routeShortName": "<span class=\"MNR2007\">&#384;</span>",
+        "n": 31,
+        "onTimeShare": 0.387,
+        "medianDelayMin": 8.9
       },
       {
         "rank": 3,
         "id": "S820",
         "name": "S820",
         "routeShortName": "<span class=\"MNR2007\">&#379;</span>",
-        "n": 17,
-        "onTimeShare": 0.176,
-        "medianDelayMin": 7.2
+        "n": 26,
+        "onTimeShare": 0.423,
+        "medianDelayMin": 5.1
       },
       {
         "rank": 4,
-        "id": "S50",
-        "name": "S50",
-        "routeShortName": "<span class=\"MNR2007\">&#360;</span>",
-        "n": 86,
-        "onTimeShare": 0.384,
-        "medianDelayMin": 6.8
-      },
-      {
-        "rank": 5,
-        "id": "G44",
-        "name": "G44",
-        "routeShortName": "<span class=\"MNR2007\">&#401;</span>",
-        "n": 50,
-        "onTimeShare": 0.44,
-        "medianDelayMin": 6.3
-      },
-      {
-        "rank": 6,
-        "id": "S10",
-        "name": "S10",
-        "routeShortName": "<span class=\"MNR2007\">&#335;</span>",
-        "n": 120,
-        "onTimeShare": 0.5,
-        "medianDelayMin": 4.8
-      },
-      {
-        "rank": 7,
-        "id": "S60",
-        "name": "S60",
-        "routeShortName": "<span class=\"MNR2007\">&#362;</span>",
-        "n": 126,
-        "onTimeShare": 0.746,
-        "medianDelayMin": 1.9
-      },
-      {
-        "rank": 8,
-        "id": "S80",
-        "name": "S80",
-        "routeShortName": "<span class=\"MNR2007\">&#366;</span>",
-        "n": 65,
-        "onTimeShare": 0.815,
-        "medianDelayMin": 1.1
-      },
-      {
-        "rank": 9,
-        "id": "S72",
-        "name": "S72",
-        "routeShortName": "<span class=\"MNR2007\">&#365;</span>",
-        "n": 133,
-        "onTimeShare": 0.827,
-        "medianDelayMin": 1.5
-      },
-      {
-        "rank": 10,
         "id": "IR85",
         "name": "IR85",
         "routeShortName": "<span class=\"MNR2007\">&#541;</span>",
+        "n": 23,
+        "onTimeShare": 0.522,
+        "medianDelayMin": 4.8
+      },
+      {
+        "rank": 5,
+        "id": "S447",
+        "name": "S447",
+        "routeShortName": "<span class=\"MNR2007\">&#605;</span>",
+        "n": 11,
+        "onTimeShare": 0.545,
+        "medianDelayMin": 2.1
+      },
+      {
+        "rank": 6,
+        "id": "G60",
+        "name": "G60",
+        "routeShortName": "<span class=\"MNR2007\">&#391;</span>",
         "n": 14,
-        "onTimeShare": 0.857,
-        "medianDelayMin": 3.6
+        "onTimeShare": 0.571,
+        "medianDelayMin": 3.7
+      },
+      {
+        "rank": 7,
+        "id": "S80",
+        "name": "S80",
+        "routeShortName": "<span class=\"MNR2007\">&#366;</span>",
+        "n": 43,
+        "onTimeShare": 0.581,
+        "medianDelayMin": 4.6
+      },
+      {
+        "rank": 8,
+        "id": "S10",
+        "name": "S10",
+        "routeShortName": "<span class=\"MNR2007\">&#335;</span>",
+        "n": 39,
+        "onTimeShare": 0.59,
+        "medianDelayMin": 4.8
+      },
+      {
+        "rank": 9,
+        "id": "S150",
+        "name": "S150",
+        "routeShortName": "<span class=\"MNR2007\">&#368;</span>",
+        "n": 10,
+        "onTimeShare": 0.6,
+        "medianDelayMin": 3.7
+      },
+      {
+        "rank": 10,
+        "id": "S60",
+        "name": "S60",
+        "routeShortName": "<span class=\"MNR2007\">&#362;</span>",
+        "n": 52,
+        "onTimeShare": 0.615,
+        "medianDelayMin": 3.0
       }
     ]
   },
@@ -215,93 +215,93 @@
     "entries": [
       {
         "rank": 1,
-        "id": "003609225",
-        "name": "Karácsony Sándor utca H",
+        "id": "005544743",
+        "name": "Árpádszállás",
         "routeShortName": null,
-        "n": 11,
-        "onTimeShare": 1,
-        "medianDelayMin": -0.7
+        "n": 10,
+        "onTimeShare": 1.0,
+        "medianDelayMin": 0.3
       },
       {
         "rank": 2,
-        "id": "003609224",
-        "name": "Szent Imre tér H",
+        "id": "005503335",
+        "name": "Szabadisóstó",
         "routeShortName": null,
-        "n": 12,
-        "onTimeShare": 1,
-        "medianDelayMin": -0.7
+        "n": 11,
+        "onTimeShare": 1.0,
+        "medianDelayMin": 0.3
       },
       {
         "rank": 3,
-        "id": "003609223",
-        "name": "Szabadkikötő H",
+        "id": "005515990",
+        "name": "Tiborszállás",
         "routeShortName": null,
-        "n": 12,
-        "onTimeShare": 1,
-        "medianDelayMin": -0.1
+        "n": 13,
+        "onTimeShare": 1.0,
+        "medianDelayMin": 0.5
       },
       {
         "rank": 4,
-        "id": "003609050",
-        "name": "Tímár utca H",
+        "id": "005519299",
+        "name": "Bánkút",
         "routeShortName": null,
-        "n": 10,
-        "onTimeShare": 1,
-        "medianDelayMin": 0
+        "n": 11,
+        "onTimeShare": 1.0,
+        "medianDelayMin": 0.5
       },
       {
         "rank": 5,
-        "id": "003609118",
-        "name": "Filatorigát H",
+        "id": "005503343",
+        "name": "Szabadifürdő",
         "routeShortName": null,
-        "n": 10,
-        "onTimeShare": 1,
-        "medianDelayMin": 0
+        "n": 11,
+        "onTimeShare": 1.0,
+        "medianDelayMin": 0.5
       },
       {
         "rank": 6,
-        "id": "003609068",
-        "name": "Szentlélek tér H",
+        "id": "005515974",
+        "name": "Nyírcsaholy",
         "routeShortName": null,
-        "n": 10,
-        "onTimeShare": 1,
-        "medianDelayMin": 0.1
+        "n": 12,
+        "onTimeShare": 1.0,
+        "medianDelayMin": 0.5
       },
       {
         "rank": 7,
-        "id": "003609159",
-        "name": "Rómaifürdő H",
+        "id": "005506478",
+        "name": "Kulcs",
         "routeShortName": null,
-        "n": 10,
-        "onTimeShare": 1,
-        "medianDelayMin": 0.1
+        "n": 17,
+        "onTimeShare": 1.0,
+        "medianDelayMin": 0.5
       },
       {
         "rank": 8,
-        "id": "003609175",
-        "name": "Csillaghegy H",
+        "id": "005506486",
+        "name": "Rácalmás",
         "routeShortName": null,
-        "n": 10,
-        "onTimeShare": 1,
-        "medianDelayMin": 0.3
+        "n": 17,
+        "onTimeShare": 1.0,
+        "medianDelayMin": 0.5
       },
       {
         "rank": 9,
-        "id": "003609221",
-        "name": "Müpa - Nemzeti Színház H",
+        "id": "005506452",
+        "name": "Adony",
         "routeShortName": null,
-        "n": 12,
-        "onTimeShare": 1,
-        "medianDelayMin": 0.3
+        "n": 18,
+        "onTimeShare": 1.0,
+        "medianDelayMin": 0.6
       },
       {
         "rank": 10,
-        "id": "003609043",
-        "name": "Szépvölgyi út H",
+        "id": "005503111",
+        "name": "Albertfalva",
         "routeShortName": null,
-        "n": 10,
-        "onTimeShare": 1,
-        "medianDelayMin": 0.3
+        "n": 19,
+        "onTimeShare": 1.0,
+        "medianDelayMin": 0.6
       }
     ]
   },
@@ -317,93 +317,93 @@
     "entries": [
       {
         "rank": 1,
-        "id": "005501131",
-        "name": "Tatabánya",
+        "id": "005505405",
+        "name": "Búcsúszentlászló",
         "routeShortName": null,
-        "n": 11,
-        "onTimeShare": 0.364,
-        "medianDelayMin": 7.9
+        "n": 10,
+        "onTimeShare": 0.0,
+        "medianDelayMin": 17.2
       },
       {
         "rank": 2,
-        "id": "005513615",
-        "name": "Ferihegy",
+        "id": "005513458",
+        "name": "Bodrogolaszi",
         "routeShortName": null,
-        "n": 10,
-        "onTimeShare": 0.4,
-        "medianDelayMin": 6.2
+        "n": 17,
+        "onTimeShare": 0.059,
+        "medianDelayMin": 15.4
       },
       {
         "rank": 3,
-        "id": "005510173",
-        "name": "Kőbánya-Kispest",
+        "id": "005511270",
+        "name": "Nagyút",
         "routeShortName": null,
-        "n": 14,
-        "onTimeShare": 0.571,
-        "medianDelayMin": 4.2
+        "n": 12,
+        "onTimeShare": 0.083,
+        "medianDelayMin": 8.2
       },
       {
         "rank": 4,
-        "id": "005510090",
-        "name": "Zugló",
+        "id": "005507211",
+        "name": "Godisa",
         "routeShortName": null,
-        "n": 12,
-        "onTimeShare": 0.583,
-        "medianDelayMin": 2.5
+        "n": 11,
+        "onTimeShare": 0.091,
+        "medianDelayMin": 14.1
       },
       {
         "rank": 5,
-        "id": "005513912",
-        "name": "Debrecen",
+        "id": "005507237",
+        "name": "Hetvehely",
         "routeShortName": null,
-        "n": 11,
-        "onTimeShare": 0.636,
-        "medianDelayMin": 4.2
+        "n": 10,
+        "onTimeShare": 0.1,
+        "medianDelayMin": 15.8
       },
       {
         "rank": 6,
-        "id": "005511205",
-        "name": "Hatvan",
+        "id": "005507229",
+        "name": "Abaliget",
         "routeShortName": null,
-        "n": 11,
-        "onTimeShare": 0.636,
-        "medianDelayMin": 3.8
+        "n": 10,
+        "onTimeShare": 0.1,
+        "medianDelayMin": 15.1
       },
       {
         "rank": 7,
-        "id": "005510074",
-        "name": "Rákos",
+        "id": "005545401",
+        "name": "Szatina-Kishajmás",
         "routeShortName": null,
-        "n": 14,
-        "onTimeShare": 0.643,
-        "medianDelayMin": 3.3
+        "n": 10,
+        "onTimeShare": 0.1,
+        "medianDelayMin": 14.8
       },
       {
         "rank": 8,
-        "id": "005510066",
-        "name": "Kőbánya felső",
+        "id": "005507187",
+        "name": "Kaposszekcső",
         "routeShortName": null,
-        "n": 12,
-        "onTimeShare": 0.667,
-        "medianDelayMin": 3
+        "n": 10,
+        "onTimeShare": 0.1,
+        "medianDelayMin": 13.2
       },
       {
         "rank": 9,
-        "id": "005501024",
-        "name": "Budapest-Kelenföld",
+        "id": "005511262",
+        "name": "Ludas",
         "routeShortName": null,
-        "n": 23,
-        "onTimeShare": 0.739,
-        "medianDelayMin": 1.7
+        "n": 14,
+        "onTimeShare": 0.143,
+        "medianDelayMin": 8.1
       },
       {
         "rank": 10,
-        "id": "005510033",
-        "name": "Budapest-Nyugati",
+        "id": "005513441",
+        "name": "Olaszliszka-Tolcsva",
         "routeShortName": null,
-        "n": 13,
-        "onTimeShare": 0.769,
-        "medianDelayMin": 1
+        "n": 18,
+        "onTimeShare": 0.167,
+        "medianDelayMin": 13.4
       }
     ]
   },

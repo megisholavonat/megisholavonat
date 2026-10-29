@@ -5,7 +5,11 @@ import type {
     StationBoard,
     VehiclePositionWithDelay,
 } from "@megisholavonat/api-client";
-import { type DelayLevel, getDelayLevel } from "@megisholavonat/core/delay";
+import {
+    type DelayLevel,
+    getDelayLevel,
+    roundMinutes,
+} from "@megisholavonat/core/delay";
 import { type TrainDisplay, trainDisplay } from "@megisholavonat/core/display";
 import { decodePolyline } from "@megisholavonat/core/polyline";
 import {
@@ -14,6 +18,10 @@ import {
     type TrainShareStatus,
     trainShareStatus,
 } from "@megisholavonat/core/share";
+import {
+    type StationType,
+    stationType,
+} from "@megisholavonat/core/stationType";
 import { formatSecondsAsTime } from "@megisholavonat/core/time";
 import {
     beforeDeparture,
@@ -62,6 +70,7 @@ export interface TrainCard {
 
 export interface StationCard {
     name: string;
+    type: StationType;
     departures: (DepartureShareInfo & {
         number: string;
         glyph: string | null;
@@ -230,7 +239,7 @@ export function trainCard(
                   estimated: timing.estimated,
               }
             : null;
-    const delay = running ? Math.max(0, Math.round(display.delay ?? 0)) : 0;
+    const delay = running ? Math.max(0, roundMinutes(display.delay ?? 0)) : 0;
     const total = vehicle.totalRouteDistance;
     const progress = waiting
         ? 0
@@ -273,7 +282,7 @@ export function departureDelay(
 ): number | null {
     if (entry.canceled) return null;
     if (!entry.realtime && entry.delaySource !== "gps") return null;
-    const delay = Math.max(0, Math.round(entry.delayMinutes ?? 0));
+    const delay = Math.max(0, roundMinutes(entry.delayMinutes ?? 0));
     const ahead = entry.scheduledTime * 1000 > now.getTime();
     if (ahead && delay <= 0) return null;
     return delay;
@@ -286,6 +295,7 @@ export function stationCard(
 ): StationCard {
     return {
         name: board.station.name,
+        type: stationType(board.station),
         departures: board.entries.slice(0, limit).map((entry) => {
             const delay = departureDelay(entry, now);
             return {

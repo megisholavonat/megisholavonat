@@ -15,7 +15,6 @@ import {
     View,
 } from "react-native";
 import { useLocale, useTranslations } from "use-intl";
-import { withAlpha } from "../theme/palette";
 import { type AppTheme, useAppTheme } from "../theme/ThemeProvider";
 import { RouteIcon } from "../train/RouteIcon";
 import { Icon } from "../ui/Icon";
@@ -34,7 +33,7 @@ function severityColor(theme: AppTheme, d: Disruption): string {
 
 /** The tint of the delay reasons, for the chip and the sheet cards. */
 export function disruptionTint(theme: AppTheme): string {
-    return withAlpha(theme.delay.moderate.fill, theme.dark ? 0.2 : 0.12);
+    return theme.delay.moderate.tint;
 }
 
 /** "Pótlóbusz Mándok és Tornyospálca között", in the UI language. */

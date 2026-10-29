@@ -1,4 +1,5 @@
-import { getDelayLevel } from "@megisholavonat/core/delay";
+import { type DelayLevel, getDelayLevel } from "@megisholavonat/core/delay";
+import { delayLabel } from "@megisholavonat/core/display";
 import type { ReactNode } from "react";
 import {
     type DimensionValue,
@@ -17,56 +18,71 @@ import { Icon, type IconName } from "./Icon";
 // Design-system components ("DS · Komponensek"): delay label, platform
 // badge, skeleton and the state block. Colours come from the tokens only.
 
+/** Text colour of a delay level on a surface; grey for old data or none. */
+export function levelTextColor(
+    theme: AppTheme,
+    level: DelayLevel | "stale",
+): string {
+    return level === "stale" ? theme.stale.text : theme.delay[level].text;
+}
+
 /** Text colour of a delay on a surface; grey when the data is stale. */
 export function delayTextColor(
     theme: AppTheme,
     delay: number,
     stale = false,
 ): string {
-    return stale ? theme.stale.text : theme.delay[getDelayLevel(delay)].text;
+    return levelTextColor(theme, stale ? "stale" : getDelayLevel(delay));
 }
 
-/** "pontos" / "+7" chip with a tint of the level's fill; dashed "6′" when stale. */
+/** Chip background: the level's tint token; surface-2 for old data or none. */
+export function levelTint(
+    theme: AppTheme,
+    level: DelayLevel | "stale",
+): string {
+    return level === "stale" ? theme.colors.surface2 : theme.delay[level].tint;
+}
+
+/**
+ * The delay chip of lists and boards, the same as the web's (core
+ * `delayLabel`): "pontos" up to +5, "+7" after; old data keeps its last
+ * delay with a "?" ("+23?") on a dashed grey chip; no delay is a grey "–".
+ */
 export function DelayChip({
     delay,
-    staleMinutes,
+    stale = false,
     small = false,
 }: {
-    delay: number;
-    /** Minutes since the last update, for stale trains */
-    staleMinutes?: number | null;
+    /** Null for an idle or cancelled train */
+    delay: number | null;
+    /** No fresh position: the last known delay */
+    stale?: boolean;
     small?: boolean;
 }) {
     const theme = useAppTheme();
     const t = useTranslations("Common");
-    const stale = staleMinutes != null;
-    const level = getDelayLevel(delay);
-    const label = stale
-        ? t("stale_minutes", { minutes: staleMinutes })
-        : level === "onTime"
-          ? t("on_time")
-          : t("delay_short", { delay: Math.round(delay) });
-    const style: ViewStyle = stale
-        ? {
-              backgroundColor: theme.colors.surface2,
-              borderWidth: 1,
-              borderStyle: "dashed",
-              borderColor: theme.stale.outline.color,
-          }
-        : {
-              backgroundColor: withAlpha(
-                  theme.delay[level].fill,
-                  theme.dark ? 0.2 : 0.12,
-              ),
-          };
+    const shown = delayLabel(delay, stale);
+    const label = shown.text ?? t("on_time");
+    const style: ViewStyle = {
+        backgroundColor: levelTint(theme, shown.level),
+        ...(shown.stale
+            ? {
+                  borderWidth: 1,
+                  borderStyle: "dashed",
+                  borderColor: theme.stale.outline.color,
+              }
+            : null),
+    };
     return (
         <View
             style={[styles.chip, small && styles.chipSmall, style]}
             accessible
             accessibilityLabel={
-                stale || level === "onTime"
-                    ? label
-                    : t("delay_a11y", { delay: Math.round(delay) })
+                shown.minutes != null && shown.minutes > 0 && shown.text
+                    ? t(shown.stale ? "delay_stale_a11y" : "delay_a11y", {
+                          delay: shown.minutes,
+                      })
+                    : label
             }
         >
             <Text
@@ -74,7 +90,7 @@ export function DelayChip({
                     styles.chipText,
                     small && styles.chipTextSmall,
                     theme.tabularNums,
-                    { color: delayTextColor(theme, delay, stale) },
+                    { color: levelTextColor(theme, shown.level) },
                 ]}
             >
                 {label}
@@ -200,10 +216,7 @@ export function StateBlock({
                         styles.stateTile,
                         {
                             backgroundColor: warning
-                                ? withAlpha(
-                                      theme.delay.moderate.fill,
-                                      theme.dark ? 0.2 : 0.12,
-                                  )
+                                ? theme.delay.moderate.tint
                                 : theme.colors.surface2,
                         },
                     ]}

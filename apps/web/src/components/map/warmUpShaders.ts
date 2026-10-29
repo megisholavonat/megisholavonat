@@ -148,7 +148,7 @@ export function warmUpShaders(
                                 hasPassed: false,
                                 level: "slight",
                                 shape: "train",
-                                label: "+5",
+                                label: "+6",
                             },
                             geometry: {
                                 type: "Point",

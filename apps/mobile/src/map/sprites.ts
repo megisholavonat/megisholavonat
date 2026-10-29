@@ -34,7 +34,7 @@ export const MARK_LEVELS: readonly MarkLevel[] = [
 ];
 export const MARK_SHAPES: readonly MarkShape[] = ["train", "hev", "tramtrain"];
 export const SCHEMES: readonly ColorScheme[] = ["light", "dark"];
-/** Levels with a "+N" or "6′" chip on the selected and followed trains */
+/** Levels with a "+N" or "+N?" chip on the selected and followed trains */
 export const CHIP_LEVELS: readonly MarkLevel[] = [
     "slight",
     "moderate",

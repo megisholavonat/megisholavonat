@@ -453,6 +453,10 @@ export type DirectoryStation = {
      * Name
      */
     name: string;
+    /**
+     * Type
+     */
+    type?: 'rail' | 'hev' | 'tramtrain' | 'childrens_railway';
 };
 
 /**
@@ -1371,6 +1375,10 @@ export type Station = {
      * Lon
      */
     lon: number;
+    /**
+     * Type
+     */
+    type?: 'rail' | 'hev' | 'tramtrain' | 'childrens_railway';
 };
 
 /**
@@ -3074,6 +3082,10 @@ export type GetRankingsErrors = {
      * Validation Error
      */
     422: HttpValidationError;
+    /**
+     * The upstream timetable service failed
+     */
+    502: unknown;
 };
 
 export type GetRankingsError = GetRankingsErrors[keyof GetRankingsErrors];
@@ -3110,6 +3122,10 @@ export type GetTimeOfDayPunctualityErrors = {
      * Validation Error
      */
     422: HttpValidationError;
+    /**
+     * The upstream timetable service failed
+     */
+    502: unknown;
 };
 
 export type GetTimeOfDayPunctualityError = GetTimeOfDayPunctualityErrors[keyof GetTimeOfDayPunctualityErrors];

@@ -103,9 +103,28 @@ describe("marker spec", () => {
         }
     });
 
-    it("labels delays as +N and stale trains as minutes", () => {
-        expect(MARKER.label.delayed(7)).toBe("+7");
-        expect(MARKER.label.stale(6.4)).toBe("6′");
+    it("tints each level with its own fill", () => {
+        for (const [scheme, level] of cases) {
+            const { fill, tint } = DELAY_SCALE[scheme][level];
+            expect(tint.slice(0, 7)).toBe(fill);
+            expect(tint).toMatch(/^#[0-9A-F]{8}$/);
+        }
+    });
+
+    it.each(cases)("%s %s text is ≥4.5:1 on its tint", (scheme, level) => {
+        const { tint, text } = DELAY_SCALE[scheme][level];
+        const surface = COLORS[scheme].surface;
+        const alpha = Number.parseInt(tint.slice(7), 16) / 255;
+        const over = [1, 3, 5]
+            .map((i) => {
+                const f = Number.parseInt(tint.slice(i, i + 2), 16);
+                const s = Number.parseInt(surface.slice(i, i + 2), 16);
+                return Math.round(f * alpha + s * (1 - alpha))
+                    .toString(16)
+                    .padStart(2, "0");
+            })
+            .join("");
+        expect(contrast(text, `#${over}`)).toBeGreaterThanOrEqual(4.5);
     });
 });
 

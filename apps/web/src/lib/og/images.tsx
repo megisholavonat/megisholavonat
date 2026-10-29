@@ -29,6 +29,12 @@ const TEXT = {
         next: "Következő megálló",
         departs: "Indul",
         departures: "Indulások",
+        stationTypes: {
+            rail: "",
+            hev: "HÉV-megálló",
+            tramtrain: "villamos-megálló",
+            childrens_railway: "Gyermekvasút",
+        },
         noDepartures: "Most nincs induló vonat",
         canceled: "törölve",
         arrived: "megérkezett",
@@ -45,6 +51,12 @@ const TEXT = {
         next: "Next stop",
         departs: "Departs",
         departures: "Departures",
+        stationTypes: {
+            rail: "",
+            hev: "HÉV stop",
+            tramtrain: "tram-train stop",
+            childrens_railway: "Children's Railway",
+        },
         noDepartures: "No departures right now",
         canceled: "cancelled",
         arrived: "arrived",
@@ -557,7 +569,9 @@ export function stationImage(card: StationCard, locale: Locale) {
                         color: C.ink2,
                     }}
                 >
-                    {t.departures}
+                    {[t.departures, t.stationTypes[card.type]]
+                        .filter(Boolean)
+                        .join(" · ")}
                 </div>
                 <div
                     style={{

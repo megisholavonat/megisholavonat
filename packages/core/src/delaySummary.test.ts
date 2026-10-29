@@ -13,7 +13,6 @@ import {
     recentRun,
     runDate,
     runDay,
-    summaryLevel,
 } from "./delaySummary";
 
 const H = 3600;
@@ -153,8 +152,7 @@ describe("delaySummary", () => {
         expect(delaySummary(run([0, 0, 5])).level).toBe("onTime");
         expect(delaySummary(run([0, 0, 5.6])).outcome).toBe("late");
         expect(delaySummary(run([0, 0, -2])).delay).toBe(0);
-        expect(summaryLevel(5)).toBe("onTime");
-        expect(summaryLevel(6)).toBe("slight");
+        expect(delaySummary(run([0, 0, 6])).level).toBe("slight");
     });
 
     it("tells the delay so far while on its way", () => {

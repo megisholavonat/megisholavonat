@@ -26,6 +26,7 @@ import { noteMapTap } from "../map/focus";
 import { ConsentCard, FeedStateCard, StaleBanner } from "../map/HomeCards";
 import { useHomeAnalytics } from "../map/homeAnalytics";
 import { MapChrome } from "../map/MapChrome";
+import { MapLegend } from "../map/MapLegend";
 import { markerCollection } from "../map/markers";
 import { StackList } from "../map/StackList";
 import { TrainMap } from "../map/TrainMap";
@@ -132,6 +133,7 @@ export default function MapScreen() {
                 following={following}
                 onAttribution={() => mapRef.current?.showAttribution()}
             >
+                <MapLegend />
                 <FeedStateCard state={state} onRetry={() => refetch()} />
                 {askConsent ? (
                     <ConsentCard

@@ -3,6 +3,7 @@
 
 import type { BoardEntry, StationBoard } from "@megisholavonat/api-client";
 import type { Locale } from "@megisholavonat/core/i18n";
+import { stationType } from "@megisholavonat/core/stationType";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import {
@@ -252,7 +253,7 @@ export async function StationPage({
             <Breadcrumb
                 home={tHome("app_title")}
                 homeHref={`/${locale}`}
-                current={t("station")}
+                current={t("station", { type: stationType(station) })}
             />
             <h1 className="text-title font-bold">{station.name}</h1>
             <MapLink

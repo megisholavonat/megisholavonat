@@ -13,6 +13,12 @@ from api.util.history_constants import ON_TIME_THRESHOLD_S
 TRAIN_NUMBER = "split_part(trip_short_name, ' ', 1)"
 # The service dates of a history window, bound by `window_params`
 IN_WINDOW = "service_date BETWEEN :start AND :end"
+# Rankings and network-wide figures are of the railway: passages at the
+# stations bound as :non_rail (HÉV, tram-train and Children's Railway stops,
+# see station_index.non_rail_station_ids) are left out. Those run short,
+# frequent, mostly punctual urban services; every HÉV stop would outrank every
+# railway station.
+RAIL_ONLY = "AND station_id <> ALL(CAST(:non_rail AS text[]))"
 # A passage on time, bound by ON_TIME_PARAMS
 ON_TIME = "delay_s <= :on_time"
 ON_TIME_PARAMS: dict[str, Any] = {"on_time": ON_TIME_THRESHOLD_S}

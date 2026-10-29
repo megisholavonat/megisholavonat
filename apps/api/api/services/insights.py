@@ -37,6 +37,7 @@ from api.schemas.insights import (
 from api.services.history_sql import (
     DELAY_AGGREGATES,
     IN_WINDOW,
+    RAIL_ONLY,
     TRAIN_NUMBER,
     window_params,
 )
@@ -333,13 +334,20 @@ async def rankings(
     days: int,
     limit: int,
     min_samples: int,
+    non_rail: list[str],
 ) -> Rankings:
+    """`non_rail`: ids of the stations that are not railway stations."""
     window = history_window(days)
     key = RANKING_KEYS[kind]
     # best: most on time first, then the smallest median delay
     direction = "DESC" if order == "best" else "ASC"
     tiebreak = "ASC" if order == "best" else "DESC"
-    params = {**_window_params(window), "min_samples": min_samples, "limit": limit}
+    params = {
+        **_window_params(window),
+        "min_samples": min_samples,
+        "limit": limit,
+        "non_rail": non_rail,
+    }
     if kind == "lines":
         params.update(glyphs=GLYPHS, lines=GLYPH_LINES, line_pattern=LINE_PATTERN)
     result = await session.execute(
@@ -348,7 +356,8 @@ async def rankings(
             SELECT {key} AS id, {DELAY_AGGREGATES} {RANKING_EXTRAS[kind]}
             FROM {RANKING_SOURCES.get(kind, "stop_delay_observations")}
                  {RANKING_JOINS.get(kind, "")}
-            WHERE {IN_WINDOW} AND {key} <> '' {RANKING_FILTERS.get(kind, "")}
+            WHERE {IN_WINDOW} AND {key} <> '' {RAIL_ONLY}
+                  {RANKING_FILTERS.get(kind, "")}
             GROUP BY 1
             HAVING count(*) >= :min_samples
             ORDER BY on_time_share {direction}, median_s {tiebreak}, n DESC, id
@@ -389,10 +398,14 @@ async def rankings(
 
 
 async def time_of_day(
-    session: AsyncSession, station: str | None, days: int
+    session: AsyncSession, station: str | None, days: int, non_rail: list[str]
 ) -> TimeOfDayPunctuality:
+    """
+    At one station, or across the railway's stations (leaving out
+    `non_rail`, as the rankings do).
+    """
     window = history_window(days)
-    station_filter = "AND station_id = :station" if station else ""
+    station_filter = "AND station_id = :station" if station else RAIL_ONLY
     result = await session.execute(
         text(
             f"""
@@ -405,7 +418,7 @@ async def time_of_day(
             GROUP BY 1
             """
         ),
-        {**_window_params(window), "station": station},
+        {**_window_params(window), "station": station, "non_rail": non_rail},
     )
     by_hour = {int(r.hour): r for r in result}
     hours = []
@@ -556,7 +569,7 @@ async def directory(
 
     return Directory(
         window=window,
-        stations=[DirectoryStation(id=s.id, name=s.name) for s in listed],
+        stations=[DirectoryStation(id=s.id, name=s.name, type=s.type) for s in listed],
         trains=[
             DirectoryTrain(
                 trainNumber=r.number,

@@ -1276,7 +1276,7 @@
           "rankings"
         ],
         "summary": "Get Rankings",
-        "description": "Stations, lines (S10, Z30, H5, ...) or trains ranked by on-time share (at\nmost 5 minutes late), then by median delay. Stations count every stop\npassage; lines and trains count one arrival per run, at its final stop (or\nthe last stop recorded before it).",
+        "description": "Railway stations, lines (S10, Z30, ...) or trains ranked by on-time share\n(at most 5 minutes late), then by median delay. Stations count every stop\npassage; lines and trains count one arrival per run, at its final stop (or\nthe last stop recorded before it). H\u00c9V and tram-train stops, and the runs\nending at them, are left out.",
         "operationId": "getRankings",
         "parameters": [
           {
@@ -1365,6 +1365,9 @@
               }
             }
           },
+          "502": {
+            "description": "The upstream timetable service failed"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -1384,7 +1387,7 @@
           "rankings"
         ],
         "summary": "Get Time Of Day Punctuality",
-        "description": "On-time share by scheduled hour, network-wide or at one station",
+        "description": "On-time share by scheduled hour, at one station or across the railway's\nstations (without H\u00c9V and tram-train stops)",
         "operationId": "getTimeOfDayPunctuality",
         "parameters": [
           {
@@ -1428,6 +1431,9 @@
                 }
               }
             }
+          },
+          "502": {
+            "description": "The upstream timetable service failed"
           },
           "422": {
             "description": "Validation Error",
@@ -2290,6 +2296,17 @@
           "name": {
             "type": "string",
             "title": "Name"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "rail",
+              "hev",
+              "tramtrain",
+              "childrens_railway"
+            ],
+            "title": "Type",
+            "default": "rail"
           }
         },
         "type": "object",
@@ -3877,6 +3894,17 @@
           "lon": {
             "type": "number",
             "title": "Lon"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "rail",
+              "hev",
+              "tramtrain",
+              "childrens_railway"
+            ],
+            "title": "Type",
+            "default": "rail"
           }
         },
         "type": "object",
