@@ -61,7 +61,7 @@ export function clusterImageId(scheme: ColorScheme): string {
 }
 
 /** Diameter of the cluster sprite; bigger counts scale it up */
-export const CLUSTER_SIZE = 24;
+export const CLUSTER_SIZE = 20;
 
 export function arrowImageId(scheme: ColorScheme): string {
     return `${PREFIX}${scheme}-arrow`;
