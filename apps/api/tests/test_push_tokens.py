@@ -12,7 +12,7 @@ from api.core import rate_limit
 from api.core.config import settings
 from api.models.devices import PushToken
 from api.services.devices import device_key, run_housekeeping
-from api.services.push_alerts import live_activity_key
+from api.services.push_alerts import live_activity_key, receipts_key
 
 FROZEN_NOW = 1_800_000_000 - 1_800_000_000 % 3600 + 1800
 EXPO = "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]"
@@ -187,18 +187,27 @@ async def test_device_erasure_removes_tokens_and_live_activity_state(
     redis: fakeredis.FakeAsyncRedis,
 ) -> None:
     auth = await register(client)
+    other = await register(client)
     follow_id = await follow(client, auth)
-    await add_token(client, auth, type="expo", token=EXPO)
+    expo = await add_token(client, auth, type="expo", token=EXPO)
+    kept = await add_token(client, other, type="expo", token="ExponentPushToken[other]")
     la = await add_token(
         client, auth, type="liveactivity", token=LIVE_ACTIVITY, followId=follow_id
     )
     key = live_activity_key(device_id(auth), uuid.UUID(la.json()["id"]))
     assert key.startswith(device_key(device_id(auth), ""))
     await redis.set(key, "{}")
+    await redis.zadd(
+        receipts_key(),
+        {f"t1|{expo.json()['id']}": 1, f"t2|{kept.json()['id']}": 1},
+    )
 
     assert (await client.delete("/v1/devices/me", headers=auth)).status_code == 204
     assert await tokens_of(db_session, device_id(auth)) == []
+    assert len(await tokens_of(db_session, device_id(other))) == 1
     assert not await redis.exists(key)
+    # Pending Expo tickets of its tokens go too
+    assert await redis.zrange(receipts_key(), 0, -1) == [f"t2|{kept.json()['id']}"]
 
 
 async def test_follow_deletion_removes_its_live_activity_token(

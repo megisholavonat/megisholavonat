@@ -57,6 +57,11 @@ export async function registerPush(locale: string): Promise<void> {
     }
 }
 
+/** Registers the push token again next time (after data deletion). */
+export function resetPushRegistration(): void {
+    registeredPush = null;
+}
+
 async function create(
     locale: string,
     body: NonNullable<ReturnType<typeof createBody>>,

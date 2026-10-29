@@ -204,7 +204,9 @@
         "contact": "Contact",
         "punctuality": "Punctuality",
         "license": "License",
-        "open_source": "This app is open source. Bug reports, ideas and help are welcome on GitHub."
+        "open_source": "This app is open source. Bug reports, ideas and help are welcome on GitHub.",
+        "clear_data": "Clear saved data",
+        "clear_data_confirm": "Clear the followed trains, recent stations, settings and statistics choice saved in this browser?"
     },
     "Consent": {
         "title": "Usage statistics?",

@@ -3,6 +3,7 @@ import * as WebBrowser from "expo-web-browser";
 import { useLocale, useTranslations } from "use-intl";
 import { track } from "../analytics";
 import { SOURCE_URL, WEB_URL } from "../config";
+import { useDeleteData } from "../privacy/useDeleteData";
 import { useSettings } from "./SettingsProvider";
 import type { LanguagePreference, ThemePreference } from "./settings";
 
@@ -19,6 +20,7 @@ const LANGUAGE_NAMES: Record<Locale, string> = {
 export function useSettingsRows() {
     const t = useTranslations("Settings");
     const { settings, update } = useSettings();
+    const { deleting, deleteData } = useDeleteData();
     const locale = useLocale();
 
     const languages: { value: string; label: string }[] = [
@@ -82,6 +84,8 @@ export function useSettingsRows() {
         openMapData: () => WebBrowser.openBrowserAsync(OSM_COPYRIGHT),
         openRailwayData: () => WebBrowser.openBrowserAsync(ORM_COPYRIGHT),
         openSource: () => WebBrowser.openBrowserAsync(SOURCE_URL),
+        deleting,
+        deleteData,
         openPrivacy: () =>
             WebBrowser.openBrowserAsync(`${WEB_URL}/${locale}/privacy`),
     };
