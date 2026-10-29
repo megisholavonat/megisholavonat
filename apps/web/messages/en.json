@@ -146,5 +146,30 @@
         "title": "Privacy notice",
         "back_to_map": "Back to the map",
         "last_updated": "Last updated: {date}"
+    },
+    "Journey": {
+        "title": "Journey planner",
+        "open": "Plan a journey",
+        "from": "From",
+        "to": "To",
+        "swap": "Swap",
+        "done": "Done",
+        "time": "Time",
+        "depart": "Depart",
+        "arrive": "Arrive",
+        "now": "Now",
+        "direct": "Direct",
+        "changes": "{count, plural, one {# change} other {# changes}}",
+        "duration": "{m} min",
+        "duration_hours": "{h} h {m} min",
+        "risk_safe": "Safe",
+        "risk_tight": "Tight",
+        "risk_likely_missed": "Likely missed",
+        "canceled": "Cancelled",
+        "transfer_minutes": "{m} min to change",
+        "walk": "{m} min walk",
+        "on_map": "Show on the map",
+        "empty": "No journeys found",
+        "same_station": "Pick two different stations"
     }
 }
