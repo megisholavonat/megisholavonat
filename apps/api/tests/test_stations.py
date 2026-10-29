@@ -6,7 +6,7 @@ import httpx
 import respx
 
 from api.core.redis import add_key
-from api.schemas.stations import BoardEntry
+from api.schemas.stations import BoardEntry, BoardKind
 from api.services.live_trips import build_live_trip_index, match_live_trip
 from api.services.station_board import _board_entry, merge_duplicate_trips
 from api.services.station_index import index_key, rail_stations_from_otp
@@ -412,3 +412,72 @@ def test_board_entry_marks_a_train_its_own_notice_replaces() -> None:
     assert replaced.disruption == "replacement_bus"
     assert expired.disruption is None
     assert normal.disruption is None
+
+
+# HÉV boards of 2026-10-29: H8/H9 trains turn back at Cinkota, and each
+# carries "... az Örs vezér tere és Cinkota között pótlóbuszok közlekednek."
+KEREPES_HEV = "003619848"
+CINKOTA_HEV = "003619828"
+
+
+def _hev_board(name: str) -> list[dict[str, Any]]:
+    board = load_fixture("otp-board-hev-cinkota.json")[name]
+    stoptimes: list[dict[str, Any]] = board["data"]["station"][
+        "stoptimesWithoutPatterns"
+    ]
+    return stoptimes
+
+
+def test_board_does_not_mark_trains_running_beyond_the_replaced_stretch() -> None:
+    departures = [
+        _board_entry(st, "departures", {}, None, KEREPES_HEV)
+        for st in _hev_board("kerepes")
+    ]
+    arrivals = [
+        _board_entry(st, "arrivals", {}, None, CINKOTA_HEV)
+        for st in _hev_board("cinkota")
+    ]
+
+    # Cinkota - Gödöllő and Kerepes - Cinkota run as shown
+    assert [e.disruption for e in departures] == [None, None]
+    assert [e.disruption for e in arrivals] == [None, None]
+
+
+def test_board_marks_trains_on_the_replaced_stretch() -> None:
+    # The same notice on a train still running from Örs vezér tere
+    [stoptime, _] = _hev_board("kerepes")
+    trip = stoptime["trip"]
+    trip["stops"] = [
+        {"gtfsId": "1:003619801_0", "name": "Örs vezér tere H"},
+        {"gtfsId": "1:003619802_0", "name": "Rákosfalva H"},
+        *trip["stops"],
+    ]
+
+    def entry(station: str, kind: BoardKind) -> BoardEntry:
+        return _board_entry(stoptime, kind, {}, None, station)
+
+    assert entry("003619802", "departures").disruption == "replacement_bus"
+    assert entry(CINKOTA_HEV, "arrivals").disruption == "replacement_bus"
+    assert entry(CINKOTA_HEV, "departures").disruption is None
+    assert entry(KEREPES_HEV, "departures").disruption is None
+
+
+def test_board_marks_a_skipped_stop_only_there() -> None:
+    # 4770 Budapest-Déli - Székesfehérvár via Kelenföld
+    at = 1793228400 + 1620
+    stoptime = _stoptime(
+        [{"alertDescriptionText": "A vonat Budafok megállóhelyen nem áll meg."}]
+    )
+    stoptime["trip"]["stops"] = [
+        {"gtfsId": "1:005501016_0", "name": "Budapest-Déli"},
+        {"gtfsId": f"1:{KELENFOLD}_0", "name": "Budapest-Kelenföld"},
+        {"gtfsId": "1:005503129_0", "name": "Budafok"},
+        {"gtfsId": "1:005503269_0", "name": "Székesfehérvár"},
+    ]
+
+    here = _board_entry(stoptime, "departures", {}, None, KELENFOLD)
+    there = _board_entry(stoptime, "departures", {}, None, "005503129")
+
+    assert at == here.scheduledTime
+    assert here.disruption is None
+    assert there.disruption == "no_service"
