@@ -15,6 +15,7 @@ from api.core.redis import add_key
 from api.forecast.serve import annotate_with_latest_model
 from api.schemas.alerts import DelayReason
 from api.util.county import get_county_for_point
+from api.util.delay import to_minutes
 from api.util.preprocess import PreviousPosition, get_delay_and_position
 from api.util.replay import next_snapshot
 from api.util.route import route_from_polyline, simplified_polyline
@@ -184,7 +185,7 @@ class TrainService:
             processed_location = location.copy()
             processed_location.update(
                 {
-                    "delay": round(delay_data["delay"] / 60),
+                    "delay": to_minutes(delay_data["delay"]),
                     # Unrounded GPS delay, used for history (not in the schema)
                     "delaySeconds": round(delay_data["delay"]),
                     "offRouteMeters": delay_data["offRouteMeters"],

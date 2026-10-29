@@ -1072,6 +1072,10 @@ export type PlatformPrediction = {
      * N
      */
     n: number;
+    /**
+     * Confident
+     */
+    confident: boolean;
 };
 
 /**

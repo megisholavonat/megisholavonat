@@ -17,8 +17,20 @@ const entry = (extra: Partial<BoardEntry>): BoardEntry => ({
 
 describe("boardRows", () => {
     const predictions = [
-        { trainNumber: "924", platform: "8", confidence: 0.9, n: 30 },
-        { trainNumber: "516", platform: "6", confidence: 0.5, n: 30 },
+        {
+            trainNumber: "924",
+            platform: "8",
+            confidence: 0.9,
+            n: 30,
+            confident: true,
+        },
+        {
+            trainNumber: "516",
+            platform: "6",
+            confidence: 0.5,
+            n: 30,
+            confident: false,
+        },
     ];
 
     it("shows the announced platform over a prediction", () => {

@@ -519,7 +519,8 @@ export const zPlatformPrediction = z.object({
     lineName: z.string().nullish(),
     platform: z.string(),
     confidence: z.number(),
-    n: z.int()
+    n: z.int(),
+    confident: z.boolean()
 });
 
 /**

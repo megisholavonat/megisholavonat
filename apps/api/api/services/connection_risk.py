@@ -42,13 +42,15 @@ from api.schemas.journeys import (
     TransitLeg,
     WalkLeg,
 )
+from api.services.history_sql import IN_WINDOW, TRAIN_NUMBER, window_params
+from api.util.history_constants import DEFAULT_HISTORY_DAYS
 from api.util.stop import station_id
 from api.util.trip import seconds_into_service_day
 
 logger = get_logger(__name__)
 
 MIN_TRANSFER_S = 2 * 60
-HISTORY_DAYS = 28
+HISTORY_DAYS = DEFAULT_HISTORY_DAYS
 # Pseudo-observations of the station-wide distribution mixed into a train's own
 PRIOR_WEIGHT = 4
 
@@ -256,17 +258,17 @@ async def load_delay_history(
 ) -> DelayHistory:
     trains: dict[HistoryKey, IntArray] = {}
     stations: dict[str, IntArray] = {}
-    window = {"start": start, "end": end}
+    window = window_params(start, end)
     if keys:
         rows = await session.execute(
             text(
-                """
-                SELECT split_part(trip_short_name, ' ', 1) AS train, station_id,
+                f"""
+                SELECT {TRAIN_NUMBER} AS train, station_id,
                        array_agg(delay_s ORDER BY delay_s) AS delays
                 FROM stop_delay_observations
-                WHERE service_date BETWEEN :start AND :end
+                WHERE {IN_WINDOW}
                   AND station_id = ANY(:stations)
-                  AND split_part(trip_short_name, ' ', 1) = ANY(:trains)
+                  AND {TRAIN_NUMBER} = ANY(:trains)
                 GROUP BY 1, 2
                 """
             ),
@@ -283,12 +285,12 @@ async def load_delay_history(
     if prior_stations:
         prior_rows = await session.execute(
             text(
-                """
+                f"""
                 SELECT station_id,
                        percentile_disc(CAST(:percentiles AS float8[]))
                            WITHIN GROUP (ORDER BY delay_s)
                 FROM stop_delay_observations
-                WHERE service_date BETWEEN :start AND :end
+                WHERE {IN_WINDOW}
                   AND station_id = ANY(:stations)
                 GROUP BY 1
                 """

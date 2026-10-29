@@ -15,7 +15,8 @@ from api.schemas.insights import (
     TrainStationHistory,
 )
 from api.schemas.runs import RunSummary
-from api.services import insights, run_summary, station_index
+from api.services import insights, platforms, run_summary, station_index
+from api.util.history_constants import DEFAULT_HISTORY_DAYS
 
 router = APIRouter(prefix="/history", tags=["history"])
 
@@ -40,7 +41,7 @@ async def get_train_station_history(
     station_id: StationIdPath,
     session: SessionDep,
     redis: RedisDep,
-    days: DaysQuery = 28,
+    days: DaysQuery = DEFAULT_HISTORY_DAYS,
 ) -> TrainStationHistory:
     """How late a train usually is at a station ("usually late by X")"""
     return await cached_model(
@@ -57,7 +58,7 @@ async def get_train_history(
     train_number: TrainNumberPath,
     session: SessionDep,
     redis: RedisDep,
-    days: DaysQuery = 28,
+    days: DaysQuery = DEFAULT_HISTORY_DAYS,
 ) -> TrainHistory:
     """Typical delay at each station of a train's usual route"""
     return await cached_model(
@@ -75,15 +76,14 @@ async def get_station_platforms(
     session: SessionDep,
     redis: RedisDep,
     train_number: Annotated[str | None, Query(alias="trainNumber")] = None,
-    days: DaysQuery = 28,
+    days: DaysQuery = DEFAULT_HISTORY_DAYS,
 ) -> StationPlatforms:
-    """Predicted platform per train at a station: the most common one recently"""
-    return await cached_model(
-        redis,
-        f"history:platforms:{station_id}:{train_number or '*'}:{days}",
-        StationPlatforms,
-        CACHE_TTL_S,
-        lambda: insights.station_platforms(session, station_id, train_number, days),
+    """
+    Predicted platform per train at a station: the most common one recently;
+    `confident` tells whether it is sure enough to show
+    """
+    return await platforms.station_platforms(
+        session, redis, station_id, train_number, days
     )
 
 
@@ -91,7 +91,7 @@ async def get_station_platforms(
 async def get_directory(
     session: SessionDep,
     redis: RedisDep,
-    days: DaysQuery = 28,
+    days: DaysQuery = DEFAULT_HISTORY_DAYS,
 ) -> Directory:
     """
     Domestic stations with a train on most days and train numbers that run at

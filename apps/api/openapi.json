@@ -1073,7 +1073,7 @@
           "history"
         ],
         "summary": "Get Station Platforms",
-        "description": "Predicted platform per train at a station: the most common one recently",
+        "description": "Predicted platform per train at a station: the most common one recently;\n`confident` tells whether it is sure enough to show",
         "operationId": "getStationPlatforms",
         "parameters": [
           {
@@ -3342,6 +3342,10 @@
           "n": {
             "type": "integer",
             "title": "N"
+          },
+          "confident": {
+            "type": "boolean",
+            "title": "Confident"
           }
         },
         "type": "object",
@@ -3349,7 +3353,8 @@
           "trainNumber",
           "platform",
           "confidence",
-          "n"
+          "n",
+          "confident"
         ],
         "title": "PlatformPrediction"
       },

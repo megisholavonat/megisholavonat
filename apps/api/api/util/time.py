@@ -3,8 +3,14 @@ from datetime import UTC, date, datetime, time, timedelta
 from zoneinfo import ZoneInfo
 
 BUDAPEST_TZ = ZoneInfo("Europe/Budapest")
+DAY_S = 24 * 3600
 
 # Ported to packages/core/src/time.ts (serviceDayStart, getSecondsSinceDay)
+
+
+def today() -> date:
+    """Today's date in Budapest."""
+    return datetime.now(BUDAPEST_TZ).date()
 
 
 def service_day_start(service_date: date) -> datetime:

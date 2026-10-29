@@ -26,13 +26,13 @@ from api.services.push_alerts import (
     live_activity_content,
     live_activity_due,
     live_activity_relevance,
-    platform_of_stop,
     receipts_key,
     train_label,
     usual_platform,
 )
 from api.services.push_copy import Alert, AlertKind, TrainContext, lang_for, render
 from api.services.push_senders import Outcome, SendResult
+from api.util.stop import platform_from_gtfs_id
 from tests.push_fakes import (
     DELI,
     FEHERVAR,
@@ -258,7 +258,7 @@ def test_lang_for(locale: str | None, lang: str) -> None:
     assert lang_for(locale) == lang
 
 
-def test_train_label_and_platform_of_stop() -> None:
+def test_train_label_and_platform_from_gtfs_id() -> None:
     assert (
         train_label({"route": {"shortName": "S70"}, "tripShortName": "5123"}) == "S70"
     )
@@ -266,9 +266,9 @@ def test_train_label_and_platform_of_stop() -> None:
         train_label({"route": {"shortName": "IC"}, "tripShortName": "559 AGRIA"})
         == "IC 559"
     )
-    assert platform_of_stop("1:005501024_14") == "14"
-    assert platform_of_stop("1:005505876_5b") == "5b"
-    assert platform_of_stop("1:005501024") is None
+    assert platform_from_gtfs_id("1:005501024_14") == "14"
+    assert platform_from_gtfs_id("1:005505876_5b") == "5b"
+    assert platform_from_gtfs_id("1:005501024") is None
 
 
 # --- Evaluation against the database ---
@@ -955,3 +955,12 @@ async def test_usual_platform_needs_confidence(
     await seed_platforms(db_session, ["4"] * 8 + ["2"] * 2)
     assert await usual_platform(db_session, redis, KELENFOLD, "5123") == "4"
     assert await usual_platform(db_session, redis, KELENFOLD, "9999") is None
+
+
+@pytest.mark.usefixtures("_history_today")
+async def test_usual_platform_needs_enough_runs(
+    db_session: AsyncSession, redis: fakeredis.FakeAsyncRedis
+) -> None:
+    # Always platform 4, but only four times: as on the web, not enough
+    await seed_platforms(db_session, ["4"] * 4)
+    assert await usual_platform(db_session, redis, KELENFOLD, "5123") is None

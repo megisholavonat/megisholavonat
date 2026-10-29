@@ -123,6 +123,9 @@ class PlatformPrediction(BaseModel):
     # Share of the train's passages here that used this platform
     confidence: float
     n: int
+    # Sure enough to show as the predicted platform (and for push alerts to
+    # take as the usual one); see api.util.history_constants.platform_confident
+    confident: bool
 
 
 class TypicalDelay(BaseModel):
