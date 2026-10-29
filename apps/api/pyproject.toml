@@ -29,6 +29,7 @@ dependencies = [
 dev = [
     "fakeredis>=2.40.0",
     "httpx>=0.28.1",
+    "lightgbm>=4.7.0",
     "mypy>=1.18.2",
     "pytest>=9.2.0",
     "pytest-asyncio>=1.4.1",
@@ -36,6 +37,11 @@ dev = [
     "ruff>=0.14.6",
     "types-pytz>=2025.2.0.20251108",
     "types-shapely>=2.1.0.20250917",
+]
+# Delay forecast trainer only (its own image, see the Dockerfile); the API
+# serves the exported trees with numpy
+train = [
+    "lightgbm>=4.7.0",
 ]
 
 [tool.ruff]

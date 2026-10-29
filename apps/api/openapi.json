@@ -2452,6 +2452,17 @@
                 "type": "null"
               }
             ]
+          },
+          "predictedDelay": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Predicteddelay"
           }
         },
         "type": "object",
