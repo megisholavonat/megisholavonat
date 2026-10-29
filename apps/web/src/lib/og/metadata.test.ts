@@ -192,7 +192,8 @@ describe("buildMetadata", () => {
             now,
         });
         const og = meta.openGraph as Record<string, unknown>;
-        expect(og.title).toBe("Szolnok");
+        // The card says what the link opens; the tab keeps the name
+        expect(og.title).toBe("Szolnok – live departures");
         expect(meta.title).toBe(`Szolnok · ${APP.appTitle}`);
         expect(og.locale).toBe("en_GB");
         expect(meta.description).toMatch(
