@@ -47,12 +47,14 @@ export function plannerFromParams(
     const from = station("from");
     const to = station("to");
     if (!from && !to) return null;
-    const time = params.get("time");
+    const param = params.get("time");
+    const time = param && TIME_PARAM.test(param) ? param : null;
     return {
         from,
         to,
-        time: time && TIME_PARAM.test(time) ? time : null,
-        arriveBy: params.get("arriveBy") === "1",
+        time,
+        // Arriving by is a set time's ("now" only departs; see TimeRow)
+        arriveBy: time !== null && params.get("arriveBy") === "1",
     };
 }
 
@@ -63,7 +65,7 @@ export function plannerParams(
     if (state.from) params.from = state.from.id;
     if (state.to) params.to = state.to.id;
     if (state.time) params.time = state.time;
-    if (state.arriveBy) params.arriveBy = "1";
+    if (state.time && state.arriveBy) params.arriveBy = "1";
     return params;
 }
 

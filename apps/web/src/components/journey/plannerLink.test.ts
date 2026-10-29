@@ -28,6 +28,22 @@ describe("planner links", () => {
         });
     });
 
+    it("arrives by a set time only, as the time control does", () => {
+        const state = plannerFromParams(
+            new URLSearchParams("from=005510017&to=005517228&arriveBy=1"),
+        );
+        expect(state?.time).toBeNull();
+        expect(state?.arriveBy).toBe(false);
+        expect(
+            plannerParams({
+                from: null,
+                to: null,
+                time: null,
+                arriveBy: true,
+            }),
+        ).toEqual({});
+    });
+
     it("ignores what is not a station or a time", () => {
         expect(
             plannerFromParams(new URLSearchParams("vehicleId=42")),

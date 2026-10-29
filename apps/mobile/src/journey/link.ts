@@ -37,5 +37,11 @@ export function plannerFromLink(params: {
               minute: Number(match[5]),
           })
         : null;
-    return { from, to, time, arriveBy: params.arriveBy === "1" };
+    // Arriving by needs a set time
+    return {
+        from,
+        to,
+        time,
+        arriveBy: time !== null && params.arriveBy === "1",
+    };
 }
