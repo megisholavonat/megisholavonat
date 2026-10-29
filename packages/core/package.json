@@ -9,6 +9,7 @@
         "./constants": "./src/constants.ts",
         "./delay": "./src/delay.ts",
         "./display": "./src/display.ts",
+        "./disruptions": "./src/disruptions.ts",
         "./delayReasons": "./src/delayReasons.ts",
         "./i18n": "./src/i18n.ts",
         "./mavRoutes": "./src/mavRoutes.ts",
