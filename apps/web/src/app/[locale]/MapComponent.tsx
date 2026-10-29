@@ -750,7 +750,9 @@ export default function MapComponent({
 
         const update = (timestamp: number, advance: boolean) => {
             const data = filteredTrainsRef.current;
-            if (!data || !map.isStyleLoaded()) return;
+            // Not map.isStyleLoaded(): that stays false while any tile is
+            // loading, so a slow overlay tile server froze every train
+            if (!data || !map.style) return;
             const source = map.getSource(SOURCES.base) as
                 | GeoJSONSource
                 | undefined;
@@ -1215,6 +1217,10 @@ export default function MapComponent({
                 map.addImage(id, createTransparentBasemapIcon());
             }
         });
+        // Ready once the style is parsed. Not the "load" event: that waits
+        // for every tile, so one slow overlay tile kept all trains off the map
+        if (map.style?._loaded) setMapLoaded(true);
+        else map.once("style.load", () => setMapLoaded(true));
     }, []);
 
     // Match the basemap's land colour to the one the marker colours were
