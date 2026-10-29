@@ -1254,16 +1254,17 @@ export default function MapComponent({
     }, [scheme, locale]);
 
     // On the dark map the overlay's tiles are inverted (and hue-rotated back),
-    // so its dark-blue station names turn light and stay readable
+    // so its dark-blue station names turn light and stay readable; mostly
+    // desaturated, so tram and metro lines read as grey, not magenta
     const railwayPaint = useMemo(
         () =>
             scheme === "dark"
                 ? {
-                      "raster-opacity": 0.7,
+                      "raster-opacity": 0.6,
                       "raster-brightness-min": 0.92,
                       "raster-brightness-max": 0.2,
                       "raster-hue-rotate": 180,
-                      "raster-saturation": -0.1,
+                      "raster-saturation": -0.75,
                   }
                 : { "raster-opacity": 0.75 },
         [scheme],
