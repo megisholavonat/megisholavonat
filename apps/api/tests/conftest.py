@@ -46,12 +46,14 @@ from fastapi import FastAPI  # noqa: E402
 from sqlalchemy.ext.asyncio import (  # noqa: E402
     AsyncEngine,
     AsyncSession,
+    async_sessionmaker,
     create_async_engine,
 )
 from sqlalchemy.pool import NullPool  # noqa: E402
 
 from api.core.db import get_session  # noqa: E402
 from api.core.redis import get_redis  # noqa: E402
+from api.forecast import serve as forecast_serve  # noqa: E402
 from api.main import create_app  # noqa: E402
 from api.services import station_index  # noqa: E402
 from api.util import replay  # noqa: E402
@@ -134,6 +136,17 @@ def app(db_session: AsyncSession, redis: fakeredis.FakeAsyncRedis) -> FastAPI:
 @pytest.fixture(autouse=True)
 def _reset_station_index_memo() -> None:
     station_index.clear_memo()
+
+
+@pytest.fixture(autouse=True)
+def _forecast_model_cache(
+    engine: AsyncEngine, monkeypatch: pytest.MonkeyPatch
+) -> forecast_serve.ModelCache:
+    """Fresh model cache per test, on the NullPool engine (the app's pooled
+    engine would hand a connection to another test's event loop)."""
+    cache = forecast_serve.ModelCache(async_sessionmaker(engine))
+    monkeypatch.setattr(forecast_serve, "model_cache", cache)
+    return cache
 
 
 @pytest.fixture

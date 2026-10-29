@@ -442,7 +442,8 @@ export const zProcessedStop = z.object({
     index: z.int().nullish(),
     originalCoords: z.array(z.number()),
     distanceAlongRoute: z.number(),
-    stopTimeInfo: zStopTimeWithCounty.nullish()
+    stopTimeInfo: zStopTimeWithCounty.nullish(),
+    predictedDelay: z.int().nullish()
 });
 
 /**
