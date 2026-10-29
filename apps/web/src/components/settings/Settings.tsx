@@ -101,14 +101,15 @@ function SelectRow({
     const id = `select-${name}`;
     return (
         <div className={rowClass}>
-            <label htmlFor={id} className="flex-1">
+            <label htmlFor={id} className="shrink-0">
                 {label}
             </label>
+            {/* The select spans the rest of the row: all of it is the target */}
             <select
                 id={id}
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
-                className="max-w-[55%] cursor-pointer appearance-none bg-transparent text-right text-ink-2 outline-none"
+                className="-my-2 min-h-12 min-w-0 flex-1 cursor-pointer appearance-none truncate rounded-md bg-transparent pr-2 text-right text-ink-2 outline-none [--focus-offset:-2px]"
             >
                 {options.map((o) => (
                     <option key={o.value} value={o.value}>
@@ -213,8 +214,8 @@ function StationNameOpacity() {
     useEffect(() => setValue(stationNamesOpacity), [stationNamesOpacity]);
     if (!showStationNames) return null;
     return (
-        <div className={cn(rowClass, "gap-4")}>
-            <span id="opacity-label" className="text-ink-2">
+        <div className={cn(rowClass, "gap-4 pl-8")}>
+            <span id="opacity-label" className="text-ink">
                 {t("station_names_opacity")}
             </span>
             <Slider

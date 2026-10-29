@@ -374,7 +374,7 @@ export function BottomSheet({
                     <button
                         type="button"
                         onClick={stepUp}
-                        className="flex h-5 w-14 cursor-grab items-center justify-center"
+                        className="relative flex h-5 w-14 cursor-grab items-center justify-center before:absolute before:-inset-x-2 before:-inset-y-3"
                         aria-label={t("resize")}
                         disabled={available.length < 2}
                     >

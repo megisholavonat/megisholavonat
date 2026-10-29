@@ -100,18 +100,45 @@
     --color-destructive: var(--mhav-delay-severe-text);
     --color-border: var(--mhav-line);
     --color-input: var(--mhav-line);
-    --color-ring: var(--mhav-ink-2);
+    --color-ring: var(--mhav-action);
 }
 
 @layer base {
     * {
-        @apply border-line outline-ring/50;
+        @apply border-line;
     }
     html,
     body {
         @apply bg-canvas text-ink;
         overscroll-behavior: none;
     }
+}
+
+/* Keyboard focus: one 2 px ring in the action colour on every control, 2 px
+   clear of it (--focus-offset adjusts that in tight layouts). WCAG 2.4.7
+   and 2.4.13: at least 2 px and 3:1 against the surface; ink on white is
+   18:1, light ink on the dark surface 15:1. Unlayered, so a component's
+   outline-none cannot hide it; pointer focus shows nothing. */
+:focus-visible {
+    outline: 2px solid var(--mhav-action);
+    outline-offset: var(--focus-offset, 2px);
+}
+/* Dialogs and sheets take focus only to hold it, not as a control */
+[role="dialog"]:focus-visible,
+[tabindex="-1"]:not(input, select, textarea):focus-visible {
+    outline: none;
+}
+/* Text fields draw the ring on their field (the pill around the input) */
+.focus-field :is(input, select, textarea):focus-visible {
+    outline: none;
+}
+.focus-field:has(:is(input, select, textarea):focus-visible) {
+    outline: 2px solid var(--mhav-action);
+    outline-offset: var(--focus-offset, 2px);
+}
+/* The map fills the screen: its ring goes inside the edge */
+.maplibregl-canvas {
+    --focus-offset: -2px;
 }
 
 @utility tnum {

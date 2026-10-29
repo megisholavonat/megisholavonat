@@ -1,11 +1,15 @@
 import type {
     CommuteFollowCreate,
+    TrainFeatureCollection,
     TripFollowCreate,
     VehiclePositionWithDelay,
 } from "@megisholavonat/api-client";
 import {
+    currentOccurrence,
+    defaultBoardingIndex,
+} from "@megisholavonat/core/commute";
+import {
     budapestDate,
-    isoWeekday,
     serviceDayStart,
     shiftDate,
 } from "@megisholavonat/core/time";
@@ -21,8 +25,8 @@ export const THRESHOLDS_MIN = [3, 5, 10, 15, 20, 30] as const;
 /** ISO weekdays, Monday first */
 export const WEEKDAYS = [1, 2, 3, 4, 5, 6, 7] as const;
 
-/** A commute stays on home this long after its scheduled departure. */
-const AFTER_DEPARTURE_MS = 60 * 60_000;
+/** A trip stays on home this long after its scheduled arrival. */
+const AFTER_ARRIVAL_MS = 60 * 60_000;
 const DAY_S = 86_400;
 
 export interface StopOption {
@@ -94,13 +98,16 @@ export function stopOptions(details: VehiclePositionWithDelay): StopOption[] {
     }));
 }
 
-/** Boarding at the next stop, alighting at the terminus. */
+/** Boarding at the next stop (never a passed one), alighting at the end. */
 export function defaultDraft(details: VehiclePositionWithDelay): FollowDraft {
-    const count = details.trip.stoptimes.length;
-    const next = details.vehicleProgress.nextStopIndex ?? 0;
+    const stoptimes = details.trip.stoptimes;
+    const count = stoptimes.length;
     return {
         weekdays: [],
-        from: Math.max(0, Math.min(next, count - 2)),
+        from: defaultBoardingIndex(
+            stoptimes.map((st) => stationIdOf(st.stop)),
+            details.vehicleProgress.nextStopIndex ?? null,
+        ),
         to: count - 1,
         delayThresholdMin: DEFAULT_THRESHOLD_MIN,
         notifyPlatformChange: true,
@@ -176,11 +183,13 @@ export interface Run {
 
 /**
  * The run of a follow to show: a trip on its service date, a commute on the
- * next of its weekdays it hasn't left on yet. Null once a trip is over.
+ * next of its weekdays it hasn't left on yet (kept until it arrives, and
+ * while a train with its number is still out). Null once a trip is over.
  */
 export function nextRun(
     follow: LocalFollow,
     now: Date = new Date(),
+    running = false,
 ): Run | null {
     const board = follow.stops[follow.from];
     if (!board) return null;
@@ -191,11 +200,6 @@ export function nextRun(
 
     const runOn = (serviceDate: string) =>
         serviceDayStart(serviceDate) + board.time * 1000;
-    const offset = (serviceDate: string) =>
-        Math.round(
-            (Date.parse(shiftDate(serviceDate, daysPast)) - Date.parse(today)) /
-                (DAY_S * 1000),
-        );
 
     if (follow.kind === "trip") {
         if (!follow.serviceDate) return null;
@@ -204,33 +208,67 @@ export function nextRun(
         const end = alight
             ? serviceDayStart(follow.serviceDate) + alight.time * 1000
             : departure;
-        if (now.getTime() > end + AFTER_DEPARTURE_MS) return null;
+        if (now.getTime() > end + AFTER_ARRIVAL_MS) return null;
         return {
             serviceDate: follow.serviceDate,
             departure,
-            dayOffset: offset(follow.serviceDate),
+            dayOffset: Math.round(
+                (Date.parse(shiftDate(follow.serviceDate, daysPast)) -
+                    Date.parse(today)) /
+                    (DAY_S * 1000),
+            ),
         };
     }
 
-    for (let d = 0; d <= 7; d++) {
-        const day = shiftDate(today, d);
-        if (!follow.weekdays.includes(isoWeekday(day))) continue;
-        const serviceDate = shiftDate(day, -daysPast);
-        const departure = runOn(serviceDate);
-        if (departure + AFTER_DEPARTURE_MS < now.getTime()) continue;
-        return { serviceDate, departure, dayOffset: d };
+    const alight = follow.stops[follow.to];
+    const occurrence = currentOccurrence(
+        {
+            weekdays: follow.weekdays,
+            departureS: board.time - daysPast * DAY_S,
+            runS: alight ? alight.time - board.time : null,
+        },
+        now,
+        running,
+    );
+    if (!occurrence) return null;
+    const serviceDate = shiftDate(occurrence.date, -daysPast);
+    return {
+        serviceDate,
+        departure: runOn(serviceDate),
+        dayOffset: occurrence.daysAhead,
+    };
+}
+
+/** Train numbers out on the rails now (not waiting, arrived or cancelled). */
+export function runningNumbers(
+    trains: TrainFeatureCollection | undefined,
+): Set<string> {
+    const numbers = new Set<string>();
+    for (const { properties: p } of trains?.features ?? []) {
+        if (
+            p.activity !== "arrived" &&
+            p.activity !== "cancelled" &&
+            p.activity !== "beforeDeparture"
+        ) {
+            numbers.add(trainNumber(p.tripShortName));
+        }
     }
-    return null;
+    return numbers;
 }
 
 /** Follows to show on home, soonest first. */
 export function upcoming(
     follows: readonly LocalFollow[],
     now: Date = new Date(),
+    running: ReadonlySet<string> = new Set(),
 ): { follow: LocalFollow; run: Run }[] {
     return follows
         .flatMap((follow) => {
-            const run = nextRun(follow, now);
+            const run = nextRun(
+                follow,
+                now,
+                running.has(trainNumber(follow.tripShortName)),
+            );
             return run ? [{ follow, run }] : [];
         })
         .sort((a, b) => a.run.departure - b.run.departure);

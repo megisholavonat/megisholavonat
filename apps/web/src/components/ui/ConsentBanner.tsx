@@ -16,7 +16,7 @@ const PROMPT_AFTER_MS = 60_000;
 
 // Equal weight for both answers: no nudging towards "accept"
 const buttonClassName =
-    "pressable h-11 cursor-pointer rounded-md border-[1.5px] border-ink bg-surface text-[15px] font-semibold text-ink hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50";
+    "pressable h-11 cursor-pointer rounded-md border-[1.5px] border-ink bg-surface text-[15px] font-semibold text-ink hover:bg-surface-2";
 
 function readPromptReady(): boolean {
     try {

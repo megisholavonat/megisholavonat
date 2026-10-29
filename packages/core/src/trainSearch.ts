@@ -8,12 +8,36 @@ import { staleness } from "./stale";
 export type TrainSortOption = "number" | "delay" | "speed";
 export type SortDirection = "asc" | "desc";
 
-/** Whether a train matches the free-text search query (trip/route name, MÁV route icon or UIC number). */
+/** A vehicle (UIC) number is matched from this many digits on */
+const MIN_VEHICLE_DIGITS = 5;
+
+/** Digits only, ignoring spaces and dashes: "10", "0480 012-3". */
+export function isNumericQuery(searchQuery: string): boolean {
+    return /^\d+$/.test(searchQuery.replace(/[\s-]/g, ""));
+}
+
+/**
+ * Whether a train matches the free-text search query (trip/route name, MÁV
+ * route icon or UIC number). Digits alone match the start of the train
+ * number, or a vehicle number from five digits on: "10" finds 10 and 104,
+ * not every train with a 10 somewhere in its route or vehicle id.
+ */
 export function matchesTrainQuery(
     result: TrainFeatureProperties,
     searchQuery: string,
 ): boolean {
     if (!searchQuery.trim()) return true;
+
+    if (isNumericQuery(searchQuery)) {
+        const digits = searchQuery.replace(/[\s-]/g, "");
+        const number = (result.tripShortName ?? "").trim().split(/\s+/)[0];
+        return (
+            !!number?.startsWith(digits) ||
+            (digits.length >= MIN_VEHICLE_DIGITS &&
+                !!result.vehicleId &&
+                result.vehicleId.slice(2).includes(digits))
+        );
+    }
 
     const query = normalizeSearchText(searchQuery.trim());
     const tripName = normalizeSearchText(result.tripShortName ?? "");

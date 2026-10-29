@@ -18,6 +18,8 @@ export interface Follow {
     fromLon: number;
     /** Scheduled local departure from the boarding station, s after midnight */
     departureS: number;
+    /** Scheduled time from boarding to the end of the trip, s */
+    runS?: number | null;
     /** ISO weekdays (1 = Monday); empty for this run only */
     weekdays: number[];
     /** This run only: its local date of departure */

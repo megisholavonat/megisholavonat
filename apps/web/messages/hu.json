@@ -195,7 +195,7 @@
         "open_source": "Az alkalmazás nyílt forráskódú. Hibát, ötletet és segítséget a GitHubon várunk."
     },
     "Consent": {
-        "title": "Használati statisztika?",
+        "title": "Névtelen statisztika?",
         "details": "Részletek",
         "accept": "Elfogadom",
         "reject": "Elutasítom"
@@ -254,6 +254,7 @@
         "all_trains": "Összes vonat",
         "by_hour": "Napszak szerint",
         "hour": "Óra",
+        "hour_axis": "pontos 10-ből",
         "by_stop": "Megállónként",
         "few_data": "kevés adat",
         "no_data": "Még kevés az adat",
