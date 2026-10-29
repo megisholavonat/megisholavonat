@@ -84,6 +84,8 @@ DisruptionCause = Literal[
     "engineering", "accident", "strike", "weather", "technical", "other"
 ]
 DisruptionSeverity = Literal["high", "medium", "low"]
+# What a notice does to one train on (part of) its run, worst first
+TrainDisruption = Literal["no_service", "replacement_bus"]
 # "line": one line or a stretch of it; "network": no particular line
 DisruptionScope = Literal["line", "network"]
 

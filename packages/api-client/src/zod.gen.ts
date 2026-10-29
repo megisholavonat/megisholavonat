@@ -132,7 +132,8 @@ export const zBoardEntry = z.object({
     realtime: z.boolean(),
     canceled: z.boolean().optional().default(false),
     vehicleId: z.string().nullish(),
-    reason: zDelayReason.nullish()
+    reason: zDelayReason.nullish(),
+    disruption: z.enum(['no_service', 'replacement_bus']).nullish()
 });
 
 /**

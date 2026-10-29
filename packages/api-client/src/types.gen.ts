@@ -148,6 +148,10 @@ export type BoardEntry = {
      */
     vehicleId?: string | null;
     reason?: DelayReason | null;
+    /**
+     * Disruption
+     */
+    disruption?: 'no_service' | 'replacement_bus' | null;
 };
 
 /**

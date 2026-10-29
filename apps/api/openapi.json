@@ -1537,6 +1537,21 @@
                 "type": "null"
               }
             ]
+          },
+          "disruption": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "no_service",
+                  "replacement_bus"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Disruption"
           }
         },
         "type": "object",

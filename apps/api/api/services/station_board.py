@@ -13,6 +13,12 @@ from api.core.queries import STATION_BOARD_QUERY
 from api.core.redis import add_key
 from api.schemas.alerts import DelayReason
 from api.schemas.stations import BoardEntry, BoardKind, Station, StationBoard
+from api.services.disruptions import (
+    TrainDisruptions,
+    get_train_disruptions,
+    train_disruption,
+    worst_train_disruption,
+)
 from api.services.live_trips import load_live_trip_index, match_live_trip
 from api.services.station_index import RAIL_FEED
 
@@ -48,6 +54,7 @@ def _board_entry(
     stoptime: dict[str, Any],
     kind: BoardKind,
     live_index: dict[str, Any],
+    disruptions: TrainDisruptions | None = None,
 ) -> BoardEntry:
     trip = stoptime["trip"]
     route = trip.get("route") or {}
@@ -87,6 +94,23 @@ def _board_entry(
         delay_source = "gps"
         realtime = True
 
+    alerts = trip.get("alerts") or []
+    # The train's own notices in effect at its time here, then line
+    # disruptions naming it
+    own = [
+        train_disruption(a.get("alertDescriptionText") or "")
+        for a in alerts
+        if (a.get("effectiveStartDate") or 0) <= scheduled
+        and (not a.get("effectiveEndDate") or scheduled <= a["effectiveEndDate"])
+    ]
+    named = (
+        disruptions.of(
+            trip["gtfsId"], train_number(trip.get("tripShortName") or ""), scheduled
+        )
+        if disruptions
+        else None
+    )
+
     return BoardEntry(
         tripId=trip["gtfsId"],
         tripShortName=trip.get("tripShortName") or "",
@@ -102,9 +126,8 @@ def _board_entry(
         realtime=realtime,
         canceled=stoptime.get("realtimeState") == "CANCELED",
         vehicleId=vehicle_id,
-        reason=DelayReason.from_texts(
-            *(a.get("alertDescriptionText") for a in trip.get("alerts") or [])
-        ),
+        reason=DelayReason.from_texts(*(a.get("alertDescriptionText") for a in alerts)),
+        disruption=worst_train_disruption([*own, named]),
     )
 
 
@@ -177,8 +200,9 @@ async def fetch_board(
         ]
 
     live_index = await load_live_trip_index(redis)
+    disruptions = await get_train_disruptions(redis)
     entries = merge_duplicate_trips(
-        [_board_entry(st, kind, live_index) for st in stoptimes]
+        [_board_entry(st, kind, live_index, disruptions) for st in stoptimes]
     )
     entries.sort(key=lambda e: (e.expectedTime, e.scheduledTime, e.tripId))
 
