@@ -60,7 +60,8 @@ export function MapControls({
                         <LocateFixed
                             className={cn(
                                 "size-5",
-                                location.isLoading && "animate-pulse",
+                                location.isLoading &&
+                                    "motion-safe:animate-pulse",
                             )}
                             aria-hidden
                         />

@@ -129,6 +129,15 @@ const HIT_RADIUS = MARKER.hitArea / 2;
 /** How often stale minutes and states are re-judged against the clock. */
 const CLOCK_TICK_MS = 30_000;
 
+/**
+ * From this zoom the railway overlay (a raster) writes out station names;
+ * below it only codes ("SL"). A drawn route's stop names show below it
+ * only, so a station is never named twice in the same spot.
+ */
+const RAILWAY_NAMES_MIN_ZOOM = 11;
+/** No limit: without the overlay the route's stop names always show */
+const NO_MAX_ZOOM = 24;
+
 // Overlapping trains merge into a count bubble up to this zoom
 const CLUSTER_RADIUS = 22;
 const CLUSTER_MAX_ZOOM = 15;
@@ -1648,6 +1657,11 @@ export default function MapComponent({
                                 id={LAYER_IDS.STOP_LABELS}
                                 type="symbol"
                                 beforeId={SLOTS.station}
+                                maxzoom={
+                                    settings.showRailwayOverlay
+                                        ? RAILWAY_NAMES_MIN_ZOOM
+                                        : NO_MAX_ZOOM
+                                }
                                 layout={stopLabel.layout}
                                 paint={{
                                     ...stopLabel.paint,

@@ -340,14 +340,16 @@ function arrow(scheme: ColorScheme) {
     return data ? { data, meta: { pixelRatio: PIXEL_RATIO } } : null;
 }
 
-/** The clearing around the station ring: opaque to here (css px)… */
-const STATION_CLEAR = 26;
-/** …then fading out to here */
-const STATION_FADE = 60;
+/** A thin edge in the map colour just around the ring: opaque to here… */
+const STATION_CLEAR = 15;
+/** …then fading out to here (css px) */
+const STATION_FADE = 18;
 
 /**
- * Selected station: a hollow ink ring on a soft clearing in the map colour,
- * so the railway overlay's own station name doesn't run through the ring.
+ * Selected station: a hollow ink ring with a thin edge in the map colour.
+ * The edge only keeps the ring legible over the railway overlay: wider, it
+ * would erase the track itself (the overlay is a raster, so its own station
+ * name cannot be hidden on its own).
  */
 function station(scheme: ColorScheme) {
     const size = STATION_FADE * 2;
