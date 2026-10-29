@@ -242,6 +242,9 @@ export function sortedAlerts(alerts: readonly Alert[]): Alert[] {
         });
 }
 
+/** MNR2007 has no glyph for these ("Országos vonat" draws a stray "o"). */
+const GLYPHLESS_SERVICES = new Set([339]);
+
 /**
  * Services (bike, buffet, ...) for the whole trip, and those valid only on
  * part of it, by stop index.
@@ -250,7 +253,11 @@ export function serviceGroups(
     services: readonly InfoService[],
     stopCount: number,
 ): { whole: InfoService[]; byStop: InfoService[][] } {
-    const shown = services.filter((s) => s.displayable !== false);
+    const shown = services.filter(
+        (s) =>
+            s.displayable !== false &&
+            !GLYPHLESS_SERVICES.has(Number(s.fontCode)),
+    );
     const isWhole = (s: InfoService) =>
         s.fromStopIndex <= 0 && s.tillStopIndex >= stopCount - 1;
     const partial = shown.filter((s) => !isWhole(s));

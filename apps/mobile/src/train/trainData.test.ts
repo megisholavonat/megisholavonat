@@ -348,6 +348,11 @@ describe("serviceGroups", () => {
         ]);
     });
 
+    it("drops services the font has no glyph for", () => {
+        const national = { ...service("Országos vonat", 0, 3), fontCode: 339 };
+        expect(serviceGroups([national], 4).whole).toEqual([]);
+    });
+
     it("draws the font glyph from the code", () => {
         expect(serviceGlyph(service("bike", 0, 1))).toBe("d");
     });
