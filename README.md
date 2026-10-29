@@ -98,6 +98,14 @@ This repository is a pnpm monorepo with:
      pnpm --filter @megisholavonat/api dev
      ```
 
+   The web server's link previews (og tags and images) read two runtime
+   variables (see `apps/web/.env.example`):
+   - `API_URL` – the API the server fetches from, default
+     `http://localhost:8000`. In production set it to the in-cluster API
+     service; it is never derived from the request's Host header.
+   - `SITE_URL` – the public origin for `og:url` and `metadataBase`, default
+     `https://megisholavonat.info`.
+
 ### Extra commands
 
 - `pnpm generate:api` – Regenerate API client after backend changes

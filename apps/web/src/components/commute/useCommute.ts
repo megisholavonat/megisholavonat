@@ -14,6 +14,7 @@ import {
     type Occurrence,
 } from "@megisholavonat/core/commute";
 import type { DelayReasonCode } from "@megisholavonat/core/delayReasons";
+import { trainDisplay } from "@megisholavonat/core/display";
 import { useQueries } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import type { Follow } from "@/hooks/useFollows";
@@ -92,7 +93,7 @@ function isRunning(
     );
 }
 
-function liveState(
+export function liveState(
     follow: Follow,
     occurrence: Occurrence,
     board: StationBoard | undefined,
@@ -117,16 +118,19 @@ function liveState(
     if (!entry && !vehicle) return { live: null, platform: null };
     const realtime = !!entry && (entry.realtime || entry.delaySource === "gps");
     const reason = entry?.reason?.code ?? vehicle?.reason?.code ?? null;
+    // The same delay and state as the train's marker and sheet: none before
+    // departure, after arrival, off its route or cancelled
+    const shown = vehicle ? trainDisplay(vehicle, new Date(nowS * 1000)) : null;
     return {
         live: {
             vehicleId: vehicle?.vehicleId ?? entry?.vehicleId ?? null,
-            delay: vehicle
-                ? vehicle.delay
+            delay: shown
+                ? shown.delay
                 : realtime && entry
                   ? entry.delayMinutes
                   : null,
-            stale: !!vehicle?.isStale,
-            canceled: !!entry?.canceled,
+            stale: shown?.state === "stale",
+            canceled: !!entry?.canceled || shown?.state === "cancelled",
             reason: reason as DelayReasonCode | null,
             departed: !entry && nowS > occurrence.departure,
         },

@@ -2,9 +2,8 @@
 
 import {
     defaultBoardingIndex,
-    departureDate,
     localWeekday,
-    timeOfDay,
+    tripRun,
 } from "@megisholavonat/core/commute";
 import { formatSecondsAsTime } from "@megisholavonat/core/time";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
@@ -63,7 +62,7 @@ function optionOf(follow: Follow): BoardingOption {
     };
 }
 
-function trainOptions(view: TrainView): BoardingOption[] {
+function trainOptions(view: TrainView, now: Date): BoardingOption[] {
     const { trip } = view.vehicle;
     const stoptimes = trip.stoptimes;
     const options: BoardingOption[] = [];
@@ -74,14 +73,16 @@ function trainOptions(view: TrainView): BoardingOption[] {
         const stationId = stationIdOf(stoptime.stop);
         if (!stationId) return;
         const departure = stoptime.scheduledDeparture;
+        // The real day: OTP dates HÉVs after midnight and train 10 off by one
+        const run = tripRun(trip, departure, now);
         options.push({
             key: `${i}-${stationId}`,
             stationId,
             name: stoptime.stop.name,
             lat: stoptime.stop.lat,
             lon: stoptime.stop.lon,
-            departureS: timeOfDay(departure),
-            date: departureDate(trip.serviceDate, departure),
+            departureS: run.timeOfDay,
+            date: run.date,
             runS: end === null ? null : Math.max(0, end - departure),
             index: i,
         });
@@ -183,12 +184,8 @@ export function FollowEditor({
         }
         const { vehicle } = current.view;
         const number = trainNumber(vehicle.trip.tripShortName);
-        const options = trainOptions(current.view);
-        const existing = findFollow(
-            follows,
-            number,
-            options.map((o) => o.stationId),
-        );
+        const options = trainOptions(current.view, new Date());
+        const existing = findFollow(follows, number, options);
         if (
             existing &&
             !options.some((o) => o.stationId === existing.fromStationId)

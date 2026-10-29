@@ -2,6 +2,7 @@ import type {
     StationBoard,
     VehiclePositionWithDelay,
 } from "@megisholavonat/api-client";
+import { trainShareText } from "@megisholavonat/core/share";
 import { describe, expect, it } from "vitest";
 import board from "../../../e2e/fixtures/board-departures.json";
 import delayed from "../../../e2e/fixtures/train-delayed.json";
@@ -13,7 +14,7 @@ import {
     previewImagePath,
     previewTarget,
 } from "./metadata";
-import { glyphText, stationCard, trainCard } from "./model";
+import { glyphText, stationCard, trainCard, trainShareInfo } from "./model";
 
 const ORIGIN = "https://megisholavonat.info";
 const APP = {
@@ -68,6 +69,28 @@ describe("trainCard", () => {
         expect(card.delay).toBe(0);
         expect(card.next?.name).toBe(first?.stop.name);
         expect(card.progress).toBe(0);
+    });
+
+    it("tells no delay for a cancelled, arrived or stale train", () => {
+        const late = asVehicle(delayed);
+        const now = at(delayed);
+        for (const [activity, status] of [
+            ["cancelled", "cancelled"],
+            ["arrived", "arrived"],
+            ["offRoute", "noData"],
+        ] as const) {
+            const card = trainCard({ ...late, activity }, now);
+            expect(card).toMatchObject({ status, delay: 0, next: null });
+            expect(trainShareText("hu", trainShareInfo(card))).not.toMatch(
+                /késés/,
+            );
+        }
+        // No position for 20 minutes
+        const old = new Date((late.lastUpdated + 20 * 60) * 1000);
+        const stale = trainCard({ ...late, activity: "running" }, old);
+        expect(stale).toMatchObject({ status: "noData", delay: 0 });
+        const running = trainCard({ ...late, activity: "running" }, now);
+        expect(running).toMatchObject({ status: "running", delay: 45 });
     });
 
     it("fits the route sketch into the unit box", () => {

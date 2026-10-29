@@ -5,15 +5,13 @@ import type {
     TrainRouteStation,
     VehiclePositionWithDelay,
 } from "@megisholavonat/api-client";
+import { tripRun } from "@megisholavonat/core/commute";
 import { type DelayLevel, getDelayLevel } from "@megisholavonat/core/delay";
 import {
     type DelayReasonCode,
     delayReasonCode,
 } from "@megisholavonat/core/delayReasons";
-import {
-    secondsIntoServiceDay,
-    serviceDayStart,
-} from "@megisholavonat/core/time";
+import { secondsIntoServiceDay } from "@megisholavonat/core/time";
 import { DISPLAY_RULES } from "@megisholavonat/core/tokens";
 
 /** "10 TRANSCARPATHIA gyorsvonat" -> "10"; the key of the history endpoints. */
@@ -157,9 +155,18 @@ export function beforeDeparture(
     return secondsIntoServiceDay(vehicle.trip, now) < departure;
 }
 
-/** Unix seconds of a time given in seconds into the trip's service day. */
-export function toEpoch(serviceDate: string, seconds: number): number {
-    return Math.floor(serviceDayStart(serviceDate) / 1000) + seconds;
+/**
+ * The train's stops with the local date it leaves each on, resolved past
+ * OTP's off-by-a-day service dates (HÉVs after midnight, train 10).
+ */
+export function runStops(
+    vehicle: VehiclePositionWithDelay,
+    now: Date = new Date(),
+): { stationId: string | null; date: string }[] {
+    return vehicle.trip.stoptimes.map((stoptime) => ({
+        stationId: stationIdOf(stoptime.stop),
+        date: tripRun(vehicle.trip, stoptime.scheduledDeparture, now).date,
+    }));
 }
 
 export interface TrainAlert {

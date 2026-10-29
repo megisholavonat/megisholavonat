@@ -8,13 +8,15 @@ import {
     getTrainStationHistoryOptions,
     getTrainsOptions,
 } from "@megisholavonat/api-client/react-query";
+import { tripRun } from "@megisholavonat/core/commute";
 import { trainDisplay } from "@megisholavonat/core/display";
-import { shareUrl, trainShareText } from "@megisholavonat/core/share";
-import { ticketUrl } from "@megisholavonat/core/ticket";
 import {
-    formatSecondsAsTime,
-    serviceDayStart,
-} from "@megisholavonat/core/time";
+    shareUrl,
+    trainShareStatus,
+    trainShareText,
+} from "@megisholavonat/core/share";
+import { ticketUrl } from "@megisholavonat/core/ticket";
+import { formatSecondsAsTime } from "@megisholavonat/core/time";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
@@ -203,11 +205,16 @@ export function TrainSheet({
         // Same link and text as the web share button
         const url = shareUrl(WEB_URL, locale, { vehicleId });
         const stop = notYetDeparted ? first : next;
+        // A delay only while running, as the sheet shows it
+        const shown = display ? trainShareStatus(display) : null;
+        const status =
+            shown === "running" && notYetDeparted ? "waiting" : shown;
         const name = title
             ? trainShareText(locale, {
                   number: title.number,
                   delay: Math.max(0, display?.delay ?? 0),
                   waiting: notYetDeparted,
+                  status: status ?? undefined,
                   next: stop
                       ? {
                             name: stop.name,
@@ -231,10 +238,7 @@ export function TrainSheet({
     const onTicket = () => {
         const from = next ?? first;
         const departure =
-            details && from
-                ? serviceDayStart(details.trip.serviceDate) / 1000 +
-                  from.scheduled
-                : null;
+            details && from ? tripRun(details.trip, from.scheduled).at : null;
         WebBrowser.openBrowserAsync(ticketUrl(from?.uic, last?.uic, departure));
     };
 

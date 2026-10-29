@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { StationHistoryPage } from "@/components/stats/StationHistory";
+import { decodeParam } from "@/lib/utils";
 import { statsMetadata } from "../../metadata";
 
 type Params = Promise<{ locale: string; id: string }>;
@@ -13,7 +14,7 @@ export default async function Page({ params }: { params: Params }) {
     const { id } = await params;
     return (
         <Suspense>
-            <StationHistoryPage stationId={decodeURIComponent(id)} />
+            <StationHistoryPage stationId={decodeParam(id)} />
         </Suspense>
     );
 }

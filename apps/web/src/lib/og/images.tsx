@@ -8,6 +8,7 @@ import type { Locale } from "@megisholavonat/core/i18n";
 import { COLORS, DELAY_SCALE } from "@megisholavonat/core/tokens";
 import { ImageResponse } from "next/og";
 import type { ReactElement, ReactNode } from "react";
+import { cachedLoad } from "@/lib/og/cache";
 import { OG_SIZE } from "@/lib/og/metadata";
 import type { RouteSketch, StationCard, TrainCard } from "@/lib/og/model";
 import { PREVIEW_MAX_AGE } from "@/lib/og/server";
@@ -29,6 +30,7 @@ const TEXT = {
         departures: "Indulások",
         noDepartures: "Most nincs induló vonat",
         canceled: "törölve",
+        arrived: "megérkezett",
         platform: (p: string) => `${p}. vágány`,
     },
     en: {
@@ -43,6 +45,7 @@ const TEXT = {
         departures: "Departures",
         noDepartures: "No departures right now",
         canceled: "cancelled",
+        arrived: "arrived",
         platform: (p: string) => `Platform ${p}`,
     },
 } as const;
@@ -76,12 +79,9 @@ const FONT_FILES = {
     800: () => readFile(join(process.cwd(), "src/lib/og/fonts/Inter-800.woff")),
 } as const;
 
-let fontsPromise: Promise<
-    { name: string; data: Buffer; weight: 400 | 600 | 700 | 800 }[]
-> | null = null;
-
-function loadFonts() {
-    fontsPromise ??= Promise.all([
+// A failed read is retried on the next request, not cached until restart
+const loadFonts = cachedLoad(() =>
+    Promise.all([
         ...([400, 600, 700, 800] as const).map(async (weight) => ({
             name: "Inter",
             data: await FONT_FILES[weight](),
@@ -92,18 +92,14 @@ function loadFonts() {
             data,
             weight: 400 as const,
         })),
-    ]);
-    return fontsPromise;
-}
+    ]),
+);
 
-let iconPromise: Promise<string> | null = null;
-
-function loadIcon(): Promise<string> {
-    iconPromise ??= readFile(
-        join(process.cwd(), "public/web-app-manifest-192x192.png"),
-    ).then((data) => `data:image/png;base64,${data.toString("base64")}`);
-    return iconPromise;
-}
+const loadIcon = cachedLoad(() =>
+    readFile(join(process.cwd(), "public/web-app-manifest-192x192.png")).then(
+        (data) => `data:image/png;base64,${data.toString("base64")}`,
+    ),
+);
 
 async function render(node: (icon: string) => ReactElement): Promise<Response> {
     const [fonts, icon] = await Promise.all([loadFonts(), loadIcon()]);
@@ -366,18 +362,25 @@ const SKETCH = { width: 440, height: 410 };
 
 export function trainImage(card: TrainCard, locale: Locale) {
     const t = TEXT[locale];
-    const level = card.stale ? "stale" : card.level;
-    const color = card.stale ? C.ink2 : SCALE[card.level].text;
-    const background = card.stale ? C.surface2 : tint(card.level);
-    const onTime = card.level === "onTime";
-    const caption = card.stale
-        ? t.noData
-        : card.waiting
-          ? t.waiting
-          : onTime
-            ? t.onTime
-            : t.minutesLate;
-    const big = `${card.delay > 0 ? `+${card.delay}` : "0"}${card.stale ? "?" : ""}`;
+    // A delay only while running, as on the map and in the sheet
+    const running = card.status === "running";
+    const level = running ? card.level : "stale";
+    const color = running ? SCALE[card.level].text : C.ink2;
+    const background = running ? tint(card.level) : C.surface2;
+    const caption = {
+        running: card.level === "onTime" ? t.onTime : t.minutesLate,
+        waiting: t.waiting,
+        cancelled: t.canceled,
+        arrived: t.arrived,
+        noData: t.noData,
+    }[card.status];
+    const big = running
+        ? card.delay > 0
+            ? `+${card.delay}`
+            : "0"
+        : card.status === "noData"
+          ? "?"
+          : "–";
     return render((icon) => (
         <Frame icon={icon} locale={locale}>
             <div

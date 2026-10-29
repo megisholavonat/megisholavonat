@@ -1,4 +1,5 @@
 import { DateTime } from "luxon";
+import { effectiveServiceDate, serviceDayStart, type TripTimes } from "./time";
 
 // When the next run of a followed train is. Same semantics as the API's
 // commute follows (apps/api/api/services/commute.py): weekdays are ISO
@@ -40,19 +41,54 @@ export function timeOfDay(serviceDaySeconds: number): number {
     return ((serviceDaySeconds % DAY_S) + DAY_S) % DAY_S;
 }
 
+/** One run of a trip at one of its stops, on the real calendar. */
+export interface TripRun {
+    /**
+     * The service date the stoptimes count from (OTP's `serviceDate`, or
+     * the day next to it for HÉVs after midnight and train 10)
+     */
+    serviceDate: string;
+    /** The instant of the stoptime, unix seconds */
+    at: number;
+    /** Local (Budapest) date of that instant, YYYY-MM-DD */
+    date: string;
+    /** Local time of day of that instant, seconds after midnight */
+    timeOfDay: number;
+}
+
 /**
- * Local date of departure for a stoptime given in seconds into the trip's
- * service day (which exceeds 86400 after midnight).
+ * When a trip really is at a stop: `seconds` is a stoptime of `trip`
+ * (seconds into its service day), resolved against OTP's off-by-a-day
+ * `serviceDate` the same way as the API's `seconds_into_service_day`.
+ * `now` picks the run, so it must be within about half a day of it (a live
+ * or just-fetched trip is). DST-safe: counts from noon minus 12 h.
+ */
+export function tripRun(
+    trip: TripTimes & { serviceDate: string },
+    seconds: number,
+    now: Date = new Date(),
+): TripRun {
+    const serviceDate = effectiveServiceDate(trip, now);
+    const at = Math.floor(serviceDayStart(serviceDate) / 1000) + seconds;
+    const local = DateTime.fromSeconds(at, { zone: BUDAPEST_TZ });
+    return {
+        serviceDate,
+        at,
+        date: local.toISODate() ?? serviceDate,
+        timeOfDay: local.hour * 3600 + local.minute * 60 + local.second,
+    };
+}
+
+/**
+ * Local date of departure for a stoptime of `trip` (seconds into its
+ * service day, which exceeds 86400 after midnight). See `tripRun`.
  */
 export function departureDate(
-    serviceDate: string,
+    trip: TripTimes & { serviceDate: string },
     serviceDaySeconds: number,
+    now: Date = new Date(),
 ): string {
-    return (
-        DateTime.fromISO(serviceDate, { zone: BUDAPEST_TZ })
-            .plus({ days: Math.floor(serviceDaySeconds / DAY_S) })
-            .toISODate() ?? serviceDate
-    );
+    return tripRun(trip, serviceDaySeconds, now).date;
 }
 
 function at(day: DateTime, departureS: number): DateTime {

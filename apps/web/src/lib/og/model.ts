@@ -6,13 +6,15 @@ import type {
     VehiclePositionWithDelay,
 } from "@megisholavonat/api-client";
 import { type DelayLevel, getDelayLevel } from "@megisholavonat/core/delay";
+import { type TrainDisplay, trainDisplay } from "@megisholavonat/core/display";
 import { decodePolyline } from "@megisholavonat/core/polyline";
-import type {
-    DepartureShareInfo,
-    TrainShareInfo,
+import {
+    type DepartureShareInfo,
+    type TrainShareInfo,
+    type TrainShareStatus,
+    trainShareStatus,
 } from "@megisholavonat/core/share";
 import { formatSecondsAsTime } from "@megisholavonat/core/time";
-import { isStale } from "@megisholavonat/core/vehicle";
 import {
     beforeDeparture,
     destinationOf,
@@ -42,8 +44,12 @@ export interface TrainCard {
     /** Glyph colour, "#C82227" */
     glyphColor: string;
     destination: string;
+    /** Minutes late; 0 unless running */
     delay: number;
     level: DelayLevel;
+    /** As the map and sheet show it (core trainDisplay) */
+    status: TrainShareStatus;
+    /** No fresh data: the last delay is not told */
     stale: boolean;
     waiting: boolean;
     /** Next stop (the first stop while waiting) and its expected time */
@@ -174,28 +180,55 @@ export function routeSketch(
     };
 }
 
+/**
+ * What a shared train is doing, by the display the map and sheet use. Data
+ * without `activity` (older APIs) tells a waiting train by its schedule.
+ */
+export function shareStatus(
+    vehicle: VehiclePositionWithDelay,
+    display: TrainDisplay,
+    now: Date = new Date(),
+): TrainShareStatus {
+    const status = trainShareStatus(display);
+    return status === "running" &&
+        display.activity == null &&
+        beforeDeparture(vehicle, now)
+        ? "waiting"
+        : status;
+}
+
 export function trainCard(
     vehicle: VehiclePositionWithDelay,
     now: Date = new Date(),
     sketchAspect = 1,
 ): TrainCard {
     const stoptimes = vehicle.trip.stoptimes;
-    const waiting = beforeDeparture(vehicle, now);
+    // The same state and delay as the train's marker and sheet
+    const display = trainDisplay(vehicle, now);
+    const status = shareStatus(vehicle, display, now);
+    const waiting = status === "waiting";
+    const running = status === "running";
     const nextIdx = waiting ? 0 : nextStopIndex(vehicle);
     const predicted = vehicle.processedStops?.find(
         (s, i) => (s.index ?? i) === nextIdx,
     )?.predictedDelay;
     const stoptime = stoptimes[nextIdx];
-    const next = stoptime
-        ? {
-              name: stoptime.stop.name,
-              time: formatSecondsAsTime(
-                  stopTiming(stoptime, nextIdx, false, vehicle.delay, predicted)
-                      .expected,
-              ),
-          }
-        : null;
-    const delay = Math.max(0, Math.round(vehicle.delay));
+    const next =
+        stoptime && (running || waiting)
+            ? {
+                  name: stoptime.stop.name,
+                  time: formatSecondsAsTime(
+                      stopTiming(
+                          stoptime,
+                          nextIdx,
+                          false,
+                          running ? (display.delay ?? 0) : 0,
+                          running ? predicted : undefined,
+                      ).expected,
+                  ),
+              }
+            : null;
+    const delay = running ? Math.max(0, Math.round(display.delay ?? 0)) : 0;
     const total = vehicle.totalRouteDistance;
     const progress = waiting
         ? 0
@@ -209,7 +242,8 @@ export function trainCard(
         destination: destinationOf(vehicle),
         delay,
         level: getDelayLevel(delay),
-        stale: isStale(vehicle, now),
+        status,
+        stale: status === "noData",
         waiting,
         next,
         progress: Math.min(1, Math.max(0, progress)),
@@ -222,6 +256,7 @@ export function trainShareInfo(card: TrainCard): TrainShareInfo {
         number: card.number,
         delay: card.delay,
         waiting: card.waiting,
+        status: card.status,
         next: card.next,
     };
 }
