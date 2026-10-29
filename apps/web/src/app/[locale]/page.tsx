@@ -511,6 +511,11 @@ function MapScreen() {
             ? "disruptions"
             : null;
 
+    /** The layers as last rendered, for a popstate that lands before the
+     * effect below has mirrored them */
+    const navRef = useRef<Nav>({ vehicleId: null, station: null, overlay });
+    navRef.current = { vehicleId: selectedId, station: stationId, overlay };
+
     // Mirror the layers in the URL and the history (shareable; back closes
     // the top one; the consent prompt watches ?vehicleId for a closed panel)
     useEffect(() => {
@@ -695,7 +700,17 @@ function MapScreen() {
     clearQueryRef.current = sheetSearch.setQuery;
     useEffect(() => {
         const onPop = () => {
-            backPendingRef.current = false;
+            if (backPendingRef.current) {
+                // The back this page started to close a layer. The layers
+                // on screen are already right, and another may have closed
+                // while it was under way (Esc twice): the URL is behind
+                // them, so bring it along instead of reopening that one
+                backPendingRef.current = false;
+                const wanted = navRef.current;
+                if (wanted.overlay !== "search") clearQueryRef.current("");
+                syncHistory(wanted, backPendingRef);
+                return;
+            }
             const nav = currentNav();
             setSelectedId(nav.vehicleId);
             setStationId(nav.station);
