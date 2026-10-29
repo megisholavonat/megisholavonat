@@ -2,7 +2,7 @@ import type { Locale } from "@megisholavonat/core/i18n";
 import * as WebBrowser from "expo-web-browser";
 import { useLocale, useTranslations } from "use-intl";
 import { track } from "../analytics";
-import { API_URL, SOURCE_URL, WEB_URL } from "../config";
+import { API_URL, PROD_API_URL, SOURCE_URL, WEB_URL } from "../config";
 import { useDeleteData } from "../privacy/useDeleteData";
 import { useSettings } from "./SettingsProvider";
 import {
@@ -120,8 +120,11 @@ export function useSettingsRows() {
         openSource: () => WebBrowser.openBrowserAsync(SOURCE_URL),
         deleting,
         deleteData,
-        /** Development builds only: which API the app talks to */
-        devApiUrl: __DEV__ ? API_URL : null,
+        /**
+         * Which API the app talks to, in development builds and in any build
+         * not on production (beta). Never shown in production builds.
+         */
+        devApiUrl: __DEV__ || API_URL !== PROD_API_URL ? API_URL : null,
         openPrivacy: () =>
             WebBrowser.openBrowserAsync(`${WEB_URL}/${locale}/privacy`),
     };
