@@ -228,9 +228,7 @@ describe("copy", () => {
                 delaySummary(run([3, 12, null], { finished: false })),
                 NOW,
             ),
-        ).toBe(
-            "A 7:15-ös Szolnok → Budapest-Nyugati eddig 12 percet késett",
-        );
+        ).toBe("A 7:15-ös Szolnok → Budapest-Nyugati eddig 12 percet késett");
         expect(
             delaySummarySentence(
                 "hu",
