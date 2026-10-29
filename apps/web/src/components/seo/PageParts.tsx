@@ -4,6 +4,7 @@ import { getMavRouteName } from "@megisholavonat/core/mavRoutes";
 import { ChevronRight, Map as MapIcon } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { AppIcon } from "@/components/ui/AppIcon";
 import { glyphText } from "@/lib/og/model";
 import { jsonLd } from "@/lib/seo/metadata";
 import { cn } from "@/lib/utils";
@@ -29,19 +30,22 @@ export function Breadcrumb({
 }) {
     return (
         <nav aria-label="Breadcrumb" className="text-sm text-ink-2">
-            <ol className="flex items-center gap-1">
-                <li>
+            <ol className="flex min-w-0 items-center gap-1">
+                <li className="shrink-0">
                     <Link
                         href={homeHref}
-                        className="-mx-1 rounded-sm px-1 py-2 hover:text-ink hover:underline"
+                        className="-mx-1 flex items-center gap-2 rounded-sm px-1 py-2 whitespace-nowrap hover:text-ink hover:underline"
                     >
+                        <AppIcon size={20} />
                         {home}
                     </Link>
                 </li>
-                <li aria-hidden>
+                <li aria-hidden className="shrink-0">
                     <ChevronRight className="size-3.5" />
                 </li>
-                <li aria-current="page">{current}</li>
+                <li aria-current="page" className="min-w-0 truncate">
+                    {current}
+                </li>
             </ol>
         </nav>
     );
