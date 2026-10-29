@@ -1,0 +1,992 @@
+{
+  "vehicleId": "1:945514151113",
+  "lat": 47.1791687,
+  "lon": 20.1748009,
+  "heading": 41,
+  "speed": 0,
+  "lastUpdated": 1793239095,
+  "trip": {
+    "gtfsId": "1:35764960",
+    "serviceDate": "2026-10-29",
+    "tripShortName": "2619 személyvonat",
+    "route": {
+      "mode": "RAIL",
+      "textColor": "00A0E3",
+      "shortName": "<span class=\"MNR2007\">&#360;</span>",
+      "longName": "S50"
+    },
+    "tripGeometry": {
+      "points": "it}~GymczBhb@pn@lIhRhDrRr@jWqHxhAyPvnF_QriHe@x|@p^pnEzBd\\Uxl@aJfbB}Zv}DyI|wB{IftAcBpsE`Cft@rOxmDg@voAmDx}CkNhaAkNlx@wMbm@ozBheIsBbOg@vSfBnZ|L|e@pEjPbCzP~@rVa@tQ}Ed]_a@raBaE~UeBvX{H|{AyD~OkNj_@mmBrfGoFbMyRpYka@`d@kJjOcNhe@kl@~uB}Wle@qJ~H_[bMcHnEkKvLkG~L_EfNoKvu@iJrd@yKjP{q@`v@uZjl@oZdo@aq@`aAyWxOgMpNaM~QiUro@kVp`@{aArdBkz@jgCeG~Nw`@na@yPxOqKrRy`@pnAsG|[_HfXcYru@cRhVk\\pl@sqBxuDkEvNkBxL{Bpj@yRbnHyCzYkMrc@aZlu@_E`QwBtS[xWm@|c@sHt]iThZs`@ld@wiCpyC{IpNcg@nbAym@~sAgPdwAgBdLoc@tuBkMj|@gLpr@wFrRmFpPqEbGkc@fZcu@lh@_VfPcLlH}bAvq@s\\lY_f@xs@qy@`rAuE~LoAzOdCrUzUnu@xRbp@tEbLlMzV"
+    },
+    "stoptimes": [
+      {
+        "stopPosition": 1,
+        "scheduledArrival": 11160,
+        "realtimeArrival": 11160,
+        "scheduledDeparture": 11160,
+        "realtimeDeparture": 11160,
+        "stop": {
+          "gtfsId": "1:005513748_8",
+          "stationUicPricingCode": "005513748",
+          "name": "Szolnok",
+          "lat": 47.179167,
+          "lon": 20.175833,
+          "platformCode": "8",
+          "county": "Jász-Nagykun-Szolnok"
+        }
+      },
+      {
+        "stopPosition": 5,
+        "scheduledArrival": 11880,
+        "realtimeArrival": 11880,
+        "scheduledDeparture": 11940,
+        "realtimeDeparture": 11940,
+        "stop": {
+          "gtfsId": "1:005513730_2",
+          "stationUicPricingCode": "005513730",
+          "name": "Abony",
+          "lat": 47.173056,
+          "lon": 20.016389,
+          "platformCode": "2",
+          "county": "Pest"
+        }
+      },
+      {
+        "stopPosition": 7,
+        "scheduledArrival": 12600,
+        "realtimeArrival": 12600,
+        "scheduledDeparture": 12720,
+        "realtimeDeparture": 12720,
+        "stop": {
+          "gtfsId": "1:005513722_6",
+          "stationUicPricingCode": "005513722",
+          "name": "Cegléd",
+          "lat": 47.182778,
+          "lon": 19.806111,
+          "platformCode": "6",
+          "county": "Pest"
+        }
+      },
+      {
+        "stopPosition": 8,
+        "scheduledArrival": 13020,
+        "realtimeArrival": 13020,
+        "scheduledDeparture": 13080,
+        "realtimeDeparture": 13080,
+        "stop": {
+          "gtfsId": "1:005541418_1",
+          "stationUicPricingCode": "005541418",
+          "name": "Budai út",
+          "lat": 47.208333,
+          "lon": 19.731389,
+          "platformCode": "1",
+          "county": "Pest"
+        }
+      },
+      {
+        "stopPosition": 9,
+        "scheduledArrival": 13260,
+        "realtimeArrival": 13260,
+        "scheduledDeparture": 13320,
+        "realtimeDeparture": 13320,
+        "stop": {
+          "gtfsId": "1:005513714_1",
+          "stationUicPricingCode": "005513714",
+          "name": "Ceglédbercel-Cserő",
+          "lat": 47.210278,
+          "lon": 19.686944,
+          "platformCode": "1",
+          "county": "Pest"
+        }
+      },
+      {
+        "stopPosition": 10,
+        "scheduledArrival": 13440,
+        "realtimeArrival": 13440,
+        "scheduledDeparture": 13500,
+        "realtimeDeparture": 13500,
+        "stop": {
+          "gtfsId": "1:005541384_1",
+          "stationUicPricingCode": "005541384",
+          "name": "Ceglédbercel",
+          "lat": 47.215833,
+          "lon": 19.658611,
+          "platformCode": "1",
+          "county": "Pest"
+        }
+      },
+      {
+        "stopPosition": 11,
+        "scheduledArrival": 13680,
+        "realtimeArrival": 13680,
+        "scheduledDeparture": 13740,
+        "realtimeDeparture": 13740,
+        "stop": {
+          "gtfsId": "1:005513698_4",
+          "stationUicPricingCode": "005513698",
+          "name": "Albertirsa",
+          "lat": 47.240278,
+          "lon": 19.606389,
+          "platformCode": "4",
+          "county": "Pest"
+        }
+      },
+      {
+        "stopPosition": 12,
+        "scheduledArrival": 14100,
+        "realtimeArrival": 14100,
+        "scheduledDeparture": 14160,
+        "realtimeDeparture": 14160,
+        "stop": {
+          "gtfsId": "1:005513680_2",
+          "stationUicPricingCode": "005513680",
+          "name": "Pilis",
+          "lat": 47.279722,
+          "lon": 19.536389,
+          "platformCode": "2",
+          "county": "Pest"
+        }
+      },
+      {
+        "stopPosition": 13,
+        "scheduledArrival": 14340,
+        "realtimeArrival": 14340,
+        "scheduledDeparture": 14400,
+        "realtimeDeparture": 14400,
+        "stop": {
+          "gtfsId": "1:005541277_1",
+          "stationUicPricingCode": "005541277",
+          "name": "Monorierdő",
+          "lat": 47.308889,
+          "lon": 19.499167,
+          "platformCode": "1",
+          "county": "Pest"
+        }
+      },
+      {
+        "stopPosition": 14,
+        "scheduledArrival": 14700,
+        "realtimeArrival": 14700,
+        "scheduledDeparture": 14760,
+        "realtimeDeparture": 14760,
+        "stop": {
+          "gtfsId": "1:005513664_3",
+          "stationUicPricingCode": "005513664",
+          "name": "Monor",
+          "lat": 47.34545,
+          "lon": 19.43701,
+          "platformCode": "3",
+          "county": "Pest"
+        }
+      },
+      {
+        "stopPosition": 15,
+        "scheduledArrival": 15060,
+        "realtimeArrival": 15060,
+        "scheduledDeparture": 15060,
+        "realtimeDeparture": 15060,
+        "stop": {
+          "gtfsId": "1:005541269_1",
+          "stationUicPricingCode": "005541269",
+          "name": "Hosszúberek-Péteri",
+          "lat": 47.370556,
+          "lon": 19.389722,
+          "platformCode": "1",
+          "county": "Pest"
+        }
+      },
+      {
+        "stopPosition": 16,
+        "scheduledArrival": 15240,
+        "realtimeArrival": 15240,
+        "scheduledDeparture": 15300,
+        "realtimeDeparture": 15300,
+        "stop": {
+          "gtfsId": "1:005513649_2",
+          "stationUicPricingCode": "005513649",
+          "name": "Üllő",
+          "lat": 47.390833,
+          "lon": 19.348889,
+          "platformCode": "2",
+          "county": "Pest"
+        }
+      },
+      {
+        "stopPosition": 17,
+        "scheduledArrival": 15540,
+        "realtimeArrival": 15540,
+        "scheduledDeparture": 15600,
+        "realtimeDeparture": 15600,
+        "stop": {
+          "gtfsId": "1:005513631_1",
+          "stationUicPricingCode": "005513631",
+          "name": "Vecsés-Kertekalja",
+          "lat": 47.403333,
+          "lon": 19.271389,
+          "platformCode": "1",
+          "county": "Pest"
+        }
+      },
+      {
+        "stopPosition": 18,
+        "scheduledArrival": 15720,
+        "realtimeArrival": 15720,
+        "scheduledDeparture": 15780,
+        "realtimeDeparture": 15780,
+        "stop": {
+          "gtfsId": "1:005513623_2",
+          "stationUicPricingCode": "005513623",
+          "name": "Vecsés",
+          "lat": 47.40855,
+          "lon": 19.25652,
+          "platformCode": "2",
+          "county": "Pest"
+        }
+      },
+      {
+        "stopPosition": 19,
+        "scheduledArrival": 15960,
+        "realtimeArrival": 15960,
+        "scheduledDeparture": 16020,
+        "realtimeDeparture": 16020,
+        "stop": {
+          "gtfsId": "1:005513615_1",
+          "stationUicPricingCode": "005513615",
+          "name": "Ferihegy",
+          "lat": 47.437222,
+          "lon": 19.223889,
+          "platformCode": "1",
+          "county": "Budapest"
+        }
+      },
+      {
+        "stopPosition": 20,
+        "scheduledArrival": 16140,
+        "realtimeArrival": 16140,
+        "scheduledDeparture": 16140,
+        "realtimeDeparture": 16140,
+        "stop": {
+          "gtfsId": "1:005513003_1",
+          "stationUicPricingCode": "005513003",
+          "name": "Szemeretelep",
+          "lat": 47.443056,
+          "lon": 19.214167,
+          "platformCode": "1",
+          "county": "Budapest"
+        }
+      },
+      {
+        "stopPosition": 21,
+        "scheduledArrival": 16260,
+        "realtimeArrival": 16260,
+        "scheduledDeparture": 16320,
+        "realtimeDeparture": 16320,
+        "stop": {
+          "gtfsId": "1:005510181_2",
+          "stationUicPricingCode": "005510181",
+          "name": "Pestszentlőrinc",
+          "lat": 47.454722,
+          "lon": 19.182778,
+          "platformCode": "2",
+          "county": "Budapest"
+        }
+      },
+      {
+        "stopPosition": 22,
+        "scheduledArrival": 16500,
+        "realtimeArrival": 16500,
+        "scheduledDeparture": 16560,
+        "realtimeDeparture": 16560,
+        "stop": {
+          "gtfsId": "1:005510173_1",
+          "stationUicPricingCode": "005510173",
+          "name": "Kőbánya-Kispest",
+          "lat": 47.463889,
+          "lon": 19.149444,
+          "platformCode": "1",
+          "county": "Budapest"
+        }
+      },
+      {
+        "stopPosition": 23,
+        "scheduledArrival": 16740,
+        "realtimeArrival": 16740,
+        "scheduledDeparture": 16800,
+        "realtimeDeparture": 16800,
+        "stop": {
+          "gtfsId": "1:005510157_1",
+          "stationUicPricingCode": "005510157",
+          "name": "Kőbánya alsó",
+          "lat": 47.483056,
+          "lon": 19.127222,
+          "platformCode": "1",
+          "county": "Budapest"
+        }
+      },
+      {
+        "stopPosition": 25,
+        "scheduledArrival": 17100,
+        "realtimeArrival": 17100,
+        "scheduledDeparture": 17160,
+        "realtimeDeparture": 17160,
+        "stop": {
+          "gtfsId": "1:005510090_1",
+          "stationUicPricingCode": "005510090",
+          "name": "Zugló",
+          "lat": 47.511389,
+          "lon": 19.101389,
+          "platformCode": "1",
+          "county": "Budapest"
+        }
+      },
+      {
+        "stopPosition": 27,
+        "scheduledArrival": 17640,
+        "realtimeArrival": 17640,
+        "scheduledDeparture": 17640,
+        "realtimeDeparture": 17640,
+        "stop": {
+          "gtfsId": "1:005510033_14",
+          "stationUicPricingCode": "005510033",
+          "name": "Budapest-Nyugati",
+          "lat": 47.510833,
+          "lon": 19.0575,
+          "platformCode": "14",
+          "county": "Budapest"
+        }
+      }
+    ],
+    "wheelchairAccessible": "POSSIBLE",
+    "bikesAllowed": "ALLOWED",
+    "infoServices": [
+      {
+        "name": "A vonat 2. osztályú kocsikkal közlekedik",
+        "fromStopIndex": 0,
+        "tillStopIndex": 20,
+        "fontCharSet": "MNR2007",
+        "fontCode": 222,
+        "displayable": true
+      },
+      {
+        "name": "Kerekesszékes utazásra alkalmas kocsi emelőberendezéssel",
+        "fromStopIndex": 0,
+        "tillStopIndex": 20,
+        "fontCharSet": "MNR2007",
+        "fontCode": 223,
+        "displayable": true
+      },
+      {
+        "name": "Országbérlettel igénybe vehető",
+        "fromStopIndex": 0,
+        "tillStopIndex": 20,
+        "fontCharSet": "MNR2007",
+        "fontCode": 557,
+        "displayable": true
+      },
+      {
+        "name": "Kerékpár a megjelölt helyen szállítható. (Korlátozott férőhely, 6 fő felett az utazást javasoljuk előzetesen bejelenteni.)",
+        "fromStopIndex": 0,
+        "tillStopIndex": 20,
+        "fontCharSet": "MNR2007",
+        "fontCode": 213,
+        "displayable": true
+      },
+      {
+        "name": "Elővárosi vonat",
+        "fromStopIndex": 0,
+        "tillStopIndex": 20,
+        "fontCharSet": "MNR2007",
+        "fontCode": 337,
+        "displayable": true
+      },
+      {
+        "name": "Budapest-bérlettel igénybe vehető.",
+        "fromStopIndex": 14,
+        "tillStopIndex": 20,
+        "fontCharSet": "MNR2007",
+        "fontCode": 249,
+        "displayable": true
+      }
+    ],
+    "alerts": []
+  },
+  "delay": -8,
+  "trainPosition": 0.00024280041579518566,
+  "totalRouteDistance": 1.22695222954303,
+  "processedStops": [
+    {
+      "id": "Szolnok",
+      "gtfsId": "1:005513748_8",
+      "index": 0,
+      "originalCoords": [
+        20.175833,
+        47.179167
+      ],
+      "distanceAlongRoute": 0,
+      "stopTimeInfo": {
+        "stopPosition": 1,
+        "scheduledArrival": 11160,
+        "realtimeArrival": 11160,
+        "scheduledDeparture": 11160,
+        "realtimeDeparture": 11160,
+        "stop": {
+          "gtfsId": "1:005513748_8",
+          "stationUicPricingCode": "005513748",
+          "name": "Szolnok",
+          "lat": 47.179167,
+          "lon": 20.175833,
+          "platformCode": "8",
+          "county": "Jász-Nagykun-Szolnok"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Abony",
+      "gtfsId": "1:005513730_2",
+      "index": 1,
+      "originalCoords": [
+        20.016389,
+        47.173056
+      ],
+      "distanceAlongRoute": 0.1619212886202319,
+      "stopTimeInfo": {
+        "stopPosition": 5,
+        "scheduledArrival": 11880,
+        "realtimeArrival": 11880,
+        "scheduledDeparture": 11940,
+        "realtimeDeparture": 11940,
+        "stop": {
+          "gtfsId": "1:005513730_2",
+          "stationUicPricingCode": "005513730",
+          "name": "Abony",
+          "lat": 47.173056,
+          "lon": 20.016389,
+          "platformCode": "2",
+          "county": "Pest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Cegléd",
+      "gtfsId": "1:005513722_6",
+      "index": 2,
+      "originalCoords": [
+        19.806111,
+        47.182778
+      ],
+      "distanceAlongRoute": 0.37335031040574007,
+      "stopTimeInfo": {
+        "stopPosition": 7,
+        "scheduledArrival": 12600,
+        "realtimeArrival": 12600,
+        "scheduledDeparture": 12720,
+        "realtimeDeparture": 12720,
+        "stop": {
+          "gtfsId": "1:005513722_6",
+          "stationUicPricingCode": "005513722",
+          "name": "Cegléd",
+          "lat": 47.182778,
+          "lon": 19.806111,
+          "platformCode": "6",
+          "county": "Pest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Budai út",
+      "gtfsId": "1:005541418_1",
+      "index": 3,
+      "originalCoords": [
+        19.731389,
+        47.208333
+      ],
+      "distanceAlongRoute": 0.4524955748731756,
+      "stopTimeInfo": {
+        "stopPosition": 8,
+        "scheduledArrival": 13020,
+        "realtimeArrival": 13020,
+        "scheduledDeparture": 13080,
+        "realtimeDeparture": 13080,
+        "stop": {
+          "gtfsId": "1:005541418_1",
+          "stationUicPricingCode": "005541418",
+          "name": "Budai út",
+          "lat": 47.208333,
+          "lon": 19.731389,
+          "platformCode": "1",
+          "county": "Pest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Ceglédbercel-Cserő",
+      "gtfsId": "1:005513714_1",
+      "index": 4,
+      "originalCoords": [
+        19.686944,
+        47.210278
+      ],
+      "distanceAlongRoute": 0.4987104866065921,
+      "stopTimeInfo": {
+        "stopPosition": 9,
+        "scheduledArrival": 13260,
+        "realtimeArrival": 13260,
+        "scheduledDeparture": 13320,
+        "realtimeDeparture": 13320,
+        "stop": {
+          "gtfsId": "1:005513714_1",
+          "stationUicPricingCode": "005513714",
+          "name": "Ceglédbercel-Cserő",
+          "lat": 47.210278,
+          "lon": 19.686944,
+          "platformCode": "1",
+          "county": "Pest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Ceglédbercel",
+      "gtfsId": "1:005541384_1",
+      "index": 5,
+      "originalCoords": [
+        19.658611,
+        47.215833
+      ],
+      "distanceAlongRoute": 0.5278296599324676,
+      "stopTimeInfo": {
+        "stopPosition": 10,
+        "scheduledArrival": 13440,
+        "realtimeArrival": 13440,
+        "scheduledDeparture": 13500,
+        "realtimeDeparture": 13500,
+        "stop": {
+          "gtfsId": "1:005541384_1",
+          "stationUicPricingCode": "005541384",
+          "name": "Ceglédbercel",
+          "lat": 47.215833,
+          "lon": 19.658611,
+          "platformCode": "1",
+          "county": "Pest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Albertirsa",
+      "gtfsId": "1:005513698_4",
+      "index": 6,
+      "originalCoords": [
+        19.606389,
+        47.240278
+      ],
+      "distanceAlongRoute": 0.5857796905662803,
+      "stopTimeInfo": {
+        "stopPosition": 11,
+        "scheduledArrival": 13680,
+        "realtimeArrival": 13680,
+        "scheduledDeparture": 13740,
+        "realtimeDeparture": 13740,
+        "stop": {
+          "gtfsId": "1:005513698_4",
+          "stationUicPricingCode": "005513698",
+          "name": "Albertirsa",
+          "lat": 47.240278,
+          "lon": 19.606389,
+          "platformCode": "4",
+          "county": "Pest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Pilis",
+      "gtfsId": "1:005513680_2",
+      "index": 7,
+      "originalCoords": [
+        19.536389,
+        47.279722
+      ],
+      "distanceAlongRoute": 0.6685811324131297,
+      "stopTimeInfo": {
+        "stopPosition": 12,
+        "scheduledArrival": 14100,
+        "realtimeArrival": 14100,
+        "scheduledDeparture": 14160,
+        "realtimeDeparture": 14160,
+        "stop": {
+          "gtfsId": "1:005513680_2",
+          "stationUicPricingCode": "005513680",
+          "name": "Pilis",
+          "lat": 47.279722,
+          "lon": 19.536389,
+          "platformCode": "2",
+          "county": "Pest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Monorierdő",
+      "gtfsId": "1:005541277_1",
+      "index": 8,
+      "originalCoords": [
+        19.499167,
+        47.308889
+      ],
+      "distanceAlongRoute": 0.716365935740502,
+      "stopTimeInfo": {
+        "stopPosition": 13,
+        "scheduledArrival": 14340,
+        "realtimeArrival": 14340,
+        "scheduledDeparture": 14400,
+        "realtimeDeparture": 14400,
+        "stop": {
+          "gtfsId": "1:005541277_1",
+          "stationUicPricingCode": "005541277",
+          "name": "Monorierdő",
+          "lat": 47.308889,
+          "lon": 19.499167,
+          "platformCode": "1",
+          "county": "Pest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Monor",
+      "gtfsId": "1:005513664_3",
+      "index": 9,
+      "originalCoords": [
+        19.43701,
+        47.34545
+      ],
+      "distanceAlongRoute": 0.7891101100206843,
+      "stopTimeInfo": {
+        "stopPosition": 14,
+        "scheduledArrival": 14700,
+        "realtimeArrival": 14700,
+        "scheduledDeparture": 14760,
+        "realtimeDeparture": 14760,
+        "stop": {
+          "gtfsId": "1:005513664_3",
+          "stationUicPricingCode": "005513664",
+          "name": "Monor",
+          "lat": 47.34545,
+          "lon": 19.43701,
+          "platformCode": "3",
+          "county": "Pest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Hosszúberek-Péteri",
+      "gtfsId": "1:005541269_1",
+      "index": 10,
+      "originalCoords": [
+        19.389722,
+        47.370556
+      ],
+      "distanceAlongRoute": 0.8431898912640671,
+      "stopTimeInfo": {
+        "stopPosition": 15,
+        "scheduledArrival": 15060,
+        "realtimeArrival": 15060,
+        "scheduledDeparture": 15060,
+        "realtimeDeparture": 15060,
+        "stop": {
+          "gtfsId": "1:005541269_1",
+          "stationUicPricingCode": "005541269",
+          "name": "Hosszúberek-Péteri",
+          "lat": 47.370556,
+          "lon": 19.389722,
+          "platformCode": "1",
+          "county": "Pest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Üllő",
+      "gtfsId": "1:005513649_2",
+      "index": 11,
+      "originalCoords": [
+        19.348889,
+        47.390833
+      ],
+      "distanceAlongRoute": 0.8895129782762007,
+      "stopTimeInfo": {
+        "stopPosition": 16,
+        "scheduledArrival": 15240,
+        "realtimeArrival": 15240,
+        "scheduledDeparture": 15300,
+        "realtimeDeparture": 15300,
+        "stop": {
+          "gtfsId": "1:005513649_2",
+          "stationUicPricingCode": "005513649",
+          "name": "Üllő",
+          "lat": 47.390833,
+          "lon": 19.348889,
+          "platformCode": "2",
+          "county": "Pest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Vecsés-Kertekalja",
+      "gtfsId": "1:005513631_1",
+      "index": 12,
+      "originalCoords": [
+        19.271389,
+        47.403333
+      ],
+      "distanceAlongRoute": 0.9689106299645499,
+      "stopTimeInfo": {
+        "stopPosition": 17,
+        "scheduledArrival": 15540,
+        "realtimeArrival": 15540,
+        "scheduledDeparture": 15600,
+        "realtimeDeparture": 15600,
+        "stop": {
+          "gtfsId": "1:005513631_1",
+          "stationUicPricingCode": "005513631",
+          "name": "Vecsés-Kertekalja",
+          "lat": 47.403333,
+          "lon": 19.271389,
+          "platformCode": "1",
+          "county": "Pest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Vecsés",
+      "gtfsId": "1:005513623_2",
+      "index": 13,
+      "originalCoords": [
+        19.25652,
+        47.40855
+      ],
+      "distanceAlongRoute": 0.9854326275568122,
+      "stopTimeInfo": {
+        "stopPosition": 18,
+        "scheduledArrival": 15720,
+        "realtimeArrival": 15720,
+        "scheduledDeparture": 15780,
+        "realtimeDeparture": 15780,
+        "stop": {
+          "gtfsId": "1:005513623_2",
+          "stationUicPricingCode": "005513623",
+          "name": "Vecsés",
+          "lat": 47.40855,
+          "lon": 19.25652,
+          "platformCode": "2",
+          "county": "Pest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Ferihegy",
+      "gtfsId": "1:005513615_1",
+      "index": 14,
+      "originalCoords": [
+        19.223889,
+        47.437222
+      ],
+      "distanceAlongRoute": 1.0288707584406336,
+      "stopTimeInfo": {
+        "stopPosition": 19,
+        "scheduledArrival": 15960,
+        "realtimeArrival": 15960,
+        "scheduledDeparture": 16020,
+        "realtimeDeparture": 16020,
+        "stop": {
+          "gtfsId": "1:005513615_1",
+          "stationUicPricingCode": "005513615",
+          "name": "Ferihegy",
+          "lat": 47.437222,
+          "lon": 19.223889,
+          "platformCode": "1",
+          "county": "Budapest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Szemeretelep",
+      "gtfsId": "1:005513003_1",
+      "index": 15,
+      "originalCoords": [
+        19.214167,
+        47.443056
+      ],
+      "distanceAlongRoute": 1.040204829081913,
+      "stopTimeInfo": {
+        "stopPosition": 20,
+        "scheduledArrival": 16140,
+        "realtimeArrival": 16140,
+        "scheduledDeparture": 16140,
+        "realtimeDeparture": 16140,
+        "stop": {
+          "gtfsId": "1:005513003_1",
+          "stationUicPricingCode": "005513003",
+          "name": "Szemeretelep",
+          "lat": 47.443056,
+          "lon": 19.214167,
+          "platformCode": "1",
+          "county": "Budapest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Pestszentlőrinc",
+      "gtfsId": "1:005510181_2",
+      "index": 16,
+      "originalCoords": [
+        19.182778,
+        47.454722
+      ],
+      "distanceAlongRoute": 1.0741413856719253,
+      "stopTimeInfo": {
+        "stopPosition": 21,
+        "scheduledArrival": 16260,
+        "realtimeArrival": 16260,
+        "scheduledDeparture": 16320,
+        "realtimeDeparture": 16320,
+        "stop": {
+          "gtfsId": "1:005510181_2",
+          "stationUicPricingCode": "005510181",
+          "name": "Pestszentlőrinc",
+          "lat": 47.454722,
+          "lon": 19.182778,
+          "platformCode": "2",
+          "county": "Budapest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Kőbánya-Kispest",
+      "gtfsId": "1:005510173_1",
+      "index": 17,
+      "originalCoords": [
+        19.149444,
+        47.463889
+      ],
+      "distanceAlongRoute": 1.1087363744446002,
+      "stopTimeInfo": {
+        "stopPosition": 22,
+        "scheduledArrival": 16500,
+        "realtimeArrival": 16500,
+        "scheduledDeparture": 16560,
+        "realtimeDeparture": 16560,
+        "stop": {
+          "gtfsId": "1:005510173_1",
+          "stationUicPricingCode": "005510173",
+          "name": "Kőbánya-Kispest",
+          "lat": 47.463889,
+          "lon": 19.149444,
+          "platformCode": "1",
+          "county": "Budapest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Kőbánya alsó",
+      "gtfsId": "1:005510157_1",
+      "index": 18,
+      "originalCoords": [
+        19.127222,
+        47.483056
+      ],
+      "distanceAlongRoute": 1.1392096520138317,
+      "stopTimeInfo": {
+        "stopPosition": 23,
+        "scheduledArrival": 16740,
+        "realtimeArrival": 16740,
+        "scheduledDeparture": 16800,
+        "realtimeDeparture": 16800,
+        "stop": {
+          "gtfsId": "1:005510157_1",
+          "stationUicPricingCode": "005510157",
+          "name": "Kőbánya alsó",
+          "lat": 47.483056,
+          "lon": 19.127222,
+          "platformCode": "1",
+          "county": "Budapest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Zugló",
+      "gtfsId": "1:005510090_1",
+      "index": 19,
+      "originalCoords": [
+        19.101389,
+        47.511389
+      ],
+      "distanceAlongRoute": 1.1778653489301454,
+      "stopTimeInfo": {
+        "stopPosition": 25,
+        "scheduledArrival": 17100,
+        "realtimeArrival": 17100,
+        "scheduledDeparture": 17160,
+        "realtimeDeparture": 17160,
+        "stop": {
+          "gtfsId": "1:005510090_1",
+          "stationUicPricingCode": "005510090",
+          "name": "Zugló",
+          "lat": 47.511389,
+          "lon": 19.101389,
+          "platformCode": "1",
+          "county": "Budapest"
+        }
+      },
+      "predictedDelay": null
+    },
+    {
+      "id": "Budapest-Nyugati",
+      "gtfsId": "1:005510033_14",
+      "index": 20,
+      "originalCoords": [
+        19.0575,
+        47.510833
+      ],
+      "distanceAlongRoute": 1.22695222954303,
+      "stopTimeInfo": {
+        "stopPosition": 27,
+        "scheduledArrival": 17640,
+        "realtimeArrival": 17640,
+        "scheduledDeparture": 17640,
+        "realtimeDeparture": 17640,
+        "stop": {
+          "gtfsId": "1:005510033_14",
+          "stationUicPricingCode": "005510033",
+          "name": "Budapest-Nyugati",
+          "lat": 47.510833,
+          "lon": 19.0575,
+          "platformCode": "14",
+          "county": "Budapest"
+        }
+      },
+      "predictedDelay": null
+    }
+  ],
+  "vehicleProgress": {
+    "lastStop": "Szolnok",
+    "nextStop": "Abony",
+    "lastStopIndex": 0,
+    "nextStopIndex": 1,
+    "progress": 0.001499496563201437
+  }
+}
