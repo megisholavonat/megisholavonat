@@ -14,6 +14,7 @@ import {
     serviceDayStart,
 } from "@megisholavonat/core/time";
 import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import { type ReactNode, useMemo } from "react";
 import {
@@ -26,6 +27,8 @@ import {
 } from "react-native";
 import { useLocale, useTranslations } from "use-intl";
 import { WEB_URL } from "../config";
+import { findFollowFor } from "../follow/model";
+import { useFollows } from "../follow/store";
 import { withAlpha } from "../theme/palette";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { CloseButton } from "../ui/CloseButton";
@@ -63,6 +66,8 @@ export function TrainSheet({
     const t = useTranslations("Train");
     const tc = useTranslations("Common");
     const locale = useLocale();
+    const router = useRouter();
+    const follows = useFollows();
 
     // The map's feed is cached, so the header shows before the details load
     const { data: feature } = useQuery({
@@ -169,6 +174,11 @@ export function TrainSheet({
                 : { message: t("share_text", { train: name, url }) },
         );
     };
+    const following = details
+        ? findFollowFor(follows, details) !== null
+        : false;
+    const onFollow = () =>
+        router.push({ pathname: "/follow", params: { vehicleId } });
     const onTicket = () => {
         const from = next ?? first;
         const departure =
@@ -297,7 +307,12 @@ export function TrainSheet({
             ) : null}
 
             {details ? (
-                <TrainActions onShare={onShare} onTicket={onTicket} />
+                <TrainActions
+                    following={following}
+                    onFollow={onFollow}
+                    onShare={onShare}
+                    onTicket={onTicket}
+                />
             ) : (
                 <View style={styles.inline}>
                     <Skeleton height={48} radius={24} style={styles.flex} />

@@ -1,10 +1,31 @@
 import { describe, expect, it } from "vitest";
 import {
+    budapestDate,
     formatSecondsAsTime,
     getSecondsSinceDay,
+    isoWeekday,
     secondsIntoServiceDay,
     serviceDayStart,
+    shiftDate,
 } from "./time";
+
+describe("calendar helpers", () => {
+    it("takes the date in Budapest, not UTC", () => {
+        expect(budapestDate(new Date("2026-10-28T23:30:00Z"))).toBe(
+            "2026-10-29",
+        );
+    });
+
+    it("shifts across month ends", () => {
+        expect(shiftDate("2026-10-31", 1)).toBe("2026-11-01");
+        expect(shiftDate("2026-03-01", -1)).toBe("2026-02-28");
+    });
+
+    it("numbers weekdays from Monday", () => {
+        expect(isoWeekday("2026-10-26")).toBe(1);
+        expect(isoWeekday("2026-11-01")).toBe(7);
+    });
+});
 
 describe("formatSecondsAsTime", () => {
     it("formats midnight", () => {

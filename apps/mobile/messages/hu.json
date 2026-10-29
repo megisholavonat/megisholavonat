@@ -20,7 +20,10 @@
         "source_down": "A MÁV-adat nem érkezik",
         "source_down_since": "{time} óta",
         "offline": "Nem érjük el a szervert",
-        "stale_banner": "{minutes} perce nincs friss adat"
+        "stale_banner": "{minutes} perce nincs friss adat",
+        "my_commute": "Ingázásom",
+        "follow_cta": "Kövesd a vonatodat",
+        "tomorrow": "holnap"
     },
     "Consent": {
         "question": "Névtelen statisztika?",
@@ -70,5 +73,31 @@
         "railway_data_value": "© OpenRailwayMap",
         "railway_data": "Vasúti réteg",
         "source": "GitHub"
+    },
+    "Follow": {
+        "title": "Követés",
+        "follow": "Követés",
+        "following": "Követve",
+        "save": "Mentés",
+        "days": "Napok",
+        "today_only": "Csak ma",
+        "day_1": "H",
+        "day_2": "K",
+        "day_3": "Sze",
+        "day_4": "Cs",
+        "day_5": "P",
+        "day_6": "Szo",
+        "day_7": "V",
+        "board": "Felszállás",
+        "alight": "Leszállás",
+        "alerts": "Értesítés",
+        "delay": "Késés",
+        "threshold": "> {minutes} perc",
+        "platform": "Vágány",
+        "notifications_off": "Értesítések kikapcsolva",
+        "unfollow": "Követés leállítása",
+        "error": "Nem sikerült menteni",
+        "channel": "Vonatriasztások",
+        "stop_time": "{name} {time}"
     }
 }
