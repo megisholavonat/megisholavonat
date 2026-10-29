@@ -109,7 +109,7 @@ function SelectRow({
                 id={id}
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
-                className="-my-2 min-h-12 min-w-0 flex-1 cursor-pointer appearance-none truncate bg-transparent text-right text-ink-2 outline-none"
+                className="-my-2 min-h-12 min-w-0 flex-1 cursor-pointer appearance-none truncate rounded-md bg-transparent pr-2 text-right text-ink-2 outline-none [--focus-offset:-2px]"
             >
                 {options.map((o) => (
                     <option key={o.value} value={o.value}>
