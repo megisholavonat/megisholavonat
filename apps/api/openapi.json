@@ -2877,6 +2877,17 @@
             "type": "integer",
             "title": "Realtimedeparture"
           },
+          "realtimeState": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Realtimestate"
+          },
           "stop": {
             "$ref": "#/components/schemas/StopWithCounty"
           }
@@ -3156,6 +3167,24 @@
             "type": "boolean",
             "title": "Isstale",
             "default": false
+          },
+          "activity": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "running",
+                  "beforeDeparture",
+                  "arrived",
+                  "offRoute",
+                  "cancelled"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Activity"
           },
           "reason": {
             "anyOf": [
@@ -3979,6 +4008,24 @@
           },
           "vehicleProgress": {
             "$ref": "#/components/schemas/VehicleProgress"
+          },
+          "activity": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "running",
+                  "beforeDeparture",
+                  "arrived",
+                  "offRoute",
+                  "cancelled"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Activity"
           }
         },
         "type": "object",
