@@ -16,6 +16,7 @@ import {
     View,
 } from "react-native";
 import { useTranslations } from "use-intl";
+import { noteEntry, track } from "../analytics";
 import { Group, Row, rowStyles, TrainRow } from "../search/rows";
 import { highlight, lateTrains, searchTrains } from "../search/search";
 import { useAppTheme } from "../theme/ThemeProvider";
@@ -119,7 +120,17 @@ export default function SearchScreen() {
         debounced.length >= 2 ? (stations.data ?? []) : [];
 
     // Close search first so the sheet opens over the map
+    const selected = (type: "train" | "station") => {
+        noteEntry("search");
+        track("search_result_selected", {
+            type,
+            query_length: query.trim().length,
+            trains: trains.length,
+            stations: stationList.length,
+        });
+    };
     const openStation = (station: Station) => {
+        selected("station");
         router.back();
         router.push({
             pathname: "/station/[stationId]",
@@ -127,6 +138,7 @@ export default function SearchScreen() {
         });
     };
     const openTrain = (vehicleId: string) => {
+        selected("train");
         router.back();
         router.push({ pathname: "/train/[vehicleId]", params: { vehicleId } });
     };

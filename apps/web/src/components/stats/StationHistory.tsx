@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Map as MapIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { useTrackView } from "@/lib/analyticsEvents";
 import { HourChart, overallShare } from "./HourChart";
 import {
     Card,
@@ -52,6 +53,11 @@ export function StationHistoryPage({ stationId }: { stationId: string }) {
     const t = useTranslations("Stats");
     const days = useDays();
     const name = useStationName(stationId, days);
+    useTrackView("stats_viewed", {
+        kind: "station",
+        station_id: stationId,
+        days,
+    });
     const query = useQuery({
         ...getTimeOfDayPunctualityOptions({ query: { stationId, days } }),
         staleTime: HOUR,
