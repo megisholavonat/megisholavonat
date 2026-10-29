@@ -130,6 +130,32 @@
     }
 }
 
+/* Press feedback: buttons sink a little while pressed (100 ms ease-out).
+   Map buttons get it too, so every floating control answers the tap. */
+@utility pressable {
+    transition-property:
+        color, background-color, border-color, box-shadow, scale;
+    transition-duration: 150ms, 150ms, 150ms, 150ms, 100ms;
+    transition-timing-function: var(--mhav-ease-standard, ease-out);
+    &:active:not(:disabled) {
+        scale: 0.95;
+    }
+}
+.map-button {
+    transition-property: color, background-color, box-shadow, scale;
+    transition-duration: 150ms, 150ms, 150ms, 100ms;
+    transition-timing-function: var(--mhav-ease-standard, ease-out);
+}
+.map-button:active:not(:disabled) {
+    scale: 0.95;
+}
+@media (prefers-reduced-motion: reduce) {
+    .pressable:active:not(:disabled),
+    .map-button:active:not(:disabled) {
+        scale: none;
+    }
+}
+
 @utility floating-card {
     @apply bg-surface;
     box-shadow:
