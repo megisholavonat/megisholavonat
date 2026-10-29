@@ -217,6 +217,30 @@ The Expo receipts key (`<REDIS_KEY>:push:expo-receipts`) is global, not
 per-device, on purpose: it holds only ticket and token ids, and entries are
 dropped within a day.
 
+### Live Activity and commute widget (iOS)
+
+`apps/mobile/targets/widgets` is a WidgetKit extension added at prebuild by
+`@bacons/apple-targets`: the followed train's Live Activity (lock screen and
+Dynamic Island) and the commute widget. `apps/mobile/modules/live-activity` is
+the local Expo module that starts, updates and ends the activities and writes
+the widget's data to the App Group `group.info.megisholavonat.app`.
+`TrainActivityAttributes.swift` exists in both, identical (a unit test checks
+it), and its `ContentState` is what `live_activity_content` in
+`push_alerts.py` pushes. The line is a text badge: the MÁV route glyph font is
+not licensed for bundling into the extension.
+
+The app starts an activity only in the foreground: from three hours before
+the departure of a follow with the toggle on (default on for a single trip
+leaving within three hours). Commutes need the app opened on the day. The
+activity's push token goes to `POST /v1/devices/me/push-tokens` (type
+`liveactivity`), and the API updates it from then on. Development builds get
+sandbox tokens: set `APNS_USE_SANDBOX=true` for them.
+
+Android has no counterpart yet. An ongoing notification with progress needs
+a native module (a foreground service, or `setOngoing` plus a progress style
+updated from a data-only FCM message in `FirebaseMessagingService`), because
+`expo-notifications` cannot update a shown notification from the background.
+
 ### Replaying recorded data
 
 To develop without calling upstream, set
