@@ -59,14 +59,16 @@ describe("map style", () => {
     });
 
     it("places +N below the marks, from city zoom, clear of its mark", () => {
-        const { text, marks } = trainLayers({
+        const { text, room, marks } = trainLayers({
             scheme: "dark",
             selectedId: "x",
         });
         expect(text.minzoom).toBe(MAP_MARKS.delayTextMinZoom);
         expect(text.layout?.["text-allow-overlap"]).toBeUndefined();
-        // The marks take part in placement from the same zoom
-        expect(marks.layout?.["icon-ignore-placement"]).toEqual([
+        // The marks never push a station name away; their invisible room
+        // takes part in placement from the same zoom
+        expect(marks.layout?.["icon-ignore-placement"]).toBe(true);
+        expect(room.layout?.["icon-ignore-placement"]).toEqual([
             "step",
             ["zoom"],
             true,

@@ -493,6 +493,16 @@ export interface RailLayerOptions {
     fadeMs?: number;
     /** Station names' opacity (a user setting) */
     labelOpacity?: number;
+    /**
+     * A station whose name the map already shows elsewhere (the selected
+     * station's box): its plain name is left out, so it is never named twice
+     */
+    namedElsewhere?: string | null;
+    /**
+     * Names end at this zoom: from it the railway overlay writes its own
+     * station names, so ours would double them
+     */
+    labelMaxZoom?: number;
 }
 
 function transition(fadeMs: number) {
@@ -588,6 +598,8 @@ export function stationLayers({
     dim,
     fadeMs = MAP_FOCUS.fadeMs,
     labelOpacity = 1,
+    namedElsewhere = null,
+    labelMaxZoom,
 }: RailLayerOptions): {
     dots: LayerSpecification[];
     labels: LayerSpecification[];
@@ -627,7 +639,10 @@ export function stationLayers({
             type: "symbol",
             source: STATIONS_SOURCE,
             minzoom: t.label,
-            filter,
+            ...(labelMaxZoom === undefined ? {} : { maxzoom: labelMaxZoom }),
+            filter: namedElsewhere
+                ? ["all", filter, ["!=", ["get", "id"], namedElsewhere]]
+                : filter,
             layout: {
                 "text-field": [
                     "step",

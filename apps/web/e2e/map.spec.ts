@@ -1,5 +1,6 @@
+import { MAP_PALETTE } from "@megisholavonat/core/tokens/map";
 import type { Page } from "@playwright/test";
-import { expect, openTrain, t, test } from "./support/test";
+import { expect, openHome, openTrain, STATIONS, t, test } from "./support/test";
 
 /** Console errors and uncaught exceptions, minus blocked network requests */
 function collectErrors(page: Page): string[] {
@@ -14,15 +15,30 @@ function collectErrors(page: Page): string[] {
     return errors;
 }
 
+/** The parts of a MapLibre map the tests read */
+type MapLike = {
+    getStyle(): { layers?: StyleLayer[] } | undefined;
+    getPaintProperty(layer: string, name: string): unknown;
+    jumpTo(options: { center: [number, number]; zoom: number }): void;
+    getZoom(): number;
+};
+type StyleLayer = {
+    id: string;
+    minzoom?: number;
+    maxzoom?: number;
+    filter?: unknown;
+    layout?: Record<string, unknown>;
+    paint?: Record<string, unknown>;
+};
+
 /**
- * The map's layer ids, bottom to top. MapLibre is reached through React's
- * fiber tree: the app keeps no global handle on it.
+ * Runs `body` on the page's MapLibre map (null before there is one, or
+ * while the page's map is being replaced).
+ * MapLibre is reached through React's fiber tree: the app keeps no global
+ * handle on it. `body` is sent as source, so it may use only its argument.
  */
-function layerIds(page: Page): Promise<string[] | null> {
-    return page.evaluate(() => {
-        type MapLike = {
-            getStyle(): { layers?: { id: string }[] } | undefined;
-        };
+function onMap<T>(page: Page, body: (map: MapLike) => T): Promise<T | null> {
+    return page.evaluate((source) => {
         let map: MapLike | null = null;
         const seen = new Set<unknown>();
         const scan = (value: unknown, depth: number) => {
@@ -67,8 +83,18 @@ function layerIds(page: Page): Promise<string[] | null> {
             }
         }
         if (!map) return null;
-        return (map as MapLike).getStyle()?.layers?.map((l) => l.id) ?? null;
-    });
+        try {
+            return new Function("map", `return (${source})(map)`)(map);
+        } catch {
+            // The map of the page before, being removed
+            return null;
+        }
+    }, body.toString());
+}
+
+/** The map's layer ids, bottom to top */
+function layerIds(page: Page): Promise<string[] | null> {
+    return onMap(page, (map) => map.getStyle()?.layers?.map((l) => l.id) ?? []);
 }
 
 /**
@@ -151,4 +177,112 @@ test("BL-1: a system theme flip keeps the draw order", async ({ page }) => {
     await expect(page.locator("html")).toHaveClass(/dark/);
     await expectLayerOrder(page);
     expect(errors).toEqual([]);
+});
+
+/** The basemap's land and a place name's colour, as the map draws them */
+function basemapColours(page: Page) {
+    return onMap(page, (map) => ({
+        land: map.getPaintProperty("background", "background-color"),
+        city: map.getPaintProperty("place-city", "text-color"),
+    }));
+}
+
+test("switching the language keeps the dark map dark", async ({ page }) => {
+    const errors = collectErrors(page);
+    await page.addInitScript(() => {
+        if (!sessionStorage.getItem("e2e.theme")) {
+            sessionStorage.setItem("e2e.theme", "1");
+            localStorage.setItem("theme", "dark");
+        }
+    });
+    await openHome(page);
+    await expect(page.locator("html")).toHaveClass(/dark/);
+    const dark = {
+        land: MAP_PALETTE.dark.land,
+        city: MAP_PALETTE.dark.city,
+    };
+    await expect.poll(() => basemapColours(page)).toEqual(dark);
+
+    await page.getByRole("button", { name: t.Settings.title }).first().click();
+    await page
+        .getByRole("dialog", { name: t.Settings.title })
+        .getByRole("combobox", { name: t.Settings.language })
+        .selectOption("en");
+    await page.waitForURL(/\/en(\?|$)/);
+    // The whole map follows: the basemap as well as our own layers
+    await expect.poll(() => basemapColours(page)).toEqual(dark);
+    await expect
+        .poll(() =>
+            onMap(page, (map) =>
+                map.getPaintProperty("mhav-station-label-1", "text-color"),
+            ),
+        )
+        .toBe(MAP_PALETTE.dark.stationLabel);
+    expect(errors).toEqual([]);
+});
+
+/** Station names' layers and the trains' around them, at zoom 14 */
+function stationNames(page: Page) {
+    return onMap(page, (map) => {
+        map.jumpTo({ center: [19.0835, 47.5005], zoom: 14 });
+        const layers = map.getStyle()?.layers ?? [];
+        const at = (id: string) => layers.findIndex((l) => l.id === id);
+        const label = layers.find((l) => l.id === "mhav-station-label-1");
+        const zoom = map.getZoom();
+        const order = [
+            at("marker-delay"),
+            at("marker-dot-room"),
+            at("mhav-station-label-1"),
+            at("marker-dot"),
+        ];
+        return {
+            shown:
+                !!label &&
+                (label.minzoom ?? 0) <= zoom &&
+                zoom < (label.maxzoom ?? 24) &&
+                label.layout?.visibility !== "none",
+            maxzoom: label?.maxzoom ?? null,
+            filter: JSON.stringify(label?.filter ?? null),
+            // Placed after every unselected train (MapLibre places the top
+            // layer first), drawn under them
+            placedAfterTrains: order.every(
+                (index, i) =>
+                    index >= 0 && (i === 0 || index > (order[i - 1] ?? -1)),
+            ),
+            trainsPushNames:
+                layers.find((l) => l.id === "marker-dot")?.layout?.[
+                    "icon-ignore-placement"
+                ] !== true,
+        };
+    });
+}
+
+test("station names stay at zoom 14, under the trains", async ({ page }) => {
+    await openHome(page);
+    await expect
+        .poll(() => stationNames(page))
+        .toEqual({
+            shown: true,
+            maxzoom: null,
+            filter: expect.not.stringContaining("!="),
+            placedAfterTrains: true,
+            trainsPushNames: false,
+        });
+});
+
+test("a station is never named twice", async ({ page }) => {
+    // The selected station's box names it: its plain name steps aside
+    await openHome(page, `?station=${STATIONS.szolnok.id}`);
+    await expect
+        .poll(async () => (await stationNames(page))?.filter)
+        .toContain(STATIONS.szolnok.id);
+
+    // The railway overlay writes its own names close in
+    await page.addInitScript(() =>
+        localStorage.setItem("mhav.settings.showRailwayOverlay", "true"),
+    );
+    await openHome(page);
+    await expect
+        .poll(async () => (await stationNames(page))?.maxzoom)
+        .toBe(10.5);
 });

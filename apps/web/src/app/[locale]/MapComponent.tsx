@@ -191,6 +191,15 @@ const SEL = {
     follow: "marker-sel-follow",
 } as const;
 const CLUSTER = { bubble: "marker-cluster" } as const;
+/**
+ * Invisible copies of the unselected marks and bubbles, under the station
+ * names: they hold the trains' room for the "+N" numbers only (see
+ * baseMarkerLayers)
+ */
+const ROOM = {
+    marks: "marker-dot-room",
+    bubbles: "marker-cluster-room",
+} as const;
 
 const EMPTY: FeatureCollection = { type: "FeatureCollection", features: [] };
 
@@ -546,8 +555,9 @@ const MARK_ICON_SIZE = [
 ] as unknown as ExpressionSpecification;
 /**
  * From the zoom "+N" appears, marks take part in collision (still always
- * drawn), so a number never covers a mark. Further out they stay out of it,
- * so trains never push station names away at country zoom.
+ * drawn), so a number never covers a mark. Further out they stay out of it.
+ * Unselected marks only through their invisible room (ROOM), placed after
+ * the station names, so trains draw over a name but never push it away.
  */
 const MARK_IGNORE_PLACEMENT = [
     "step",
@@ -555,6 +565,17 @@ const MARK_IGNORE_PLACEMENT = [
     true,
     MAP_MARKS.delayTextMinZoom,
     false,
+] as unknown as ExpressionSpecification;
+const IS_CLUSTER: ExpressionSpecification = ["has", "point_count"];
+/** A count bubble's size: larger for bigger piles */
+const CLUSTER_ICON_SIZE = [
+    "step",
+    ["get", "point_count"],
+    1,
+    10,
+    24 / CLUSTER_SIZE,
+    50,
+    30 / CLUSTER_SIZE,
 ] as unknown as ExpressionSpecification;
 /** Late trains say by how much, stale ones how old their data is */
 const HAS_DELAY_TEXT: ExpressionSpecification = [
@@ -1235,16 +1256,19 @@ export default function MapComponent({
     );
 
     /**
-     * Unselected trains: a mark, and from zoom 12 "+N" beside late ones. The
-     * numbers sit in a layer under the marks: MapLibre places upper layers
-     * first, so every mark is in the collision index before any number, and a
-     * number goes right, left, above or below its mark where it covers no
-     * mark (or other number) at all, else it stays out. Bigger delays first.
+     * Unselected trains: a mark, and from zoom 12 "+N" beside late ones.
+     * MapLibre places upper layers first. The marks themselves stay out of
+     * collision, so station names are never pushed away by a train (it just
+     * draws over them). Under the names, an invisible copy of every mark
+     * (ROOM) joins the collision index, then the numbers: a number goes
+     * right, left, above or below its mark where it covers no mark, station
+     * name or other number, else it stays out. Bigger delays first.
      */
     const baseMarkerLayers = () => [
         <Layer
             key="delay"
             id={DELAY_TEXT}
+            beforeId={SLOTS.names}
             type="symbol"
             minzoom={MAP_MARKS.delayTextMinZoom}
             filter={["all", NOT_CLUSTER, HAS_DELAY_TEXT]}
@@ -1271,11 +1295,35 @@ export default function MapComponent({
             }}
         />,
         <Layer
+            key="mark-room"
+            id={ROOM.marks}
+            beforeId={SLOTS.names}
+            type="symbol"
+            filter={NOT_CLUSTER}
+            layout={markLayout}
+            paint={{ "icon-opacity": 0 }}
+        />,
+        <Layer
+            key="bubble-room"
+            id={ROOM.bubbles}
+            beforeId={SLOTS.names}
+            type="symbol"
+            filter={IS_CLUSTER}
+            layout={{
+                "icon-image": clusterImageId(scheme),
+                "icon-size": CLUSTER_ICON_SIZE,
+                "icon-padding": 0,
+                "icon-allow-overlap": true,
+                "icon-ignore-placement": MARK_IGNORE_PLACEMENT,
+            }}
+            paint={{ "icon-opacity": 0 }}
+        />,
+        <Layer
             key="mark"
             id={LAYER_IDS.TRAIN_DOT}
             type="symbol"
             filter={NOT_CLUSTER}
-            layout={markLayout}
+            layout={{ ...markLayout, "icon-ignore-placement": true }}
             paint={{
                 "icon-opacity": othersOpacity,
                 "icon-opacity-transition": fade,
@@ -1484,8 +1532,21 @@ export default function MapComponent({
                 dim: focused,
                 fadeMs: railFade,
                 labelOpacity: settings.stationNamesOpacity,
+                // The selected station is named in its box
+                namedElsewhere: station?.id ?? null,
+                // The overlay names stations itself from this zoom
+                labelMaxZoom: settings.showRailwayOverlay
+                    ? RAILWAY_NAMES_MIN_ZOOM
+                    : undefined,
             }),
-        [scheme, focused, railFade, settings.stationNamesOpacity],
+        [
+            scheme,
+            focused,
+            railFade,
+            settings.stationNamesOpacity,
+            settings.showRailwayOverlay,
+            station?.id,
+        ],
     );
 
     const markerLayerIds = useMemo(
@@ -1849,7 +1910,7 @@ export default function MapComponent({
                         <Layer
                             key={layer.id}
                             {...layer}
-                            beforeId={SLOTS.route}
+                            beforeId={SLOTS.trainText}
                         />
                     ))}
                     {settings.showStationNames &&
@@ -1935,21 +1996,14 @@ export default function MapComponent({
                         id={CLUSTER.bubble}
                         beforeId={LAYER_IDS.TRAIN_DOT}
                         type="symbol"
-                        filter={["has", "point_count"]}
+                        filter={IS_CLUSTER}
                         layout={{
                             "icon-image": clusterImageId(scheme),
-                            "icon-size": [
-                                "step",
-                                ["get", "point_count"],
-                                1,
-                                10,
-                                24 / CLUSTER_SIZE,
-                                50,
-                                30 / CLUSTER_SIZE,
-                            ],
+                            "icon-size": CLUSTER_ICON_SIZE,
                             "icon-padding": 0,
                             "icon-allow-overlap": true,
-                            "icon-ignore-placement": MARK_IGNORE_PLACEMENT,
+                            // Its room is held by ROOM.bubbles
+                            "icon-ignore-placement": true,
                             "text-field": ["get", "point_count_abbreviated"],
                             "text-font": [...MAP_FONTS.bold],
                             "text-size": 12,

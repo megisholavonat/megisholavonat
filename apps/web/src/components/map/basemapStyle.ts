@@ -29,6 +29,13 @@ export const SLOTS = {
      * railway overlay never print over a city's name ("Buda•est")
      */
     railway: "slot-railway",
+    /** Over the station dots: the trains' "+N" numbers */
+    trainText: "slot-train-text",
+    /**
+     * Over the numbers: the station names, placed before any train so a
+     * train never pushes a name away
+     */
+    names: "slot-names",
     route: "slot-route",
     stops: "slot-stops",
     station: "slot-station",

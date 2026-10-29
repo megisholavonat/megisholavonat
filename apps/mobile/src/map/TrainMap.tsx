@@ -60,6 +60,8 @@ const DATA_URLS = mapDataUrls(API_URL);
 
 // Core types its style with a newer style-spec than MapLibre RN bundles; the
 // JSON is the same
+/** From this zoom the railway overlay writes out station names */
+const RAILWAY_NAMES_MIN_ZOOM = 10.5;
 type CoreLayer = ReturnType<typeof networkLayer>;
 const nativeLayer = (layer: CoreLayer) => layer as unknown as LayerProps;
 
@@ -115,8 +117,15 @@ export function TrainMap({
         [scheme, dim, fadeMs],
     );
     const stations = useMemo(
-        () => stationLayers({ scheme, dim, fadeMs }),
-        [scheme, dim, fadeMs],
+        () =>
+            stationLayers({
+                scheme,
+                dim,
+                fadeMs,
+                // The overlay names stations itself from this zoom
+                labelMaxZoom: showRailways ? RAILWAY_NAMES_MIN_ZOOM : undefined,
+            }),
+        [scheme, dim, fadeMs, showRailways],
     );
     const route = useMemo(() => routeLayers(scheme), [scheme]);
     // Unselected trains cluster where they pile up; the selected and
@@ -288,8 +297,10 @@ export function TrainMap({
                     void onVehiclePress(event.nativeEvent.features[0])
                 }
             >
-                <Layer {...layers.text} afterId={route.stopLabels.id} />
-                <Layer {...clusters.bubble} afterId={layers.text.id} />
+                {/* Under the station names, which are placed first */}
+                <Layer {...layers.text} afterId={lastDot} />
+                <Layer {...layers.room} afterId={layers.text.id} />
+                <Layer {...clusters.bubble} afterId={route.stopLabels.id} />
                 <Layer {...clusters.count} afterId={clusters.bubble.id} />
                 <Layer {...layers.marks} afterId={clusters.count.id} />
             </GeoJSONSource>
