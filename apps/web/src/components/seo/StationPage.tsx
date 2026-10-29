@@ -10,6 +10,7 @@ import { HourChart } from "@/components/stats/HourChart";
 import { Of10Text, TenBar } from "@/components/stats/StatsParts";
 import { DelayChip } from "@/components/ui/Delay";
 import { PlatformBadge } from "@/components/ui/Platform";
+import { type RowDelay, rowTime } from "@/lib/board";
 import { departureDelay, formatClock } from "@/lib/og/model";
 import { siteUrl } from "@/lib/og/server";
 import { fetchStationBoard, fetchTimeOfDay } from "@/lib/seo/data";
@@ -27,16 +28,40 @@ import {
 
 type Kind = "departures" | "arrivals";
 
+/**
+ * A board's rows with their delays, in the order of the times they show,
+ * by the map board's rules (lib/board).
+ */
+function boardRows(entries: BoardEntry[], now: Date) {
+    return entries
+        .map((entry) => {
+            const delay = departureDelay(entry, now);
+            const shown: RowDelay | null =
+                delay === null ? null : { delay, stale: false };
+            return { entry, shown, ...rowTime(entry, shown) };
+        })
+        .sort(
+            (a, b) =>
+                a.time - b.time ||
+                a.entry.scheduledTime - b.entry.scheduledTime,
+        );
+}
+
 async function BoardRow({
     entry,
     kind,
     locale,
-    now,
+    shown,
+    time,
+    late,
 }: {
     entry: BoardEntry;
     kind: Kind;
     locale: Locale;
-    now: Date;
+    shown: RowDelay | null;
+    /** The time shown: the expected one when late, as on the map's board */
+    time: number;
+    late: boolean;
 }) {
     const t = await getTranslations({ locale, namespace: "Station" });
     const tDisruptions = await getTranslations({
@@ -45,7 +70,6 @@ async function BoardRow({
     });
     const number = trainNumber(entry.tripShortName);
     const name = trainName(entry.tripShortName);
-    const delay = departureDelay(entry, now);
     const place = entry.headsign
         ? kind === "arrivals"
             ? t("from", { station: entry.headsign })
@@ -53,7 +77,7 @@ async function BoardRow({
         : "";
     return (
         <li className="flex min-h-14 items-center gap-3 border-b border-line py-2 last:border-b-0">
-            <span className="flex w-14 shrink-0 flex-col items-start gap-0.5">
+            <span className="flex w-[4.25rem] shrink-0 flex-col items-start gap-0.5">
                 <span
                     className={
                         entry.canceled
@@ -61,15 +85,25 @@ async function BoardRow({
                             : "tnum text-headline font-bold"
                     }
                 >
-                    {formatClock(entry.scheduledTime)}
+                    {formatClock(time)}
                 </span>
-                {entry.canceled ? (
-                    <span className="inline-flex h-5 items-center rounded-full bg-delay-severe-tint px-1.5 text-caption font-bold text-delay-severe">
-                        {t("canceled")}
-                    </span>
-                ) : delay !== null ? (
-                    <DelayChip delay={delay} />
-                ) : null}
+                <span className="flex items-center gap-1">
+                    {entry.canceled ? (
+                        <span className="inline-flex h-5 items-center rounded-full bg-delay-severe-tint px-1.5 text-caption font-bold text-delay-severe">
+                            {t("canceled")}
+                        </span>
+                    ) : shown ? (
+                        <DelayChip delay={shown.delay} />
+                    ) : null}
+                    {late && (
+                        <s className="tnum text-caption text-ink-2">
+                            <span className="sr-only">
+                                {t("scheduled_time")}{" "}
+                            </span>
+                            {formatClock(entry.scheduledTime)}
+                        </s>
+                    )}
+                </span>
             </span>
             <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span className="truncate text-[15px] font-semibold">
@@ -120,13 +154,15 @@ async function Board({
                 <p className="py-4 text-ink-2">{tStation("empty")}</p>
             ) : (
                 <ul className="-mt-1 flex flex-col">
-                    {entries.map((entry) => (
+                    {boardRows(entries, now).map((row) => (
                         <BoardRow
-                            key={`${entry.tripId}-${entry.serviceDate}`}
-                            entry={entry}
+                            key={`${row.entry.tripId}-${row.entry.serviceDate}`}
+                            entry={row.entry}
                             kind={kind}
                             locale={locale}
-                            now={now}
+                            shown={row.shown}
+                            time={row.time}
+                            late={row.late}
                         />
                     ))}
                 </ul>
