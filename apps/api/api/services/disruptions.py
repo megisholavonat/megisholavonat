@@ -10,8 +10,9 @@ direction listing its trains, so alerts about the same stretch are merged.
 """
 
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Literal
+from typing import Literal, cast
 
 from redis.asyncio import Redis
 
@@ -20,6 +21,7 @@ from api.schemas.alerts import (
     AlertRoute,
     AlertStation,
     AlertTrip,
+    DelayReason,
     Disruption,
     DisruptionCause,
     DisruptionEffect,
@@ -27,6 +29,7 @@ from api.schemas.alerts import (
     DisruptionSegment,
     DisruptionSeverity,
     RailAlert,
+    TrainDisruption,
 )
 from api.services.alerts_service import get_rail_alerts
 from api.services.station_index import load_station_index
@@ -126,6 +129,14 @@ _DASH_SEGMENT = re.compile(
 
 _LEADING_NAME = re.compile(rf"\s*([{_UPPER}][\w-]*)")
 
+# A capitalised word with a case ending: "Tapolcáról", "Balatonfüredre"
+_INFLECTED_NAME = re.compile(rf"\b[{_UPPER}][\w-]*")
+_FROM_SUFFIX = re.compile(r"(?:ról|ről|ból|ből|tól|től)$")
+_TO_SUFFIX = re.compile(r"(?:ra|re|ba|be|ig)$")
+
+# A train number in brackets: "Balatonfüredre (9759)"
+_TRAIN_NUMBER = re.compile(r"\((\d{3,6})\)")
+
 _URL = re.compile(r"(?:https?://|www\.)[^\s<>\"]+", re.I)
 
 _LINE_NAME = re.compile(r"[A-Z]{1,3}\d{1,3}[A-Z]?")
@@ -139,6 +150,8 @@ _EFFECT_RANK: dict[DisruptionEffect, int] = {
     "other": 4,
 }
 
+TITLE_MAX = 90
+
 _TITLES: dict[DisruptionEffect, str] = {
     "no_service": "Nincs vasúti forgalom",
     "replacement_bus": "Pótlóbusz",
@@ -146,6 +159,11 @@ _TITLES: dict[DisruptionEffect, str] = {
     "delays": "Késések",
     "other": "Forgalmi változás",
 }
+
+
+def _train_number(trip_short_name: str | None) -> str:
+    """ "9759 személyvonat" -> "9759"."""
+    return (trip_short_name or "").split(" ", 1)[0]
 
 
 def _text(alert: RailAlert) -> str:
@@ -191,10 +209,79 @@ def _resolve(name: str, ids_by_name: dict[str, str]) -> str | None:
     return ids_by_name.get(normalize_search_text(name))
 
 
-def find_segment(text: str, ids_by_name: dict[str, str]) -> DisruptionSegment | None:
-    """The first "A és B között" / "A-B között" stretch named in the text."""
+def _station_in(
+    word: str, ids_by_name: dict[str, str], names: dict[str, str]
+) -> tuple[str, str | None] | None:
+    """
+    The station an inflected word names ("Tapolcáról" -> Tapolca), as
+    (display name, id): the longest known name the word starts with, followed
+    by a case ending of at most four letters. The display name comes from
+    `names` when known, else from the word itself; a final a/e lengthens
+    before a suffix in Hungarian ("Tapolcá-ra"), so that is undone.
+    """
+    key = normalize_search_text(word)
+    best: str | None = None
+    for name in (*names, *ids_by_name):
+        if (
+            key.startswith(name)
+            and 0 < len(key) - len(name) <= 4
+            and (best is None or len(name) > len(best))
+        ):
+            best = name
+    if best is None:
+        return None
+    display = names.get(best)
+    if display is None:
+        display = word[: len(best)]
+        if best[-1] in "ae" and display[-1] in "áé":
+            display = display[:-1] + best[-1]
+    return display, ids_by_name.get(best)
+
+
+def _from_to_segment(
+    text: str, ids_by_name: dict[str, str], names: dict[str, str]
+) -> DisruptionSegment | None:
+    """
+    "a Tapolcáról 4:41-kor Balatonfüredre induló vonat": a train's stretch
+    from an elative/ablative place name to the next allative/terminative one
+    in the same sentence.
+    """
+    for sentence in re.split(r"(?<=[.!?])\s+|\n", text):
+        words = list(_INFLECTED_NAME.finditer(sentence))
+        for i, start in enumerate(words):
+            if not _FROM_SUFFIX.search(start[0]):
+                continue
+            origin = _station_in(start[0], ids_by_name, names)
+            if origin is None:
+                continue
+            for end in words[i + 1 : i + 4]:
+                if not _TO_SUFFIX.search(end[0]):
+                    continue
+                destination = _station_in(end[0], ids_by_name, names)
+                if destination is not None and destination[0] != origin[0]:
+                    return DisruptionSegment(
+                        fromName=origin[0],
+                        toName=destination[0],
+                        fromId=origin[1],
+                        toId=destination[1],
+                    )
+    return None
+
+
+def find_segment(
+    text: str,
+    ids_by_name: dict[str, str],
+    stations: list[AlertStation] | None = None,
+) -> DisruptionSegment | None:
+    """
+    The first "A és B között" / "A-B között" stretch named in the text, or
+    else a train's "A-ról B-re" run between two known stations.
+    """
     and_match = _AND_SEGMENT.search(text)
     dash_match = _DASH_SEGMENT.search(text)
+    if not and_match and not dash_match:
+        names = {normalize_search_text(s.name): s.name for s in stations or []}
+        return _from_to_segment(text, ids_by_name, names)
     if and_match and (not dash_match or and_match.start() <= dash_match.start()):
         a, b = and_match["a"], and_match["b"]
         return DisruptionSegment(
@@ -248,8 +335,10 @@ def _title(
 ) -> str:
     if segment:
         return f"{_TITLES[effect]} {segment.fromName} és {segment.toName} között"
+    # A short first sentence is a title; a long one is never cut mid-way,
+    # the effect stands alone instead
     first = re.split(r"(?<=[.!:])\s|\n", text.strip(), maxsplit=1)[0].rstrip(":")
-    return first if len(first) <= 90 else f"{first[:89].rstrip()}…"
+    return first if len(first) <= TITLE_MAX else _TITLES[effect]
 
 
 def lines_of(routes: list[AlertRoute]) -> list[DisruptionLine]:
@@ -271,6 +360,9 @@ def lines_of(routes: list[AlertRoute]) -> list[DisruptionLine]:
 class _Group:
     alerts: list[RailAlert] = field(default_factory=list)
     segment: DisruptionSegment | None = None
+    # Notices of single trains the event names: they add the trains, their
+    # lines and details, but not their (often whole-day) validity
+    trains: list[RailAlert] = field(default_factory=list)
 
 
 def _primary(alerts: list[RailAlert]) -> RailAlert:
@@ -335,7 +427,8 @@ def _merge(group: _Group) -> Disruption:
     routes: dict[str, AlertRoute] = {}
     stations: dict[str, AlertStation] = {}
     trips: dict[str, AlertTrip] = {}
-    for alert in [primary, *alerts]:
+    everything = [primary, *alerts, *group.trains]
+    for alert in everything:
         for r in alert.affectedRoutes:
             routes.setdefault(r.id, r)
         for s in alert.affectedStations:
@@ -346,7 +439,7 @@ def _merge(group: _Group) -> Disruption:
     description = primary.description.strip()
     details: list[str] = []
     seen = {" ".join(description.split())}
-    for alert in alerts:
+    for alert in everything:
         text = alert.description.strip()
         key = " ".join(text.split())
         if text and key not in seen:
@@ -357,7 +450,7 @@ def _merge(group: _Group) -> Disruption:
     ends = [a.end for a in alerts]
     return Disruption(
         id=primary.id,
-        alertIds=sorted(a.id for a in alerts),
+        alertIds=sorted({a.id for a in everything}),
         effect=effect,
         cause=cause,
         severity=severity_of(effect, cause),
@@ -366,7 +459,7 @@ def _merge(group: _Group) -> Disruption:
         title=_title(effect, group.segment, primary.header or description),
         description=description,
         details=details,
-        url=_link_of([primary, *alerts]),
+        url=_link_of(everything),
         start=None if None in starts else min(s for s in starts if s is not None),
         end=None if None in ends else max(e for e in ends if e is not None),
         lines=lines_of(list(routes.values())),
@@ -393,7 +486,7 @@ def group_disruptions(
     for alert in alerts:
         if alert_kind(alert) != "disruption":
             continue
-        segment = find_segment(_text(alert), ids_by_name)
+        segment = find_segment(_text(alert), ids_by_name, alert.affectedStations)
         key: object = (
             _segment_key(segment)
             if segment
@@ -413,6 +506,29 @@ def group_disruptions(
         host = _host_of(group, hosts)
         if host:
             host.alerts.extend(group.alerts)
+            del groups[key]
+
+    # A train's own notice joins the event that names it ("Tapolcáról
+    # Balatonfüredre (9759) ... pótlóbusz" and 9759's "Pótlóbusz közlekedik"),
+    # so the event lists the train
+    named = {
+        number: group
+        for group in groups.values()
+        if _is_line_level(group) or _is_network(group)
+        for alert in group.alerts
+        for number in _TRAIN_NUMBER.findall(_text(alert))
+    }
+    for key, group in list(groups.items()):
+        if _is_line_level(group) or _is_network(group):
+            continue
+        numbers = {
+            _train_number(t.tripShortName)
+            for a in group.alerts
+            for t in a.affectedTrips
+        }
+        event = next((named[n] for n in numbers if n in named), None)
+        if event is not None and event is not group:
+            event.trains.extend(group.alerts)
             del groups[key]
 
     disruptions = [
@@ -444,3 +560,89 @@ async def get_disruptions(redis: Redis) -> list[Disruption]:
     """Active line and network disruptions."""
     alerts = await get_rail_alerts(redis)
     return group_disruptions(alerts, await _station_ids_by_name(redis))
+
+
+# --- trains on boards ---
+
+# Worst first
+_TRAIN_DISRUPTION_RANK: dict[TrainDisruption, int] = {
+    "no_service": 0,
+    "replacement_bus": 1,
+}
+
+
+def train_disruption(text: str) -> TrainDisruption | None:
+    """
+    Whether a notice says a train does not run or is replaced by a bus (on
+    all or part of its run). Delay reasons and notices about its coaches or
+    services ("Kerékpárszállítás nem lehetséges") do not count.
+    """
+    if DelayReason.from_texts(text) is not None:
+        return None
+    if _EFFECTS[0][1].search(text):
+        return "replacement_bus"
+    if _TRAIN_NOTICE.search(text):
+        return None
+    return "no_service" if alert_effect(text) == "no_service" else None
+
+
+def worst_train_disruption(
+    effects: Iterable[TrainDisruption | None],
+) -> TrainDisruption | None:
+    found = [e for e in effects if e is not None]
+    if not found:
+        return None
+    worst: TrainDisruption = min(found, key=_TRAIN_DISRUPTION_RANK.__getitem__)
+    return worst
+
+
+@dataclass
+class _Window:
+    effect: TrainDisruption
+    start: int | None
+    end: int | None
+
+    def covers(self, moment: int) -> bool:
+        return (self.start is None or self.start <= moment) and (
+            self.end is None or moment <= self.end
+        )
+
+
+@dataclass
+class TrainDisruptions:
+    """The trains line disruptions name, by trip id and by train number."""
+
+    by_trip: dict[str, list[_Window]] = field(default_factory=dict)
+    by_number: dict[str, list[_Window]] = field(default_factory=dict)
+
+    def of(self, trip_id: str, number: str, moment: int) -> TrainDisruption | None:
+        windows = [*self.by_trip.get(trip_id, []), *self.by_number.get(number, [])]
+        return worst_train_disruption(w.effect for w in windows if w.covers(moment))
+
+
+def trains_of(disruptions: list[Disruption]) -> TrainDisruptions:
+    """
+    The trains each replacement-bus or no-service disruption names: its trips,
+    and train numbers in brackets in its text ("Balatonfüredre (9759)").
+    Trip ids repeat daily, so each only counts within the event's validity.
+    """
+    index = TrainDisruptions()
+    for d in disruptions:
+        if d.effect not in _TRAIN_DISRUPTION_RANK:
+            continue
+        window = _Window(cast(TrainDisruption, d.effect), d.start, d.end)
+        for trip in d.trips:
+            index.by_trip.setdefault(trip.tripId, []).append(window)
+        for text in (d.description, *d.details):
+            for number in _TRAIN_NUMBER.findall(text):
+                index.by_number.setdefault(number, []).append(window)
+    return index
+
+
+async def get_train_disruptions(redis: Redis) -> TrainDisruptions:
+    """Best effort: an empty index when the alerts are unavailable."""
+    try:
+        return trains_of(await get_disruptions(redis))
+    except Exception:
+        logger.warning("Disruptions unavailable for boards", exc_info=True)
+        return TrainDisruptions()

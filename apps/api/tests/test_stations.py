@@ -1,4 +1,5 @@
 import json
+from typing import Any
 
 import fakeredis
 import httpx
@@ -7,7 +8,7 @@ import respx
 from api.core.redis import add_key
 from api.schemas.stations import BoardEntry
 from api.services.live_trips import build_live_trip_index, match_live_trip
-from api.services.station_board import merge_duplicate_trips
+from api.services.station_board import _board_entry, merge_duplicate_trips
 from api.services.station_index import index_key, rail_stations_from_otp
 from tests.upstream import graphql_route, load_fixture, otp_responder
 
@@ -118,6 +119,11 @@ async def test_search_upstream_error_is_502(
 
 
 # Boards
+
+
+def _board_calls(route: respx.Route) -> list[Any]:
+    """Board queries only (a board also reads the alert feed, cached)."""
+    return [c for c in route.calls if b"query StationBoard" in c.request.content]
 
 
 async def test_departures_merge_platforms_sorted_by_expected_time(
@@ -293,7 +299,7 @@ async def test_board_is_cached(
     first = await client.get(url, params={"limit": 5})
     second = await client.get(url, params={"limit": 5})
 
-    assert route.call_count == 1
+    assert len(_board_calls(route)) == 1
     assert first.json() == second.json()
     key = add_key(f"station-board:{KELENFOLD}:departures:5")
     assert 0 < await redis.ttl(key) <= 30
@@ -306,7 +312,9 @@ async def test_quiet_station_widens_time_range(
 
     await client.get(f"/v1/stations/{KELENFOLD}/departures", params={"limit": 20})
 
-    ranges = [json.loads(c.request.content)["variables"]["range"] for c in route.calls]
+    ranges = [
+        json.loads(c.request.content)["variables"]["range"] for c in _board_calls(route)
+    ]
     assert ranges == [4 * 3600, 24 * 3600]
 
 
@@ -320,7 +328,7 @@ async def test_unknown_station_is_404(
 
     assert unknown.status_code == 404
     assert malformed.status_code == 404
-    assert route.call_count == 1  # malformed ids never reach upstream
+    assert len(_board_calls(route)) == 1  # malformed ids never reach upstream
 
 
 async def test_board_graphql_error_is_502(
@@ -377,3 +385,30 @@ def test_duplicate_merge_prefers_running_over_canceled() -> None:
     running = _entry("1:b", "201 gyorsvonat", 1000, realtime=False)
 
     assert [e.tripId for e in merge_duplicate_trips([canceled, running])] == ["1:b"]
+
+
+def _stoptime(alerts: list[dict[str, Any]]) -> dict[str, Any]:
+    board = load_fixture("otp-board-kelenfold-departures.json")
+    stoptime: dict[str, Any] = board["data"]["station"]["stoptimesWithoutPatterns"][0]
+    stoptime["trip"]["alerts"] = alerts
+    return stoptime
+
+
+def test_board_entry_marks_a_train_its_own_notice_replaces() -> None:
+    # 4770 leaves Kelenföld at serviceDay + 1620
+    at = 1793228400 + 1620
+    bus = {
+        "alertDescriptionText": "Pótlóbusz közlekedik, megállói: Kelenföld.",
+        "effectiveStartDate": at - 3600,
+        "effectiveEndDate": at + 3600,
+    }
+    over = {**bus, "effectiveEndDate": at - 60}
+    coaches = {"alertDescriptionText": "Utolsó kettő kocsija lezárva közlekedik."}
+
+    replaced = _board_entry(_stoptime([coaches, bus]), "departures", {})
+    expired = _board_entry(_stoptime([over]), "departures", {})
+    normal = _board_entry(_stoptime([coaches]), "departures", {})
+
+    assert replaced.disruption == "replacement_bus"
+    assert expired.disruption is None
+    assert normal.disruption is None

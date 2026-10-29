@@ -20,6 +20,17 @@ from api.util.trip import seconds_into_service_day
 # "aligned" segment can then be hundreds of kilometres down the line.
 MAX_HEADING_DETOUR_M = 50.0
 
+# A vehicle this close to a stop (along the route) and not moving is standing
+# at it. Long platforms and GPS noise put a standing train's reported position
+# several hundred metres from the stop's point (~410 m for an InterCity at
+# Budapest-Keleti). At its first stop, the 1 km of api.util.vehicle's
+# NEAR_STATION_M, as `activity` uses for "beforeDeparture".
+AT_STOP_M = 600.0
+AT_ORIGIN_M = 1000.0
+# Faster than this (m/s, about 7 km/h) a train is not standing at a stop.
+# Same as api.util.vehicle.MOVING_MPS.
+STANDING_MAX_MPS = 2.0
+
 # --- Helpers ---
 
 
@@ -205,6 +216,42 @@ def get_vehicle_progress(
     }
 
 
+def dwell_stop_index(
+    stoptimes: list[dict[str, Any]],
+    processed_stops: list[dict[str, Any]],
+    vehicle_progress: dict[str, Any],
+    train_position: float,
+    metres_per_unit: float,
+    speed: float | None,
+) -> int | None:
+    """
+    Index of the stop the vehicle is standing at, if any: its last passed or
+    next stop, within AT_STOP_M (AT_ORIGIN_M at the first) along the route,
+    and not moving (an unknown speed counts as standing). The final stop is
+    never a dwell: the trip ends there.
+    """
+    if speed is not None and speed > STANDING_MAX_MPS:
+        return None
+    along_by_index = {
+        stop.get("index"): stop["distanceAlongRoute"] for stop in processed_stops
+    }
+    best: tuple[float, int] | None = None
+    for index in (
+        vehicle_progress.get("lastStopIndex"),
+        vehicle_progress.get("nextStopIndex"),
+    ):
+        if index is None or index >= len(stoptimes) - 1:
+            continue
+        along = along_by_index.get(index)
+        if along is None:
+            continue
+        metres = abs(train_position - along) * metres_per_unit
+        near = AT_ORIGIN_M if index == 0 else AT_STOP_M
+        if metres <= near and (best is None or metres < best[0]):
+            best = (metres, index)
+    return best[1] if best else None
+
+
 # --- Main Function ---
 
 
@@ -217,6 +264,8 @@ def get_delay_and_position(
     lat: float,
     lon: float,
     heading: float | None = None,
+    # m/s; None when the feed has none
+    speed: float | None = None,
 ) -> dict[str, Any]:
     # Current time on the stoptimes' clock (seconds into the service day)
     current_time = seconds_into_service_day(
@@ -303,8 +352,28 @@ def get_delay_and_position(
 
         delay = current_time - interpolated_time
 
+    # Standing at a stop: the train leaves at its scheduled departure at the
+    # earliest, so it is never early there. Interpolating against the timetable
+    # would make a train waiting out a long stop look up to its whole dwell
+    # time early (or, short of the stop's point, late).
+    dwell_index = None
+    if route.line is not None and route.line.length > 0:
+        dwell_index = dwell_stop_index(
+            stoptimes,
+            list(processed_stops),
+            vehicle_progress,
+            train_position,
+            route.length_km * 1000 / route.line.length,
+            speed,
+        )
+    if dwell_index is not None:
+        departure = stoptimes[dwell_index].get("scheduledDeparture")
+        if departure is not None:
+            delay = max(0, current_time - departure)
+
     return {
         "delay": delay,
+        "dwellStopIndex": dwell_index,
         "trainPosition": train_position,
         "totalRouteDistance": total_route_distance,
         "processedStops": processed_stops_with_info,

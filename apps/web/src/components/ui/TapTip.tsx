@@ -32,7 +32,8 @@ export function TapTip({
             <PopoverTrigger
                 aria-label={label}
                 className={cn(
-                    "cursor-pointer rounded-sm outline-offset-2 focus-visible:outline-2 focus-visible:outline-ink-2",
+                    // 44 px hit area around a 24 px glyph
+                    "relative cursor-pointer rounded-sm before:absolute before:-inset-2.5",
                     className,
                 )}
                 onPointerEnter={(e) => {

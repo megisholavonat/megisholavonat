@@ -9,6 +9,7 @@ import { staleness } from "@megisholavonat/core/stale";
 import {
     browseTrains,
     compareTrains,
+    isNumericQuery,
     lateTrains,
     matchesTrainQuery,
     type SortDirection,
@@ -121,6 +122,8 @@ function useDebounced<T>(value: T, ms: number): T {
 export interface SearchResults {
     stations: Station[];
     trains: TrainFeatureProperties[];
+    /** A number was typed: trains are what it most likely means */
+    trainsFirst: boolean;
     loading: boolean;
 }
 
@@ -161,17 +164,28 @@ export function useSearch(
     return {
         stations: q.length >= 2 ? stationResults : [],
         trains: trainResults,
+        trainsFirst: isNumericQuery(q),
         loading: stations.isFetching,
     };
 }
 
 /**
+ * Stops nobody searches by number: kilometre-post halts ("Km. 107+000 H.")
+ * and platforms of foreign stations ("München Hbf Gl.5-10").
+ */
+const NUMBERED_STOP = /^km\.?\s*\d|\bgl\.\s*\d/i;
+
+/**
  * Re-ranks the API's matches: an exact name first, then the main stations
  * the query starts a word of, then the rest in the API's order (prefix
- * matches first), domestic before foreign.
+ * matches first), domestic before foreign. A number drops the stops that
+ * only match through the digits in their names.
  */
 export function rankStations(stations: Station[], query: string): Station[] {
     const q = normalizeSearchText(query.trim());
+    if (isNumericQuery(q)) {
+        stations = stations.filter((s) => !NUMBERED_STOP.test(s.name));
+    }
     const tier = (station: Station) => {
         const name = normalizeSearchText(station.name);
         if (name === q) return -1;

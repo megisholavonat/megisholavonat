@@ -18,7 +18,7 @@ function dayLabel(
     tomorrow: string,
 ): string | null {
     const occ = row.occurrence;
-    if (!occ || occ.daysAhead === 0) return null;
+    if (!occ || occ.daysAhead <= 0) return null;
     if (occ.daysAhead === 1) return tomorrow;
     return new Intl.DateTimeFormat(locale, {
         weekday: "long",
@@ -106,6 +106,11 @@ function Row({
                     <span className="tnum">
                         {formatSecondsAsTime(follow.departureS)}
                     </span>
+                </span>
+                <span className="tnum truncate text-caption text-ink-2">
+                    {follow.destination
+                        ? `${follow.trainNumber} → ${follow.destination}`
+                        : follow.trainNumber}
                 </span>
                 {reason && (
                     <ReasonLabel

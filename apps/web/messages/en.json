@@ -43,6 +43,9 @@
         "disruption": "Disruption",
         "punctuality": "{station}: <b>on time {count} in 10</b>",
         "standing": "stopped",
+        "standing_here": "Standing here",
+        "arrived_at": "arrived",
+        "departs_at": "departs",
         "vehicle": "Vehicle",
         "vehicle_type_label": "Type",
         "uic": "UIC",
@@ -257,8 +260,10 @@
         "all_trains": "All trains",
         "by_hour": "By time of day",
         "hour": "Hour",
+        "hour_axis": "on time, out of 10",
         "by_stop": "By stop",
         "few_data": "little data",
+        "no_data": "Not enough data yet",
         "no_data_hint": "We are still collecting runs. Check back in a few days.",
         "show_on_map": "Show on map"
     },
@@ -286,5 +291,10 @@
         "on_map": "Show on the map",
         "empty": "No journeys found",
         "same_station": "Pick two different stations"
+    },
+    "Shell": {
+        "train_gone": "This train is no longer running",
+        "station_unknown": "No such station",
+        "skip_to_search": "Skip to search"
     }
 }

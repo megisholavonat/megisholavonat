@@ -30,8 +30,10 @@ import {
 import type { TrainView } from "./useTrainView";
 
 /**
- * Scrolls the full stop list so the stop before the train sits at the top,
- * once per train (the half sheet already starts at the current stop).
+ * Scrolls the full stop list so the stop the train stands at, or the one
+ * before it, sits at the top, once per train (the half sheet already starts
+ * at the current stop). Near the first stop the list stays at its top, so
+ * the rows above the stops are never cut in half.
  */
 export function useScrollToCurrentStop(
     view: TrainView | null,
@@ -39,26 +41,31 @@ export function useScrollToCurrentStop(
 ) {
     const ref = useRef<HTMLDivElement>(null);
     const done = useRef<string | null>(null);
-    const nextIndex = view?.next?.index ?? -1;
+    const target = view?.next ? (view.standingAt ?? view.next.index - 1) : null;
     const key = view ? `${view.vehicle.vehicleId}` : null;
     useEffect(() => {
-        if (!enabled || !key || nextIndex < 0) {
+        if (!enabled || !key || target == null) {
             if (!enabled) done.current = null;
             return;
         }
         if (done.current === key) return;
         const root = ref.current;
-        const row = root?.querySelector("ol")?.children[
-            Math.max(0, nextIndex - 1)
-        ] as HTMLElement | undefined;
         const scroller = root?.closest<HTMLElement>(".overflow-y-auto");
+        // Rows before the train's position line up with the stops
+        const row = root?.querySelector("ol")?.children[Math.max(0, target)] as
+            | HTMLElement
+            | undefined;
         if (!row || !scroller) return;
         done.current = key;
+        if (target <= 0) {
+            scroller.scrollTop = 0;
+            return;
+        }
         const offset =
             row.getBoundingClientRect().top -
             scroller.getBoundingClientRect().top;
         scroller.scrollTop += offset - 8;
-    }, [enabled, key, nextIndex]);
+    }, [enabled, key, target]);
     return ref;
 }
 

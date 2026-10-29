@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
     browseTrains,
     compareTrains,
+    isNumericQuery,
     lateTrains,
     liveSpeedKmh,
     matchesTrainQuery,
@@ -52,6 +53,32 @@ describe("matchesTrainQuery", () => {
         expect(matchesTrainQuery(t, "0480 012-3")).toBe(true);
         // The first two characters ("1:") are dropped before matching
         expect(matchesTrainQuery(t, "1:9155")).toBe(false);
+    });
+});
+
+describe("numeric queries", () => {
+    it("match the start of the train number only", () => {
+        expect(matchesTrainQuery(train({ tripShortName: "10" }), "10")).toBe(
+            true,
+        );
+        expect(
+            matchesTrainQuery(train({ tripShortName: "104 TISZA" }), "10"),
+        ).toBe(true);
+        expect(matchesTrainQuery(train({ tripShortName: "2410" }), "10")).toBe(
+            false,
+        );
+    });
+
+    it("ignore the route and a short vehicle number", () => {
+        const t = train({
+            tripShortName: "2519",
+            routeShortName: "S10",
+            vehicleId: "1:915504310123",
+        });
+        expect(matchesTrainQuery(t, "10")).toBe(false);
+        expect(matchesTrainQuery(t, "43101")).toBe(true);
+        expect(isNumericQuery("0480 012-3")).toBe(true);
+        expect(isNumericQuery("IC 10")).toBe(false);
     });
 });
 

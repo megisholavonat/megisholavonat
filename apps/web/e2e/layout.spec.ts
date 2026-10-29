@@ -253,3 +253,26 @@ test("L10: search and settings stay reachable beside an open panel", async ({
         settings: page.getByRole("button", { name: t.Settings.title }),
     });
 });
+
+/** The outline the element (or its text field's pill) draws */
+async function ring(locator: Locator) {
+    return locator.evaluate((el) => {
+        const target = el.closest(".focus-field") ?? el;
+        const style = getComputedStyle(target);
+        return `${style.outlineStyle} ${style.outlineWidth}`;
+    });
+}
+
+test("M-7: keyboard focus shows a 2 px ring, the search field on its pill", async ({
+    page,
+}) => {
+    await openHome(page);
+    const field = await openSearch(page);
+    await field.focus();
+    expect(await ring(field)).toBe("solid 2px");
+    // A control focused from the keyboard
+    await page.keyboard.press("Shift+Tab");
+    const focused = page.locator(":focus-visible").first();
+    await expect(focused).toBeAttached();
+    expect(await ring(focused)).toBe("solid 2px");
+});

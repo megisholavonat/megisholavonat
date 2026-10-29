@@ -62,11 +62,60 @@ export interface TrainView {
     ticketUrl: string;
     /** Where the train is between its last and next stop */
     position: TrainPosition;
+    /**
+     * Index of the stop the train stands at (waiting to depart or out a
+     * dwell), drawn on that stop rather than between two; null otherwise
+     */
+    standingAt: number | null;
+    /** At its destination: every stop passed, `next` is the final stop */
+    arrived: boolean;
     /** Whole-trip services */
     services: InfoService[];
 }
 
 const HOUR = 60 * 60 * 1000;
+/** Closer than this (km) to a stop, a standing train stands at it */
+const AT_STOP_KM = 0.4;
+
+/**
+ * A train standing at a stop leaves on time at the earliest, so it is never
+ * "early" there; older APIs could report its dwell as minutes early.
+ */
+function notEarlyWhileStanding(
+    display: TrainDisplay,
+    standing: boolean,
+): TrainDisplay {
+    return standing && display.delay != null && display.delay < 0
+        ? { ...display, delay: 0 }
+        : display;
+}
+
+/**
+ * The stop a train stands at: the API's `dwellStopIndex`, its first stop
+ * before departure, or (older APIs) a stopped train within AT_STOP_KM of
+ * its last or next stop.
+ */
+function standingStop(
+    vehicle: VehiclePositionWithDelay,
+    position: TrainPosition,
+    atOrigin: boolean,
+): number | null {
+    if (atOrigin) return 0;
+    if (vehicle.dwellStopIndex != null) return vehicle.dwellStopIndex;
+    const segment = position.segmentKm;
+    if (vehicle.speed !== 0 || segment == null || position.fromIndex < 0) {
+        return null;
+    }
+    if (position.fraction * segment < AT_STOP_KM) return position.fromIndex;
+    const last = vehicle.trip.stoptimes.length - 1;
+    if (
+        (1 - position.fraction) * segment < AT_STOP_KM &&
+        position.toIndex < last
+    ) {
+        return position.toIndex;
+    }
+    return null;
+}
 
 export function useTrainDetails(vehicleId: string | null) {
     return useQuery({
@@ -113,9 +162,28 @@ export function useTrainView(
             listed.lastUpdated === vehicle.lastUpdated
                 ? listed.isStale
                 : undefined;
-        const display = trainDisplay(
+        const shown = trainDisplay(
             { ...vehicle, isStale: flag },
             new Date(now),
+        );
+        const stoptimes = vehicle.trip.stoptimes;
+        const lastIdx = stoptimes.length - 1;
+        // An arrived train has passed every stop; one waiting at its origin
+        // has passed none
+        const arrived = shown.activity === "arrived";
+        const atOrigin = shown.activity === "beforeDeparture";
+        const nextIdx = arrived
+            ? stoptimes.length
+            : atOrigin
+              ? 0
+              : nextStopIndex(vehicle);
+        const position = trainPosition(vehicle, nextIdx, routeKm);
+        const standingAt = arrived
+            ? null
+            : standingStop(vehicle, position, atOrigin);
+        const display = notEarlyWhileStanding(
+            shown,
+            standingAt != null || vehicle.speed === 0,
         );
         // Idle and cancelled trains have no delay to carry forward or forecast
         const live = display.delay != null;
@@ -129,9 +197,6 @@ export function useTrainView(
                 predictedByIndex.set(stop.index ?? i, stop.predictedDelay);
             }
         });
-        const nextIdx = nextStopIndex(vehicle);
-        const stoptimes = vehicle.trip.stoptimes;
-        const lastIdx = stoptimes.length - 1;
         const displayable = vehicle.trip.infoServices.filter(
             (s) => s.displayable !== false,
         );
@@ -170,7 +235,8 @@ export function useTrainView(
                         : [],
             };
         });
-        const next = stops[nextIdx] ?? null;
+        // Arrived: the final stop, passed, with its actual arrival
+        const next = stops[arrived ? lastIdx : nextIdx] ?? null;
         const waiting = beforeDeparture(vehicle);
         const firstStation = stops[0]?.stationId
             ? byStation.get(stops[0].stationId)
@@ -190,6 +256,7 @@ export function useTrainView(
             reason: trainReason(vehicle.trip.alerts, Date.now() / 1000),
             usuallyLate: waiting ? usuallyLate(firstStation) : null,
             punctuality:
+                !arrived &&
                 nextStation &&
                 share != null &&
                 !nextStation.insufficientData &&
@@ -206,7 +273,9 @@ export function useTrainView(
                     ? toEpoch(vehicle.trip.serviceDate, from.scheduledDeparture)
                     : null,
             ),
-            position: trainPosition(vehicle, nextIdx, routeKm),
+            position,
+            standingAt,
+            arrived,
             services: displayable.filter((s) => s.fromStopIndex <= 0),
         };
     }, [vehicle, history.data, now, listed, routeKm]);
@@ -225,7 +294,12 @@ export function useShownDelay(
     const now = useNow();
     const display =
         view?.display ??
-        (fallback ? trainDisplay(fallback, new Date(now)) : null);
+        (fallback
+            ? notEarlyWhileStanding(
+                  trainDisplay(fallback, new Date(now)),
+                  fallback.speed === 0,
+              )
+            : null);
     if (!display) return { delay: null, stale: true };
     return { delay: display.delay, stale: display.state !== "running" };
 }

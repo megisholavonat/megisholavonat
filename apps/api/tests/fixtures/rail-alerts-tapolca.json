@@ -1,0 +1,143 @@
+[
+ {
+  "id": "QWxlcnQ6MToxMjAyOA",
+  "header": null,
+  "description": "Járműhiba miatt a Tapolcáról 4:41-kor Balatonfüredre (9759) és a Balatonfüredről 6:02-kor Tapolcára (9772) induló személyvonat helyett pótlóbusz közlekedik.\n\nMegállólista: mavinform.hu weboldalon és a MÁV+ alkalmazásban.",
+  "url": null,
+  "start": 1793244060,
+  "end": 1793257680,
+  "affectedRoutes": [],
+  "affectedTrips": [],
+  "affectedStations": [
+   {
+    "id": "005504515",
+    "name": "Balatonrendes"
+   },
+   {
+    "id": "005504598",
+    "name": "Tapolca"
+   },
+   {
+    "id": "005504549",
+    "name": "Badacsonytomaj"
+   },
+   {
+    "id": "005504481",
+    "name": "Balatonszepezd"
+   },
+   {
+    "id": "005504507",
+    "name": "Révfülöp"
+   },
+   {
+    "id": "005504416",
+    "name": "Balatonfüred"
+   },
+   {
+    "id": "005504499",
+    "name": "Szepezdfürdő"
+   },
+   {
+    "id": "005504473",
+    "name": "Zánka-Köveskál"
+   },
+   {
+    "id": "005504440",
+    "name": "Balatonudvari"
+   },
+   {
+    "id": "005504465",
+    "name": "Balatonakali-Dörgicse"
+   },
+   {
+    "id": "005504572",
+    "name": "Badacsonytördemic-Szigliget"
+   },
+   {
+    "id": "005504531",
+    "name": "Badacsonyörs"
+   },
+   {
+    "id": "005504424",
+    "name": "Aszófő"
+   },
+   {
+    "id": "005504580",
+    "name": "Nemesgulács-Kisapáti"
+   },
+   {
+    "id": "005504457",
+    "name": "Fövenyes"
+   },
+   {
+    "id": "005504564",
+    "name": "Badacsonylábdihegy"
+   },
+   {
+    "id": "005504523",
+    "name": "Ábrahámhegy"
+   },
+   {
+    "id": "005504556",
+    "name": "Badacsony"
+   },
+   {
+    "id": "005504432",
+    "name": "Örvényes"
+   },
+   {
+    "id": "005504309",
+    "name": "Zánka-Erzsébettábor"
+   }
+  ],
+  "reason": null
+ },
+ {
+  "id": "QWxlcnQ6MToxNjM1NDMy",
+  "header": null,
+  "description": "Pótlóbusz közlekedik, mely várhatóan 20 perces késéssel indul. \nMegállói:\nTapolca, vasútállomás (VOLÁN);\nNemesgulács-Kisapáti vasútállomás (VOLÁN);\nBadacsonytördemic, vasútállomás (VOLÁN);\nBadacsonylábdihegy, vasúti megállóhely bejárati út (VOLÁN);\nBadacsony, vasúti megállóhely (VOLÁN);\nBadacsonytomaj, vasútállomás bejárati út (VOLÁN);\nBadacsonytomaj (Badacsonyörs), Posta (VOLÁN);\nÁbrahámhegy, vasúti megállóhely (VOLÁN);\nBalatonrendes, vasúti megállóhely (VOLÁN);\nRévfülöp, vasútállomás (VOLÁN);\nBalatonszepezd, fürdő (VOLÁN);\nBalatonszepezd, vasúti megállóhely (VOLÁN);\nZánka-Köveskál vasútállomás bejárati út (VOLÁN);\nZánka, Gyermekváros (VOLÁN);\nBalatonakali-Dörgicse vasútállomás (VOLÁN);\nBalatonudvari, Fövenyes, bejárati út (VOLÁN);\nBalatonudvari, autóbusz-váróterem (VOLÁN);\nÖrvényes, autóbusz-váróterem (VOLÁN);\nAszófő, vasútállomás bejárati út (VOLÁN);\nBalatonfüred, autóbusz-állomás (MÁVBUSZ)",
+  "url": null,
+  "start": 1793228400,
+  "end": 1793314740,
+  "affectedRoutes": [
+   {
+    "id": "1:E35636223",
+    "mode": "RAIL",
+    "shortName": "<span class=\"MNR2007\">&#484;</span>",
+    "longName": "Sz 9759/9760/9761/9770/9772"
+   }
+  ],
+  "affectedTrips": [
+   {
+    "tripId": "1:35700565",
+    "tripShortName": "9759 személyvonat"
+   }
+  ],
+  "affectedStations": [],
+  "reason": null
+ },
+ {
+  "id": "QWxlcnQ6MToxNjM1NDMz",
+  "header": null,
+  "description": "Pótlóbusz közlekedik, megállói:\nBalatonfüred, autóbusz-állomás (MÁVBUSZ);\nAszófő, vasútállomás bejárati út (VOLÁN);\nÖrvényes, autóbusz-váróterem (VOLÁN);\nBalatonudvari, autóbusz-váróterem (VOLÁN);\nBalatonudvari, Fövenyes, bejárati út (VOLÁN);\nBalatonakali-Dörgicse vasútállomás (VOLÁN);\nZánka, Gyermekváros (VOLÁN);\nZánka-Köveskál vasútállomás bejárati út (VOLÁN);\nBalatonszepezd, vasúti megállóhely (VOLÁN);\nBalatonszepezd, fürdő (VOLÁN);\nRévfülöp, vasútállomás (VOLÁN);\nBalatonrendes, vasúti megállóhely (VOLÁN);\nÁbrahámhegy, vasúti megállóhely (VOLÁN);\nBadacsonytomaj (Badacsonyörs), Posta (VOLÁN);\nBadacsonytomaj, vasútállomás bejárati út (VOLÁN);\nBadacsony, vasúti megállóhely (VOLÁN);\nBadacsonylábdihegy, vasúti megállóhely bejárati út (VOLÁN);\nBadacsonytördemic, vasútállomás (VOLÁN);\nNemesgulács-Kisapáti vasútállomás (VOLÁN);\nTapolca, vasútállomás (VOLÁN)",
+  "url": null,
+  "start": 1793228400,
+  "end": 1793314740,
+  "affectedRoutes": [
+   {
+    "id": "1:E35636223",
+    "mode": "RAIL",
+    "shortName": "<span class=\"MNR2007\">&#484;</span>",
+    "longName": "Sz 9759/9760/9761/9770/9772"
+   }
+  ],
+  "affectedTrips": [
+   {
+    "tripId": "1:35636224",
+    "tripShortName": "9772 személyvonat"
+   }
+  ],
+  "affectedStations": [],
+  "reason": null
+ }
+]

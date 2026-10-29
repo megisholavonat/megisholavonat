@@ -1,6 +1,7 @@
 "use client";
 
 import {
+    defaultBoardingIndex,
     departureDate,
     localWeekday,
     timeOfDay,
@@ -38,6 +39,10 @@ interface BoardingOption {
     departureS: number;
     /** Local date of this run's departure */
     date: string | null;
+    /** Scheduled time from here to the end of the trip, s */
+    runS: number | null;
+    /** Index of the stop in the train's stoptimes; -1 for a saved one */
+    index: number;
 }
 
 const WEEKDAYS = [1, 2, 3, 4, 5, 6, 7] as const;
@@ -53,6 +58,8 @@ function optionOf(follow: Follow): BoardingOption {
         lon: follow.fromLon,
         departureS: follow.departureS,
         date: follow.date,
+        runS: follow.runS ?? null,
+        index: -1,
     };
 }
 
@@ -60,6 +67,7 @@ function trainOptions(view: TrainView): BoardingOption[] {
     const { trip } = view.vehicle;
     const stoptimes = trip.stoptimes;
     const options: BoardingOption[] = [];
+    const end = stoptimes.at(-1)?.scheduledArrival ?? null;
     stoptimes.forEach((stoptime, i) => {
         // Nobody boards at the last stop
         if (i === stoptimes.length - 1) return;
@@ -74,6 +82,8 @@ function trainOptions(view: TrainView): BoardingOption[] {
             lon: stoptime.stop.lon,
             departureS: timeOfDay(departure),
             date: departureDate(trip.serviceDate, departure),
+            runS: end === null ? null : Math.max(0, end - departure),
+            index: i,
         });
     });
     return options;
@@ -191,7 +201,6 @@ export function FollowEditor({
             routeShortName: vehicle.trip.route.shortName,
             destination: destinationOf(vehicle),
             options,
-            next: current.view.next,
         };
     }, [shown, follows]);
 
@@ -212,14 +221,20 @@ export function FollowEditor({
             return;
         }
         setDays(localWeekday() <= 5 ? WORKDAYS : WEEKEND);
-        // A station the user looked at recently, else where the train is next
-        const recentIds = recent.map((s) => s.id);
-        const fromRecent = options.find((o) => recentIds.includes(o.stationId));
-        const next =
-            "next" in setup && setup.next
-                ? options.find((o) => o.stationId === setup.next?.stationId)
-                : undefined;
-        setBoardingKey((fromRecent ?? next ?? options[0])?.key ?? "");
+        // A station the user looked at recently still ahead of the train,
+        // else its next stop; never one it has already passed
+        const view = target.kind === "train" ? target.view : null;
+        const routeOptions = options.filter((o) => o.index >= 0);
+        const index = defaultBoardingIndex(
+            view?.vehicle.trip.stoptimes.map((st) => stationIdOf(st.stop)) ??
+                [],
+            view?.next?.index ?? null,
+            recent.map((s) => s.id),
+        );
+        setBoardingKey(
+            (routeOptions.find((o) => o.index >= index) ?? options[0])?.key ??
+                "",
+        );
     }, [target]);
 
     const boarding = setup?.options.find((o) => o.key === boardingKey);
@@ -236,6 +251,7 @@ export function FollowEditor({
             fromLat: boarding.lat,
             fromLon: boarding.lon,
             departureS: boarding.departureS,
+            runS: boarding.runS,
             weekdays: days,
             date: days.length === 0 ? boarding.date : null,
         });
@@ -299,7 +315,7 @@ export function FollowEditor({
                                             setBoardingKey(e.target.value)
                                         }
                                         disabled={setup.options.length < 2}
-                                        className="tnum h-12 w-full cursor-pointer appearance-none rounded-md border border-line bg-surface pr-10 pl-4 text-body text-ink outline-none focus-visible:ring-2 focus-visible:ring-ink disabled:cursor-default"
+                                        className="tnum h-12 w-full cursor-pointer appearance-none rounded-md border border-line bg-surface pr-10 pl-4 text-body text-ink disabled:cursor-default"
                                     >
                                         {setup.options.map((o) => (
                                             <option key={o.key} value={o.key}>

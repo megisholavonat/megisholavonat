@@ -43,6 +43,9 @@
         "disruption": "Zavar",
         "punctuality": "{station}: <b>10-ből {count, select, 0 {0-szor} 1 {1-szer} 2 {2-szer} 3 {3-szor} 4 {4-szer} 5 {5-ször} 6 {6-szor} 7 {7-szer} 8 {8-szor} 9 {9-szer} other {10-szer}}</b> pontos",
         "standing": "áll",
+        "standing_here": "Itt áll",
+        "arrived_at": "érkezett",
+        "departs_at": "indul",
         "vehicle": "Jármű",
         "vehicle_type_label": "Típus",
         "uic": "UIC",
@@ -257,6 +260,7 @@
         "all_trains": "Összes vonat",
         "by_hour": "Napszak szerint",
         "hour": "Óra",
+        "hour_axis": "pontos 10-ből",
         "by_stop": "Megállónként",
         "few_data": "kevés adat",
         "no_data": "Még kevés az adat",
@@ -287,5 +291,10 @@
         "on_map": "Mutasd a térképen",
         "empty": "Nincs találat",
         "same_station": "Válassz két különböző állomást"
+    },
+    "Shell": {
+        "train_gone": "Ez a vonat már nem közlekedik",
+        "station_unknown": "Nincs ilyen állomás",
+        "skip_to_search": "Ugrás a keresésre"
     }
 }

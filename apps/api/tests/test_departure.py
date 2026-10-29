@@ -83,8 +83,10 @@ def test_waiting_at_origin_stays_at_origin() -> None:
         assert progress["nextStop"] == "Szolnok"
         assert progress["lastStopIndex"] == 0
         assert loc["trainPosition"] < 0.01
-    # Minutes until the 22:40 departure, not hours
-    assert [loc["delay"] for loc in waiting] == [-21, -1]
+    # Standing at a stop before its departure: on time, never early (it used
+    # to be the minutes until the 22:40 departure, and hours before the fix)
+    assert [loc["delay"] for loc in waiting] == [0, 0]
+    assert [loc["dwellStopIndex"] for loc in waiting] == [0, 0]
 
 
 def test_after_departure_unchanged() -> None:
