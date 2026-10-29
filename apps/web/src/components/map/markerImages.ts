@@ -340,9 +340,17 @@ function arrow(scheme: ColorScheme) {
     return data ? { data, meta: { pixelRatio: PIXEL_RATIO } } : null;
 }
 
-/** Selected station: a hollow ink ring. */
+/** The clearing around the station ring: opaque to here (css px)… */
+const STATION_CLEAR = 26;
+/** …then fading out to here */
+const STATION_FADE = 60;
+
+/**
+ * Selected station: a hollow ink ring on a soft clearing in the map colour,
+ * so the railway overlay's own station name doesn't run through the ring.
+ */
 function station(scheme: ColorScheme) {
-    const size = 28;
+    const size = STATION_FADE * 2;
     const canvas = document.createElement("canvas");
     canvas.width = size * PIXEL_RATIO;
     canvas.height = size * PIXEL_RATIO;
@@ -350,6 +358,13 @@ function station(scheme: ColorScheme) {
     if (!ctx) return null;
     ctx.scale(PIXEL_RATIO, PIXEL_RATIO);
     const c = size / 2;
+    const clearing = ctx.createRadialGradient(c, c, 0, c, c, STATION_FADE);
+    const map = COLORS[scheme].map;
+    clearing.addColorStop(0, map);
+    clearing.addColorStop(STATION_CLEAR / STATION_FADE, map);
+    clearing.addColorStop(1, `${map}00`);
+    ctx.fillStyle = clearing;
+    ctx.fillRect(0, 0, size, size);
     ctx.beginPath();
     ctx.arc(c, c, 13, 0, Math.PI * 2);
     ctx.globalAlpha = 0.2;
