@@ -17,7 +17,7 @@ from api.schemas.alerts import DelayReason
 from api.util.county import get_county_for_point
 from api.util.preprocess import get_delay_and_position
 from api.util.replay import next_snapshot
-from api.util.route import route_from_polyline
+from api.util.route import route_from_polyline, simplified_polyline
 from api.util.trip import seconds_outside_window
 from api.util.vehicle import activity, is_stale, should_remove
 
@@ -258,6 +258,7 @@ class TrainService:
 
             trip = loc.get("trip", {})
             stoptimes = trip.get("stoptimes") or []
+            points = (trip.get("tripGeometry") or {}).get("points")
             headsign = (
                 (stoptimes[-1].get("stop") or {}).get("name") if stoptimes else None
             )
@@ -314,7 +315,7 @@ class TrainService:
                     "routeTextColor": trip.get("route", {}).get("textColor", ""),
                     "headsign": headsign,
                     "delay": loc.get("delay"),
-                    "routePolyline": trip.get("tripGeometry", {}).get("points"),
+                    "routePolyline": simplified_polyline(points) if points else None,
                     "distanceToNextStop": distance_to_next_stop_km,
                     "reason": reason.model_dump() if reason else None,
                 },

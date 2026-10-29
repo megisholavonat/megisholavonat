@@ -74,6 +74,28 @@ def route_from_polyline(points: str) -> RouteGeometry:
     return RouteGeometry.from_latlon(polyline.decode(points))
 
 
+# Tolerance of the train list's route lines, in degrees (about 4-5 m)
+LIST_POLYLINE_TOLERANCE = 0.00005
+
+
+@functools.lru_cache(maxsize=ROUTE_CACHE_SIZE)
+def simplified_polyline(points: str) -> str:
+    """
+    The trip polyline thinned to LIST_POLYLINE_TOLERANCE, for the train list.
+    Clients only move markers along it between position reports, so a few
+    metres are invisible, and it removes about two thirds of the points (the
+    bulk of /v1/trains). Details keep the full geometry.
+    """
+    try:
+        coords = polyline.decode(points)
+    except (ValueError, IndexError, TypeError):
+        return points
+    if len(coords) < 3:
+        return points
+    line = LineString(coords).simplify(LIST_POLYLINE_TOLERANCE, preserve_topology=False)
+    return str(polyline.encode([(float(x), float(y)) for x, y in line.coords]))
+
+
 StopsKey = tuple[tuple[Any, Any, Any, Any, Any], ...]
 
 
