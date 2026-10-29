@@ -2838,6 +2838,14 @@
             },
             "type": "array",
             "title": "Predictions"
+          },
+          "typicalDelays": {
+            "items": {
+              "$ref": "#/components/schemas/TypicalDelay"
+            },
+            "type": "array",
+            "title": "Typicaldelays",
+            "default": []
           }
         },
         "type": "object",
@@ -3132,6 +3140,17 @@
           "routeTextColor": {
             "type": "string",
             "title": "Routetextcolor"
+          },
+          "headsign": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Headsign"
           },
           "delay": {
             "type": "integer",
@@ -3935,6 +3954,41 @@
         ],
         "title": "TripGeometry",
         "description": "Trip geometry polyline"
+      },
+      "TypicalDelay": {
+        "properties": {
+          "trainNumber": {
+            "type": "string",
+            "title": "Trainnumber"
+          },
+          "n": {
+            "type": "integer",
+            "title": "N"
+          },
+          "medianDelayMin": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mediandelaymin"
+          },
+          "insufficientData": {
+            "type": "boolean",
+            "title": "Insufficientdata"
+          }
+        },
+        "type": "object",
+        "required": [
+          "trainNumber",
+          "n",
+          "insufficientData"
+        ],
+        "title": "TypicalDelay",
+        "description": "A train's usual delay at one station, for \"usually late\" before departure"
       },
       "ValidationError": {
         "properties": {

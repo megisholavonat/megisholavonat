@@ -906,6 +906,10 @@ export type StationPlatforms = {
      * Predictions
      */
     predictions: Array<PlatformPrediction>;
+    /**
+     * Typicaldelays
+     */
+    typicalDelays?: Array<TypicalDelay>;
 };
 
 /**
@@ -1081,6 +1085,10 @@ export type TrainFeatureProperties = {
      * Routetextcolor
      */
     routeTextColor: string;
+    /**
+     * Headsign
+     */
+    headsign?: string | null;
     /**
      * Delay
      */
@@ -1512,6 +1520,30 @@ export type TripGeometry = {
      * Points
      */
     points: string;
+};
+
+/**
+ * TypicalDelay
+ *
+ * A train's usual delay at one station, for "usually late" before departure
+ */
+export type TypicalDelay = {
+    /**
+     * Trainnumber
+     */
+    trainNumber: string;
+    /**
+     * N
+     */
+    n: number;
+    /**
+     * Mediandelaymin
+     */
+    medianDelayMin?: number | null;
+    /**
+     * Insufficientdata
+     */
+    insufficientData: boolean;
 };
 
 /**

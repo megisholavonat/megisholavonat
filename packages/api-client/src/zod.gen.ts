@@ -393,16 +393,6 @@ export const zStationBoard = z.object({
 });
 
 /**
- * StationPlatforms
- */
-export const zStationPlatforms = z.object({
-    stationId: z.string(),
-    stationName: z.string().nullish(),
-    window: zHistoryWindow,
-    predictions: z.array(zPlatformPrediction)
-});
-
-/**
  * StopWithCounty
  *
  * Stop information with county data
@@ -475,6 +465,7 @@ export const zTrainFeatureProperties = z.object({
     tripShortName: z.string(),
     routeShortName: z.string(),
     routeTextColor: z.string(),
+    headsign: z.string().nullish(),
     delay: z.int(),
     routePolyline: z.string().nullish(),
     distanceToNextStop: z.number().nullish(),
@@ -680,6 +671,29 @@ export const zTrip = z.object({
     bikesAllowed: z.string(),
     infoServices: z.array(zInfoService),
     alerts: z.array(zAlert)
+});
+
+/**
+ * TypicalDelay
+ *
+ * A train's usual delay at one station, for "usually late" before departure
+ */
+export const zTypicalDelay = z.object({
+    trainNumber: z.string(),
+    n: z.int(),
+    medianDelayMin: z.number().nullish(),
+    insufficientData: z.boolean()
+});
+
+/**
+ * StationPlatforms
+ */
+export const zStationPlatforms = z.object({
+    stationId: z.string(),
+    stationName: z.string().nullish(),
+    window: zHistoryWindow,
+    predictions: z.array(zPlatformPrediction),
+    typicalDelays: z.array(zTypicalDelay).optional().default([])
 });
 
 /**
