@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { HourChart, overallShare } from "./HourChart";
 import {
     Card,
+    EmptyState,
     LateChip,
     LoadError,
     lateLevel,
@@ -163,7 +164,7 @@ function Rankings({ days }: { days: number }) {
                     ))}
                 </ol>
             ) : (
-                <p className="py-8 text-center text-ink-2">{t("no_data")}</p>
+                <EmptyState />
             )}
         </Card>
     );
@@ -194,7 +195,7 @@ function NetworkByHour({ days }: { days: number }) {
                     <HourChart hours={query.data.hours} />
                 </>
             ) : (
-                <p className="py-8 text-center text-ink-2">{t("no_data")}</p>
+                <EmptyState />
             )}
         </Card>
     );

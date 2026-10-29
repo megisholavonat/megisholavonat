@@ -10,6 +10,7 @@ import { Link } from "@/i18n/navigation";
 import { trainName } from "@/lib/train";
 import {
     Card,
+    EmptyState,
     LateChip,
     LoadError,
     lateLevel,
@@ -119,9 +120,7 @@ export function TrainHistoryPage({ number }: { number: string }) {
                 </Card>
             ) : !data || !final || final.onTimeShare == null ? (
                 <Card>
-                    <p className="py-8 text-center text-ink-2">
-                        {t("no_data")}
-                    </p>
+                    <EmptyState />
                 </Card>
             ) : (
                 <>
