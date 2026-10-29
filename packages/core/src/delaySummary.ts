@@ -360,15 +360,21 @@ export function delaySummarySentence(
             departure != null
                 ? `${huTimeSubject(departure)} ${route}`
                 : `${huTrainSubjectShort(card.number)} (${route})`;
+        // Not measured at the rider's stop: say where it was
+        const at = card.measuredAt
+            ? `, utolsó mérés: ${card.measuredAt.name}`
+            : "";
         switch (card.outcome) {
             case "late":
                 return card.soFar
-                    ? `${subject} eddig ${n} percet késett`
-                    : `${subject} ${day} ${n} percet késett`;
+                    ? `${subject} eddig ${n} percet késett${at}`
+                    : `${subject} ${day} ${n} percet késett${at}`;
             case "onTime":
                 return card.soFar
-                    ? `${subject} eddig pontos`
-                    : `${subject} ${day} pontosan érkezett`;
+                    ? `${subject} eddig pontos${at}`
+                    : card.measuredAt
+                      ? `${subject} ${day} pontos volt${at}`
+                      : `${subject} ${day} pontosan érkezett`;
             case "cancelled":
                 return `${subject} ${day} elmaradt`;
             default:
@@ -379,15 +385,18 @@ export function delaySummarySentence(
         departure != null
             ? `The ${clockTime(departure)} ${route}`
             : `Train ${card.number} (${route})`;
+    const at = card.measuredAt
+        ? `, last measured at ${card.measuredAt.name}`
+        : "";
     switch (card.outcome) {
         case "late":
             return card.soFar
-                ? `${subject} has been ${n} min late so far`
-                : `${subject} was ${n} min late ${day}`;
+                ? `${subject} has been ${n} min late so far${at}`
+                : `${subject} was ${n} min late ${day}${at}`;
         case "onTime":
             return card.soFar
-                ? `${subject} has been on time so far`
-                : `${subject} was on time ${day}`;
+                ? `${subject} has been on time so far${at}`
+                : `${subject} was on time ${day}${at}`;
         case "cancelled":
             return `${subject} was cancelled ${day}`;
         default:

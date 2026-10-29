@@ -228,7 +228,25 @@ describe("copy", () => {
                 delaySummary(run([3, 12, null], { finished: false })),
                 NOW,
             ),
-        ).toBe("A 7:15-ös Szolnok → Budapest-Nyugati eddig 12 percet késett");
+        ).toBe(
+            "A 7:15-ös Szolnok → Budapest-Nyugati eddig 12 percet késett, utolsó mérés: Cegléd",
+        );
+        // The arrival was not recorded: never "arrived", the stop is named
+        expect(
+            delaySummarySentence("hu", delaySummary(run([3, 12, null])), NOW),
+        ).toBe(
+            "A 7:15-ös Szolnok → Budapest-Nyugati ma 12 percet késett, utolsó mérés: Cegléd",
+        );
+        expect(
+            delaySummarySentence("hu", delaySummary(run([3, 2, null])), NOW),
+        ).toBe(
+            "A 7:15-ös Szolnok → Budapest-Nyugati ma pontos volt, utolsó mérés: Cegléd",
+        );
+        expect(
+            delaySummarySentence("en", delaySummary(run([3, 12, null])), NOW),
+        ).toBe(
+            "The 7:15 Szolnok → Budapest-Nyugati was 12 min late today, last measured at Cegléd",
+        );
         expect(
             delaySummarySentence(
                 "hu",

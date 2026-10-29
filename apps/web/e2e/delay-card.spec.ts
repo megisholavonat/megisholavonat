@@ -27,7 +27,7 @@ test("the card page tells a finished run with its measurement note", async ({
     const response = await page.goto("/hu/kesesek/5009/2026-10-27");
     expect(response?.status()).toBe(200);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-        "A 3:25-ös Miskolc-Tiszai → Budapest-Keleti október 27-én 29 percet késett",
+        "A 3:25-ös Miskolc-Tiszai → Budapest-Keleti október 27-én 29 percet késett, utolsó mérés: Gödöllő",
     );
     await expect(
         page.getByText("Mégis hol a vonat? mérés, nem hivatalos MÁV igazolás"),
@@ -111,7 +111,7 @@ test("the train sheet shares the delay so far", async ({ page }) => {
     const [data] = await shared();
     expect(data?.url).toMatch(/\/hu\/kesesek\/9\/2026-10-28$/);
     expect(data?.text).toBe(
-        "A 9:18-as Kyiv-Pas. → Budapest-Keleti eddig 8 percet késett (Mégis hol a vonat? GPS-mérés)",
+        "A 9:18-as Kyiv-Pas. → Budapest-Keleti eddig 8 percet késett, utolsó mérés: Debrecen (Mégis hol a vonat? GPS-mérés)",
     );
 });
 

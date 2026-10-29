@@ -191,14 +191,14 @@ export function delayCardImage(card: DelaySummary, locale: Locale) {
             ? t.reason(delayReasonLabel(card.reason, locale))
             : null,
     ].filter((n): n is string => !!n);
-    // The stop the delay was measured at goes between the two, when it is
-    // neither (the arrival was not recorded, or the run is on its way)
+    // Without a measured arrival (not recorded, or the run is on its way)
+    // the last measured stop ends the timeline: a bare scheduled arrival
+    // next to the delay would read as an on-time one
     const rows = [
         { label: t.departure, stop: card.from },
-        ...(shown && card.measuredAt
-            ? [{ label: t.lastMeasured, stop: card.measuredAt }]
-            : []),
-        { label: t.arrival, stop: card.to },
+        shown && card.measuredAt
+            ? { label: t.lastMeasured, stop: card.measuredAt }
+            : { label: t.arrival, stop: card.to },
     ];
     return render((icon) => (
         <Frame icon={icon} locale={locale}>
