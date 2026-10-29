@@ -125,3 +125,41 @@ def test_forecast_never_in_the_past() -> None:
 
     predicted = {s["index"]: s.get("predictedDelay") for s in loc["processedStops"]}
     assert cegled["scheduledDeparture"] + predicted[cegled_index] * 60 >= now_s - 30
+
+
+# 19915 railjet xpress of 2026-08-18, due at Budapest-Kelenföld 21:02 - 21:18:
+# at 21:11 held 512 m short of the stop, at 21:12 berthed 204 m short
+HELD_FIXTURE = Path(__file__).parent / "fixtures" / "held-19915-kelenfold.json.gz"
+
+
+def _held_19915() -> list[dict[str, Any]]:
+    with gzip.open(HELD_FIXTURE, "rt") as f:
+        vehicles: list[dict[str, Any]] = json.load(f)
+    service = TrainService(None)  # type: ignore[arg-type]
+    processed = []
+    for vehicle in vehicles:
+        service.reference_time = vehicle["lastUpdated"]
+        processed.extend(service.process_locations([vehicle]))
+    return processed
+
+
+def test_held_short_of_the_next_stop_is_late_against_its_arrival() -> None:
+    held, _ = _held_19915()
+    index, kelenfold = _stop(held, "Budapest-Kelenföld")
+    start = service_day_start(date.fromisoformat(held["trip"]["serviceDate"]))
+    now_s = held["lastUpdated"] - int(start.timestamp())
+
+    assert held["dwellStopIndex"] == index
+    assert held["vehicleProgress"]["nextStopIndex"] == index
+    # Ten minutes past its arrival time and not there yet: not "on time"
+    assert now_s - kelenfold["scheduledArrival"] == 577
+    assert held["delay"] == 10
+
+
+def test_berthed_short_of_the_stops_point_waits_on_time() -> None:
+    _, berthed = _held_19915()
+    index, _ = _stop(berthed, "Budapest-Kelenföld")
+
+    # A long platform: standing 204 m short, before its departure time
+    assert berthed["dwellStopIndex"] == index
+    assert berthed["delay"] == 0

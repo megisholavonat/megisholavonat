@@ -30,6 +30,13 @@ AT_ORIGIN_M = 1000.0
 # Faster than this (m/s, about 7 km/h) a train is not standing at a stop.
 # Same as api.util.vehicle.MOVING_MPS.
 STANDING_MAX_MPS = 2.0
+# Standing this far short of its next stop, a train is more likely held at a
+# signal than berthed at a long platform, so it is late against the arrival.
+# On replays of 2026-08-17..21, 97% of trains standing short of the stop's
+# point after their arrival time were already berthed (median 33 m short), and
+# measuring them all against the arrival overstated those by ~2.5 min. 400 m
+# made up most of the held trains' minutes for the fewest berthed ones.
+HELD_SHORT_M = 400.0
 
 # --- Helpers ---
 
@@ -357,19 +364,40 @@ def get_delay_and_position(
     # would make a train waiting out a long stop look up to its whole dwell
     # time early (or, short of the stop's point, late).
     dwell_index = None
+    metres_per_unit = 0.0
     if route.line is not None and route.line.length > 0:
+        metres_per_unit = route.length_km * 1000 / route.line.length
         dwell_index = dwell_stop_index(
             stoptimes,
             list(processed_stops),
             vehicle_progress,
             train_position,
-            route.length_km * 1000 / route.line.length,
+            metres_per_unit,
             speed,
         )
     if dwell_index is not None:
         departure = stoptimes[dwell_index].get("scheduledDeparture")
         if departure is not None:
             delay = max(0, current_time - departure)
+        # Held well short of a stop it has not reached: it arrives late, and
+        # measuring against the departure would hide the stop's dwell time
+        arrival = stoptimes[dwell_index].get("scheduledArrival")
+        along = next(
+            (
+                s["distanceAlongRoute"]
+                for s in processed_stops
+                if s.get("index") == dwell_index
+            ),
+            None,
+        )
+        if (
+            arrival is not None
+            and along is not None
+            and dwell_index == next_index
+            and dwell_index != last_index
+            and (along - train_position) * metres_per_unit > HELD_SHORT_M
+        ):
+            delay = max(delay, current_time - arrival)
 
     return {
         "delay": delay,
