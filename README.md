@@ -200,7 +200,8 @@ APNS_KEY_ID=
 APNS_TEAM_ID=
 APNS_PRIVATE_KEY= (contents of the .p8 key; newlines may be written as \n)
 APNS_BUNDLE_ID=
-APNS_USE_SANDBOX= (optional, defaults to false)
+APNS_USE_SANDBOX= (optional, defaults to false; true for development builds)
+LIVE_ACTIVITY_PUSH_ENABLED= (optional, defaults to true; false stops Live Activity pushes)
 PUSH_TOKEN_MAX_FAILURES= (optional, defaults to 10)
 ```
 

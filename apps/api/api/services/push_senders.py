@@ -88,6 +88,8 @@ class LiveActivityMessage:
     alert: tuple[str, str | None] | None = None
     stale_date: int | None = None
     dismissal_date: int | None = None
+    # Orders this app's activities in the Dynamic Island (higher first)
+    relevance_score: float | None = None
 
 
 class PushSender[M](Protocol):
@@ -250,6 +252,8 @@ def live_activity_payload(message: LiveActivityMessage) -> dict[str, Any]:
         aps["stale-date"] = message.stale_date
     if message.dismissal_date is not None:
         aps["dismissal-date"] = message.dismissal_date
+    if message.relevance_score is not None:
+        aps["relevance-score"] = message.relevance_score
     if message.alert is not None:
         title, body = message.alert
         aps["alert"] = {"title": title, "body": body or ""}
@@ -342,6 +346,9 @@ class ApnsLiveActivitySender:
                 # budget, so only updates carrying an alert or the end use it
                 "apns-priority": "10" if m.alert or m.event == "end" else "5",
             }
+            # An update held for an offline phone is worthless once stale
+            if m.stale_date is not None:
+                headers["apns-expiration"] = str(m.stale_date)
             response = await self._http().post(
                 f"{self.host}/3/device/{m.token}",
                 json=live_activity_payload(m),

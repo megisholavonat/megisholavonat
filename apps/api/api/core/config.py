@@ -53,6 +53,9 @@ class Settings(BaseSettings):
     APNS_PRIVATE_KEY: str | None = None
     APNS_BUNDLE_ID: str | None = None
     APNS_USE_SANDBOX: bool = False
+    # Kill switch for Live Activity pushes. Off: follows with a Live Activity
+    # get their alerts as Expo notifications, and the activities go stale.
+    LIVE_ACTIVITY_PUSH_ENABLED: bool = True
     # Push tokens failing this many times in a row are deleted by housekeeping
     PUSH_TOKEN_MAX_FAILURES: int = 10
 

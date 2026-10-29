@@ -33,8 +33,12 @@ Rules, per follow and service date (state in `notification_state`):
 
 Delivery: Expo push to every Expo token of the device, except when the follow
 has a Live Activity, which then carries the alert instead (iOS would show
-both). Live Activities also get silent updates whenever their content changes,
-and `end` once the train has passed the alighting station.
+both). Live Activities also get silent (priority 5) updates: at once when the
+delay, the stop shown, its platform or departure change, otherwise at most every
+LIVE_ACTIVITY_MIN_INTERVAL_S while the progress moves; each goes stale after
+LIVE_ACTIVITY_STALE_S. `end` follows once the train has passed the alighting
+station. LIVE_ACTIVITY_PUSH_ENABLED off drops the Live Activity tokens, and
+alerts go out through Expo.
 
 The new state is written in the same transaction that records the delivery
 outcome on the tokens. If every delivery failed, the alert state is not
@@ -55,6 +59,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.core.cache import cached_model
+from api.core.config import settings
 from api.core.logging_config import get_logger
 from api.core.redis import add_key
 from api.models.devices import Device, Follow, NotificationState, PushToken
@@ -98,6 +103,8 @@ LIVE_ACTIVITY_STALE_S = 10 * 60
 # ... and stays on the lock screen this long after it ends
 LIVE_ACTIVITY_DISMISS_S = 30 * 60
 LIVE_ACTIVITY_CONTENT_TTL_S = 12 * 3600
+# Progress and times alone are pushed at most this often
+LIVE_ACTIVITY_MIN_INTERVAL_S = 60
 
 # Only one evaluation runs at a time
 LOCK_TTL_S = 5 * 60
@@ -157,9 +164,16 @@ class Observation:
     departed: bool
     finished: bool
     train_ahead: TrainAhead | None = None
+    # The stop the Live Activity shows: the boarding station until the train
+    # leaves it, then the next stop. Expected time there (Unix seconds) and
+    # its platform
     next_stop: str | None = None
+    next_stop_at: int | None = None
+    next_platform: str | None = None
     # Expected arrival at the alighting station, Unix seconds
     eta: int | None = None
+    # Share of the ride from boarding to alighting behind the train, 0 to 1
+    progress: float = 0.0
     # The train on the live map, for opening it from the notification
     vehicle_id: str | None = None
 
@@ -417,7 +431,7 @@ class Tracked:
 
 
 def observe(
-    tracked: Tracked, locations: Sequence[dict[str, Any]]
+    tracked: Tracked, locations: Sequence[dict[str, Any]], now: datetime
 ) -> Observation | None:
     loc = tracked.location
     trip = loc.get("trip") or {}
@@ -434,17 +448,31 @@ def observe(
     departed = passed is not None and passed >= tracked.board_idx
     finished = passed is not None and passed >= tracked.alight_idx
 
+    late_s = max(delay or 0, 0) * 60
+
+    def expected(seconds: int | None) -> int | None:
+        if seconds is None:
+            return None
+        at = service_day_start(service_date) + timedelta(seconds=seconds + late_s)
+        return int(at.timestamp())
+
     next_idx = (loc.get("vehicleProgress") or {}).get("nextStopIndex")
-    next_stop = None
-    if isinstance(next_idx, int) and 0 <= next_idx < len(stoptimes):
-        next_stop = (stoptimes[next_idx].get("stop") or {}).get("name")
-    arrival = _stop_time(stoptimes[tracked.alight_idx], departure=False)
-    eta = None
-    if arrival is not None:
-        at = service_day_start(service_date) + timedelta(
-            seconds=arrival + max(delay or 0, 0) * 60
-        )
-        eta = int(at.timestamp())
+    if not departed:
+        focus = tracked.board_idx
+    elif isinstance(next_idx, int) and tracked.board_idx < next_idx < len(stoptimes):
+        focus = min(next_idx, tracked.alight_idx)
+    else:
+        focus = tracked.alight_idx
+    focus_st = stoptimes[focus]
+    focus_stop = focus_st.get("stop") or {}
+    departure = expected(_stop_time(board_st, departure=True))
+    eta = expected(_stop_time(stoptimes[tracked.alight_idx], departure=False))
+    progress = 0.0
+    if finished:
+        progress = 1.0
+    elif departed and departure is not None and eta is not None and eta > departure:
+        ratio = (now.timestamp() - departure) / (eta - departure)
+        progress = round(min(max(ratio, 0.0), 1.0), 2)
 
     return Observation(
         trip_id=trip["gtfsId"],
@@ -462,8 +490,11 @@ def observe(
         train_ahead=None
         if departed
         else find_train_ahead(locations, loc, tracked.board_idx),
-        next_stop=next_stop,
+        next_stop=focus_stop.get("name"),
+        next_stop_at=expected(_stop_time(focus_st, departure=not departed)),
+        next_platform=focus_stop.get("platformCode"),
         eta=eta,
+        progress=progress,
         vehicle_id=loc.get("vehicleId"),
     )
 
@@ -688,13 +719,76 @@ async def record_results(
         await session.execute(delete(PushToken).where(PushToken.id.in_(gone)))
 
 
-def _live_activity_content(obs: Observation) -> dict[str, Any]:
+# Content changes that are pushed at once; others (progress, times moving
+# with the delay) at most every LIVE_ACTIVITY_MIN_INTERVAL_S
+LIVE_ACTIVITY_MEANINGFUL = (
+    "delayMin",
+    "nextStop",
+    "platform",
+    "platformSure",
+    "departed",
+)
+
+
+def live_activity_content(obs: Observation) -> dict[str, Any]:
+    """
+    The Live Activity's content state. Keys and types must match
+    `TrainActivityAttributes.ContentState` in apps/mobile (Swift): an update
+    that does not decode is dropped by iOS.
+    """
+    platform, sure = obs.next_platform, True
+    if not obs.departed:
+        platform = obs.platform
+        if platform is None and obs.scheduled_platform is not None:
+            # The usual platform, shown as a guess
+            platform, sure = obs.scheduled_platform, False
     return {
         "delayMin": None if obs.delay_min is None else max(obs.delay_min, 0),
         "nextStop": obs.next_stop,
-        "platform": obs.platform,
+        "nextStopAt": obs.next_stop_at,
+        "platform": platform,
+        "platformSure": sure,
         "eta": obs.eta,
+        "progress": obs.progress,
+        "departed": obs.departed,
     }
+
+
+def live_activity_due(
+    content: dict[str, Any],
+    last: dict[str, Any] | None,
+    last_sent_at: int | None,
+    now: int,
+) -> bool:
+    """Whether a Live Activity needs `content` now (see LIVE_ACTIVITY_MEANINGFUL)."""
+    if last is None or last_sent_at is None:
+        return True
+    if content == last:
+        return False
+    if any(content.get(k) != last.get(k) for k in LIVE_ACTIVITY_MEANINGFUL):
+        return True
+    return now - last_sent_at >= LIVE_ACTIVITY_MIN_INTERVAL_S
+
+
+def live_activity_relevance(obs: Observation, now: int) -> float:
+    """Sooner trains rank higher among the app's activities, 1 to 100."""
+    if obs.departed or obs.next_stop_at is None:
+        return 100.0 if obs.departed else 50.0
+    minutes = (obs.next_stop_at - now) / 60
+    return float(min(100, max(1, round(100 - minutes))))
+
+
+async def _last_live_activity(
+    redis: Redis, token: TokenInfo
+) -> tuple[dict[str, Any] | None, int | None]:
+    raw = await redis.get(live_activity_key(token.device_id, token.id))
+    if not raw:
+        return None, None
+    try:
+        stored = json.loads(raw)
+        return dict(stored["content"]), int(stored["sentAt"])
+    except (TypeError, KeyError, ValueError):
+        return None, None
 
 
 async def _active_follows(session: AsyncSession, today: date) -> list[FollowInfo]:
@@ -780,7 +874,7 @@ async def _evaluate(
         t = TokenInfo(*row)
         if t.type == "expo":
             expo_by_device[t.device_id].append(t)
-        elif t.follow_id is not None:
+        elif t.follow_id is not None and settings.LIVE_ACTIVITY_PUSH_ENABLED:
             la_by_follow[t.follow_id].append(t)
 
     locations = await load_live_locations(redis)
@@ -797,7 +891,7 @@ async def _evaluate(
             tracked = track_trip(follow, live)
         else:
             tracked = await track_commute(redis, follow, locations, live, today)
-        obs = None if tracked is None else observe(tracked, locations)
+        obs = None if tracked is None else observe(tracked, locations, now)
         if obs is not None:
             observed.append((follow, obs))
     stats.tracked = len(observed)
@@ -858,7 +952,8 @@ async def _process_follow(
         render(alerts, obs.context, lang_for(follow.locale)) if alerts else ("", None)
     )
     timestamp = int(now.timestamp())
-    content = _live_activity_content(obs)
+    content = live_activity_content(obs)
+    relevance = live_activity_relevance(obs, timestamp)
 
     la_messages: list[LiveActivityMessage] = []
     la_contents: dict[uuid.UUID, str] = {}
@@ -875,13 +970,10 @@ async def _process_follow(
                 )
             )
             continue
-        encoded = json.dumps(content, sort_keys=True)
-        if (
-            not alerts
-            and await redis.get(live_activity_key(token.device_id, token.id)) == encoded
-        ):
+        last, last_sent_at = await _last_live_activity(redis, token)
+        if not alerts and not live_activity_due(content, last, last_sent_at, timestamp):
             continue
-        la_contents[token.id] = encoded
+        la_contents[token.id] = json.dumps({"content": content, "sentAt": timestamp})
         la_messages.append(
             LiveActivityMessage(
                 token.id,
@@ -891,6 +983,7 @@ async def _process_follow(
                 timestamp,
                 alert=(title, body) if alerts else None,
                 stale_date=timestamp + LIVE_ACTIVITY_STALE_S,
+                relevance_score=relevance,
             )
         )
 

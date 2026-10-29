@@ -146,6 +146,7 @@ def la_message(alert: bool = False) -> LiveActivityMessage:
         1_700_000_000,
         alert=("S70 · +12 perc · Kelenföld 14:32", None) if alert else None,
         stale_date=1_700_000_600,
+        relevance_score=75.0,
     )
 
 
@@ -167,6 +168,7 @@ async def test_apns_live_activity_request(
     assert request.headers["apns-push-type"] == "liveactivity"
     assert request.headers["apns-topic"] == "hu.mhav.app.push-type.liveactivity"
     assert request.headers["apns-priority"] == "10"
+    assert request.headers["apns-expiration"] == "1700000600"
     assert json.loads(request.content) == {
         "aps": {
             "timestamp": 1_700_000_000,
@@ -178,6 +180,7 @@ async def test_apns_live_activity_request(
                 "eta": 1_800_000_000,
             },
             "stale-date": 1_700_000_600,
+            "relevance-score": 75.0,
             "alert": {"title": "S70 · +12 perc · Kelenföld 14:32", "body": ""},
             "sound": "default",
         }
