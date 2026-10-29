@@ -14,7 +14,8 @@
             "supportsTablet": true,
             "infoPlist": {
                 "CFBundleDisplayName": "MHaV",
-                "ITSAppUsesNonExemptEncryption": false
+                "ITSAppUsesNonExemptEncryption": false,
+                "NSLocationWhenInUseUsageDescription": "A helyzeted csak a térképen jelenik meg, nem küldjük el sehova. / Your location is only shown on the map and never sent anywhere."
             }
         },
         "android": {
@@ -23,7 +24,8 @@
                 "foregroundImage": "./assets/images/adaptive-icon.png",
                 "backgroundColor": "#FFFFFF"
             },
-            "predictiveBackGestureEnabled": false
+            "predictiveBackGestureEnabled": false,
+            "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"]
         },
         "plugins": [
             "expo-router",
@@ -52,7 +54,8 @@
                         "backgroundColor": "#0B1220"
                     }
                 }
-            ]
+            ],
+            "expo-web-browser"
         ],
         "experiments": {
             "typedRoutes": true,
