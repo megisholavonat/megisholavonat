@@ -96,6 +96,10 @@ const DynamicMap = dynamic(() => import("./MapComponent"), {
 const loadPlanner = () => import("@/components/journey/JourneyPlanner");
 const loadSettings = () => import("@/components/settings/Settings");
 const loadFollowEditor = () => import("@/components/commute/FollowEditor");
+/** Starts the planner's download as a finger or pointer reaches its button */
+const prefetchPlanner = () => {
+    void loadPlanner().catch(() => {});
+};
 const JourneyPanel = dynamic(() => loadPlanner().then((m) => m.JourneyPanel));
 const PlannerSheetBody = dynamic(() =>
     loadPlanner().then((m) => m.PlannerSheetBody),
@@ -837,7 +841,12 @@ function MapScreen() {
                 onOpen={() => setSearchOpen(true)}
                 onCancel={cancelSearch}
                 inputRef={searchInputRef}
-                trailing={<PlannerButton onClick={openPlanner} />}
+                trailing={
+                    <PlannerButton
+                        onClick={openPlanner}
+                        onIntent={prefetchPlanner}
+                    />
+                }
             />
             {!searchOpen && (
                 <DisruptionChip
@@ -1017,6 +1026,9 @@ function MapScreen() {
                                                 {desktopPanel !== "planner" && (
                                                     <PlannerButton
                                                         onClick={openPlanner}
+                                                        onIntent={
+                                                            prefetchPlanner
+                                                        }
                                                         className="hidden size-9 bg-transparent hover:bg-surface-2 lg:flex"
                                                     />
                                                 )}
@@ -1041,6 +1053,7 @@ function MapScreen() {
                                         </div>
                                         <PlannerButton
                                             onClick={openPlanner}
+                                            onIntent={prefetchPlanner}
                                             className="size-9 bg-transparent hover:bg-surface-2"
                                         />
                                         <SettingsButton
