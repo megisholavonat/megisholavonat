@@ -11,6 +11,7 @@
         "./display": "./src/display.ts",
         "./disruptions": "./src/disruptions.ts",
         "./delayReasons": "./src/delayReasons.ts",
+        "./delaySummary": "./src/delaySummary.ts",
         "./i18n": "./src/i18n.ts",
         "./mavRoutes": "./src/mavRoutes.ts",
         "./polyline": "./src/polyline.ts",
