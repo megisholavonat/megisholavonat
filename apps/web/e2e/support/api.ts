@@ -176,6 +176,8 @@ export async function mockApi(page: Page, baseURL: string) {
         }
         if (path === "/v1/posthog") return json(route, { key: "phc_e2e" });
         if (path === "/v1/alerts") return json(route, []);
+        // Specs that need disruptions route their own fixture
+        if (path === "/v1/alerts/disruptions") return json(route, []);
         return json(route, { detail: "Not in the e2e fixtures" }, 404);
     });
 
