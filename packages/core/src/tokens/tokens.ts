@@ -76,8 +76,33 @@ export interface DelayLevelColors {
     text: string;
     /** Minute label drawn on the fill ("+N") */
     label: string;
+    /**
+     * Chip and tile background: the fill, translucent (#RRGGBBAA), so it
+     * reads the same on any surface. Text on it uses `text`.
+     */
+    tint: string;
     outline: Outline;
 }
+
+/** `fill` at `alpha` as #RRGGBBAA. */
+function tintOf(fill: string, alpha: number): string {
+    const a = Math.round(alpha * 255)
+        .toString(16)
+        .padStart(2, "0")
+        .toUpperCase();
+    return `${fill}${a}`;
+}
+
+/**
+ * Tint strength per level: yellow needs more to show on white, orange a
+ * little more than blue and red.
+ */
+const TINT_ALPHA = {
+    onTime: 0.14,
+    slight: 0.22,
+    moderate: 0.16,
+    severe: 0.14,
+} as const satisfies Record<DelayLevel, number>;
 
 /** Inner white ring + soft ink halo for fills that already contrast with the map. */
 const LIGHT_HALO: Outline = {
@@ -96,24 +121,28 @@ export const DELAY_SCALE = {
             fill: "#1A6CCF",
             text: "#0B5FB8",
             label: "#FFFFFF",
+            tint: tintOf("#1A6CCF", TINT_ALPHA.onTime),
             outline: LIGHT_HALO,
         },
         slight: {
             fill: "#F2C230",
             text: "#8A5A00",
             label: "#14161A",
+            tint: tintOf("#F2C230", TINT_ALPHA.slight),
             outline: LIGHT_INK_OUTLINE,
         },
         moderate: {
             fill: "#E5660B",
             text: "#B23F00",
             label: "#14161A",
+            tint: tintOf("#E5660B", TINT_ALPHA.moderate),
             outline: LIGHT_INK_OUTLINE,
         },
         severe: {
             fill: "#C41E16",
             text: "#B3261E",
             label: "#FFFFFF",
+            tint: tintOf("#C41E16", TINT_ALPHA.severe),
             outline: LIGHT_HALO,
         },
     },
@@ -122,24 +151,28 @@ export const DELAY_SCALE = {
             fill: "#5BA8FF",
             text: "#7CB8FF",
             label: "#14161A",
+            tint: tintOf("#5BA8FF", TINT_ALPHA.onTime),
             outline: DARK_OUTLINE,
         },
         slight: {
             fill: "#FFC93D",
             text: "#F7D35C",
             label: "#14161A",
+            tint: tintOf("#FFC93D", TINT_ALPHA.slight),
             outline: DARK_OUTLINE,
         },
         moderate: {
             fill: "#FF8A1F",
             text: "#FF9E5E",
             label: "#14161A",
+            tint: tintOf("#FF8A1F", TINT_ALPHA.moderate),
             outline: DARK_OUTLINE,
         },
         severe: {
             fill: "#F2453D",
             text: "#FF7B72",
             label: "#14161A",
+            tint: tintOf("#F2453D", TINT_ALPHA.severe),
             outline: DARK_OUTLINE,
         },
     },
@@ -304,11 +337,8 @@ export const MARKER = {
     label: {
         fontWeight: 800,
         tabularNums: true,
-        /** Delayed markers show "+N" minutes */
-        delayed: (minutes: number) => `+${Math.round(minutes)}`,
-        /** Stale markers show the minutes since the last update: "6′" */
-        stale: (minutesSinceUpdate: number) =>
-            `${Math.floor(minutesSinceUpdate)}′`,
+        // The text itself is `trainDisplay().label`: "+N" when late, the
+        // last known "+N?" on a stale (dashed) marker, none when on time
     },
     /** Shape by vehicle type: trains are round pills, HÉV is square-ish */
     radius: { train: RADII.pill, hev: 5, hevDot: 4 },

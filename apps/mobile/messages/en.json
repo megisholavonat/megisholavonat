@@ -4,9 +4,8 @@
         "done": "Done",
         "retry": "Retry",
         "on_time": "on time",
-        "delay_short": "+{delay}",
         "delay_a11y": "{delay, plural, =1 {# minute} other {# minutes}} late",
-        "stale_minutes": "{minutes}′",
+        "delay_stale_a11y": "last known: {delay, plural, =1 {# minute} other {# minutes}} late",
         "platform": "platform {platform}",
         "platform_predicted": "probably platform {platform}"
     },
@@ -24,6 +23,15 @@
         "my_commute": "My commute",
         "follow_cta": "Follow your train",
         "tomorrow": "tomorrow"
+    },
+    "Legend": {
+        "label": "Delay legend",
+        "title": "Delay",
+        "minutes": "min",
+        "on_time": "on time",
+        "from": "{minutes}+ min",
+        "stale": "old data",
+        "inactive": "no live delay"
     },
     "Consent": {
         "question": "Share anonymous statistics?",
@@ -62,6 +70,8 @@
         "speed": "{speed} km/h",
         "usually_late": "Usually runs late",
         "stale": "No fresh data for {minutes} min",
+        "stale_last": "Last data {minutes} min ago: {delay}",
+        "delay_minutes": "{delay} min",
         "not_found": "This train is no longer on the map",
         "passed": "passed",
         "share_text": "{train} · {url}",

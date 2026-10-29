@@ -1,7 +1,6 @@
 "use client";
 
 import type { TrainFeatureProperties } from "@megisholavonat/api-client";
-import { getDelayLevel } from "@megisholavonat/core/delay";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
 import { TrainDisruptions } from "@/components/disruptions/Disruptions";
@@ -9,10 +8,10 @@ import { type Detent, SheetClose } from "@/components/sheet/BottomSheet";
 import { TrainHistoryLink } from "@/components/stats/HistoryLinks";
 import { TrainDelayShare } from "@/components/train/DelayShare";
 import {
-    formatDelay,
-    levelOf,
     RollingText,
     TEXT_CLASS,
+    tileOf,
+    useTileCaption,
 } from "@/components/ui/Delay";
 import { PlatformBadge } from "@/components/ui/Platform";
 import { destinationOf } from "@/lib/train";
@@ -83,27 +82,20 @@ function HeaderDelay({
     stale: boolean;
 }) {
     const t = useTranslations("Delay");
-    const none = delay == null;
-    const minutes = Math.round(delay ?? 0);
-    const caption =
-        none || stale || getDelayLevel(minutes) !== "onTime"
-            ? null
-            : minutes < 0
-              ? t("early")
-              : t("on_time");
-    const label = none ? "–" : `${formatDelay(minutes)}${stale ? "?" : ""}`;
+    const tile = tileOf(delay, stale);
+    const caption = useTileCaption()(tile);
     return (
         <span
             role="img"
-            aria-label={t("tile_label", { delay: label })}
+            aria-label={t("tile_label", { delay: tile.text })}
             className={cn(
                 "flex shrink-0 flex-col items-end leading-none",
-                TEXT_CLASS[levelOf(minutes, stale || none)],
+                TEXT_CLASS[tile.level],
             )}
         >
             <RollingText
-                value={label}
-                order={minutes}
+                value={tile.text}
+                order={tile.delay ?? 0}
                 className="tnum text-headline leading-none font-extrabold"
             />
             {caption && (

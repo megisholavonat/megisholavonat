@@ -4,6 +4,7 @@ import type {
     InfoService,
     TrainFeatureProperties,
 } from "@megisholavonat/api-client";
+import { getDelayLevel, secondsToMinutes } from "@megisholavonat/core/delay";
 import {
     DELAY_REASON_TEXTS,
     normalizeAlertText,
@@ -38,7 +39,7 @@ import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
     DelayTile,
     type Level,
-    levelOf,
+    StaleNote,
     TEXT_CLASS,
     TINT_CLASS,
 } from "@/components/ui/Delay";
@@ -172,7 +173,7 @@ function TimeText({
 }: {
     seconds: number;
     estimated?: boolean;
-    level: ReturnType<typeof levelOf> | null;
+    level: Level | null;
     className?: string;
 }) {
     return (
@@ -215,9 +216,7 @@ export function NextStopLine({
         ? {
               expected: departing.expected,
               scheduled: departing.scheduled,
-              delay: Math.round(
-                  (departing.expected - departing.scheduled) / 60,
-              ),
+              delay: secondsToMinutes(departing.expected - departing.scheduled),
           }
         : stop.timing;
     const late = timing.delay >= 1;
@@ -276,7 +275,7 @@ export function TrainSummary({
 }) {
     const t = useTranslations("Train");
     const vehicle = view?.vehicle;
-    const { delay, stale } = useShownDelay(view, fallback);
+    const { delay, stale, note } = useShownDelay(view, fallback);
     const routeShortName =
         vehicle?.trip.route.shortName ?? fallback?.routeShortName ?? "";
     const tripShortName =
@@ -300,6 +299,7 @@ export function TrainSummary({
                 ) : (
                     <Skeleton className="my-0.5 h-4 w-40" />
                 )}
+                <StaleNote note={note} />
                 {view?.usuallyLate && (
                     <span className="text-caption text-delay-slight">
                         {t(
@@ -556,7 +556,7 @@ export function ReasonBanner({
     const tDelay = useTranslations("Delay");
     const label = useReasonLabel();
     const [open, setOpen] = useState(false);
-    const level = levelOf(delay);
+    const level = getDelayLevel(delay);
     // A delay reason explains a delay: none on a train that is on time
     const late = level !== "onTime";
     const alerts = late ? reason.alerts : reason.alerts.filter((a) => !a.code);
@@ -1070,7 +1070,7 @@ function StopRow({
 }) {
     const t = useTranslations("Train");
     const { timing } = stop;
-    const level = levelOf(timing.delay);
+    const level = getDelayLevel(timing.delay);
     const estimated = isEstimate(stop, stale);
     const arrivalEstimated = arrivalIsEstimate(stop, stale, here);
     const strong = stop.isNext || stop.isLast;

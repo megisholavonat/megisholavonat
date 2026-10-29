@@ -7,7 +7,8 @@ import type { MarkerLevel } from "./markerImages";
 
 /**
  * - live: running, with a delay
- * - stale: no position update for over 5 min; hollow, dashed, "6′"
+ * - stale: no position update for over 5 min; hollow, dashed, its last
+ *   delay with a "?" ("+23?")
  * - inactive: waiting to depart, arrived, off its route or cancelled; a grey
  *   dot with no delay, since ours only means something on the way
  * - hidden: no update for over 30 min
@@ -17,7 +18,7 @@ export type MarkerState = "live" | "stale" | "inactive" | "hidden";
 export interface MarkerDisplay {
     state: MarkerState;
     level: MarkerLevel;
-    /** "+7", the data's age "6′", or nothing */
+    /** "+7", the last known "+23?", or nothing */
     label: string;
     /** The delay the train sheet shows too, or null for none */
     delay: number | null;

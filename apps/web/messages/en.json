@@ -25,7 +25,10 @@
         "note": "We compute this delay from the train's GPS position, so it is more accurate. Timetable times are MÁV's official data and are sometimes off.",
         "tile_label": "Delay: {delay} min",
         "reason": "Delay cause: <b>{reason}</b>",
-        "reason_plain": "Delay cause: {reason}"
+        "reason_plain": "Delay cause: {reason}",
+        "minutes": "{delay} min",
+        "stale_last": "Last data {minutes} min ago: {delay}",
+        "stale_age": "No fresh data for {minutes} min"
     },
     "Platform": {
         "announced": "Platform {platform}",
@@ -146,10 +149,10 @@
     "Legend": {
         "label": "Delay legend",
         "on_time": "on time",
-        "slight": "5+",
+        "slight": "6+",
         "moderate": "15+",
         "severe": "60+",
-        "stale": "min since fresh data",
+        "stale": "old data",
         "inactive": "no live delay",
         "title": "Delay",
         "minutes": "min"
@@ -262,7 +265,7 @@
         "of10_at": "{station}: <b>{count} in 10</b> on time",
         "usually_late": "Usually late by",
         "late": {
-            "slight": "5+ min",
+            "slight": "6+ min",
             "moderate": "15+ min",
             "severe": "60+ min"
         },

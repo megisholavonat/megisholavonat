@@ -8,7 +8,6 @@ import * as WebBrowser from "expo-web-browser";
 import { useState } from "react";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useFormatter, useLocale, useTranslations } from "use-intl";
-import { withAlpha } from "../theme/palette";
 import { type AppTheme, useAppTheme } from "../theme/ThemeProvider";
 import { Icon, type IconName, isIconName } from "../ui/Icon";
 import { MNR2007_FONT } from "./RouteIcon";
@@ -25,9 +24,9 @@ function reasonIcon(code: DelayReasonCode | null | undefined): IconName {
 
 function toneColors(theme: AppTheme, tone: DelayLevel | "stale") {
     if (tone === "stale") {
-        return { text: theme.stale.text, fill: theme.stale.fill };
+        return { text: theme.stale.text, tint: theme.colors.surface2 };
     }
-    return { text: theme.delay[tone].text, fill: theme.delay[tone].fill };
+    return { text: theme.delay[tone].text, tint: theme.delay[tone].tint };
 }
 
 /**
@@ -65,15 +64,7 @@ export function ReasonLine({
     }
     return (
         <View
-            style={[
-                styles.reason,
-                {
-                    backgroundColor: withAlpha(
-                        colors.fill,
-                        theme.dark ? 0.2 : 0.12,
-                    ),
-                },
-            ]}
+            style={[styles.reason, { backgroundColor: colors.tint }]}
             accessible
             accessibilityLabel={text}
         >

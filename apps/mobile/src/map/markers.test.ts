@@ -115,7 +115,7 @@ describe("markerCollection", () => {
         expect(markShape(undefined)).toBe("train");
     });
 
-    it("greys stale trains with the minutes since the update and hides old ones", () => {
+    it("greys stale trains with their last delay and a ? and hides old ones", () => {
         const fc = markerCollection(
             feed(
                 { id: "stale", delay: 23, ago: 7 * 60 },
@@ -129,17 +129,17 @@ describe("markerCollection", () => {
             "stale",
             "flagged",
         ]);
-        // Old data: hollow, its age beside it (and on the chip when open)
+        // Old data: hollow, its last delay with a "?" (on the chip when open)
         expect(fc.features[0]?.properties).toMatchObject({
             icon: "mhav-dark-stale-train",
-            label: "7′",
+            label: "+23?",
             labelColor: STALE_COLORS.dark.text,
             chip: "mhav-dark-chip-stale",
-            text: "7′",
+            text: "+23?",
             textColor: STALE_COLORS.dark.text,
             sort: 0,
         });
-        // Fresh but not running (waiting or arrived): solid grey, no "0′"
+        // Fresh but not running (waiting or arrived): solid grey, no label
         expect(fc.features[1]?.properties).toMatchObject({
             icon: "mhav-dark-inactive-train",
             label: "",

@@ -1,10 +1,12 @@
 "use client";
 
+import { getDelayLevel } from "@megisholavonat/core/delay";
+import { delayLabel } from "@megisholavonat/core/display";
 import { formatSecondsAsTime } from "@megisholavonat/core/time";
 import { Star } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { CommuteDelayShare } from "@/components/train/DelayShare";
-import { DelayChip, levelOf } from "@/components/ui/Delay";
+import { DelayChip } from "@/components/ui/Delay";
 import { PlatformBadge } from "@/components/ui/Platform";
 import { ReasonLabel } from "@/components/ui/Reason";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
@@ -75,12 +77,12 @@ function Row({
     const tTrain = useTranslations("Train");
     const { follow, live, platform } = row;
     // The cause only next to a live delay that is actually late
-    const level = levelOf(live?.delay ?? 0, live?.stale);
+    const level = delayLabel(live?.delay ?? 0, live?.stale).level;
     const reason =
         live?.reason &&
         !live.canceled &&
         live.delay != null &&
-        levelOf(live.delay) !== "onTime"
+        getDelayLevel(live.delay) !== "onTime"
             ? live.reason
             : null;
     // A live delay that is late moves the departure; within the on-time
@@ -90,7 +92,7 @@ function Row({
         !live.canceled &&
         !live.stale &&
         live.delay != null &&
-        levelOf(live.delay) !== "onTime"
+        getDelayLevel(live.delay) !== "onTime"
             ? live.delay
             : null;
     return (
