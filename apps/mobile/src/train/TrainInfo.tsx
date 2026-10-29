@@ -1,10 +1,9 @@
-import type {
-    Alert,
-    DelayReason,
-    InfoService,
-} from "@megisholavonat/api-client";
+import type { Alert, InfoService } from "@megisholavonat/api-client";
 import type { DelayLevel } from "@megisholavonat/core/delay";
-import { DELAY_REASONS } from "@megisholavonat/core/delayReasons";
+import {
+    DELAY_REASONS,
+    type DelayReasonCode,
+} from "@megisholavonat/core/delayReasons";
 import * as WebBrowser from "expo-web-browser";
 import { useState } from "react";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
@@ -19,8 +18,8 @@ import { serviceGlyph } from "./trainData";
 
 const LONG_ALERT_CHARS = 150;
 
-function reasonIcon(reason: DelayReason | null | undefined): IconName {
-    const icon = reason ? DELAY_REASONS[reason.code]?.icon : null;
+function reasonIcon(code: DelayReasonCode | null | undefined): IconName {
+    const icon = code ? DELAY_REASONS[code]?.icon : null;
     return icon && isIconName(icon) ? icon : "warning";
 }
 
@@ -40,7 +39,7 @@ export function ReasonLine({
     tone,
     compact = false,
 }: {
-    reason: DelayReason;
+    reason: DelayReasonCode;
     tone: DelayLevel | "stale";
     /** Board and commute rows: plain text, no tile */
     compact?: boolean;
@@ -48,7 +47,7 @@ export function ReasonLine({
     const theme = useAppTheme();
     const t = useTranslations("Train");
     const locale = useLocale();
-    const label = DELAY_REASONS[reason.code]?.[locale] ?? reason.label;
+    const label = DELAY_REASONS[reason][locale];
     const text = t("reason", { reason: label });
     const colors = toneColors(theme, tone);
     if (compact) {
@@ -115,7 +114,7 @@ function AlertCard({ alert }: { alert: Alert }) {
             style={[styles.alert, { backgroundColor: theme.colors.surface2 }]}
         >
             <Icon
-                name={reasonIcon(alert.reason)}
+                name={reasonIcon(alert.reason?.code)}
                 size={18}
                 color={theme.colors.ink2}
                 style={styles.alertIcon}

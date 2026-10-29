@@ -298,7 +298,9 @@ export function TrainSheet({
                     </Text>
                 </View>
             ) : null}
-            {reason && tone ? <ReasonLine reason={reason} tone={tone} /> : null}
+            {reason && tone ? (
+                <ReasonLine reason={reason.code} tone={tone} />
+            ) : null}
 
             {details ? (
                 <TrainActions

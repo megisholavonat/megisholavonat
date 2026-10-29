@@ -2,19 +2,20 @@ import {
     getStationPlatformsOptions,
     getTrainStationHistoryOptions,
 } from "@megisholavonat/api-client/react-query";
-import { DELAY_REASONS } from "@megisholavonat/core/delayReasons";
-import { minutesSinceUpdate, staleness } from "@megisholavonat/core/stale";
 import { useQuery } from "@tanstack/react-query";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
-import { useFormatter, useLocale, useTranslations } from "use-intl";
+import { useFormatter, useTranslations } from "use-intl";
 import { useAppTheme } from "../theme/ThemeProvider";
+import { reasonTone } from "../train/delayDisplay";
 import { RouteIcon } from "../train/RouteIcon";
+import { ReasonLine } from "../train/TrainInfo";
 import {
     beforeDeparture,
     isUsuallyLate,
     mainAlert,
     predictedPlatform,
 } from "../train/trainData";
+import { localActivity, trainDisplay } from "../train/trainState";
 import { DelayChip, PlatformBadge } from "../ui/ds";
 import { Icon } from "../ui/Icon";
 import type { LiveFollow } from "./live";
@@ -48,7 +49,6 @@ function CommuteRow({
     const t = useTranslations("Home");
     const tt = useTranslations("Train");
     const format = useFormatter();
-    const locale = useLocale();
     const { follow, run, live } = item;
     const board = follow.stops[follow.from];
     const number = trainNumber(follow.tripShortName);
@@ -90,21 +90,28 @@ function CommuteRow({
         minute: "2-digit",
     });
 
-    const lastUpdated = live?.details.lastUpdated;
-    const stale =
-        lastUpdated !== undefined && staleness(lastUpdated) !== "fresh";
-    const delay = live
-        ? Math.round(
-              departed || !live.board ? live.details.delay : live.board.delay,
-          )
+    // The same state as the train's marker and sheet: no delay while it
+    // waits to depart or has arrived
+    const display = live
+        ? trainDisplay({
+              delay:
+                  departed || !live.board
+                      ? live.details.delay
+                      : live.board.delay,
+              lastUpdated: live.details.lastUpdated,
+              activity: localActivity(live.details),
+          })
         : null;
+    const delay = display?.delay ?? null;
+    const stale = display?.state === "stale";
 
     const reason = live ? mainAlert(live.details.trip.alerts)?.reason : null;
-    const note = reason
-        ? DELAY_REASONS[reason.code][locale]
-        : notYetDeparted && isUsuallyLate(history)
-          ? tt("usually_late")
-          : null;
+    // The cause only for a late train; "usually late" only before departure
+    const tone = reason ? reasonTone(delay, stale) : null;
+    const note =
+        !tone && notYetDeparted && isUsuallyLate(history)
+            ? tt("usually_late")
+            : null;
 
     return (
         <Pressable
@@ -145,13 +152,16 @@ function CommuteRow({
                     <DelayChip
                         delay={delay}
                         staleMinutes={
-                            stale && lastUpdated !== undefined
-                                ? minutesSinceUpdate(lastUpdated)
-                                : null
+                            stale ? (display?.minutesSinceUpdate ?? 0) : null
                         }
                     />
                 ) : null}
             </View>
+            {reason && tone ? (
+                <View style={styles.reason}>
+                    <ReasonLine reason={reason.code} tone={tone} compact />
+                </View>
+            ) : null}
             {note ? (
                 <Text
                     style={[styles.note, { color: theme.colors.ink2 }]}
@@ -235,6 +245,7 @@ const styles = StyleSheet.create({
     line: { flexDirection: "row", alignItems: "center", gap: 10 },
     flex: { flex: 1 },
     note: { fontSize: 14, marginLeft: 32 },
+    reason: { marginLeft: 32 },
     prompt: {
         height: 52,
         borderRadius: 26,
