@@ -200,10 +200,13 @@ function TrainLine({
     train,
     query = "",
     now,
+    keepSpeed = false,
 }: {
     train: TrainFeatureProperties;
     query?: string;
     now: Date;
+    /** Keep the speed on the narrowest phones too (the list sorts by it) */
+    keepSpeed?: boolean;
 }) {
     const t = useTranslations("Search");
     const number = trainNumber(train.tripShortName);
@@ -248,7 +251,13 @@ function TrainLine({
                 )}
             </span>
             {speed !== null && speed > 0 && (
-                <span className="tnum shrink-0 text-caption text-ink-2">
+                <span
+                    className={cn(
+                        "tnum shrink-0 text-caption text-ink-2",
+                        // Below 380 px the destination needs the room
+                        !keepSpeed && "max-[379px]:hidden",
+                    )}
+                >
                     {t("speed", { speed })}
                 </span>
             )}
@@ -279,10 +288,12 @@ function TrainButton({
     train,
     now,
     onSelect,
+    keepSpeed,
 }: {
     train: TrainFeatureProperties;
     now: Date;
     onSelect: (train: TrainFeatureProperties) => void;
+    keepSpeed?: boolean;
 }) {
     const label = useTrainLabel();
     return (
@@ -295,7 +306,7 @@ function TrainButton({
                 "hover:bg-surface-2/60 [content-visibility:auto] [contain-intrinsic-size:auto_52px]",
             )}
         >
-            <TrainLine train={train} now={now} />
+            <TrainLine train={train} now={now} keepSpeed={keepSpeed} />
         </button>
     );
 }
@@ -554,6 +565,7 @@ function AllTrains({
                     train={train}
                     now={now}
                     onSelect={onSelect}
+                    keepSpeed={sort === "speed"}
                 />
             ))}
         </section>
