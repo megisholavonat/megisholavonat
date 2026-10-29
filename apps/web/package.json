@@ -7,7 +7,7 @@
         "build": "next build",
         "start": "next start",
         "lint": "biome check",
-        "check": "biome check && tsc --noEmit",
+        "check": "biome check && tsc --noEmit && node scripts/check-messages.mjs",
         "e2e": "playwright test -c e2e",
         "test": "vitest run"
     },
