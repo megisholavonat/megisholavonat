@@ -20,6 +20,15 @@ export interface Settings {
      * value of it is ignored
      */
     detailedRailwayMap: boolean;
+    /** Station names on the map, and their opacity (0.05–1), as on the web */
+    showStationNames: boolean;
+    stationNamesOpacity: number;
+    /** Trains glide along their route between feed updates */
+    animateVehicles: boolean;
+    /** Vehicle types on the map */
+    showTrains: boolean;
+    showHev: boolean;
+    showTramTrains: boolean;
     analytics: AnalyticsConsent;
     /** App launches so far, this one included */
     launchCount: number;
@@ -32,6 +41,12 @@ export const DEFAULT_SETTINGS: Settings = {
     theme: "system",
     dynamicColor: DISPLAY_RULES.androidDynamicColorDefault,
     detailedRailwayMap: false,
+    showStationNames: true,
+    stationNamesOpacity: 1,
+    animateVehicles: true,
+    showTrains: true,
+    showHev: true,
+    showTramTrains: true,
     analytics: "unknown",
     launchCount: 0,
     openedTrain: false,
@@ -46,6 +61,17 @@ function oneOf<T>(values: readonly T[], value: unknown, fallback: T): T {
 
 function bool(value: unknown, fallback: boolean): boolean {
     return typeof value === "boolean" ? value : fallback;
+}
+
+/** The station names' opacity slider: 5–100 % in 5 % steps */
+export const STATION_NAMES_OPACITY = { min: 0.05, max: 1, step: 0.05 };
+
+/** An opacity on the slider's range and steps */
+export function stationNamesOpacity(value: unknown, fallback: number): number {
+    if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
+    const { min, max, step } = STATION_NAMES_OPACITY;
+    const stepped = Math.round(value / step) * step;
+    return Math.round(Math.min(max, Math.max(min, stepped)) * 100) / 100;
 }
 
 /** Settings from stored JSON; unknown or invalid fields fall back to defaults. */
@@ -70,6 +96,15 @@ export function parseSettings(json: string | null | undefined): Settings {
         theme: oneOf(THEMES, raw.theme, d.theme),
         dynamicColor: bool(raw.dynamicColor, d.dynamicColor),
         detailedRailwayMap: bool(raw.detailedRailwayMap, d.detailedRailwayMap),
+        showStationNames: bool(raw.showStationNames, d.showStationNames),
+        stationNamesOpacity: stationNamesOpacity(
+            raw.stationNamesOpacity,
+            d.stationNamesOpacity,
+        ),
+        animateVehicles: bool(raw.animateVehicles, d.animateVehicles),
+        showTrains: bool(raw.showTrains, d.showTrains),
+        showHev: bool(raw.showHev, d.showHev),
+        showTramTrains: bool(raw.showTramTrains, d.showTramTrains),
         analytics: oneOf(CONSENTS, raw.analytics, d.analytics),
         launchCount:
             typeof launchCount === "number" &&

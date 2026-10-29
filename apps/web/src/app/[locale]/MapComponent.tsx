@@ -16,6 +16,7 @@ import type {
     TrainFeatureProperties,
     VehiclePositionWithDelay,
 } from "@megisholavonat/api-client";
+import { withDetails } from "@megisholavonat/core/display";
 import {
     MAP_DATA_PATHS,
     MAP_FONTS,
@@ -33,19 +34,23 @@ import {
     STALE_COLORS,
 } from "@megisholavonat/core/tokens";
 import {
+    MAP_DIRECTION_ARROW,
     MAP_FOCUS,
     MAP_MARKS,
     MAP_PALETTE,
+    MAP_STATION_MARK,
     markSizeAt,
 } from "@megisholavonat/core/tokens/map";
+import type { VehicleState } from "@megisholavonat/core/VehicleTracker";
 import {
-    createVehicleState,
-    onPositionUpdate,
-    routeFromPolyline,
-    setRoute,
-    tick,
-    type VehicleState,
-} from "@megisholavonat/core/VehicleTracker";
+    easeOut,
+    FRAME_INTERVAL_MS,
+    type Glide,
+    hasMoved,
+    type Shown,
+    syncTrackers,
+    vehicleFrame,
+} from "@megisholavonat/core/vehicleMotion";
 import type {
     Feature,
     FeatureCollection,
@@ -124,18 +129,8 @@ function createTransparentBasemapIcon(): ImageData {
     );
 }
 
-// Interpolated train positions are pushed to the map at most this often.
-const VEHICLE_FRAME_INTERVAL_MS = 1000 / 12;
 /** Budget of one slice of route decoding, well inside a frame */
 const ROUTE_SLICE_MS = 8;
-// Skip setData unless some train moved more than this (degrees, ~0.1 m)…
-const VEHICLE_COORD_EPSILON = 1e-6;
-// …or turned more than this many degrees.
-const VEHICLE_BEARING_EPSILON = 0.5;
-/** A fresh position glides in over this long instead of jumping. */
-const GLIDE_MS = 1000;
-/** Jumps longer than this (degrees, ~5 km) are not glided: they teleport. */
-const GLIDE_MAX_DEG = 0.05;
 /** Selection ring and label fade/scale in. */
 const SELECT_MS = 180;
 /** The ring starts this many px wider and settles onto the marker. */
@@ -194,23 +189,6 @@ const CLUSTER = { bubble: "marker-cluster" } as const;
 
 const EMPTY: FeatureCollection = { type: "FeatureCollection", features: [] };
 
-function bearingDelta(a: number, b: number): number {
-    return Math.abs(((((a - b) % 360) + 540) % 360) - 180);
-}
-
-function lerpBearing(a: number, b: number, k: number): number {
-    const d = ((((b - a) % 360) + 540) % 360) - 180;
-    return a + d * k;
-}
-
-function easeInOut(t: number): number {
-    return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
-}
-
-function easeOut(t: number): number {
-    return 1 - (1 - t) ** 3;
-}
-
 const TOOLTIP_OFFSET: [number, number] = [0, -14];
 
 // Memoized so MapComponent re-renders don't reset the popup to `info`'s
@@ -250,7 +228,14 @@ const SelectedLabel = memo(function SelectedLabel({
     markerRef: Ref<MaplibreMarker>;
     showSpeed: boolean;
 }) {
-    const offsetY = -(pillHeight(level) / 2 + 12);
+    // Clear of the ring and of the direction arrow when it points up
+    const offsetY = -(
+        pillHeight(level) / 2 +
+        RING_REACH +
+        MAP_DIRECTION_ARROW.gap +
+        MAP_DIRECTION_ARROW.height +
+        MAP_DIRECTION_ARROW.halo
+    );
     const speed = Math.round((info.speed ?? 0) * 3.6);
     return (
         <Marker
@@ -333,8 +318,9 @@ interface ClusterListState {
     trains: TrainFeatureProperties[];
 }
 
-// The arrow sits just outside the marker, rotated with the heading. Offsets
-// are bucketed: icon-offset can only pick between literal arrays.
+// The arrow sits outside the marker's selection ring, rotated with the
+// heading. `arrowOffset` is the ring's outer edge; offsets are bucketed:
+// icon-offset can only pick between literal arrays.
 const ARROW_OFFSET_MIN = 12;
 const ARROW_OFFSET_MAX = 40;
 const ARROW_OFFSET_STEP = 2;
@@ -354,10 +340,13 @@ function arrowOffset(extra: number): ExpressionSpecification {
         ["literal", [0, -(ARROW_OFFSET_MIN + extra)]],
     ] as unknown as ExpressionSpecification;
 }
-/** The selected train's arrow clears its ring */
+/** The selected train's arrow: its back `gap` px clear of the ring */
 const ARROW_OFFSET_SELECTED = arrowOffset(
-    MARKER.selected.gap + MARKER.selected.ringWidth,
+    MAP_DIRECTION_ARROW.gap + MAP_DIRECTION_ARROW.height / 2,
 );
+/** From the pill's edge to its selection ring's outer edge */
+const RING_REACH =
+    MARKER.outlineWidth + MARKER.selected.gap + MARKER.selected.ringWidth;
 
 /**
  * The selection ring at progress `p` (0 → 1): its opacity, and on the z < 9
@@ -417,29 +406,6 @@ const FOLLOW_OFFSET = ((): ExpressionSpecification => {
     ] as unknown as ExpressionSpecification;
 })();
 
-/**
- * The open train's list entry with the delay and state of its details, which
- * poll faster than the list, so its marker and sheet show the same.
- */
-function withDetails(
-    props: TrainFeatureProperties,
-    details: VehiclePositionWithDelay | undefined,
-): TrainFeatureProperties {
-    if (
-        !details ||
-        details.vehicleId !== props.vehicleId ||
-        details.lastUpdated < props.lastUpdated
-    ) {
-        return props;
-    }
-    return {
-        ...props,
-        delay: details.delay,
-        lastUpdated: details.lastUpdated,
-        activity: details.activity ?? props.activity,
-    };
-}
-
 /** Marker level, shape and label, precomputed per train for the layers. */
 function enrich(
     props: TrainFeatureProperties,
@@ -477,7 +443,7 @@ function enrich(
             ARROW_OFFSET_MAX,
             Math.max(
                 ARROW_OFFSET_MIN,
-                Math.round((halfWidth + 6) / ARROW_OFFSET_STEP) *
+                Math.round((halfWidth + RING_REACH) / ARROW_OFFSET_STEP) *
                     ARROW_OFFSET_STEP,
             ),
         ),
@@ -508,7 +474,7 @@ function byGroup(features: Feature[]): Record<Group, FeatureCollection> {
 
 function placeAt(
     info: TrainFeatureProperties,
-    shown: ReadonlyMap<string, [number, number, number]>,
+    shown: ReadonlyMap<string, Shown>,
 ): TrainFeatureProperties {
     const at = shown.get(info.vehicleId);
     return at ? { ...info, lon: at[0], lat: at[1] } : info;
@@ -660,7 +626,7 @@ export default function MapComponent({
     /** The route polyline each tracker was given */
     const routesRef = useRef<Map<string, string>>(new Map());
     /** Where the animation last drew each train: [lon, lat, bearing] */
-    const shownRef = useRef<Map<string, [number, number, number]>>(new Map());
+    const shownRef = useRef<Map<string, Shown>>(new Map());
     const filteredTrainsRef = useRef<FeatureCollection | null>(null);
     const popupRef = useRef<MaplibrePopup>(null);
     const selectedMarkerRef = useRef<MaplibreMarker>(null);
@@ -765,61 +731,13 @@ export default function MapComponent({
     useEffect(() => {
         if (!trains) return;
 
-        const activeIds = new Set<string>();
         // New routes, decoded and measured in slices after this pass: a
         // feed holds hundreds of long routes, too much for one task
-        const pending: (() => void)[] = [];
-
-        for (const feature of trains.features) {
-            const props = feature.properties as TrainFeatureProperties;
-            const {
-                vehicleId,
-                lon,
-                lat,
-                heading,
-                speed,
-                routePolyline,
-                distanceToNextStop,
-            } = props;
-            activeIds.add(vehicleId);
-            let state = trackersRef.current.get(vehicleId);
-
-            if (!state) {
-                state = createVehicleState();
-                trackersRef.current.set(vehicleId, state);
-            }
-
-            // API returns speed in m/s (GTFS-RT); convert to km/h for dead reckoning.
-            // distanceToNextStop is already in km (computed on backend).
-            const update = (s: VehicleState) =>
-                onPositionUpdate(
-                    s,
-                    [lon, lat],
-                    (speed ?? 0) * 3.6,
-                    heading ?? 0,
-                    distanceToNextStop ?? null,
-                );
-            update(state);
-            if (
-                routePolyline &&
-                routesRef.current.get(vehicleId) !== routePolyline
-            ) {
-                const target = state;
-                pending.push(() => {
-                    routesRef.current.set(vehicleId, routePolyline);
-                    setRoute(target, routeFromPolyline(routePolyline));
-                    // Snaps to the route and places the next stop on it
-                    update(target);
-                });
-            }
-        }
-        // Remove trackers for vehicles that are no longer in the feed
-        for (const id of trackersRef.current.keys()) {
-            if (!activeIds.has(id)) {
-                trackersRef.current.delete(id);
-                routesRef.current.delete(id);
-            }
-        }
+        const pending = syncTrackers(
+            trackersRef.current,
+            routesRef.current,
+            trains.features.map((f) => f.properties),
+        );
 
         // Until its route is in, a train stays where the feed puts it
         let timer: ReturnType<typeof setTimeout> | null = null;
@@ -865,10 +783,7 @@ export default function MapComponent({
         const lastSent = shownRef.current;
         lastSent.clear();
         // Where a glide started, per vehicle
-        const glides = new Map<
-            string,
-            { from: [number, number, number]; start: number }
-        >();
+        const glides = new Map<string, Glide>();
 
         const update = (timestamp: number, advance: boolean) => {
             const data = filteredTrainsRef.current;
@@ -889,49 +804,15 @@ export default function MapComponent({
                     feature.properties as TrainFeatureProperties;
                 const state = trackersRef.current.get(vehicleId);
                 if (!state) return null;
-                const target = advance
-                    ? tick(state, timestamp)
-                    : { coords: state.coords, bearing: state.bearing };
-                let pos: [number, number, number] = [
-                    target.coords[0],
-                    target.coords[1],
-                    target.bearing,
-                ];
                 const prev = lastSent.get(vehicleId);
-                if (fresh && prev) {
-                    const far =
-                        Math.abs(prev[0] - pos[0]) > GLIDE_MAX_DEG ||
-                        Math.abs(prev[1] - pos[1]) > GLIDE_MAX_DEG;
-                    const moved =
-                        Math.abs(prev[0] - pos[0]) > VEHICLE_COORD_EPSILON ||
-                        Math.abs(prev[1] - pos[1]) > VEHICLE_COORD_EPSILON;
-                    if (!far && moved) {
-                        glides.set(vehicleId, { from: prev, start: timestamp });
-                    } else if (far) {
-                        glides.delete(vehicleId);
-                    }
-                }
-                const glide = glides.get(vehicleId);
-                if (glide) {
-                    const t = (timestamp - glide.start) / GLIDE_MS;
-                    if (t >= 1) {
-                        glides.delete(vehicleId);
-                    } else {
-                        const k = easeInOut(Math.max(0, t));
-                        pos = [
-                            glide.from[0] + (pos[0] - glide.from[0]) * k,
-                            glide.from[1] + (pos[1] - glide.from[1]) * k,
-                            lerpBearing(glide.from[2], pos[2], k),
-                        ];
-                    }
-                }
-                if (!changed) {
-                    changed =
-                        !prev ||
-                        Math.abs(prev[0] - pos[0]) > VEHICLE_COORD_EPSILON ||
-                        Math.abs(prev[1] - pos[1]) > VEHICLE_COORD_EPSILON ||
-                        bearingDelta(prev[2], pos[2]) > VEHICLE_BEARING_EPSILON;
-                }
+                const pos = vehicleFrame(state, timestamp, {
+                    advance,
+                    fresh,
+                    prev,
+                    glides,
+                    id: vehicleId,
+                });
+                if (!changed) changed = hasMoved(prev, pos);
                 return pos;
             });
             if (!changed) return;
@@ -993,8 +874,7 @@ export default function MapComponent({
                     state.lastTimestamp = null;
                 }
             }
-            if (!fresh && timestamp - lastFrameAt < VEHICLE_FRAME_INTERVAL_MS)
-                return;
+            if (!fresh && timestamp - lastFrameAt < FRAME_INTERVAL_MS) return;
             lastFrameAt = timestamp;
             update(timestamp, true);
         };
@@ -1089,9 +969,12 @@ export default function MapComponent({
         () => ({
             "text-field": ["get", "name"] as ExpressionSpecification,
             "text-font": [...MAP_FONTS.bold],
-            "text-size": 13,
+            "text-size": MAP_STATION_MARK.label.size,
             "text-anchor": "top" as const,
-            "text-offset": [0, 1.35] as [number, number],
+            "text-offset": [0, MAP_STATION_MARK.label.offsetEm] as [
+                number,
+                number,
+            ],
             "text-max-width": 12,
             "text-allow-overlap": true,
             "text-ignore-placement": true,
@@ -2023,7 +1906,7 @@ export default function MapComponent({
                     <Layer
                         id={SEL.heading}
                         type="symbol"
-                        minzoom={MARKER.labelMinZoom}
+                        minzoom={MAP_DIRECTION_ARROW.minZoom}
                         filter={HAS_HEADING}
                         layout={{
                             "icon-image": arrowImageId(scheme),

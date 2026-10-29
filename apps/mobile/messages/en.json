@@ -23,7 +23,8 @@
         "stale_banner": "No fresh data for {minutes} min",
         "my_commute": "My commute",
         "follow_cta": "Follow your train",
-        "tomorrow": "tomorrow"
+        "tomorrow": "tomorrow",
+        "cluster": "{count} trains here"
     },
     "Consent": {
         "question": "Share anonymous statistics?",
@@ -109,6 +110,13 @@
         "dynamic_color": "Dynamic colours",
         "map": "Map",
         "detailed_railway_map": "Detailed railway map",
+        "station_names": "Station names",
+        "station_names_opacity": "Opacity",
+        "animation": "Animation",
+        "vehicles": "Vehicles",
+        "trains": "Trains",
+        "hev": "HÉV",
+        "tramtrain": "TramTrain",
         "analytics": "Anonymous statistics",
         "privacy": "Privacy",
         "map_data": "Map data",
