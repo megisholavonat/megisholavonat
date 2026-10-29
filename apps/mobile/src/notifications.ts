@@ -55,13 +55,23 @@ export async function expoPushToken(): Promise<string | null> {
     }
 }
 
-/** The train a notification is about, from the alert's data. */
-export function notificationVehicleId(
+function dataField(
     response: Notifications.NotificationResponse,
+    name: "vehicleId" | "followId",
 ): string | null {
     const data = response.notification.request.content.data as
         | Record<string, unknown>
         | undefined;
-    const vehicleId = data?.vehicleId;
-    return typeof vehicleId === "string" && vehicleId ? vehicleId : null;
+    const value = data?.[name];
+    return typeof value === "string" && value ? value : null;
+}
+
+/** The train and the follow an alert is about, from its data. */
+export function notificationTarget(
+    response: Notifications.NotificationResponse,
+): { vehicleId: string | null; followId: string | null } {
+    return {
+        vehicleId: dataField(response, "vehicleId"),
+        followId: dataField(response, "followId"),
+    };
 }

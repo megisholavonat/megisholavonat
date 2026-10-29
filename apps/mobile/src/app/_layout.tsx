@@ -9,9 +9,10 @@ import { useEffect } from "react";
 import { Platform } from "react-native";
 import { useLocale, useTranslations } from "use-intl";
 import { queryClient } from "../api";
+import { getFollows } from "../follow/store";
 import { syncFollows } from "../follow/sync";
 import { I18nProvider } from "../i18n";
-import { notificationVehicleId } from "../notifications";
+import { notificationTarget } from "../notifications";
 import { SettingsProvider } from "../settings/SettingsProvider";
 import { AppThemeProvider, useAppTheme } from "../theme/ThemeProvider";
 import { MNR2007_FONT } from "../train/RouteIcon";
@@ -44,7 +45,11 @@ function useNotificationRouting() {
         const id = response.notification.request.identifier;
         if (routedNotifications.has(id)) return;
         routedNotifications.add(id);
-        const vehicleId = notificationVehicleId(response);
+        const target = notificationTarget(response);
+        // Older alerts carry only the follow: its last known vehicle
+        const vehicleId =
+            target.vehicleId ??
+            getFollows().find((f) => f.id === target.followId)?.vehicleId;
         if (vehicleId) {
             router.push({
                 pathname: "/train/[vehicleId]",
