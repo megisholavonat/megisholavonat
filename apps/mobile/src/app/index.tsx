@@ -111,7 +111,7 @@ export default function MapScreen() {
                 now={now}
                 onTrainPress={openTrain}
                 followed={followed}
-                showRailways={settings.railwayLayer}
+                showRailways={settings.detailedRailwayMap}
                 followUser={following}
                 onFollowUserChange={setFollowing}
                 mapRef={mapRef}

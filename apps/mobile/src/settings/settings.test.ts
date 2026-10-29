@@ -7,10 +7,18 @@ describe("parseSettings", () => {
     });
 
     it("leaves the detailed railway map off by default", () => {
-        expect(parseSettings(null).railwayLayer).toBe(false);
+        expect(parseSettings(null).detailedRailwayMap).toBe(false);
         expect(
-            parseSettings(JSON.stringify({ railwayLayer: true })).railwayLayer,
+            parseSettings(JSON.stringify({ detailedRailwayMap: true }))
+                .detailedRailwayMap,
         ).toBe(true);
+    });
+
+    it("turns the overlay off for installs that stored the old default", () => {
+        expect(
+            parseSettings(JSON.stringify({ railwayLayer: true }))
+                .detailedRailwayMap,
+        ).toBe(false);
     });
 
     it("keeps valid stored values", () => {
@@ -18,7 +26,7 @@ describe("parseSettings", () => {
             language: "en",
             theme: "dark",
             dynamicColor: true,
-            railwayLayer: true,
+            detailedRailwayMap: true,
             analytics: "granted",
             launchCount: 3,
             openedTrain: true,
