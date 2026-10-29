@@ -139,3 +139,33 @@ export function formatSecondsAsTime(seconds: number): string {
 
     return `${h}:${m}`;
 }
+
+/** A wall-clock time in Budapest. */
+export interface BudapestTime {
+    year: number;
+    /** 1–12 */
+    month: number;
+    day: number;
+    hour: number;
+    minute: number;
+}
+
+/** The Budapest wall-clock time of an instant (ms since epoch). */
+export function budapestTime(ms: number): BudapestTime {
+    const t = DateTime.fromMillis(ms, { zone: BUDAPEST_TZ });
+    return {
+        year: t.year,
+        month: t.month,
+        day: t.day,
+        hour: t.hour,
+        minute: t.minute,
+    };
+}
+
+/**
+ * The instant (ms since epoch) of a Budapest wall-clock time, whatever the
+ * device's own time zone (a visitor's phone may still be on home time).
+ */
+export function fromBudapestTime(time: BudapestTime): number {
+    return DateTime.fromObject(time, { zone: BUDAPEST_TZ }).toMillis();
+}

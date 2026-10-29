@@ -2,6 +2,7 @@ import { Button, DatePicker, Host, HStack, Spacer } from "@expo/ui/swift-ui";
 import {
     buttonStyle,
     controlSize,
+    environment,
     labelsHidden,
 } from "@expo/ui/swift-ui/modifiers";
 import { useTranslations } from "use-intl";
@@ -21,7 +22,12 @@ export function TimeField({ value, onChange }: TimeFieldProps) {
                     selection={new Date(value ?? Date.now())}
                     displayedComponents={["date", "hourAndMinute"]}
                     onDateChange={(date) => onChange(date.getTime())}
-                    modifiers={[labelsHidden()]}
+                    // Train times are Budapest times, also on a visitor's
+                    // phone still set to home time
+                    modifiers={[
+                        labelsHidden(),
+                        environment("timeZone", "Europe/Budapest"),
+                    ]}
                 />
                 <Spacer />
                 {value !== null ? (
