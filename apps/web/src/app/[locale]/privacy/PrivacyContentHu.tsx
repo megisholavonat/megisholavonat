@@ -83,8 +83,8 @@ export default function PrivacyContentHu() {
                         </td>
                     </tr>
                     <tr>
-                        <td>Azonosító nélküli használati statisztika</td>
-                        <td>Látogatószám mérése</td>
+                        <td>Névtelen használati statisztika</td>
+                        <td>A látogatók és a funkciók használatának mérése</td>
                         <td>A PostHognál, lásd lent</td>
                     </tr>
                     <tr>
@@ -234,7 +234,9 @@ export default function PrivacyContentHu() {
                 döntésedet is) és a követett vonatokat fájlokban tárolja a
                 telefonodon. Ha követsz egy vonatot, az eszköz belépési adatát
                 (lásd lent) is eltárolja az iPhone kulcskarikájában (Keychain)
-                vagy az Android kulcstárában (Keystore).
+                vagy az Android kulcstárában (Keystore). Ha elfogadod a
+                statisztikát, egy véletlenszerű statisztikai azonosítót is tárol
+                egy fájlban.
             </p>
             <p>
                 Ezek az oldal és az alkalmazás működéséhez és a döntéseid
@@ -356,48 +358,124 @@ export default function PrivacyContentHu() {
                 vonatokat, amelyek már nincsenek meg nála.
             </p>
 
-            <h2>Látogatószám-mérés (mindenkinél)</h2>
+            <h2>Használati statisztika</h2>
             <p>
-                Hogy tudjuk, naponta hányan használják a weboldalt és mely
-                funkcióit, a{" "}
-                <External href="https://posthog.com/">PostHog</External>{" "}
-                sütimentes módját akkor is használjuk, ha még nem döntöttél,
-                vagy elutasítottad a részletes statisztikát. Ebben a módban:
+                Hogy tudjuk, hányan használják a weboldalt és az alkalmazást, és
+                mely funkcióikat, a{" "}
+                <External href="https://posthog.com/">PostHogot</External>{" "}
+                használjuk. Ezt rögzítjük:
             </p>
             <ul>
                 <li>
-                    a böngésződben semmit sem tárolunk: se sütit, se azonosítót;
+                    mit nyitsz meg (vonatot, állomást, útvonaltervezőt,
+                    statisztikát, forgalmi zavarokat) és honnan (pl. keresésből,
+                    a térképről, megosztott linkről vagy értesítésből), és hogy
+                    meddig nézel egy vonatot;
                 </li>
                 <li>
-                    a PostHog megkapja az oldalmegtekintéseket (az oldal címét,
+                    keresésnél csak azt, milyen hosszú volt a keresett szöveg,
+                    és hány találatot adott, magát a szöveget soha;
+                </li>
+                <li>
+                    hogy elmentettél vagy töröltél-e egy követést, milyen
+                    típusút és hány napra, az állomásokat nem;
+                </li>
+                <li>
+                    a megosztásokat, hogy melyik beállítást változtattad meg,
+                    hogy megjelent-e a statisztikáról szóló kérdés és mit
+                    válaszoltál, valamint a neked megjelenő hibaüzeneteket;
+                </li>
+                <li>
+                    nyilvános menetrendi azonosítókat: vonatszám,
+                    állomásazonosító, viszonylatkód és járműazonosító;
+                </li>
+                <li>
+                    minden eseménynél: a platformot (web, iOS vagy Android), az
+                    alkalmazás verzióját, a nyelvet, a témát, és nagyjából hány
+                    vonatot követsz (0, 1, 2–3, 4+);
+                </li>
+                <li>
+                    a weboldalon az oldalmegtekintéseket is (az oldal címét,
                     amelyben benne lehet a megnyitott vonat vagy állomás), a
-                    kattintásokat (a szövegük nélkül), hogy mely funkciókat
-                    használod (pl. keresés, vonat követése, útvonaltervezés,
-                    megosztás, olyan részletekkel, mint a vonatszám, az
-                    állomásazonosító vagy darabszámok, de soha nem azt, amit
-                    beírsz, és nem a helyzetedet), az oldalon előforduló
-                    hibákat, a böngésződ és az eszközöd típusát, valamint az
-                    IP-címedet, amelyből hozzávetőleges helyet (ország, város)
-                    állapíthat meg;
+                    kattintásokat (a szövegük nélkül) és az oldalon előforduló
+                    hibákat;
                 </li>
                 <li>
-                    a PostHog szervere az IP-címedből és a böngésződ adataiból
+                    az alkalmazásban azt is, hogy engedélyezted-e az
+                    értesítéseket, mely értesítéseket nyitod meg (a típusukat,
+                    és hogy ezzel indult-e az alkalmazás), és hogy egy
+                    követésnél be vannak-e kapcsolva az értesítések; a PostHog
+                    hozzáteszi az operációs rendszert és a verzióját, az eszköz
+                    típusát, a nyelvet és az időzónát;
+                </li>
+                <li>
+                    a böngésződ vagy az eszközöd típusát és az IP-címedet,
+                    amelyből a PostHog hozzávetőleges helyet (ország, város)
+                    állapít meg.
+                </li>
+            </ul>
+            <p>
+                Soha nem küldjük el a helyzetedet, azt, amit a keresőbe írsz,
+                vagy hogy melyik két állomás között tervezel utat. Felhasználói
+                profilt nem hozunk létre, munkamenet-felvételt
+                (képernyőfelvételt) nem készítünk, a nevedet vagy az
+                e-mail-címedet soha nem küldjük el. A fejlesztői változatok
+                semmit sem küldenek.
+            </p>
+
+            <h3>Amíg nem döntöttél, vagy ha elutasítod</h3>
+            <ul>
+                <li>
+                    <strong>Weboldal:</strong> a PostHog sütimentes módja. A
+                    böngésződben semmit sem tárolunk: se sütit, se azonosítót. A
+                    PostHog szervere az IP-címedből és a böngésződ adataiból
                     (user agent) egy naponta cserélődő titkos kulccsal („só”)
                     lenyomatot (hash-t) képez. Ezzel egy napon belül össze tudja
                     kapcsolni a látogatásaidat, de másnap már nem lehet hozzád
                     kötni, a napi sót pedig a PostHog törli.
                 </li>
-            </ul>
-            <p>
-                Az alkalmazás csak így, illetve a hozzájárulásoddal az alább
-                leírt módon méri a használatot.
-            </p>
-            <ul>
+                <li>
+                    <strong>Alkalmazás:</strong> egy véletlenszerű azonosítót
+                    csak a memóriában tartunk, egy indítás idejére. A
+                    telefonodon semmit sem tárolunk, így a következő indítás nem
+                    kapcsolható hozzá.
+                </li>
+                <li>
+                    A statisztikáról szóló kérdésre adott válaszodat ugyanígy,
+                    névtelenül rögzítjük, hogy lássuk, hányan fogadják el. Amit
+                    az elfogadás előtt rögzítettünk, azt utána sem kapcsoljuk
+                    hozzád.
+                </li>
                 <li>
                     <strong>Jogalap:</strong> jogos érdek (GDPR 6. cikk (1) f)
                     pont): egy ingyenes hobbiprojekt fenntartásához tudnunk
                     kell, hányan és mire használják. Ez ellen bármikor
                     tiltakozhatsz az alább megadott e-mail-címen.
+                </li>
+            </ul>
+
+            <h3>Ha elfogadod</h3>
+            <ul>
+                <li>
+                    Egy véletlenszerű azonosítót tárolunk az eszközödön (a
+                    weboldalon a helyi tárolóban, <code>ph_…</code> és{" "}
+                    <code>__ph_…</code> kezdetű kulcsokkal; az alkalmazásban egy
+                    fájlban), hogy a látogatásaidat napokon át össze tudjuk
+                    kapcsolni (pl. hogy visszatérsz-e). A PostHog
+                    munkamenet-azonosítót is használ.
+                </li>
+                <li>
+                    <strong>Jogalap:</strong> a hozzájárulásod (GDPR 6. cikk (1)
+                    a) pont), amelyet bármikor visszavonhatsz.
+                </li>
+            </ul>
+
+            <ul>
+                <li>
+                    <strong>Megőrzés:</strong> a PostHognál a projektünkben
+                    beállított megőrzési ideig, kérésre korábban is töröljük; az
+                    azonosítót az eszközödön addig, amíg vissza nem vonod a
+                    hozzájárulást, vagy nem törlöd az adatait.
                 </li>
                 <li>
                     <strong>Adatfeldolgozó:</strong> PostHog Inc., EU-s
@@ -405,48 +483,12 @@ export default function PrivacyContentHu() {
                 </li>
             </ul>
 
-            <h2>Részletes statisztika (csak ha engeded)</h2>
-            <p>
-                Ha az erről szóló kérdésnél a weboldalon vagy az alkalmazásban
-                az „Elfogadom” gombot választod, a PostHog segítségével
-                részletesebb statisztikát gyűjtünk, ami segít eldönteni, mit
-                fejlesszünk. Ugyanazokat az eseményeket rögzítjük, mint fent,
-                de:
-            </p>
-            <ul>
-                <li>
-                    egy véletlenszerű azonosítót tárolunk az eszközödön (a
-                    weboldalon a helyi tárolóban, <code>ph_…</code> és{" "}
-                    <code>__ph_…</code> kezdetű kulcsokkal), hogy a
-                    látogatásaidat napokon át össze tudjuk kapcsolni (pl. hogy
-                    visszatérsz-e);
-                </li>
-                <li>a PostHog munkamenet-azonosítót is használ.</li>
-            </ul>
-            <p>
-                Felhasználói profilt nem hozunk létre, munkamenet-felvételt
-                (képernyőfelvételt) nem készítünk, azt a szöveget, amire
-                koppintasz, nem rögzítjük, és a nevedet, az e-mail-címedet vagy
-                a pontos helyzetedet soha nem küldjük el.
-            </p>
-            <ul>
-                <li>
-                    <strong>Jogalap:</strong> a hozzájárulásod (GDPR 6. cikk (1)
-                    a) pont), amelyet bármikor visszavonhatsz.
-                </li>
-                <li>
-                    <strong>Megőrzés:</strong> a PostHognál a projektünkben
-                    beállított megőrzési ideig, kérésre korábban is töröljük; az
-                    eszközödön addig, amíg vissza nem vonod a hozzájárulást,
-                    vagy nem törlöd az adatait.
-                </li>
-            </ul>
             <p>
                 Ha elutasítod, fél évig nem kérdezünk újra. A döntésedet itt
                 vagy a Beállításokban (a weboldalon és az alkalmazásban is)
-                bármikor megváltoztathatod. Ha a weboldalon kikapcsolod,
-                töröljük a böngésződből a PostHog adatait, és visszaállunk a
-                sütimentes látogatószám-mérésre.
+                bármikor megváltoztathatod. Ha kikapcsolod, töröljük a tárolt
+                azonosítót a böngésződből vagy a telefonodról, és visszaállunk a
+                névtelen mérésre.
             </p>
             <div className="not-prose rounded-xl border border-border bg-card p-4">
                 <AnalyticsConsentSwitch />
@@ -455,11 +497,11 @@ export default function PrivacyContentHu() {
             <h2>A PostHog</h2>
             <p>
                 A statisztikai adatok a PostHog EU-s felhőjébe
-                (eu.i.posthog.com) kerülnek; a weboldal a saját szerverünkön
-                keresztül küldi őket, amely a látogatók számlálásához továbbítja
-                az IP-címedet. A PostHog Inc. amerikai cég; az EU-n kívüli
-                hozzáférésre vonatkozó garanciákat a PostHog adatfeldolgozási
-                feltételei tartalmazzák.
+                (eu.i.posthog.com) kerülnek. Az alkalmazás közvetlenül küldi
+                őket, a weboldal pedig a saját szerverünkön keresztül, amely a
+                látogatók számlálásához továbbítja az IP-címedet. A PostHog Inc.
+                amerikai cég; az EU-n kívüli hozzáférésre vonatkozó garanciákat
+                a PostHog adatfeldolgozási feltételei tartalmazzák.
             </p>
 
             <h2>Ki kap adatot, és hol?</h2>

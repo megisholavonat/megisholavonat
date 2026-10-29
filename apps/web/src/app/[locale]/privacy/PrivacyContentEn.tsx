@@ -79,8 +79,8 @@ export default function PrivacyContentEn() {
                         </td>
                     </tr>
                     <tr>
-                        <td>Usage statistics without an ID</td>
-                        <td>Counting visitors</td>
+                        <td>Anonymous usage statistics</td>
+                        <td>Counting visitors and feature use</td>
                         <td>At PostHog, see below</td>
                     </tr>
                     <tr>
@@ -221,7 +221,8 @@ export default function PrivacyContentEn() {
                 The app keeps your settings (including your statistics choice)
                 and the trains you follow in files on your phone. If you follow
                 a train, it also stores its device credential (see below) in the
-                iPhone Keychain or the Android Keystore.
+                iPhone Keychain or the Android Keystore. If you accept
+                statistics, it also keeps a random statistics ID in a file.
             </p>
             <p>
                 These are needed for the site and the app to work and to
@@ -334,46 +335,117 @@ export default function PrivacyContentEn() {
                 has.
             </p>
 
-            <h2>Counting visitors (for everyone)</h2>
+            <h2>Usage statistics</h2>
             <p>
-                To know how many people use the website each day and which
+                To know how many people use the website and the app and which
                 features they use, we use{" "}
-                <External href="https://posthog.com/">PostHog</External>
-                &apos;s cookieless mode even if you haven&apos;t decided yet or
-                have rejected detailed statistics. In this mode:
+                <External href="https://posthog.com/">PostHog</External>. We
+                record:
             </p>
             <ul>
                 <li>
-                    nothing is stored in your browser: no cookies and no ID;
+                    what you open (a train, a station, the journey planner,
+                    statistics, disruptions) and from where (e.g. search, the
+                    map, a shared link or an alert), and how long you look at a
+                    train;
                 </li>
                 <li>
-                    PostHog receives page views (the page address, which may
+                    for searches, only how long the query was and how many
+                    results it found, never the text;
+                </li>
+                <li>
+                    whether you saved or removed a follow, its type and how many
+                    days it covers, but not the stations;
+                </li>
+                <li>
+                    share taps, which setting you changed, whether the
+                    statistics question was shown and what you answered, and
+                    error messages shown to you;
+                </li>
+                <li>
+                    public timetable IDs: train number, station ID, route code
+                    and vehicle ID;
+                </li>
+                <li>
+                    with every event: the platform (web, iOS or Android), app
+                    version, language, theme and roughly how many trains you
+                    follow (0, 1, 2–3, 4+);
+                </li>
+                <li>
+                    on the website also page views (the page address, which may
                     include the train or station you opened), clicks (with text
-                    masked), which features you use (e.g. search, following a
-                    train, journey planning, sharing, with details such as train
-                    numbers, station IDs or counts, but never what you type or
-                    your location), errors that occur on the site, your browser
-                    and device type, and your IP address, from which it may
-                    derive an approximate location (country, city);
+                    masked) and errors on the site;
                 </li>
                 <li>
+                    in the app also the answer to the notification permission
+                    request, which alerts you open (their type and whether they
+                    started the app) and whether alerts are on for a follow;
+                    PostHog adds the operating system and its version, the
+                    device type, language and time zone;
+                </li>
+                <li>
+                    your browser or device type and your IP address, from which
+                    PostHog derives an approximate location (country, city).
+                </li>
+            </ul>
+            <p>
+                We never send your location, what you type in search, or the
+                pair of stations you plan a journey between. We do not create
+                user profiles, do not record sessions (screen recordings), and
+                never send your name or email address. Nothing is sent from
+                development builds.
+            </p>
+
+            <h3>Before you decide, or if you reject</h3>
+            <ul>
+                <li>
+                    <strong>Website:</strong> PostHog&apos;s cookieless mode.
+                    Nothing is stored in your browser: no cookies and no ID.
                     PostHog&apos;s server computes a hash of your IP address and
                     browser details (user agent) with a secret key
                     (&quot;salt&quot;) that changes every day. This links your
                     visits within a day, but cannot be linked to you the next
                     day, and PostHog deletes the daily salt.
                 </li>
-            </ul>
-            <p>
-                The app counts usage only in this way or, with your consent, as
-                described below.
-            </p>
-            <ul>
+                <li>
+                    <strong>App:</strong> a random ID is kept in memory for one
+                    launch only. Nothing is stored on your phone, so the next
+                    launch cannot be linked to it.
+                </li>
+                <li>
+                    Your answer to the statistics question is recorded in the
+                    same anonymous way, so we can see how many people accept.
+                    Nothing recorded before you accept is linked to you
+                    afterwards.
+                </li>
                 <li>
                     <strong>Legal basis:</strong> legitimate interest (GDPR Art.
                     6(1)(f)): to keep a free hobby project going, we need to
                     know how many people use it and what for. You can object at
                     any time using the email address below.
+                </li>
+            </ul>
+
+            <h3>If you accept</h3>
+            <ul>
+                <li>
+                    A random ID is stored on your device (on the website, in
+                    local storage under keys starting with <code>ph_</code> and{" "}
+                    <code>__ph_</code>; in the app, in a file), so your visits
+                    can be linked across days (e.g. whether you come back).
+                    PostHog also uses a session ID.
+                </li>
+                <li>
+                    <strong>Legal basis:</strong> your consent (GDPR Art.
+                    6(1)(a)), which you can withdraw at any time.
+                </li>
+            </ul>
+
+            <ul>
+                <li>
+                    <strong>Retention:</strong> at PostHog, for the retention
+                    period set in our project, or earlier on request; the ID on
+                    your device, until you withdraw consent or clear its data.
                 </li>
                 <li>
                     <strong>Processor:</strong> PostHog Inc., EU data centre
@@ -381,44 +453,11 @@ export default function PrivacyContentEn() {
                 </li>
             </ul>
 
-            <h2>Detailed statistics (only if you allow it)</h2>
-            <p>
-                If you choose “Accept” when asked, on the website or in the app,
-                we use PostHog to collect more detailed statistics that help us
-                decide what to build next. The same kinds of events are recorded
-                as above, but:
-            </p>
-            <ul>
-                <li>
-                    a random ID is stored on your device (on the website, in
-                    local storage under keys starting with <code>ph_</code> and{" "}
-                    <code>__ph_</code>), so your visits can be linked across
-                    days (e.g. whether you come back);
-                </li>
-                <li>PostHog also uses a session ID.</li>
-            </ul>
-            <p>
-                We do not create user profiles, do not record sessions (screen
-                recordings) or the text of what you tap, and never send your
-                name, email address or precise location.
-            </p>
-            <ul>
-                <li>
-                    <strong>Legal basis:</strong> your consent (GDPR Art.
-                    6(1)(a)), which you can withdraw at any time.
-                </li>
-                <li>
-                    <strong>Retention:</strong> at PostHog, for the retention
-                    period set in our project, or earlier on request; on your
-                    device, until you withdraw consent or clear its data.
-                </li>
-            </ul>
             <p>
                 If you reject, we won&apos;t ask again for six months. You can
                 change your choice here or in Settings (on the website and in
-                the app) at any time. If you turn it off on the website, we
-                remove PostHog&apos;s data from your browser and go back to
-                cookieless visitor counting.
+                the app) at any time. If you turn it off, we delete the stored
+                ID from your browser or phone and go back to anonymous counting.
             </p>
             <div className="not-prose rounded-xl border border-border bg-card p-4">
                 <AnalyticsConsentSwitch />
@@ -427,11 +466,11 @@ export default function PrivacyContentEn() {
             <h2>PostHog</h2>
             <p>
                 Statistics are sent to PostHog&apos;s EU cloud
-                (eu.i.posthog.com); the website sends them through our own
-                server, which passes on your IP address so that visitors can be
-                counted. PostHog Inc. is a US company; safeguards for any access
-                from outside the EU are set out in PostHog&apos;s data
-                processing terms.
+                (eu.i.posthog.com). The app sends them directly; the website
+                sends them through our own server, which passes on your IP
+                address so that visitors can be counted. PostHog Inc. is a US
+                company; safeguards for any access from outside the EU are set
+                out in PostHog&apos;s data processing terms.
             </p>
 
             <h2>Who receives data, and where</h2>
