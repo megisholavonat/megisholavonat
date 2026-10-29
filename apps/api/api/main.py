@@ -19,7 +19,6 @@ from api.routers import (
     journeys,
     posthog,
     rankings,
-    redis_test,
     root,
     stations,
     trains,
@@ -68,7 +67,6 @@ def create_app() -> FastAPI:
     v1_router = APIRouter(prefix="/v1")
 
     # Include routers
-    v1_router.include_router(redis_test.router)
     v1_router.include_router(trains.router)
     v1_router.include_router(posthog.router)
     v1_router.include_router(stations.router)
