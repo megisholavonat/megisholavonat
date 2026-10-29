@@ -7,9 +7,11 @@ import type {
 import {
     currentOccurrence,
     defaultBoardingIndex,
+    tripRun,
 } from "@megisholavonat/core/commute";
 import {
     budapestDate,
+    effectiveServiceDate,
     serviceDayStart,
     shiftDate,
 } from "@megisholavonat/core/time";
@@ -173,7 +175,10 @@ export function createBody(
 }
 
 export interface Run {
-    /** Service date of the run */
+    /**
+     * Service date the run's stoptimes count from: OTP's own for a trip,
+     * resolved for HÉVs after midnight and train 10 (core `tripRun`)
+     */
     serviceDate: string;
     /** Scheduled departure from the boarding stop, ms since epoch */
     departure: number;
@@ -203,19 +208,19 @@ export function nextRun(
 
     if (follow.kind === "trip") {
         if (!follow.serviceDate) return null;
-        const departure = runOn(follow.serviceDate);
+        // OTP dates HÉVs after midnight a day early and train 10 a day late
+        const run = tripRun(asTrip(follow, follow.serviceDate), board.time, now);
+        const departure = run.at * 1000;
         const alight = follow.stops[follow.to];
         const end = alight
-            ? serviceDayStart(follow.serviceDate) + alight.time * 1000
+            ? serviceDayStart(run.serviceDate) + alight.time * 1000
             : departure;
         if (now.getTime() > end + AFTER_ARRIVAL_MS) return null;
         return {
-            serviceDate: follow.serviceDate,
+            serviceDate: run.serviceDate,
             departure,
             dayOffset: Math.round(
-                (Date.parse(shiftDate(follow.serviceDate, daysPast)) -
-                    Date.parse(today)) /
-                    (DAY_S * 1000),
+                (Date.parse(run.date) - Date.parse(today)) / (DAY_S * 1000),
             ),
         };
     }
@@ -236,6 +241,17 @@ export function nextRun(
         serviceDate,
         departure: runOn(serviceDate),
         dayOffset: occurrence.daysAhead,
+    };
+}
+
+/** A follow's stops as a trip's stoptimes, for the service-day resolution. */
+function asTrip(follow: LocalFollow, serviceDate: string) {
+    return {
+        serviceDate,
+        stoptimes: follow.stops.map((s) => ({
+            scheduledArrival: s.time,
+            scheduledDeparture: s.time,
+        })),
     };
 }
 
@@ -274,14 +290,25 @@ export function upcoming(
         .sort((a, b) => a.run.departure - b.run.departure);
 }
 
-/** Whether live `details` are the run of `follow` on `serviceDate`. */
+/**
+ * Whether live `details` are the run of `follow` on `serviceDate` (a
+ * commute run's resolved service date, `Run.serviceDate`). A trip is only
+ * its own day's run: same trip id and OTP service date. A commute matches by
+ * number and boarding station, with the live trip's service date resolved
+ * at `now` (OTP dates HÉVs after midnight and train 10 off by a day).
+ */
 export function isRunOf(
     follow: LocalFollow,
     serviceDate: string,
     details: VehiclePositionWithDelay,
+    now: Date = new Date(),
 ): boolean {
     if (follow.kind === "trip") {
-        return !!follow.tripId && details.trip.gtfsId === follow.tripId;
+        return (
+            !!follow.tripId &&
+            details.trip.gtfsId === follow.tripId &&
+            details.trip.serviceDate === follow.serviceDate
+        );
     }
     if (
         trainNumber(details.trip.tripShortName) !==
@@ -289,7 +316,7 @@ export function isRunOf(
     ) {
         return false;
     }
-    if (details.trip.serviceDate !== serviceDate) return false;
+    if (effectiveServiceDate(details.trip, now) !== serviceDate) return false;
     const station = follow.stops[follow.from]?.stationId;
     return details.trip.stoptimes.some(
         (st) => stationIdOf(st.stop) === station,
@@ -356,13 +383,14 @@ export function parseFollows(json: string | null | undefined): LocalFollow[] {
     }
 }
 
-/** The follow of the train in `details`, if any. */
+/** The follow of the train in `details` (this run of it), if any. */
 export function findFollowFor(
     follows: readonly LocalFollow[],
     details: VehiclePositionWithDelay,
+    now: Date = new Date(),
 ): LocalFollow | null {
+    const serviceDate = effectiveServiceDate(details.trip, now);
     return (
-        follows.find((f) => isRunOf(f, details.trip.serviceDate, details)) ??
-        null
+        follows.find((f) => isRunOf(f, serviceDate, details, now)) ?? null
     );
 }

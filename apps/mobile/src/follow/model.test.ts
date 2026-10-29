@@ -4,6 +4,7 @@ import {
     createBody,
     defaultDraft,
     isExpired,
+    findFollowFor,
     isRunOf,
     type LocalFollow,
     nextRun,
@@ -223,15 +224,114 @@ describe("nextRun", () => {
 
 describe("isRunOf", () => {
     it("matches a commute by number, date and boarding station", () => {
-        expect(isRunOf(follow(), "2026-10-29", details())).toBe(true);
-        expect(isRunOf(follow(), "2026-10-30", details())).toBe(false);
+        expect(isRunOf(follow(), "2026-10-29", details(), THU_16)).toBe(true);
+        expect(isRunOf(follow(), "2026-10-30", details(), THU_16)).toBe(false);
         const other = follow({ tripShortName: "2425" });
-        expect(isRunOf(other, "2026-10-29", details())).toBe(false);
+        expect(isRunOf(other, "2026-10-29", details(), THU_16)).toBe(false);
     });
 
     it("matches a trip by id", () => {
         const trip = follow({ kind: "trip", tripId: "1:other" });
-        expect(isRunOf(trip, "2026-10-29", details())).toBe(false);
+        expect(isRunOf(trip, "2026-10-29", details(), THU_16)).toBe(false);
+    });
+
+    it("matches a trip only on its own day", () => {
+        const yesterday = follow({
+            kind: "trip",
+            weekdays: [],
+            serviceDate: "2026-10-28",
+        });
+        expect(findFollowFor([yesterday], details(), THU_16)).toBeNull();
+        const today = { ...yesterday, serviceDate: "2026-10-29" };
+        expect(findFollowFor([today], details(), THU_16)).toBe(today);
+    });
+});
+
+describe("service-day quirks", () => {
+    // A HÉV OTP dates Wednesday that leaves 00:20 on Thursday
+    const hev = () =>
+        ({
+            vehicleId: "h1",
+            delay: 0,
+            trip: {
+                gtfsId: "1:hev",
+                serviceDate: "2026-10-28",
+                tripShortName: "H5 1234",
+                stoptimes: [
+                    stop("Batthyány tér", "A", 20 * 60),
+                    stop("Szentendre", "B", 60 * 60),
+                ],
+            },
+        }) as unknown as VehiclePositionWithDelay;
+    const THU_0010 = new Date("2026-10-28T23:10:00Z");
+
+    it("shows a HÉV trip after midnight as tonight's", () => {
+        const f = follow({
+            kind: "trip",
+            tripShortName: "H5 1234",
+            tripId: "1:hev",
+            stops: stopOptions(hev()),
+            from: 0,
+            to: 1,
+            weekdays: [],
+            serviceDate: "2026-10-28",
+        });
+        expect(nextRun(f, THU_0010)).toEqual({
+            serviceDate: "2026-10-29",
+            departure: Date.parse("2026-10-28T23:20:00Z"),
+            dayOffset: 0,
+        });
+        expect(findFollowFor([f], hev(), THU_0010)).toBe(f);
+    });
+
+    it("finds a HÉV commute's live run after midnight", () => {
+        const f = follow({
+            tripShortName: "H5 1234",
+            stops: stopOptions(hev()),
+            from: 0,
+            to: 1,
+            weekdays: [4],
+        });
+        const run = nextRun(f, THU_0010, true);
+        expect(run).toMatchObject({ serviceDate: "2026-10-29", dayOffset: 0 });
+        expect(run && isRunOf(f, run.serviceDate, hev(), THU_0010)).toBe(true);
+    });
+
+    it("shows train 10 as today's while it runs", () => {
+        // OTP dates Thursday's 23:00 train 10 as Friday
+        const ten = {
+            ...details(),
+            trip: {
+                ...details().trip,
+                gtfsId: "1:ten",
+                serviceDate: "2026-10-30",
+                tripShortName: "10",
+                stoptimes: [
+                    stop("Budapest-Keleti", "005510009", 23 * H),
+                    stop("Záhony", "005517228", 30 * H),
+                ],
+            },
+        } as unknown as VehiclePositionWithDelay;
+        const now = new Date("2026-10-29T22:30:00Z"); // Thu 23:30
+        const trip = follow({
+            kind: "trip",
+            tripShortName: "10",
+            tripId: "1:ten",
+            stops: stopOptions(ten),
+            from: 0,
+            to: 1,
+            weekdays: [],
+            serviceDate: "2026-10-30",
+        });
+        expect(nextRun(trip, now)).toEqual({
+            serviceDate: "2026-10-29",
+            departure: Date.parse("2026-10-29T22:00:00Z"),
+            dayOffset: 0,
+        });
+        const commute = { ...trip, kind: "commute" as const, weekdays: [4] };
+        const run = nextRun(commute, now, true);
+        expect(run).toMatchObject({ serviceDate: "2026-10-29", dayOffset: 0 });
+        expect(run && isRunOf(commute, run.serviceDate, ten, now)).toBe(true);
     });
 });
 
