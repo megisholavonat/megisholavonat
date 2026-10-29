@@ -18,10 +18,22 @@ LIVE_INDEX_TTL = 30  # seconds; live positions refresh every minute
 _AMBIGUOUS = "ambiguous"
 
 
+# Activities (api.util.vehicle.activity) whose GPS delay is not shown: the
+# map and the train sheet show no delay for them, so boards and journeys fall back
+# to the timetable's realtime value as for trains without a live position
+NO_LIVE_DELAY = frozenset({"offRoute", "arrived", "cancelled"})
+
+
 @dataclass(frozen=True, slots=True)
 class LiveTrip:
     vehicleId: str
     delay: int  # minutes, GPS-derived
+    activity: str | None = None
+
+    @property
+    def has_delay(self) -> bool:
+        """Its GPS delay is meaningful (see NO_LIVE_DELAY)."""
+        return self.activity not in NO_LIVE_DELAY
 
 
 def _id_key(trip_id: str) -> str:
@@ -47,7 +59,11 @@ def build_live_trip_index(
         delay = loc.get("delay")
         if not vehicle_id or delay is None:
             continue
-        value = {"vehicleId": vehicle_id, "delay": delay}
+        value = {
+            "vehicleId": vehicle_id,
+            "delay": delay,
+            "activity": loc.get("activity"),
+        }
 
         trip_id = trip.get("gtfsId")
         if trip_id:
@@ -81,7 +97,11 @@ def match_live_trip(
     for key in candidates:
         value = index.get(key)
         if isinstance(value, dict):
-            return LiveTrip(vehicleId=value["vehicleId"], delay=int(value["delay"]))
+            return LiveTrip(
+                vehicleId=value["vehicleId"],
+                delay=int(value["delay"]),
+                activity=value.get("activity"),
+            )
     return None
 
 

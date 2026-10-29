@@ -195,6 +195,38 @@ async def test_gps_delay_wins_and_picks_the_live_duplicate(
     ]
 
 
+async def test_no_gps_delay_for_a_train_off_its_route(
+    client: httpx.AsyncClient,
+    otp: respx.MockRouter,
+    redis: fakeredis.FakeAsyncRedis,
+) -> None:
+    graphql_route(otp).mock(side_effect=otp_responder(journeys=JOURNEYS))
+    # As on boards: the map shows no delay for it, so neither does the plan
+    await _store_live_trains(
+        redis,
+        [
+            {
+                "vehicleId": "1:915504800123",
+                "delay": 7,
+                "activity": "offRoute",
+                "trip": {"gtfsId": "1:36463704"},
+            }
+        ],
+    )
+
+    response = await _plan(client)
+
+    live = response.json()["itineraries"][0]["legs"][0]
+    assert live["tripId"] == "1:36463704"
+    assert live["delaySource"] == "otp"
+    assert live["delayMinutes"] != 7
+    assert live["expectedDeparture"] == (
+        live["scheduledDeparture"] + live["delayMinutes"] * 60
+    )
+    # Still the train on the map, preferred over its duplicate listing
+    assert live["vehicleId"] == "1:915504800123"
+
+
 async def test_gps_delay_never_moves_departures_earlier(
     client: httpx.AsyncClient,
     otp: respx.MockRouter,

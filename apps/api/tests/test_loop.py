@@ -15,6 +15,7 @@ last pass (3.6 km at 06:28) than the first (5.5 km).
 import copy
 import gzip
 import json
+import math
 from datetime import date
 from pathlib import Path
 from typing import Any
@@ -23,8 +24,9 @@ import fakeredis
 import pytest
 from shapely.geometry import LineString, Point
 
-from api.services.train_service import TrainService
-from api.util.preprocess import PreviousPosition, snap_stops
+from api.core.redis import add_key
+from api.services.train_service import PROGRESS_KEY, TrainService
+from api.util.preprocess import MATCH_SLACK_M, PreviousPosition, snap_stops
 from api.util.route import projection_candidates, route_from_polyline
 from api.util.time import service_day_start
 
@@ -150,6 +152,149 @@ async def test_refresh_keeps_progress_per_trip() -> None:
         service.save_progress(pipe, previous, first["lastUpdated"] + 3600)
         await pipe.execute()
     assert await service.load_progress() == {}
+
+
+async def test_progress_saved_before_the_delay_loads_without_one() -> None:
+    redis = fakeredis.FakeAsyncRedis()
+    service = TrainService(redis)
+    await redis.hset(  # type: ignore[misc]
+        add_key(PROGRESS_KEY), mapping={"1:1@2026-10-29": "[0.5, 1793272071, 6.4]"}
+    )
+
+    loaded = await service.load_progress()
+
+    assert loaded == {
+        "1:1@2026-10-29": PreviousPosition(along=0.5, at=1793272071, line_length=6.4)
+    }
+    assert loaded["1:1@2026-10-29"].delay is None
+
+
+# --- The end of the loop (QA NM-A) ---
+
+# 582 TOKAJ of 2026-10-29 runs the circle the other way: Budapest-Keleti 05:25,
+# Hatvan, Miskolc, Nyíregyháza, Debrecen, Szolnok, Budapest-Nyugati 12:05.
+# QA recorded it at 12:07:51 (logs3/feed.json, with heading and speed) and at
+# 12:11:24 and 12:12:24 (logs3/watch.log) at Kőbánya/Rákos, about 12 min late
+# on its way into Nyugati. Its geometry's first km (out of Keleti) was 1.1 km
+# away and its last km 3.2 km, so only the first pass was "near", and it read
+# "+399" and "+402" with Hatvan as its next stop until 12:12. The trip is as
+# the upstream `trip` query returns it.
+LOOP_END_FIXTURE = Path(__file__).parent / "fixtures" / "loop-end-582.json.gz"
+
+
+def _582() -> list[dict[str, Any]]:
+    with gzip.open(LOOP_END_FIXTURE, "rt") as f:
+        vehicles: list[dict[str, Any]] = json.load(f)
+    return vehicles
+
+
+def test_582_nearest_pass_is_the_start_of_the_loop() -> None:
+    # The bug's cause, kept as a check that the fixture still shows it
+    first = _582()[0]
+    route = route_from_polyline(first["trip"]["tripGeometry"]["points"])
+    assert route.line is not None
+    candidates = projection_candidates(
+        route.coords_array, first["lon"], first["lat"], math.inf
+    )
+    nearest = min(candidates, key=lambda c: c.metres)
+    last = max(candidates, key=lambda c: c.along)
+
+    assert nearest.along / route.line.length < 0.02
+    assert last.along / route.line.length > 0.98
+    assert last.metres - nearest.metres > MATCH_SLACK_M
+
+
+def test_582_approaching_nyugati_is_at_the_end_of_its_route() -> None:
+    for loc in (_process(vehicle) for vehicle in _582()):
+        progress = loc["vehicleProgress"]
+        assert progress["lastStop"] == "Szolnok"
+        assert progress["nextStop"] == "Budapest-Nyugati"
+        assert _km(loc) > 500
+        # The board said +12 at Nyugati; it read +399
+        assert 5 <= loc["delay"] <= 20
+
+
+def test_582_follows_its_previous_position_and_delay() -> None:
+    previous: dict[str, PreviousPosition] = {}
+    located = [_process(vehicle, previous) for vehicle in _582()]
+
+    assert [loc["vehicleProgress"]["nextStop"] for loc in located] == [
+        "Budapest-Nyugati"
+    ] * 3
+    [kept] = previous.values()
+    assert kept.delay == pytest.approx(located[-1]["delaySeconds"], abs=1)
+
+
+def test_582_wrong_previous_position_and_delay_do_not_stick() -> None:
+    first, second, _ = _582()
+    route = route_from_polyline(first["trip"]["tripGeometry"]["points"])
+    assert route.line is not None
+    trip = first["trip"]
+    # As the old matching left it at 12:07: on the first km, "+399"
+    previous = {
+        f"{trip['gtfsId']}@{trip['serviceDate']}": PreviousPosition(
+            along=route.line.length * 0.012,
+            at=first["lastUpdated"],
+            line_length=route.line.length,
+            delay=399 * 60,
+        )
+    }
+
+    loc = _process(second, previous)
+
+    assert loc["vehicleProgress"]["nextStop"] == "Budapest-Nyugati"
+    assert loc["delay"] <= 20
+
+
+def test_582_genuinely_late_at_the_start_stays_at_the_start() -> None:
+    vehicle = copy.deepcopy(_582()[0])
+    stoptimes = vehicle["trip"]["stoptimes"]
+    keleti = stoptimes[0]
+    assert keleti["stop"]["name"] == "Budapest-Keleti"
+    # The same place two and a half hours after it was due to leave Keleti,
+    # heading out of Budapest
+    vehicle["lastUpdated"] = int(
+        service_day_start(
+            date.fromisoformat(vehicle["trip"]["serviceDate"])
+        ).timestamp()
+        + keleti["scheduledDeparture"]
+        + 150 * 60
+    )
+    vehicle["heading"] = 150.0
+
+    loc = _process(vehicle)
+
+    assert loc["vehicleProgress"]["lastStop"] == "Budapest-Keleti"
+    assert loc["vehicleProgress"]["nextStop"] == "Hatvan"
+    assert _km(loc) < 20
+    assert 140 <= loc["delay"] <= 150
+
+
+# 140 of 2026-08-19 (Nyíregyháza - Wien Westbf), from the replay: at 12:57 on
+# its way into Wien Hbf (due 11:20 - 11:30), at 13:01 standing there, 1 m from
+# its geometry. Its terminus, Wien Westbf, is 3.5 km on along the route but
+# just as near as the crow flies, and a train standing at its terminus after
+# its arrival time is on time: matching every very late train to its far
+# passes put it there, "61" instead of "91".
+LATE_FIXTURE = Path(__file__).parent / "fixtures" / "late-140-wien.json.gz"
+
+
+def test_very_late_train_on_its_track_stays_where_it_is() -> None:
+    with gzip.open(LATE_FIXTURE, "rt") as f:
+        arriving, standing = json.load(f)
+
+    with_previous: dict[str, PreviousPosition] = {}
+    for previous in (None, with_previous):
+        if previous is not None:
+            _process(arriving, previous)
+        loc = _process(standing, previous)
+
+        assert loc["vehicleProgress"]["nextStop"] == "Wien Hbf"
+        assert loc["dwellStopIndex"] is None or (
+            loc["trip"]["stoptimes"][loc["dwellStopIndex"]]["stop"]["name"]
+            == "Wien Hbf"
+        )
+        assert loc["delay"] >= 90
 
 
 # --- Geometry ---

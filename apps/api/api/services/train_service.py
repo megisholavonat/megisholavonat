@@ -178,6 +178,7 @@ class TrainService:
                     along=delay_data["trainPosition"],
                     at=float(location.get("lastUpdated") or 0),
                     line_length=route.line.length,
+                    delay=delay_data["delay"],
                 )
 
             processed_location = location.copy()
@@ -213,10 +214,16 @@ class TrainService:
         progress = {}
         for key, value in raw.items():
             try:
-                along, at, line_length = json.loads(value)
+                # [along, at, line_length], then the delay (older entries
+                # have none)
+                along, at, line_length, *rest = json.loads(value)
+                delay = rest[0] if rest else None
                 progress[key.decode() if isinstance(key, bytes) else key] = (
                     PreviousPosition(
-                        along=float(along), at=float(at), line_length=float(line_length)
+                        along=float(along),
+                        at=float(at),
+                        line_length=float(line_length),
+                        delay=None if delay is None else float(delay),
                     )
                 )
             except (TypeError, ValueError):
@@ -230,7 +237,7 @@ class TrainService:
         """Queue the progress of trips seen within PROGRESS_KEEP_S."""
         key = add_key(PROGRESS_KEY)
         mapping = {
-            trip: json.dumps([p.along, p.at, p.line_length])
+            trip: json.dumps([p.along, p.at, p.line_length, p.delay])
             for trip, p in progress.items()
             if now - p.at <= PROGRESS_KEEP_S
         }
