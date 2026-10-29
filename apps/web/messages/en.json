@@ -1,80 +1,43 @@
 {
     "Home": {
-        "loading_map": "Loading map...",
-        "contact_us": "Contact us",
         "app_title": "Mégis hol a vonat?",
-        "app_description": "Train tracking application with accurate data and useful information.",
-        "privacy_notice": "Privacy"
+        "app_description": "Train tracking application with accurate data and useful information."
     },
-    "SearchComponent": {
-        "search_placeholder": "Number, type, station, UIC code...",
-        "sort_by": "Sort by",
-        "sort_by_options": {
-            "number": "Train number",
-            "delay": "Delay",
-            "speed": "Speed"
-        },
-        "search_button": "Search trains",
-        "sort_ascending": "ascending",
-        "sort_descending": "descending",
-        "no_search_results": "No search results",
-        "no_trains_available": "No trains available",
-        "select_train": "Select train",
-        "delay_short": "{delay} min"
+    "Map": {
+        "locate": "My location",
+        "location_error": "Your location is unavailable",
+        "zoom_in": "Zoom in",
+        "zoom_out": "Zoom out"
     },
-    "SettingsComponent": {
-        "settings_button": "Settings",
-        "dialog_title": "Settings",
-        "dialog_description": "Here you can customize your MHaV experience. These are only saved locally, for this device.",
-        "tab_settings": "Settings",
-        "tab_changelog": "Changelog",
-        "language_label": "Language",
-        "language_description": "Switch between Hungarian and English",
-        "theme_label": "Theme",
-        "theme_description": "Preferred color theme",
-        "theme_light": "Light",
-        "theme_dark": "Dark",
-        "theme_system": "System",
-        "tooltip_label": "Show tooltips on map",
-        "tooltip_description": "Display the train type and potential name when hovering over trains",
-        "station_names_label": "Show station names",
-        "station_names_description": "Display station names on the map",
-        "station_names_opacity_label": "Station names opacity",
-        "station_names_opacity_description": "Adjust the transparency of station names",
-        "vehicle_types_title": "Displayed vehicles",
-        "trains_label": "Train",
-        "trains_description": "Show MÁV trains on the map",
-        "tramtrains_label": "TramTrain",
-        "tramtrains_description": "Show TramTrains on the map",
-        "hev_label": "HÉV",
-        "hev_description": "Show suburban railway (HÉV) on the map",
-        "idk_where_the_trains_are": "Dear users! We cannot display those vehicles that are not marked by official sources. If you do notice any discrepancies, please let us know by email.",
-        "changelog_not_available": "Changelog not available",
-        "open_source_notice": "This application is open source. You can submit suggestions, bug reports, and highly appreciated development help on our GitHub page.",
-        "map_settings_title": "Map settings",
-        "railway_overlay_label": "Show railway lines",
-        "animate_vehicles_label": "Animate vehicles",
-        "animate_vehicles_description": "Animate vehicle positions between updates",
-        "privacy_title": "Privacy"
+    "Sheet": {
+        "resize": "Resize panel"
     },
-    "TrainPanel": {
-        "uic_code": "UIC code",
+    "Delay": {
+        "on_time": "on time"
+    },
+    "Platform": {
+        "announced": "Platform {platform}",
+        "predicted": "Likely platform {platform}"
+    },
+    "Train": {
+        "sheet_label": "Train",
+        "close": "Close",
+        "back": "Back",
+        "ticket": "Ticket",
+        "share": "Share",
+        "copied": "Link copied",
+        "usually_late": "Usually late",
+        "usually_very_late": "Usually very late",
+        "disruption": "Disruption",
+        "punctuality": "{station}: <b>on time {count} in 10</b>",
+        "standing": "stopped",
+        "vehicle": "Vehicle",
+        "vehicle_type_label": "Type",
+        "uic": "UIC",
         "speed": "Speed",
-        "delay": "Delay",
-        "delay_note": "This is the more accurate delay calculated by us. The timetable data is directly based on official sources (sometimes inaccurate).",
-        "last_updated": "Last updated",
-        "timetable": {
-            "station": "Station",
-            "arrival": "Arrival",
-            "departure": "Departure",
-            "platform": "Platform"
-        },
-        "alerts": "{count, plural, =1 {# warning} other {# warnings}}",
-        "county_hover": "{county} county",
-        "delay_minutes": "{delay, plural, =1 {# minute} other {# minutes}}",
-        "data_discrepancy_warning": "On this train, the delay data reported by MÁV does not match the train's actual GPS-based position.",
-        "algorithm_note": "This works based on our developed algorithm. We are still working on perfecting it and it may occasionally be wrong.",
-        "route_data_warning": "This vehicle appears to have bad route data.",
+        "updated": "Updated",
+        "far_from_route": "This vehicle's route data looks wrong.",
+        "data_mismatch": "MÁV's delay differs from the GPS position.",
         "vehicle_type": {
             "v431": "Ganz V43 1xxx",
             "v432": "Ganz V43 2xxx",
@@ -106,76 +69,78 @@
             "dsb_me": "DSB class ME \"Viking\"",
             "suburban": "LEW Henningsdorf MX/MXA",
             "unknown": "Unknown vehicle"
-        },
+        }
+    },
+    "Station": {
+        "board": "Timetable board",
+        "board_of": "Departures and arrivals at {station}",
+        "departures": "Departures",
+        "arrivals": "Arrivals",
+        "from": "from {station}",
+        "canceled": "cancelled",
+        "empty": "No trains right now"
+    },
+    "States": {
+        "stale": "No fresh data for {minutes} min",
+        "no_trains": "No trains running now",
+        "source_down": "MÁV data isn't arriving",
+        "unreachable": "Can't reach the server",
+        "since": "since {time}",
+        "load_error": "Couldn't load",
+        "retry": "Retry"
+    },
+    "Search": {
+        "placeholder": "Train or station",
+        "clear": "Clear",
+        "back": "Back",
+        "results": "Results",
+        "no_results": "No results",
+        "station_label": "{station} station"
+    },
+    "Legend": {
+        "label": "Delay legend",
+        "on_time": "on time",
+        "slight": "5+",
+        "moderate": "15+",
+        "severe": "60+",
+        "stale": "no data"
+    },
+    "Settings": {
+        "title": "Settings",
         "close": "Close",
-        "more_info": "More information"
+        "back": "Back",
+        "language": "Language",
+        "theme": "Theme",
+        "theme_system": "System",
+        "theme_light": "Light",
+        "theme_dark": "Dark",
+        "map": "Map",
+        "layers": "Map layers",
+        "railway_lines": "Railway lines",
+        "station_names": "Station names",
+        "station_names_opacity": "Opacity",
+        "animation": "Animation",
+        "hover_info": "Train info on hover",
+        "vehicles": "Vehicles",
+        "trains": "Trains",
+        "hev": "HÉV",
+        "tramtrain": "TramTrain",
+        "statistics": "Usage statistics",
+        "privacy": "Privacy",
+        "map_data": "Map data",
+        "changelog": "What's new",
+        "changelog_unavailable": "What's new isn't available right now.",
+        "contact": "Contact"
     },
-    "DelayLegend": {
-        "title": "Delay legend",
-        "note": "The colors are shown on the map and timetable",
-        "aria_label": "Delay legend",
-        "labels": {
-            "on_time": "On time",
-            "small_delay": "Small delay",
-            "medium_delay": "Medium delay",
-            "large_delay": "Large delay",
-            "no_data": "No data"
-        },
-        "ranges": {
-            "on_time": "< 5 minutes",
-            "small_delay": "5-14 minutes",
-            "medium_delay": "15-59 minutes",
-            "large_delay": "≥ 60 minutes",
-            "no_data": "Inactive"
-        },
-        "map_credits_title": "Map credits",
-        "map_credits_base": "<maplibre>MapLibre</maplibre>, <ofm>OpenFreeMap</ofm>, <osm>OpenStreetMap</osm>, <orm>OpenRailwayMap</orm>."
-    },
-    "DragModal": {
-        "down": "Down",
-        "up": "Up",
-        "close": "Close",
-        "drag_handle": "Drag to resize the panel"
-    },
-    "ZoomButtons": {
-        "zoom_in": "Zoom in",
-        "zoom_out": "Zoom out"
-    },
-    "UserLocation": {
-        "locate": "Current location",
-        "get_location": "Get current location",
-        "location_error": "Could not determine your location. Please check your browser settings.",
-        "center_map_on_user": "Center map on current location"
-    },
-    "LanguageSwitcher": {
-        "switch_to": "Switch to {language}"
-    },
-    "ComputerBadge": {
-        "text": "This feature is only available on computers"
-    },
-    "MobileBadge": {
-        "text": "This feature is only available on mobile devices"
-    },
-    "NewFeature": {
-        "text": "New feature"
-    },
-    "NoDataDialog": {
-        "title": "No data available",
-        "description": "We're not receiving any data at the moment. Please try again later.",
-        "stale_data_title": "Showing outdated data",
-        "stale_data_description": "The external data source is not responding. The data shown is {minutes, plural, =1 {# minute} other {# minutes}} old.",
-        "close_button": "OK"
+    "Consent": {
+        "title": "Usage statistics?",
+        "details": "Details",
+        "accept": "Accept",
+        "reject": "Reject"
     },
     "AnalyticsConsentSwitch": {
         "label": "Usage statistics",
         "description": "Detailed statistics with a random ID (PostHog, EU servers). When off, we only count daily visitors, without cookies or a stored ID, and PostHog's data is removed from your browser."
-    },
-    "ConsentBanner": {
-        "title": "Usage statistics",
-        "description": "This is a free hobby project. If you allow it, we collect usage statistics with a random ID, which helps us decide what to build next. If you don't, we still count daily visitors, but without cookies or a stored ID.",
-        "privacy_link": "Privacy notice",
-        "accept": "Accept",
-        "reject": "Reject"
     },
     "PrivacyPage": {
         "title": "Privacy notice",

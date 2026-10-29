@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { useAnalyticsConsent } from "@/hooks/useAnalyticsConsent";
 import { Link, usePathname } from "@/i18n/navigation";
-import { Z_LAYERS } from "@/util/constants";
 
 /** Session-only flag, so the banner keeps showing after a reload. */
 const PROMPT_READY_KEY = "mhav.consent.prompt";
@@ -13,8 +12,9 @@ const PROMPT_READY_KEY = "mhav.consent.prompt";
 const PROMPT_AFTER_MS = 60_000;
 // ...or after the user has closed a train panel, whichever comes first.
 
+// Equal weight for both answers: no nudging towards "accept"
 const buttonClassName =
-    "flex-1 cursor-pointer rounded-lg border border-gray-300 dark:border-border bg-white dark:bg-card px-3 py-2 text-sm font-medium text-foreground hover:bg-blue-50 dark:hover:bg-black/95 transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50";
+    "h-11 cursor-pointer rounded-md border-[1.5px] border-ink bg-surface text-[15px] font-semibold text-ink transition-colors hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50";
 
 function readPromptReady(): boolean {
     try {
@@ -69,7 +69,7 @@ function usePromptReady(enabled: boolean): boolean {
 }
 
 export default function ConsentBanner() {
-    const t = useTranslations("ConsentBanner");
+    const t = useTranslations("Consent");
     const [consent, setConsent] = useAnalyticsConsent();
     const pathname = usePathname();
     const promptReady = usePromptReady(consent === "pending");
@@ -78,45 +78,36 @@ export default function ConsentBanner() {
 
     return (
         <section
-            aria-labelledby="consent-banner-title"
-            aria-describedby="consent-banner-description"
-            className="fixed left-4 right-4 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] sm:bottom-[calc(1rem+env(safe-area-inset-bottom))] sm:right-auto sm:max-w-sm bg-white/95 dark:bg-card/95 backdrop-blur-md rounded-2xl p-4 shadow-lg border border-gray-200/50 dark:border-border"
-            style={{ zIndex: Z_LAYERS.HEADER }}
+            aria-labelledby="consent-title"
+            className="floating-card fixed inset-x-4 bottom-[calc(var(--mhav-sheet-inset,0px)+12px)] z-40 flex flex-col gap-3 rounded-lg p-4 md:right-auto md:bottom-16 md:w-80"
         >
-            <h2
-                id="consent-banner-title"
-                className="text-sm font-semibold text-foreground"
-            >
-                {t("title")}
-            </h2>
-            <p
-                id="consent-banner-description"
-                className="mt-1 text-sm text-muted-foreground"
-            >
-                {t("description")}{" "}
+            <div className="flex items-baseline justify-between gap-3">
+                <h2 id="consent-title" className="text-headline">
+                    {t("title")}
+                </h2>
                 {pathname !== "/privacy" && (
                     <Link
                         href="/privacy"
-                        className="underline underline-offset-2 hover:text-foreground"
+                        className="text-caption font-semibold text-ink underline underline-offset-2"
                     >
-                        {t("privacy_link")}
+                        {t("details")}
                     </Link>
                 )}
-            </p>
-            <div className="mt-3 flex gap-2">
-                <button
-                    type="button"
-                    className={buttonClassName}
-                    onClick={() => setConsent("granted")}
-                >
-                    {t("accept")}
-                </button>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
                 <button
                     type="button"
                     className={buttonClassName}
                     onClick={() => setConsent("denied")}
                 >
                     {t("reject")}
+                </button>
+                <button
+                    type="button"
+                    className={buttonClassName}
+                    onClick={() => setConsent("granted")}
+                >
+                    {t("accept")}
                 </button>
             </div>
         </section>
