@@ -141,6 +141,22 @@ export const MAP_NETWORK = {
     [key: string]: unknown;
 };
 
+/**
+ * The basemap's names: trains and our stations come first, so only names
+ * that place them. Settlements from the zoom their size earns, Budapest's
+ * districts only up close, no quarters or neighbourhoods, lakes once they
+ * are big on screen. Ranges are [minZoom, maxZoom).
+ */
+export const MAP_LABELS = {
+    country: { maxZoom: 9 },
+    city: { minZoom: 5, maxZoom: 14 },
+    town: { minZoom: 9 },
+    village: { minZoom: 11 },
+    /** A city's districts ("Kőbánya", "Zugló") */
+    suburb: { minZoom: 14 },
+    water: { minZoom: 10 },
+} as const;
+
 export interface StationTier {
     tier: number;
     /** Trains a day from which a station is in this tier */

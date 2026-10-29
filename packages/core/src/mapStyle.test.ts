@@ -82,7 +82,7 @@ describe("map style", () => {
         );
         expect(
             symbols.map((l) => ("source-layer" in l ? l["source-layer"] : "")),
-        ).toEqual(["place", "place", "place", "place", "water_name"]);
+        ).toEqual(["place", "place", "place", "place", "place", "water_name"]);
     });
 });
 
@@ -179,5 +179,45 @@ describe("network", () => {
                 (l.paint as { "text-opacity": number })["text-opacity"],
             ).toBe(0);
         }
+    });
+});
+
+describe("station names", () => {
+    it("leave out the station named elsewhere", () => {
+        const { labels } = stationLayers({
+            scheme: "light",
+            dim: false,
+            namedElsewhere: "005510017",
+        });
+        for (const l of labels) {
+            const filter = (l as { filter: unknown }).filter;
+            const tier = Number(l.id.slice(-1));
+            const at = (id: string) =>
+                evaluate(filter, {
+                    id,
+                    hev: tier === 5 ? 1 : 0,
+                    name: "X",
+                    perDay: [400, 50, 20, 0, 0][tier - 1],
+                });
+            expect(at("005510017")).toBe(false);
+            expect(at("005511296")).toBe(true);
+        }
+    });
+
+    it("end where the railway overlay names stations", () => {
+        const plain = stationLayers({ scheme: "light", dim: false });
+        expect(plain.labels.every((l) => l.maxzoom === undefined)).toBe(true);
+        const overlay = stationLayers({
+            scheme: "light",
+            dim: false,
+            labelMaxZoom: 10.5,
+            namedElsewhere: "1",
+        });
+        expect(overlay.labels.every((l) => l.maxzoom === 10.5)).toBe(true);
+        const style = fullStyle("light", false);
+        style.layers.push(
+            ...overlay.labels.map((l) => ({ ...l, id: `${l.id}-x` })),
+        );
+        expect(validateStyleMin(style)).toEqual([]);
     });
 });

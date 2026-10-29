@@ -108,6 +108,7 @@ export const STATION_MARK_SOURCE = "station-mark-source";
 /** Bottom to top */
 export const TRAIN_LAYER_IDS = {
     text: "train-text",
+    room: "train-room",
     marks: "trains",
     ring: "train-selected",
     arrow: "train-arrow",
@@ -288,10 +289,11 @@ const FOLLOW_OFFSET = (() => {
  * zoom), the marks, the selection ring, the followed badge and the chips of
  * the selected and followed trains.
  *
- * The marks take part in placement from city zoom (icon-ignore-placement
- * false) and draw above the "+N" layer, so MapLibre places them first and a
- * number never lands on any mark: it tries each side and hides when none is
- * free, biggest delays first.
+ * MapLibre places upper layers first. The marks stay out of placement, so
+ * a train never pushes a station name away (it draws over it). Under the
+ * station names, an invisible copy of the marks (room) takes part from city
+ * zoom, then the "+N" layer, so a number never lands on any mark or name: it
+ * tries each side and hides when none is free, biggest delays first.
  */
 export function trainLayers({
     scheme,
@@ -316,6 +318,7 @@ export function trainLayers({
     fadeMs?: number;
 }): {
     text: SymbolLayerSpecification;
+    room: SymbolLayerSpecification;
     marks: SymbolLayerSpecification;
     ring: SymbolLayerSpecification;
     arrow: SymbolLayerSpecification;
@@ -361,8 +364,8 @@ export function trainLayers({
                 "text-opacity-transition": fade,
             },
         },
-        marks: {
-            id: TRAIN_LAYER_IDS.marks + suffix,
+        room: {
+            id: TRAIN_LAYER_IDS.room + suffix,
             type: "symbol",
             source,
             filter: NOT_CLUSTER as FilterSpecification,
@@ -378,6 +381,21 @@ export function trainLayers({
                     MAP_MARKS.delayTextMinZoom,
                     false,
                 ],
+                "icon-padding": 0,
+            },
+            paint: { "icon-opacity": 0 },
+        },
+        marks: {
+            id: TRAIN_LAYER_IDS.marks + suffix,
+            type: "symbol",
+            source,
+            filter: NOT_CLUSTER as FilterSpecification,
+            layout: {
+                "icon-image": ["get", "icon"],
+                "icon-size": ICON_SIZE,
+                "icon-allow-overlap": true,
+                // Their room is held by `room`, under the station names
+                "icon-ignore-placement": true,
                 "icon-padding": 0,
                 "symbol-sort-key": [
                     "case",
@@ -518,14 +536,8 @@ export function clusterLayers({
                 "text-font": [...MAP_FONTS.bold],
                 "text-size": 12,
                 "text-allow-overlap": true,
-                // From city zoom "+N" keeps clear of it too
-                "text-ignore-placement": [
-                    "step",
-                    ["zoom"],
-                    true,
-                    MAP_MARKS.delayTextMinZoom,
-                    false,
-                ],
+                // Never pushes a station name away
+                "text-ignore-placement": true,
             },
             paint: {
                 "text-color": colors.ink,

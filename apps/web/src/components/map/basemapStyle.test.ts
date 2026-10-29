@@ -34,6 +34,9 @@ describe("basemapTransform", () => {
             SLOTS.railway,
             "place_city",
             "place_country",
+            SLOTS.trainText,
+            SLOTS.names,
+            SLOTS.trainRoom,
             SLOTS.route,
             SLOTS.stops,
             SLOTS.station,
@@ -56,6 +59,9 @@ describe("basemapTransform", () => {
             SLOTS.railway,
             "place_city",
             "place_country",
+            SLOTS.trainText,
+            SLOTS.names,
+            SLOTS.trainRoom,
             SLOTS.route,
             SLOTS.stops,
             SLOTS.station,
@@ -81,7 +87,14 @@ describe("basemapTransform", () => {
                 symbols.map(
                     (l) => (l as { "source-layer"?: string })["source-layer"],
                 ),
-            ).toEqual(["place", "place", "place", "place", "water_name"]);
+            ).toEqual([
+                "place",
+                "place",
+                "place",
+                "place",
+                "place",
+                "water_name",
+            ]);
         }
     });
 

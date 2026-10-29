@@ -58,6 +58,7 @@ import {
     mapDataUrls,
     PINNED_SOURCE,
     RAILWAY_ATTRIBUTION,
+    RAILWAY_NAMES_MIN_ZOOM,
     ROUTE_SOURCE,
     railwayPaint,
     railwayTileUrl,
@@ -154,6 +155,7 @@ export function TrainMap({
         [scheme, dim, fadeMs],
     );
     const names = settings.showStationNames;
+    const focusStationId = focus.station?.id ?? null;
     const namesOpacity = settings.stationNamesOpacity;
     const stations = useMemo(() => {
         const layers = stationLayers({
@@ -161,6 +163,10 @@ export function TrainMap({
             dim,
             fadeMs,
             labelOpacity: namesOpacity,
+            // The chosen station is named in its card
+            namedElsewhere: focusStationId,
+            // The overlay names stations itself from this zoom
+            labelMaxZoom: showRailways ? RAILWAY_NAMES_MIN_ZOOM : undefined,
         });
         return {
             dots: layers.dots,
@@ -174,7 +180,16 @@ export function TrainMap({
                 },
             })) as typeof layers.labels,
         };
-    }, [scheme, dim, fadeMs, names, namesOpacity]);
+    }, [
+        scheme,
+        dim,
+        fadeMs,
+        names,
+        namesOpacity,
+        focusStationId,
+        showRailways,
+    ]);
+    const topDot = stations.dots[stations.dots.length - 1]?.id;
     const route = useMemo(
         () =>
             routeLayers(scheme, {
@@ -199,13 +214,16 @@ export function TrainMap({
             dimmed: selectedId !== null,
             fadeMs,
         });
+        // "+N" and the trains' room under the station names, which are
+        // placed after the marks and before the numbers (see trainLayers)
         return [
-            asLayer({ ...layers.text, afterId: stationMark.clear.id }),
-            asLayer({ ...clusters.bubble, afterId: layers.text.id }),
+            asLayer({ ...layers.text, afterId: topDot }),
+            asLayer({ ...layers.room, afterId: layers.text.id }),
+            asLayer({ ...clusters.bubble, afterId: stationMark.clear.id }),
             asLayer({ ...clusters.count, afterId: clusters.bubble.id }),
             asLayer({ ...layers.marks, afterId: stationMark.ring.id }),
         ];
-    }, [scheme, selectedId, fadeMs, clusters, stationMark]);
+    }, [scheme, selectedId, fadeMs, clusters, stationMark, topDot]);
     const pinnedLayers = useMemo(() => {
         const layers = trainLayers({
             scheme,
