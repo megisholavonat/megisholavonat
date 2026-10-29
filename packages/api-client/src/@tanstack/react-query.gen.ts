@@ -420,7 +420,8 @@ export const deleteFollowMutation = (options?: Partial<Options<DeleteFollowData>
 /**
  * Update Follow
  *
- * Change alert preferences, or a commute's days, stations or label
+ * Change alert preferences, the Live Activity, or a commute's days,
+ * stations or label
  */
 export const updateFollowMutation = (options?: Partial<Options<UpdateFollowData>>): UseMutationOptions<UpdateFollowResponse, AxiosError<UpdateFollowError>, Options<UpdateFollowData>> => {
     const mutationOptions: UseMutationOptions<UpdateFollowResponse, AxiosError<UpdateFollowError>, Options<UpdateFollowData>> = {

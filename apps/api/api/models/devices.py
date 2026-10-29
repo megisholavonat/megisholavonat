@@ -2,6 +2,7 @@
 
 import uuid
 from datetime import date, datetime
+from typing import Any
 
 from sqlalchemy import (
     Boolean,
@@ -18,14 +19,14 @@ from sqlalchemy import (
     func,
     text,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from api.models.base import Base
 
 PLATFORMS = ("web", "ios", "android")
 FOLLOW_KINDS = ("trip", "commute")
-PUSH_TOKEN_TYPES = ("expo", "liveactivity")
+PUSH_TOKEN_TYPES = ("expo", "liveactivity", "liveactivity_start")
 
 # "On time" means at most 5 minutes late, see ON_TIME_THRESHOLD_S
 DEFAULT_DELAY_THRESHOLD_MIN = 5
@@ -111,6 +112,11 @@ class Follow(Base):
     notify_platform_change: Mapped[bool] = mapped_column(
         Boolean, server_default=text("true")
     )
+    # iOS: what the follow's Live Activity shows when the API starts it by
+    # push (schemas.follows.LiveActivitySetup); null when turned off
+    live_activity: Mapped[dict[str, Any] | None] = mapped_column(
+        JSONB(none_as_null=True)
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
@@ -144,13 +150,17 @@ class NotificationState(Base):
 
 class PushToken(Base):
     """
-    Where a device receives pushes: an Expo push token (iOS and Android), or
-    the ActivityKit push token of one followed trip's iOS Live Activity.
+    Where a device receives pushes: an Expo push token (iOS and Android), the
+    ActivityKit push token of one followed trip's iOS Live Activity, or the
+    device's ActivityKit push-to-start token (iOS 17.2+), which starts them.
     """
 
     __tablename__ = "push_tokens"
     __table_args__ = (
-        CheckConstraint("type IN ('expo', 'liveactivity')", name="type_valid"),
+        CheckConstraint(
+            "type IN ('expo', 'liveactivity', 'liveactivity_start')",
+            name="type_valid",
+        ),
         CheckConstraint(
             "(type = 'liveactivity') = (follow_id IS NOT NULL)", name="follow_fields"
         ),

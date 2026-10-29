@@ -65,6 +65,8 @@ export interface LocalFollow {
     vehicleId: string | null;
     delayThresholdMin: number;
     notifyPlatformChange: boolean;
+    /** iOS: show the run on the lock screen as a Live Activity (local only) */
+    liveActivity?: boolean;
 }
 
 /** What the follow screen edits. */
@@ -74,6 +76,7 @@ export interface FollowDraft {
     to: number;
     delayThresholdMin: number;
     notifyPlatformChange: boolean;
+    liveActivity: boolean;
 }
 
 /** UIC station code of a stop, as the API derives it (util/stop.py). */
@@ -117,6 +120,7 @@ export function defaultDraft(details: VehiclePositionWithDelay): FollowDraft {
         to: count - 1,
         delayThresholdMin: DEFAULT_THRESHOLD_MIN,
         notifyPlatformChange: true,
+        liveActivity: false,
     };
 }
 
@@ -127,6 +131,7 @@ export function draftOf(follow: LocalFollow): FollowDraft {
         to: follow.to,
         delayThresholdMin: follow.delayThresholdMin,
         notifyPlatformChange: follow.notifyPlatformChange,
+        liveActivity: follow.liveActivity ?? false,
     };
 }
 
@@ -145,7 +150,7 @@ export function toggleWeekday(weekdays: number[], day: number): number[] {
 export function createBody(
     train: Pick<LocalFollow, "tripShortName" | "stops" | "tripId">,
     serviceDate: string | null,
-    draft: FollowDraft,
+    draft: Omit<FollowDraft, "liveActivity">,
 ): TripFollowCreate | CommuteFollowCreate | null {
     const from = train.stops[draft.from];
     const to = train.stops[draft.to];
@@ -409,7 +414,8 @@ function isFollow(value: unknown): value is LocalFollow {
         Array.isArray(v.weekdays) &&
         v.weekdays.every((d) => Number.isInteger(d) && d >= 1 && d <= 7) &&
         typeof v.delayThresholdMin === "number" &&
-        typeof v.notifyPlatformChange === "boolean"
+        typeof v.notifyPlatformChange === "boolean" &&
+        (v.liveActivity === undefined || typeof v.liveActivity === "boolean")
     );
 }
 

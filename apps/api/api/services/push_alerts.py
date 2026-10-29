@@ -33,8 +33,22 @@ Rules, per follow and service date (state in `notification_state`):
 
 Delivery: Expo push to every Expo token of the device, except when the follow
 has a Live Activity, which then carries the alert instead (iOS would show
-both). Live Activities also get silent updates whenever their content changes,
-and `end` once the train has passed the alighting station.
+both). Live Activities also get silent (priority 5) updates: at once when the
+delay, the stop shown, its platform or departure change, otherwise at most every
+LIVE_ACTIVITY_MIN_INTERVAL_S while the progress moves; each goes stale after
+LIVE_ACTIVITY_STALE_S. `end` follows once the train has passed the alighting
+station. LIVE_ACTIVITY_PUSH_ENABLED off drops the Live Activity tokens, and
+alerts go out through Expo.
+
+Push-to-start (iOS 17.2+): a follow with a Live Activity set up (`live_activity`)
+on a device with a push-to-start token, whose run departs within
+LIVE_ACTIVITY_START_WINDOW_MIN and which has no Live Activity token yet, gets
+one `start` push per run: the timetable as the app saw it, or the live state
+if the train is already on the map. The started activity's own token is then
+registered by the app, and the updates above take over. A start not delivered
+is retried after LIVE_ACTIVITY_START_RETRY_S, or LIVE_ACTIVITY_START_BACKOFF_S
+when APNs throttled it (TooManyProviderTokenUpdates pauses every start).
+LIVE_ACTIVITY_PUSH_TO_START_ENABLED off sends no starts.
 
 The new state is written in the same transaction that records the delivery
 outcome on the tokens. If every delivery failed, the alert state is not
@@ -53,8 +67,10 @@ from redis.asyncio import Redis
 from sqlalchemy import and_, delete, exists, or_, select, tuple_, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import aliased
 
 from api.core.cache import cached_model
+from api.core.config import settings
 from api.core.logging_config import get_logger
 from api.core.redis import add_key
 from api.models.devices import Device, Follow, NotificationState, PushToken
@@ -69,6 +85,7 @@ from api.services.push_copy import (
     TrainContext,
     lang_for,
     render,
+    render_start,
 )
 from api.services.push_senders import (
     ExpoMessage,
@@ -98,6 +115,14 @@ LIVE_ACTIVITY_STALE_S = 10 * 60
 # ... and stays on the lock screen this long after it ends
 LIVE_ACTIVITY_DISMISS_S = 30 * 60
 LIVE_ACTIVITY_CONTENT_TTL_S = 12 * 3600
+# Progress and times alone are pushed at most this often
+LIVE_ACTIVITY_MIN_INTERVAL_S = 60
+# Push-to-start: the ActivityAttributes type in the app (Swift), how long a
+# run's start is remembered, and when an undelivered one is tried again
+LIVE_ACTIVITY_ATTRIBUTES_TYPE = "TrainActivityAttributes"
+LIVE_ACTIVITY_START_KEEP_S = 2 * 24 * 3600
+LIVE_ACTIVITY_START_RETRY_S = 60
+LIVE_ACTIVITY_START_BACKOFF_S = 5 * 60
 
 # Only one evaluation runs at a time
 LOCK_TTL_S = 5 * 60
@@ -122,6 +147,18 @@ def receipts_key() -> str:
 def live_activity_key(device_id: uuid.UUID, token_id: uuid.UUID) -> str:
     """Last content state sent to a Live Activity."""
     return device_key(device_id, f"liveactivity:{token_id}")
+
+
+def live_activity_start_key(
+    device_id: uuid.UUID, follow_id: uuid.UUID, departure: int
+) -> str:
+    """Set once a follow's run (by its departure, Unix seconds) got its start."""
+    return device_key(device_id, f"liveactivity-start:{follow_id}:{departure}")
+
+
+def start_backoff_key() -> str:
+    """Set while APNs wants no more starts (TooManyProviderTokenUpdates)."""
+    return add_key("push:liveactivity-start-backoff")
 
 
 # --- Pure rules ---
@@ -158,9 +195,16 @@ class Observation:
     departed: bool
     finished: bool
     train_ahead: TrainAhead | None = None
+    # The stop the Live Activity shows: the boarding station until the train
+    # leaves it, then the next stop. Expected time there (Unix seconds) and
+    # its platform
     next_stop: str | None = None
+    next_stop_at: int | None = None
+    next_platform: str | None = None
     # Expected arrival at the alighting station, Unix seconds
     eta: int | None = None
+    # Share of the ride from boarding to alighting behind the train, 0 to 1
+    progress: float = 0.0
     # The train on the live map, for opening it from the notification
     vehicle_id: str | None = None
 
@@ -418,7 +462,7 @@ class Tracked:
 
 
 def observe(
-    tracked: Tracked, locations: Sequence[dict[str, Any]]
+    tracked: Tracked, locations: Sequence[dict[str, Any]], now: datetime
 ) -> Observation | None:
     loc = tracked.location
     trip = loc.get("trip") or {}
@@ -435,17 +479,31 @@ def observe(
     departed = passed is not None and passed >= tracked.board_idx
     finished = passed is not None and passed >= tracked.alight_idx
 
+    late_s = max(delay or 0, 0) * 60
+
+    def expected(seconds: int | None) -> int | None:
+        if seconds is None:
+            return None
+        at = service_day_start(service_date) + timedelta(seconds=seconds + late_s)
+        return int(at.timestamp())
+
     next_idx = (loc.get("vehicleProgress") or {}).get("nextStopIndex")
-    next_stop = None
-    if isinstance(next_idx, int) and 0 <= next_idx < len(stoptimes):
-        next_stop = (stoptimes[next_idx].get("stop") or {}).get("name")
-    arrival = _stop_time(stoptimes[tracked.alight_idx], departure=False)
-    eta = None
-    if arrival is not None:
-        at = service_day_start(service_date) + timedelta(
-            seconds=arrival + max(delay or 0, 0) * 60
-        )
-        eta = int(at.timestamp())
+    if not departed:
+        focus = tracked.board_idx
+    elif isinstance(next_idx, int) and tracked.board_idx < next_idx < len(stoptimes):
+        focus = min(next_idx, tracked.alight_idx)
+    else:
+        focus = tracked.alight_idx
+    focus_st = stoptimes[focus]
+    focus_stop = focus_st.get("stop") or {}
+    departure = expected(_stop_time(board_st, departure=True))
+    eta = expected(_stop_time(stoptimes[tracked.alight_idx], departure=False))
+    progress = 0.0
+    if finished:
+        progress = 1.0
+    elif departed and departure is not None and eta is not None and eta > departure:
+        ratio = (now.timestamp() - departure) / (eta - departure)
+        progress = round(min(max(ratio, 0.0), 1.0), 2)
 
     return Observation(
         trip_id=trip["gtfsId"],
@@ -463,8 +521,11 @@ def observe(
         train_ahead=None
         if departed
         else find_train_ahead(locations, loc, tracked.board_idx),
-        next_stop=next_stop,
+        next_stop=focus_stop.get("name"),
+        next_stop_at=expected(_stop_time(focus_st, departure=not departed)),
+        next_platform=focus_stop.get("platformCode"),
         eta=eta,
+        progress=progress,
         vehicle_id=loc.get("vehicleId"),
     )
 
@@ -599,6 +660,7 @@ class RunStats:
     tracked: int = 0
     alerts: int = 0
     live_activity_updates: int = 0
+    live_activity_starts: int = 0
     failed: int = 0
     errors: int = 0
     skipped_locked: bool = False
@@ -610,6 +672,7 @@ class RunStats:
             "tracked": self.tracked,
             "alerts": self.alerts,
             "liveActivityUpdates": self.live_activity_updates,
+            "liveActivityStarts": self.live_activity_starts,
             "failed": self.failed,
             "errors": self.errors,
             "skippedLocked": self.skipped_locked,
@@ -689,13 +752,76 @@ async def record_results(
         await session.execute(delete(PushToken).where(PushToken.id.in_(gone)))
 
 
-def _live_activity_content(obs: Observation) -> dict[str, Any]:
+# Content changes that are pushed at once; others (progress, times moving
+# with the delay) at most every LIVE_ACTIVITY_MIN_INTERVAL_S
+LIVE_ACTIVITY_MEANINGFUL = (
+    "delayMin",
+    "nextStop",
+    "platform",
+    "platformSure",
+    "departed",
+)
+
+
+def live_activity_content(obs: Observation) -> dict[str, Any]:
+    """
+    The Live Activity's content state. Keys and types must match
+    `TrainActivityAttributes.ContentState` in apps/mobile (Swift): an update
+    that does not decode is dropped by iOS.
+    """
+    platform, sure = obs.next_platform, True
+    if not obs.departed:
+        platform = obs.platform
+        if platform is None and obs.scheduled_platform is not None:
+            # The usual platform, shown as a guess
+            platform, sure = obs.scheduled_platform, False
     return {
         "delayMin": None if obs.delay_min is None else max(obs.delay_min, 0),
         "nextStop": obs.next_stop,
-        "platform": obs.platform,
+        "nextStopAt": obs.next_stop_at,
+        "platform": platform,
+        "platformSure": sure,
         "eta": obs.eta,
+        "progress": obs.progress,
+        "departed": obs.departed,
     }
+
+
+def live_activity_due(
+    content: dict[str, Any],
+    last: dict[str, Any] | None,
+    last_sent_at: int | None,
+    now: int,
+) -> bool:
+    """Whether a Live Activity needs `content` now (see LIVE_ACTIVITY_MEANINGFUL)."""
+    if last is None or last_sent_at is None:
+        return True
+    if content == last:
+        return False
+    if any(content.get(k) != last.get(k) for k in LIVE_ACTIVITY_MEANINGFUL):
+        return True
+    return now - last_sent_at >= LIVE_ACTIVITY_MIN_INTERVAL_S
+
+
+def live_activity_relevance(obs: Observation, now: int) -> float:
+    """Sooner trains rank higher among the app's activities, 1 to 100."""
+    if obs.departed or obs.next_stop_at is None:
+        return 100.0 if obs.departed else 50.0
+    minutes = (obs.next_stop_at - now) / 60
+    return float(min(100, max(1, round(100 - minutes))))
+
+
+async def _last_live_activity(
+    redis: Redis, token: TokenInfo
+) -> tuple[dict[str, Any] | None, int | None]:
+    raw = await redis.get(live_activity_key(token.device_id, token.id))
+    if not raw:
+        return None, None
+    try:
+        stored = json.loads(raw)
+        return dict(stored["content"]), int(stored["sentAt"])
+    except (TypeError, KeyError, ValueError):
+        return None, None
 
 
 async def _active_follows(session: AsyncSession, today: date) -> list[FollowInfo]:
@@ -745,7 +871,8 @@ async def evaluate_alerts(
         stats.skipped_locked = True
         return stats
     try:
-        await _evaluate(session, redis, senders, now, stats)
+        observed = await _evaluate(session, redis, senders, now, stats)
+        await send_live_activity_starts(session, redis, senders, now, stats, observed)
     finally:
         if await redis.get(lock_key) == lock_value:
             await redis.delete(lock_key)
@@ -759,12 +886,13 @@ async def _evaluate(
     senders: Senders,
     now: datetime,
     stats: RunStats,
-) -> None:
+) -> dict[uuid.UUID, Observation]:
+    """Alerts and Live Activity updates; returns the follows seen live."""
     today = now.astimezone(BUDAPEST_TZ).date()
     follows = await _active_follows(session, today)
     if not follows:
         await session.commit()
-        return
+        return {}
     device_ids = {f.device_id for f in follows}
     rows = await session.execute(
         select(
@@ -781,15 +909,15 @@ async def _evaluate(
         t = TokenInfo(*row)
         if t.type == "expo":
             expo_by_device[t.device_id].append(t)
-        elif t.follow_id is not None:
+        elif (
+            t.type == "liveactivity"
+            and t.follow_id is not None
+            and settings.LIVE_ACTIVITY_PUSH_ENABLED
+        ):
             la_by_follow[t.follow_id].append(t)
 
     locations = await load_live_locations(redis)
-    live: dict[tuple[str, str], dict[str, Any]] = {}
-    for loc in locations:
-        trip = loc.get("trip") or {}
-        if trip.get("gtfsId") and trip.get("serviceDate"):
-            live[(trip["gtfsId"], trip["serviceDate"])] = loc
+    live = _live_by_trip(locations)
 
     observed: list[tuple[FollowInfo, Observation]] = []
     for follow in follows:
@@ -798,7 +926,7 @@ async def _evaluate(
             tracked = track_trip(follow, live)
         else:
             tracked = await track_commute(redis, follow, locations, live, today)
-        obs = None if tracked is None else observe(tracked, locations)
+        obs = None if tracked is None else observe(tracked, locations, now)
         if obs is not None:
             observed.append((follow, obs))
     stats.tracked = len(observed)
@@ -839,6 +967,7 @@ async def _evaluate(
             stats.errors += 1
             await session.rollback()
             logger.exception(f"Alert evaluation failed for follow {follow.id}: {e!r}")
+    return {follow.id: obs for follow, obs in observed}
 
 
 async def _process_follow(
@@ -859,7 +988,8 @@ async def _process_follow(
         render(alerts, obs.context, lang_for(follow.locale)) if alerts else ("", None)
     )
     timestamp = int(now.timestamp())
-    content = _live_activity_content(obs)
+    content = live_activity_content(obs)
+    relevance = live_activity_relevance(obs, timestamp)
 
     la_messages: list[LiveActivityMessage] = []
     la_contents: dict[uuid.UUID, str] = {}
@@ -876,13 +1006,10 @@ async def _process_follow(
                 )
             )
             continue
-        encoded = json.dumps(content, sort_keys=True)
-        if (
-            not alerts
-            and await redis.get(live_activity_key(token.device_id, token.id)) == encoded
-        ):
+        last, last_sent_at = await _last_live_activity(redis, token)
+        if not alerts and not live_activity_due(content, last, last_sent_at, timestamp):
             continue
-        la_contents[token.id] = encoded
+        la_contents[token.id] = json.dumps({"content": content, "sentAt": timestamp})
         la_messages.append(
             LiveActivityMessage(
                 token.id,
@@ -892,6 +1019,7 @@ async def _process_follow(
                 timestamp,
                 alert=(title, body) if alerts else None,
                 stale_date=timestamp + LIVE_ACTIVITY_STALE_S,
+                relevance_score=relevance,
             )
         )
 
@@ -959,6 +1087,257 @@ async def _process_follow(
     }
     if tickets:
         await redis.zadd(receipts_key(), tickets)
+
+
+# --- Push-to-start ---
+
+
+LiveMap = tuple[list[dict[str, Any]], dict[tuple[str, str], dict[str, Any]]]
+
+
+def _live_by_trip(
+    locations: list[dict[str, Any]],
+) -> dict[tuple[str, str], dict[str, Any]]:
+    live: dict[tuple[str, str], dict[str, Any]] = {}
+    for loc in locations:
+        trip = loc.get("trip") or {}
+        if trip.get("gtfsId") and trip.get("serviceDate"):
+            live[(trip["gtfsId"], trip["serviceDate"])] = loc
+    return live
+
+
+async def _observe(
+    redis: Redis, follow: FollowInfo, live_map: LiveMap, today: date, now: datetime
+) -> Observation | None:
+    """A follow's train as the live map shows it now, if it is on it."""
+    locations, live = live_map
+    if follow.kind == "trip":
+        tracked = track_trip(follow, live)
+    else:
+        tracked = await track_commute(redis, follow, locations, live, today)
+    return None if tracked is None else observe(tracked, locations, now)
+
+
+@dataclass(frozen=True, slots=True)
+class StartRun:
+    """The run of a follow a Live Activity is started for."""
+
+    service_date: date
+    # Scheduled departure from the boarding station and arrival at the
+    # alighting station, Unix seconds
+    departure: int
+    arrival: int | None
+
+
+def start_run(
+    kind: str,
+    service_date: date | None,
+    weekdays: int | None,
+    setup: dict[str, Any],
+    now: datetime,
+    window_s: int,
+) -> StartRun | None:
+    """
+    The run of a follow departing within `window_s` from `now`, if any: a
+    trip on its service date, a commute on today's or tomorrow's local
+    calendar day of departure when it is one of its weekdays.
+    """
+    departure_s = setup.get("departureS")
+    arrival_s = setup.get("arrivalS")
+    if not isinstance(departure_s, int):
+        return None
+
+    def at(day: date, seconds: int) -> int:
+        return int((service_day_start(day) + timedelta(seconds=seconds)).timestamp())
+
+    if kind == "trip":
+        candidates = [service_date] if service_date is not None else []
+    else:
+        today = now.astimezone(BUDAPEST_TZ).date()
+        candidates = [
+            # A departure past midnight belongs to the day before's service
+            day - timedelta(days=departure_s // DAY_S)
+            for day in (today, today + timedelta(days=1))
+            if weekdays and weekdays & (1 << (day.isoweekday() - 1))
+        ]
+    t = now.timestamp()
+    for day in candidates:
+        departure = at(day, departure_s)
+        if departure - window_s <= t < departure:
+            arrival = at(day, arrival_s) if isinstance(arrival_s, int) else None
+            return StartRun(day, departure, arrival)
+    return None
+
+
+def scheduled_content(
+    kind: str, setup: dict[str, Any], run: StartRun
+) -> dict[str, Any]:
+    """The content state from the timetable, before the train is live."""
+    return {
+        "delayMin": None,
+        "nextStop": setup.get("fromName"),
+        "nextStopAt": run.departure,
+        "platform": setup.get("platform"),
+        # A trip's platform is its boarding stop's; a commute's is the one
+        # it used the day it was followed, shown as a guess
+        "platformSure": kind == "trip",
+        "eta": run.arrival,
+        "progress": 0.0,
+        "departed": False,
+    }
+
+
+def start_attributes(follow_id: uuid.UUID, setup: dict[str, Any]) -> dict[str, Any]:
+    """`TrainActivityAttributes` in apps/mobile (Swift); all keys required."""
+    return {
+        "followId": str(follow_id),
+        "badge": setup.get("badge") or "",
+        "title": setup.get("title") or "",
+        "from": setup.get("fromName") or "",
+        "to": setup.get("toName") or "",
+        "url": f"megisholavonat://followed/{follow_id}",
+    }
+
+
+async def send_live_activity_starts(
+    session: AsyncSession,
+    redis: Redis,
+    senders: Senders,
+    now: datetime,
+    stats: RunStats,
+    observed: dict[uuid.UUID, Observation],
+) -> None:
+    """Push-to-start the Live Activities due; see the module docstring."""
+    if not (
+        settings.LIVE_ACTIVITY_PUSH_ENABLED
+        and settings.LIVE_ACTIVITY_PUSH_TO_START_ENABLED
+    ):
+        return
+    if await redis.exists(start_backoff_key()):
+        logger.info("Live Activity starts paused after APNs throttling")
+        return
+    today = now.astimezone(BUDAPEST_TZ).date()
+    window_s = settings.LIVE_ACTIVITY_START_WINDOW_MIN * 60
+    start_token = aliased(PushToken)
+    activity_token = aliased(PushToken)
+    rows = (
+        await session.execute(
+            select(Follow, Device.locale, start_token.id, start_token.token)
+            .join(Device, Device.id == Follow.device_id)
+            .join(
+                start_token,
+                and_(
+                    start_token.device_id == Follow.device_id,
+                    start_token.type == "liveactivity_start",
+                ),
+            )
+            .where(
+                Follow.live_activity.is_not(None),
+                or_(
+                    and_(
+                        Follow.kind == "trip",
+                        Follow.service_date.between(
+                            today - timedelta(days=1), today + timedelta(days=1)
+                        ),
+                    ),
+                    Follow.kind == "commute",
+                ),
+                # The app (or an earlier start) already has an activity
+                ~exists().where(
+                    activity_token.follow_id == Follow.id,
+                    activity_token.type == "liveactivity",
+                ),
+            )
+            .order_by(Follow.id)
+        )
+    ).all()
+    candidates = [
+        (FollowInfo.of(follow, locale), dict(follow.live_activity or {}), tid, token)
+        for follow, locale, tid, token in rows
+    ]
+    # No transaction stays open while sending
+    await session.commit()
+
+    timestamp = int(now.timestamp())
+    messages: list[LiveActivityMessage] = []
+    keys: list[str] = []
+    # Read only if a start is due for a follow the alerts did not track
+    live_map: LiveMap | None = None
+    for follow, setup, token_id, token in candidates:
+        follow_id, device_id, kind = follow.id, follow.device_id, follow.kind
+        run = start_run(
+            kind, follow.service_date, follow.weekdays, setup, now, window_s
+        )
+        if run is None:
+            continue
+        obs = observed.get(follow_id)
+        if obs is None:
+            if live_map is None:
+                locations = await load_live_locations(redis)
+                live_map = (locations, _live_by_trip(locations))
+            obs = await _observe(redis, follow, live_map, today, now)
+        if obs is not None and obs.service_date != run.service_date:
+            obs = None
+        if obs is not None and obs.finished:
+            continue
+        key = live_activity_start_key(device_id, follow_id, run.departure)
+        # One start per follow and run, claimed before sending
+        if not await redis.set(key, timestamp, nx=True, ex=LIVE_ACTIVITY_START_KEEP_S):
+            continue
+        content = (
+            live_activity_content(obs)
+            if obs is not None
+            else scheduled_content(kind, setup, run)
+        )
+        local = datetime.fromtimestamp(run.departure, BUDAPEST_TZ)
+        alert = render_start(
+            TrainContext(
+                label=setup.get("badge") or "",
+                station=setup.get("fromName") or "",
+                time=local.strftime("%H:%M"),
+            ),
+            round((run.departure - timestamp) / 60),
+            lang_for(follow.locale),
+        )
+        keys.append(key)
+        messages.append(
+            LiveActivityMessage(
+                token_id,
+                token,
+                "start",
+                content,
+                timestamp,
+                alert=alert,
+                # Without the train live, no update comes before departure
+                stale_date=max(run.departure, timestamp) + LIVE_ACTIVITY_STALE_S,
+                relevance_score=float(
+                    min(100, max(1, round(100 - (run.departure - timestamp) / 60)))
+                ),
+                attributes_type=LIVE_ACTIVITY_ATTRIBUTES_TYPE,
+                attributes=start_attributes(follow_id, setup),
+            )
+        )
+    if not messages:
+        return
+
+    results = await senders.live_activity.send(messages)
+    for key, result in zip(keys, results, strict=True):
+        if result.outcome in DELIVERED:
+            continue
+        if result.outcome == Outcome.UNREGISTERED:
+            await redis.delete(key)
+        elif result.outcome == Outcome.THROTTLED:
+            await redis.expire(key, LIVE_ACTIVITY_START_BACKOFF_S)
+            if result.error == "TooManyProviderTokenUpdates":
+                await redis.set(
+                    start_backoff_key(), 1, ex=LIVE_ACTIVITY_START_BACKOFF_S
+                )
+        else:
+            await redis.expire(key, LIVE_ACTIVITY_START_RETRY_S)
+    stats.live_activity_starts += sum(r.outcome == Outcome.OK for r in results)
+    stats.failed += sum(r.outcome not in DELIVERED for r in results)
+    await record_results(session, results, now)
+    await session.commit()
 
 
 async def check_receipts(

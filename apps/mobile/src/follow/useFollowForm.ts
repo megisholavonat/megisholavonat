@@ -2,13 +2,18 @@ import {
     getTrainDetailsOptions,
     getTrainStationHistoryOptions,
 } from "@megisholavonat/api-client/react-query";
-import { formatSecondsAsTime } from "@megisholavonat/core/time";
+import {
+    formatSecondsAsTime,
+    serviceDayStart,
+} from "@megisholavonat/core/time";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Alert, AppState, Linking } from "react-native";
+import { Alert, AppState, Linking, Platform } from "react-native";
 import { useFormatter, useLocale, useTranslations } from "use-intl";
+import { LiveActivity } from "../../modules/live-activity";
 import { track, trackFollowSaved } from "../analytics";
+import { liveActivityDefault } from "../live/model";
 import {
     getNotificationPermission,
     requestNotificationPermission,
@@ -120,10 +125,26 @@ export function useFollowForm({
         };
     }
 
+    // iOS: the run on the lock screen, on by default for a trip leaving soon
+    const [liveActivityOffered] = useState(
+        () => Platform.OS === "ios" && (LiveActivity?.isEnabled() ?? false),
+    );
     const [edited, setEdited] = useState<FollowDraft | null>(null);
-    const draft: FollowDraft | null =
-        edited ??
-        (existing ? draftOf(existing) : details ? defaultDraft(details) : null);
+    let initial: FollowDraft | null = null;
+    if (existing) initial = draftOf(existing);
+    else if (details) {
+        const fresh = defaultDraft(details);
+        const board = details.trip.stoptimes[fresh.from];
+        const departure = board
+            ? serviceDayStart(details.trip.serviceDate) +
+              board.scheduledDeparture * 1000
+            : null;
+        fresh.liveActivity =
+            liveActivityOffered &&
+            liveActivityDefault(fresh.weekdays, departure, new Date());
+        initial = fresh;
+    }
+    const draft: FollowDraft | null = edited ?? initial;
     const change = (patch: (d: FollowDraft) => FollowDraft) => {
         if (draft) setEdited(patch(draft));
     };
@@ -244,6 +265,9 @@ export function useFollowForm({
             change((d) => ({ ...d, delayThresholdMin })),
         setPlatform: (notifyPlatformChange: boolean) =>
             change((d) => ({ ...d, notifyPlatformChange })),
+        liveActivityOffered,
+        setLiveActivity: (liveActivity: boolean) =>
+            change((d) => ({ ...d, liveActivity })),
         notificationsDenied: denied,
         openSettings: () => Linking.openSettings(),
         busy,

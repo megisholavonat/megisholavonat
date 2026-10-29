@@ -69,6 +69,19 @@ def _part(alert: Alert, lang: Lang) -> str:
             )
 
 
+def render_start(train: TrainContext, minutes: int, lang: Lang) -> tuple[str, str]:
+    """
+    (title, body) announcing a Live Activity started before departure, e.g.
+    "S70 · Kelenföld 14:32", "40 perc múlva indul".
+    """
+    title = SEPARATOR.join(
+        p for p in (train.label, f"{train.station} {train.time}".strip()) if p
+    )
+    minutes = max(minutes, 1)
+    body = f"{minutes} perc múlva indul" if lang == "hu" else f"Leaves in {minutes} min"
+    return title, body
+
+
 def render(
     alerts: list[Alert], train: TrainContext, lang: Lang
 ) -> tuple[str, str | None]:

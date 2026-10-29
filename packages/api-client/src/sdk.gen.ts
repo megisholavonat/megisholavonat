@@ -251,7 +251,8 @@ export const deleteFollow = <ThrowOnError extends boolean = false>(options: Opti
 /**
  * Update Follow
  *
- * Change alert preferences, or a commute's days, stations or label
+ * Change alert preferences, the Live Activity, or a commute's days,
+ * stations or label
  */
 export const updateFollow = <ThrowOnError extends boolean = false>(options: Options<UpdateFollowData, ThrowOnError>) => (options.client ?? client).patch<UpdateFollowResponses, UpdateFollowErrors, ThrowOnError>({
     responseType: 'json',

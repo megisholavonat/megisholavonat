@@ -151,7 +151,8 @@
         "unfollow": "Stop following",
         "error": "Couldn't save",
         "channel": "Train alerts",
-        "stop_time": "{name} {time}"
+        "stop_time": "{name} {time}",
+        "live_activity": "Live Activity"
     },
     "Journey": {
         "title": "Journey",

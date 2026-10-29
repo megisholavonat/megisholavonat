@@ -29,7 +29,11 @@ router = APIRouter(prefix="/devices", tags=["devices"])
 REGISTRATION_WINDOW_S = 3600
 MAX_PUSH_TOKENS_PER_DEVICE = 60
 # Native push only: Expo for both apps, Live Activities on iOS
-PUSH_PLATFORMS = {"expo": ("ios", "android"), "liveactivity": ("ios",)}
+PUSH_PLATFORMS = {
+    "expo": ("ios", "android"),
+    "liveactivity": ("ios",),
+    "liveactivity_start": ("ios",),
+}
 
 AUTH_RESPONSES: dict[int | str, dict[str, Any]] = {
     401: {"description": "Missing, malformed or invalid device token"}
@@ -154,6 +158,15 @@ async def register_push_token(
     await session.execute(
         select(Device.id).where(Device.id == device.id).with_for_update()
     )
+    if body.type == "liveactivity_start":
+        # The push-to-start token rotates: the new one replaces the old
+        await session.execute(
+            delete(PushToken).where(
+                PushToken.device_id == device.id,
+                PushToken.type == "liveactivity_start",
+                PushToken.token != body.token,
+            )
+        )
     count = await session.scalar(
         select(func.count())
         .select_from(PushToken)

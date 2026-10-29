@@ -178,6 +178,7 @@ export type CommuteFollow = {
      * Notifyplatformchange
      */
     notifyPlatformChange: boolean;
+    liveActivity?: LiveActivitySetup | null;
     /**
      * Createdat
      */
@@ -227,6 +228,7 @@ export type CommuteFollowCreate = {
      * Notifyplatformchange
      */
     notifyPlatformChange?: boolean;
+    liveActivity?: LiveActivitySetup | null;
     /**
      * Kind
      */
@@ -552,7 +554,7 @@ export type ExpoPushTokenCreate = {
  * FollowUpdate
  *
  * Partial update. Weekdays, stations and label only apply to commutes;
- * toStationId and label can be cleared with null.
+ * toStationId, label and liveActivity can be cleared with null.
  */
 export type FollowUpdate = {
     /**
@@ -583,6 +585,7 @@ export type FollowUpdate = {
      * Label
      */
     label?: string | null;
+    liveActivity?: LiveActivitySetup | null;
 };
 
 /**
@@ -795,6 +798,63 @@ export type LiveActivityPushTokenCreate = {
 };
 
 /**
+ * LiveActivitySetup
+ *
+ * iOS: the follow's Live Activity, started by the API with a push some
+ * minutes before departure (iOS 17.2+). What the activity shows until the
+ * train is live, as the app saw the train when following it.
+ */
+export type LiveActivitySetup = {
+    /**
+     * Badge
+     */
+    badge: string;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Fromname
+     */
+    fromName: string;
+    /**
+     * Toname
+     */
+    toName: string;
+    /**
+     * Departures
+     */
+    departureS: number;
+    /**
+     * Arrivals
+     */
+    arrivalS?: number | null;
+    /**
+     * Platform
+     */
+    platform?: string | null;
+};
+
+/**
+ * LiveActivityStartTokenCreate
+ *
+ * The device's ActivityKit push-to-start token (iOS 17.2+). The API starts
+ * the Live Activity of a follow with `liveActivity` set with it shortly
+ * before departure; the started activity's own token is then registered as
+ * `liveactivity`. A device has one: registering another replaces it.
+ */
+export type LiveActivityStartTokenCreate = {
+    /**
+     * Type
+     */
+    type: 'liveactivity_start';
+    /**
+     * Token
+     */
+    token: string;
+};
+
+/**
  * PlatformPrediction
  */
 export type PlatformPrediction = {
@@ -884,7 +944,7 @@ export type PushToken = {
     /**
      * Type
      */
-    type: 'expo' | 'liveactivity';
+    type: 'expo' | 'liveactivity' | 'liveactivity_start';
     /**
      * Followid
      */
@@ -1691,6 +1751,7 @@ export type TripFollow = {
      * Notifyplatformchange
      */
     notifyPlatformChange: boolean;
+    liveActivity?: LiveActivitySetup | null;
     /**
      * Createdat
      */
@@ -1739,6 +1800,7 @@ export type TripFollowCreate = {
      * Notifyplatformchange
      */
     notifyPlatformChange?: boolean;
+    liveActivity?: LiveActivitySetup | null;
     /**
      * Kind
      */
@@ -2340,7 +2402,9 @@ export type RegisterPushTokenData = {
         type: 'expo';
     } & ExpoPushTokenCreate) | ({
         type: 'liveactivity';
-    } & LiveActivityPushTokenCreate);
+    } & LiveActivityPushTokenCreate) | ({
+        type: 'liveactivity_start';
+    } & LiveActivityStartTokenCreate);
     path?: never;
     query?: never;
     url: '/v1/devices/me/push-tokens';
