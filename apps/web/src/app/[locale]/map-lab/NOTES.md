@@ -100,9 +100,24 @@ The network is deliberately kept under the markers' visual weight. In light mode
 
 Dropping the raster saves 0.3–0.7 MB and 20–24 requests per view, and every pan stops costing raster tiles. The network GeoJSON is a one-time 157 KB that later views reuse. Our styles draw about 30 % fewer layers than Positron, and Protomaps' layer set renders slowest (median frame 67 ms vs 17–33 ms under SwiftShader; a relative figure only). A z7 Protomaps tile is 252 KB gzipped vs 219 KB for OFM.
 
+## Markers: do we need all of them?
+
+Today a train can be a dot, a plain circle, a "+N" chip, a square (HÉV) or a pointed pill (tram-train), in five sizes, with arrows, stars and count bubbles.
+
+- **The exact delay of trains you didn't open is mostly noise.** At a glance you need the band (on time, a few minutes, badly late) and where it is. The minute matters for the train you care about (selected or followed) or the station you're zoomed into. Apple's HIG says to cluster and add detail with zoom, and the design's own MacStories source says extra information should "show up as needed".
+- **Shape for vehicle type costs more than it gives on a map.** HÉV and tram-trains run on their own lines, and their type is in the sheet and tooltip. This changes the design system rule "Alak = járműtípus" (shape = vehicle type), so it's a design decision.
+- **Proposed "Simple" markers:** one round mark for every vehicle at every zoom.
+  - Colour is the delay band.
+  - Late is one size step bigger: 11 / 13 px at country zoom, 16 / 18 px close in. That keeps a cue that isn't colour (WCAG 1.4.1).
+  - "+N" appears only from z10, as text beside the dot, and only where it fits, biggest delays first.
+  - No arrows. The selected and followed trains keep the full chip.
+- **"Calm"** does the opposite: on-time trains shrink to 5 px. You found that too small, and Simple replaces it.
+
+The panel's Markers row switches between Today, Calm and Simple.
+
 ## Recommendation
 
-Ship **B · Transit + our network + our station names + calm on-time markers + focus**, in both themes, with the light palette from the design's map mock and the hand-tuned dark one above. Drop ORM from the default view (keep it as an opt-in "Rail infrastructure" setting if anyone uses it). Stay on OpenFreeMap vectors for now. Protomaps is the fallback if we want full self-hosting; nothing in the style ties us to one or the other.
+Ship **B · Transit + our network + our station names + Simple markers + focus**, in both themes, with the light palette from the design's map mock and the hand-tuned dark one above. Drop ORM from the default view (keep it as an opt-in "Rail infrastructure" setting if anyone uses it). Stay on OpenFreeMap vectors for now. Protomaps is the fallback if we want full self-hosting; nothing in the style ties us to one or the other.
 
 ## Implementation plan (about 4–6 days)
 

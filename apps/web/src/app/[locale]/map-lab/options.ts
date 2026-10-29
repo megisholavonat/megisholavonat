@@ -3,7 +3,7 @@ import type { Basemap } from "./styles";
 
 export type RailMode = "off" | "ours" | "orm";
 export type LabelMode = "off" | "poi" | "ours";
-export type MarkerVariant = "current" | "calm";
+export type MarkerVariant = "current" | "calm" | "simple";
 export type ViewId = "hu" | "bp" | "keleti" | "line" | "border" | "zahony";
 
 export interface LabOptions {
@@ -89,7 +89,7 @@ export function readOptions(params: URLSearchParams): LabOptions {
         ),
         markers: pick(
             params.get("markers"),
-            ["current", "calm"] as const,
+            ["current", "calm", "simple"] as const,
             r.markers,
         ),
         focus: flag("focus", r.focus),

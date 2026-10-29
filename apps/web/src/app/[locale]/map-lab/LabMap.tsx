@@ -519,6 +519,25 @@ const IS_PLAIN: ExpressionSpecification = [
     ["literal", ["onTime", "inactive"]],
 ];
 const NOT_CLUSTER: ExpressionSpecification = ["!", ["has", "point_count"]];
+/** Matches nothing: a layer kept in place but empty */
+const NONE: ExpressionSpecification = ["boolean", false];
+const LATE: ExpressionSpecification = [
+    "in",
+    ["get", "level"],
+    ["literal", ["slight", "moderate", "severe"]],
+];
+/** Simple markers: 11 px on time, 13 px late at country zoom; 16 / 18 px close in */
+const SIMPLE_RADIUS = [
+    "interpolate",
+    ["linear"],
+    ["zoom"],
+    6,
+    ["case", LATE, 6.5, 5.5],
+    10,
+    ["case", LATE, 8, 7],
+    13,
+    ["case", LATE, 9, 8],
+] as unknown as ExpressionSpecification;
 const HAS_HEADING: ExpressionSpecification = [
     "!",
     ["in", ["get", "level"], ["literal", ["stale", "inactive"]]],
@@ -1059,6 +1078,12 @@ export default function LabMap({
             : MARKER.selected.othersOpacity
         : 1;
     const calm = lab.markers === "calm";
+    /**
+     * Simple: one round mark for every vehicle at every zoom, colour = delay
+     * band, late ones a step bigger; "+N" as quiet text from z10 only where
+     * it fits, the biggest delays first. No chips, squares or arrows.
+     */
+    const simple = lab.markers === "simple";
     const fade = useMemo(
         () => ({ duration: prefersReducedMotion ? 0 : FADE_MS, delay: 0 }),
         [prefersReducedMotion],
@@ -1126,15 +1151,17 @@ export default function LabMap({
         () => ({
             // Calm: on time is a 5 px dot with a land-coloured edge, so the
             // late trains are the only strong marks at country zoom
-            "circle-radius": calm
-                ? ([
-                      "match",
-                      ["get", "level"],
-                      ["onTime", "inactive"],
-                      2.5,
-                      dotRadius,
-                  ] as ExpressionSpecification)
-                : dotRadius,
+            "circle-radius": simple
+                ? SIMPLE_RADIUS
+                : calm
+                  ? ([
+                        "match",
+                        ["get", "level"],
+                        ["onTime", "inactive"],
+                        2.5,
+                        dotRadius,
+                    ] as ExpressionSpecification)
+                  : dotRadius,
             "circle-color": byLevel((level) => levelColors(scheme, level).fill),
             "circle-stroke-width": calm
                 ? ([
@@ -1155,7 +1182,7 @@ export default function LabMap({
                   ] as ExpressionSpecification)
                 : byLevel((level) => levelColors(scheme, level).outline),
         }),
-        [scheme, byLevel, dotRadius, calm],
+        [scheme, byLevel, dotRadius, calm, simple],
     );
 
     const pillTextSize = useMemo(
@@ -1183,6 +1210,8 @@ export default function LabMap({
 
     /** Dots, heading, plain and pill markers for the base / pinned groups. */
     const markerLayers = (prefix: (id: string) => string, base: boolean) => {
+        const hide = (f: ExpressionSpecification): ExpressionSpecification =>
+            simple ? NONE : f;
         const only = (filter: ExpressionSpecification) =>
             base
                 ? (["all", NOT_CLUSTER, filter] as ExpressionSpecification)
@@ -1193,7 +1222,7 @@ export default function LabMap({
                 key="dot"
                 id={prefix(LAYER_IDS.TRAIN_DOT)}
                 type="circle"
-                maxzoom={MARKER.labelMinZoom}
+                maxzoom={simple ? 24 : MARKER.labelMinZoom}
                 filter={base ? NOT_CLUSTER : ["has", "vehicleId"]}
                 layout={{ "circle-sort-key": ["get", "sortKey"] }}
                 paint={{
@@ -1210,7 +1239,7 @@ export default function LabMap({
                 id={prefix(LAYER_IDS.TRAIN_HEADING)}
                 type="symbol"
                 minzoom={MARKER.labelMinZoom}
-                filter={only(HAS_HEADING)}
+                filter={hide(only(HAS_HEADING))}
                 layout={{
                     "icon-image": arrowImageId(scheme),
                     "icon-rotate": ["coalesce", ["get", "heading"], 0],
@@ -1230,7 +1259,7 @@ export default function LabMap({
                 id={prefix(LAYER_IDS.TRAIN_PLAIN)}
                 type="symbol"
                 minzoom={MARKER.labelMinZoom}
-                filter={only(IS_PLAIN)}
+                filter={hide(only(IS_PLAIN))}
                 layout={{
                     "icon-image": imageId("dot"),
                     "icon-size": calm ? 0.7 : 1,
@@ -1249,7 +1278,7 @@ export default function LabMap({
                 id={prefix(LAYER_IDS.TRAIN_PILL)}
                 type="symbol"
                 minzoom={MARKER.labelMinZoom}
-                filter={only(["!", IS_PLAIN])}
+                filter={hide(only(["!", IS_PLAIN]))}
                 layout={{
                     "icon-image": imageId("pill"),
                     "icon-text-fit": "both",
@@ -1267,6 +1296,42 @@ export default function LabMap({
                     "icon-opacity": othersOpacity,
                     "text-opacity": othersOpacity,
                     "icon-opacity-transition": fade,
+                    "text-opacity-transition": fade,
+                }}
+            />,
+            /* Simple: the delay as text beside late trains, where it fits */
+            <Layer
+                key="simple-label"
+                id={prefix("lab-simple-label")}
+                type="symbol"
+                minzoom={10}
+                filter={
+                    simple
+                        ? only([
+                              "in",
+                              ["get", "level"],
+                              ["literal", ["slight", "moderate", "severe"]],
+                          ])
+                        : NONE
+                }
+                layout={{
+                    "text-field": ["get", "label"],
+                    "text-font": ["Noto Sans Bold"],
+                    "text-size": 12,
+                    "text-anchor": "left",
+                    "text-offset": [0.8, 0],
+                    "text-padding": 1,
+                    "symbol-sort-key": ["-", 0, ["get", "sortKey"]],
+                }}
+                paint={{
+                    "text-color": byLevel((level) =>
+                        level === "stale" || level === "inactive"
+                            ? STALE_COLORS[scheme].text
+                            : DELAY_SCALE[scheme][level].text,
+                    ),
+                    "text-halo-color": COLORS[scheme].map,
+                    "text-halo-width": 1.5,
+                    "text-opacity": othersOpacity,
                     "text-opacity-transition": fade,
                 }}
             />,
@@ -1825,12 +1890,12 @@ export default function LabMap({
                     // Calm: tighter clusters, so fewer count bubbles cover
                     // the network at country zoom (a new radius needs a new
                     // source)
-                    key={calm ? "calm" : "current"}
+                    key={calm || simple ? "tight" : "current"}
                     id={SOURCES.base}
                     type="geojson"
                     data={sourceData("base")}
                     cluster
-                    clusterRadius={calm ? 12 : CLUSTER_RADIUS}
+                    clusterRadius={calm || simple ? 12 : CLUSTER_RADIUS}
                     clusterMaxZoom={CLUSTER_MAX_ZOOM}
                     clusterProperties={{ sev: ["max", ["get", "sev"]] }}
                 >

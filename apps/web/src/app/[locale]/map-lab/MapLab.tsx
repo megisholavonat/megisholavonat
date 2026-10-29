@@ -343,7 +343,8 @@ export function MapLab() {
                                 value={opts.markers}
                                 options={[
                                     ["current", "Today"],
-                                    ["calm", "Calm on time"],
+                                    ["calm", "Calm"],
+                                    ["simple", "Simple"],
                                 ]}
                                 onChange={(v) => set("markers", v)}
                             />
