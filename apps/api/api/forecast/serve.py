@@ -30,14 +30,13 @@ from api.forecast.features import (
 )
 from api.forecast.model import FORMAT_VERSION, ForecastModel
 from api.models.forecast import DelayForecastModel
+from api.util.delay import to_minutes
+from api.util.history_constants import MAX_ABS_DELAY_S, MAX_OFF_ROUTE_M
 from api.util.stop import station_id
 from api.util.trip import seconds_into_service_day
 
 logger = get_logger(__name__)
 
-# Positions further than this from the trip geometry are not on their trip
-MAX_OFF_ROUTE_M = 500
-MAX_ABS_DELAY_S = 6 * 3600
 # How often a worker checks for a newer model
 MODEL_CHECK_INTERVAL_S = 10 * 60
 # How far ahead of its timetable a train leaving a stop on time can get on the
@@ -196,7 +195,7 @@ def annotate_locations(
         pred, _ = model.predict(ex)
     by_loc: dict[int, dict[int, int]] = {}
     for row, p in zip(rows, pred.tolist(), strict=True):
-        by_loc.setdefault(row.loc, {})[row.stop_index] = round(max(p, row.floor_s) / 60)
+        by_loc.setdefault(row.loc, {})[row.stop_index] = to_minutes(max(p, row.floor_s))
     annotated = 0
     for n, predictions in by_loc.items():
         for stop in locations[n].get("processedStops") or []:

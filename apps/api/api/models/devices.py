@@ -23,13 +23,14 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from api.models.base import Base
+from api.util.history_constants import ON_TIME_THRESHOLD_S
 
 PLATFORMS = ("web", "ios", "android")
 FOLLOW_KINDS = ("trip", "commute")
 PUSH_TOKEN_TYPES = ("expo", "liveactivity", "liveactivity_start")
 
-# "On time" means at most 5 minutes late, see ON_TIME_THRESHOLD_S
-DEFAULT_DELAY_THRESHOLD_MIN = 5
+# Alert above the on-time limit by default
+DEFAULT_DELAY_THRESHOLD_MIN = ON_TIME_THRESHOLD_S // 60
 
 
 class Device(Base):
