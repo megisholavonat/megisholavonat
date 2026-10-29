@@ -5,24 +5,55 @@ from typing import Any
 import fakeredis
 import httpx
 import pytest
+import respx
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.models.history import Stop, StopDelayObservation
 from api.services import insights, station_index
 from api.services.history import ensure_partition
+from tests.upstream import graphql_route
 
 # "Today" for every test; observations are seeded relative to it
 MONDAY = date(2026, 9, 7)
 KELETI = "005510017"
 SZOLNOK = "005510009"
 DEBRECEN = "005510710"
-NAMES = {KELETI: "Budapest-Keleti", SZOLNOK: "Szolnok", DEBRECEN: "Debrecen"}
+# A HÉV stop and a tram-train stop, which the rankings leave out
+SZENTENDRE_H = "003609142"
+SZEGED_TRAMTRAIN = "005500700"
+NAMES = {
+    KELETI: "Budapest-Keleti",
+    SZOLNOK: "Szolnok",
+    DEBRECEN: "Debrecen",
+    SZENTENDRE_H: "Szentendre H",
+    SZEGED_TRAMTRAIN: "Szeged vasútállomás",
+}
 
 
 @pytest.fixture(autouse=True)
 def _today_is_monday(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(insights, "today", lambda: MONDAY)
+
+
+async def _store_index(redis: fakeredis.FakeAsyncRedis, rows: list[list[Any]]) -> None:
+    await redis.set(station_index.index_key(), json.dumps(rows))
+    await redis.set(station_index.index_version_key(), "1")
+
+
+@pytest.fixture(autouse=True)
+async def _station_index(redis: fakeredis.FakeAsyncRedis) -> None:
+    """The stations of the tests with their types, as the search index has them"""
+    await _store_index(
+        redis,
+        [
+            [KELETI, "Budapest-Keleti", 47.5, 19.08, "rail"],
+            [SZOLNOK, "Szolnok", 47.17, 20.19, "rail"],
+            [DEBRECEN, "Debrecen", 47.52, 21.63, "rail"],
+            [SZENTENDRE_H, "Szentendre H", 47.66, 19.08, "hev"],
+            [SZEGED_TRAMTRAIN, "Szeged vasútállomás", 46.24, 20.14, "tramtrain"],
+        ],
+    )
 
 
 def _obs(
@@ -315,6 +346,75 @@ async def test_rankings_best_and_worst_respect_min_samples(
     assert len(everything["entries"]) == 4
 
 
+async def test_station_rankings_are_of_railway_stations_only(
+    client: httpx.AsyncClient, db_session: AsyncSession
+) -> None:
+    # A HÉV stop and a tram-train stop, always on time; a railway station
+    # with some late trains
+    rows = [_obs(0, station=SZENTENDRE_H, route=_glyph(440), seq=i) for i in range(10)]
+    rows += [
+        _obs(30, station=SZEGED_TRAMTRAIN, route=_glyph(449), seq=i) for i in range(10)
+    ]
+    rows += [_obs(600 if i < 3 else 60, station=KELETI, seq=i) for i in range(10)]
+    await _seed(db_session, rows)
+
+    best = (await client.get("/v1/rankings?kind=stations&minSamples=5")).json()
+    worst = (
+        await client.get("/v1/rankings?kind=stations&order=worst&minSamples=5")
+    ).json()
+
+    assert [(e["id"], e["onTimeShare"]) for e in best["entries"]] == [(KELETI, 0.7)]
+    assert [e["id"] for e in worst["entries"]] == [KELETI]
+
+
+async def test_line_and_train_rankings_leave_out_hev_and_tram_train_runs(
+    client: httpx.AsyncClient, db_session: AsyncSession
+) -> None:
+    rows = []
+    for i in range(5):
+        day = MONDAY - timedelta(days=i)
+        # An H5 HÉV run and a tram-train run, ending at their own stops
+        rows += [
+            _obs(
+                0,
+                day=day,
+                trip=f"1:hev{i}",
+                train="H5 900",
+                route=_glyph(440),
+                station=SZENTENDRE_H,
+            ),
+            _obs(
+                0,
+                day=day,
+                trip=f"1:tt{i}",
+                train="3700",
+                route=_glyph(449),
+                station=SZEGED_TRAMTRAIN,
+            ),
+            _obs(600, day=day, trip=f"1:rail{i}", train="2001 Sz", route=_glyph(335)),
+        ]
+    await _seed(db_session, rows)
+
+    lines = (await client.get("/v1/rankings?kind=lines&minSamples=5")).json()
+    trains = (await client.get("/v1/rankings?kind=trains&minSamples=5")).json()
+
+    assert [e["id"] for e in lines["entries"]] == ["S10"]
+    assert [e["id"] for e in trains["entries"]] == ["2001"]
+
+
+async def test_rankings_need_the_station_index(
+    client: httpx.AsyncClient,
+    redis: fakeredis.FakeAsyncRedis,
+    otp: respx.MockRouter,
+) -> None:
+    await redis.flushall()
+    graphql_route(otp).mock(return_value=httpx.Response(503, text="maintenance"))
+
+    response = await client.get("/v1/rankings")
+
+    assert response.status_code == 502
+
+
 @pytest.mark.parametrize(
     ("kind", "route", "train", "default"),
     [
@@ -477,10 +577,18 @@ async def test_time_of_day(client: httpx.AsyncClient, db_session: AsyncSession) 
     # After midnight of the service day counts as hour 0
     rows.append(_obs(0, seq=20, scheduled_s=24 * 3600 + 120))
     rows.append(_obs(900, seq=21, station=SZOLNOK, scheduled_s=7 * 3600))
+    # HÉV passages count at their own stop only, not network-wide
+    rows += [
+        _obs(0, seq=30 + i, station=SZENTENDRE_H, scheduled_s=7 * 3600)
+        for i in range(4)
+    ]
     await _seed(db_session, rows)
 
     network = (await client.get("/v1/rankings/time-of-day")).json()
     keleti = (await client.get(f"/v1/rankings/time-of-day?stationId={KELETI}")).json()
+    hev = (
+        await client.get(f"/v1/rankings/time-of-day?stationId={SZENTENDRE_H}")
+    ).json()
 
     assert len(network["hours"]) == 24
     assert network["hours"][7]["n"] == 4
@@ -492,6 +600,7 @@ async def test_time_of_day(client: httpx.AsyncClient, db_session: AsyncSession) 
         "medianDelayMin": 0.0,
     }
     assert keleti["hours"][17]["onTimeShare"] == 0.0
+    assert hev["hours"][7]["n"] == 4
     assert keleti["hours"][0]["n"] == 1
     assert keleti["hours"][12] == {
         "hour": 12,
@@ -599,7 +708,7 @@ async def test_responses_are_cached(
     await _seed(db_session, _runs([60] * 5))
     first = (await client.get(f"/v1/history/trains/10/stations/{KELETI}")).json()
 
-    keys = await redis.keys("*")
+    keys = await redis.keys("*history*")
     assert keys == [f"mhav-test:history:train-station:10:{KELETI}:28"]
     assert 0 < await redis.ttl(keys[0]) <= 600
 
@@ -617,22 +726,21 @@ async def test_directory_lists_regular_trains_and_served_domestic_stations(
     redis: fakeredis.FakeAsyncRedis,
 ) -> None:
     vienna = "008101001"
-    await redis.set(
-        station_index.index_key(),
-        json.dumps(
-            [
-                [KELETI, "Budapest-Keleti", 47.5, 19.08],
-                [SZOLNOK, "Szolnok", 47.17, 20.19],
-                [DEBRECEN, "Debrecen", 47.52, 21.63],
-                [vienna, "Wien Hbf", 48.18, 16.37],
-            ]
-        ),
+    await _store_index(
+        redis,
+        [
+            [KELETI, "Budapest-Keleti", 47.5, 19.08, "rail"],
+            [SZOLNOK, "Szolnok", 47.17, 20.19, "rail"],
+            [DEBRECEN, "Debrecen", 47.52, 21.63, "rail"],
+            [vienna, "Wien Hbf", 48.18, 16.37, "rail"],
+            [SZENTENDRE_H, "Szentendre H", 47.66, 19.08, "hev"],
+        ],
     )
-    await redis.set(station_index.index_version_key(), "1")
     # Daily at Keleti and in Vienna; Szolnok only once in four weeks
     await _seed(db_session, _runs([60] * 28))
     await _seed(db_session, _runs([60] * 28, station=vienna, train="40", seq=1))
     await _seed(db_session, _runs([60], station=SZOLNOK, train="7", seq=2))
+    await _seed(db_session, _runs([0] * 28, station=SZENTENDRE_H, train="H5 1", seq=3))
 
     r = await client.get("/v1/history/directory")
 
@@ -640,7 +748,11 @@ async def test_directory_lists_regular_trains_and_served_domestic_stations(
     body = r.json()
     # Vienna is served but abroad (and in the index's rough box of Hungary);
     # Szolnok and Debrecen too seldom
-    assert body["stations"] == [{"id": KELETI, "name": "Budapest-Keleti"}]
+    # HÉV stops are listed too, with their type (equally busy: by id)
+    assert body["stations"] == [
+        {"id": SZENTENDRE_H, "name": "Szentendre H", "type": "hev"},
+        {"id": KELETI, "name": "Budapest-Keleti", "type": "rail"},
+    ]
     # Train 7 ran once in 28 days: not regular
     assert body["trains"] == [
         {
@@ -649,4 +761,5 @@ async def test_directory_lists_regular_trains_and_served_domestic_stations(
             "routeShortName": "IC",
         },
         {"trainNumber": "40", "tripShortName": "40", "routeShortName": "IC"},
+        {"trainNumber": "H5", "tripShortName": "H5 1", "routeShortName": "IC"},
     ]

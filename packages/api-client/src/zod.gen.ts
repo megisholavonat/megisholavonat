@@ -162,7 +162,13 @@ export const zDeviceInfo = z.object({
  */
 export const zDirectoryStation = z.object({
     id: z.string(),
-    name: z.string()
+    name: z.string(),
+    type: z.enum([
+        'rail',
+        'hev',
+        'tramtrain',
+        'childrens_railway'
+    ]).optional().default('rail')
 });
 
 /**
@@ -548,7 +554,13 @@ export const zStation = z.object({
     id: z.string(),
     name: z.string(),
     lat: z.number(),
-    lon: z.number()
+    lon: z.number(),
+    type: z.enum([
+        'rail',
+        'hev',
+        'tramtrain',
+        'childrens_railway'
+    ]).optional().default('rail')
 });
 
 /**

@@ -324,10 +324,11 @@ export const getRunSummary = <ThrowOnError extends boolean = false>(options: Opt
 /**
  * Get Rankings
  *
- * Stations, lines (S10, Z30, H5, ...) or trains ranked by on-time share (at
- * most 5 minutes late), then by median delay. Stations count every stop
+ * Railway stations, lines (S10, Z30, ...) or trains ranked by on-time share
+ * (at most 5 minutes late), then by median delay. Stations count every stop
  * passage; lines and trains count one arrival per run, at its final stop (or
- * the last stop recorded before it).
+ * the last stop recorded before it). HÉV and tram-train stops, and the runs
+ * ending at them, are left out.
  */
 export const getRankings = <ThrowOnError extends boolean = false>(options?: Options<GetRankingsData, ThrowOnError>) => (options?.client ?? client).get<GetRankingsResponses, GetRankingsErrors, ThrowOnError>({
     responseType: 'json',
@@ -338,7 +339,8 @@ export const getRankings = <ThrowOnError extends boolean = false>(options?: Opti
 /**
  * Get Time Of Day Punctuality
  *
- * On-time share by scheduled hour, network-wide or at one station
+ * On-time share by scheduled hour, at one station or across the railway's
+ * stations (without HÉV and tram-train stops)
  */
 export const getTimeOfDayPunctuality = <ThrowOnError extends boolean = false>(options?: Options<GetTimeOfDayPunctualityData, ThrowOnError>) => (options?.client ?? client).get<GetTimeOfDayPunctualityResponses, GetTimeOfDayPunctualityErrors, ThrowOnError>({
     responseType: 'json',
