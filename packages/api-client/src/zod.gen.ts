@@ -413,6 +413,79 @@ export const zLiveActivityStartTokenCreate = z.object({
 });
 
 /**
+ * MapLineString
+ */
+export const zMapLineString = z.object({
+    type: z.literal('LineString'),
+    coordinates: z.array(z.array(z.number()))
+});
+
+/**
+ * MapNetworkProperties
+ */
+export const zMapNetworkProperties = z.object({
+    n: z.int(),
+    hev: z.union([z.literal(0), z.literal(1)])
+});
+
+/**
+ * MapNetworkFeature
+ */
+export const zMapNetworkFeature = z.object({
+    type: z.literal('Feature'),
+    properties: zMapNetworkProperties,
+    geometry: zMapLineString
+});
+
+/**
+ * MapNetwork
+ *
+ * The passenger rail network, quietest sections first
+ */
+export const zMapNetwork = z.object({
+    type: z.literal('FeatureCollection'),
+    features: z.array(zMapNetworkFeature)
+});
+
+/**
+ * MapPoint
+ */
+export const zMapPoint = z.object({
+    type: z.literal('Point'),
+    coordinates: z.array(z.number())
+});
+
+/**
+ * MapStationProperties
+ */
+export const zMapStationProperties = z.object({
+    id: z.string(),
+    name: z.string(),
+    short: z.string(),
+    perDay: z.number(),
+    hev: z.union([z.literal(0), z.literal(1)])
+});
+
+/**
+ * MapStationFeature
+ */
+export const zMapStationFeature = z.object({
+    type: z.literal('Feature'),
+    properties: zMapStationProperties,
+    geometry: zMapPoint
+});
+
+/**
+ * MapStations
+ *
+ * Rail stations, busiest first
+ */
+export const zMapStations = z.object({
+    type: z.literal('FeatureCollection'),
+    features: z.array(zMapStationFeature)
+});
+
+/**
  * PlatformPrediction
  */
 export const zPlatformPrediction = z.object({
@@ -1246,3 +1319,13 @@ export const zGetTimeOfDayPunctualityQuery = z.object({
  * Successful Response
  */
 export const zGetTimeOfDayPunctualityResponse = zTimeOfDayPunctuality;
+
+/**
+ * Successful Response
+ */
+export const zGetMapNetworkResponse = zMapNetwork;
+
+/**
+ * Successful Response
+ */
+export const zGetMapStationsResponse = zMapStations;

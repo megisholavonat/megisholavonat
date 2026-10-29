@@ -51,8 +51,8 @@ export default function MapScreen() {
     // train sheet and the rows
     const now = useNow();
     const visible = useMemo(
-        () => markerCollection(trains, theme, now).features.length,
-        [trains, theme, now],
+        () => markerCollection(trains, "light", now).features.length,
+        [trains, now],
     );
     const state = feedState(trains, isError, visible);
 
@@ -114,7 +114,7 @@ export default function MapScreen() {
                 now={now}
                 onTrainPress={openTrain}
                 followed={followed}
-                showRailways={settings.railwayLayer}
+                showRailways={settings.detailedRailwayMap}
                 followUser={following}
                 onFollowUserChange={setFollowing}
                 mapRef={mapRef}

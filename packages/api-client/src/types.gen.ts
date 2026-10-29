@@ -855,6 +855,130 @@ export type LiveActivityStartTokenCreate = {
 };
 
 /**
+ * MapLineString
+ */
+export type MapLineString = {
+    /**
+     * Type
+     */
+    type: 'LineString';
+    /**
+     * Coordinates
+     */
+    coordinates: Array<Array<number>>;
+};
+
+/**
+ * MapNetwork
+ *
+ * The passenger rail network, quietest sections first
+ */
+export type MapNetwork = {
+    /**
+     * Type
+     */
+    type: 'FeatureCollection';
+    /**
+     * Features
+     */
+    features: Array<MapNetworkFeature>;
+};
+
+/**
+ * MapNetworkFeature
+ */
+export type MapNetworkFeature = {
+    /**
+     * Type
+     */
+    type: 'Feature';
+    properties: MapNetworkProperties;
+    geometry: MapLineString;
+};
+
+/**
+ * MapNetworkProperties
+ */
+export type MapNetworkProperties = {
+    /**
+     * N
+     */
+    n: number;
+    /**
+     * Hev
+     */
+    hev: 0 | 1;
+};
+
+/**
+ * MapPoint
+ */
+export type MapPoint = {
+    /**
+     * Type
+     */
+    type: 'Point';
+    /**
+     * Coordinates
+     */
+    coordinates: Array<number>;
+};
+
+/**
+ * MapStationFeature
+ */
+export type MapStationFeature = {
+    /**
+     * Type
+     */
+    type: 'Feature';
+    properties: MapStationProperties;
+    geometry: MapPoint;
+};
+
+/**
+ * MapStationProperties
+ */
+export type MapStationProperties = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Short
+     */
+    short: string;
+    /**
+     * Perday
+     */
+    perDay: number;
+    /**
+     * Hev
+     */
+    hev: 0 | 1;
+};
+
+/**
+ * MapStations
+ *
+ * Rail stations, busiest first
+ */
+export type MapStations = {
+    /**
+     * Type
+     */
+    type: 'FeatureCollection';
+    /**
+     * Features
+     */
+    features: Array<MapStationFeature>;
+};
+
+/**
  * PlatformPrediction
  */
 export type PlatformPrediction = {
@@ -2930,3 +3054,49 @@ export type GetTimeOfDayPunctualityResponses = {
 };
 
 export type GetTimeOfDayPunctualityResponse = GetTimeOfDayPunctualityResponses[keyof GetTimeOfDayPunctualityResponses];
+
+export type GetMapNetworkData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/map/network';
+};
+
+export type GetMapNetworkErrors = {
+    /**
+     * The upstream timetable service failed
+     */
+    502: unknown;
+};
+
+export type GetMapNetworkResponses = {
+    /**
+     * Successful Response
+     */
+    200: MapNetwork;
+};
+
+export type GetMapNetworkResponse = GetMapNetworkResponses[keyof GetMapNetworkResponses];
+
+export type GetMapStationsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/map/stations';
+};
+
+export type GetMapStationsErrors = {
+    /**
+     * The upstream timetable service failed
+     */
+    502: unknown;
+};
+
+export type GetMapStationsResponses = {
+    /**
+     * Successful Response
+     */
+    200: MapStations;
+};
+
+export type GetMapStationsResponse = GetMapStationsResponses[keyof GetMapStationsResponses];

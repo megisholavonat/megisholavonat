@@ -186,3 +186,18 @@ test("SEO-8: the station page's lists read in order, late rows at their expected
         .filter({ hasText: "04:37" });
     await expect(late.locator("s")).toContainText("03:57");
 });
+
+test("SEO-9: the breadcrumb's home link stays on one line beside the logo", async ({
+    page,
+}) => {
+    await page.setViewportSize({ width: 320, height: 640 });
+    await page.goto("/hu/allomas/szolnok");
+    const home = page
+        .getByRole("navigation", { name: "Breadcrumb" })
+        .getByRole("link");
+    await expect(home).toHaveText(t.Home.app_title);
+    await expect(home.locator("svg")).toBeVisible();
+    const box = await home.boundingBox();
+    // One line of 14px text in its 8px padding, not two
+    expect(box?.height).toBeLessThan(40);
+});
