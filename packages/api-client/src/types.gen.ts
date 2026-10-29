@@ -356,6 +356,125 @@ export type DeviceInfo = {
 };
 
 /**
+ * Disruption
+ *
+ * A line or network disruption: the rail alerts about one event, merged.
+ * Per-train notices (delay reasons, coach changes) are not disruptions;
+ * they stay on the train.
+ */
+export type Disruption = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Alertids
+     */
+    alertIds: Array<string>;
+    /**
+     * Effect
+     */
+    effect: 'no_service' | 'replacement_bus' | 'modified_service' | 'delays' | 'other';
+    /**
+     * Cause
+     */
+    cause: 'engineering' | 'accident' | 'strike' | 'weather' | 'technical' | 'other';
+    /**
+     * Severity
+     */
+    severity: 'high' | 'medium' | 'low';
+    /**
+     * Scope
+     */
+    scope: 'line' | 'network';
+    segment?: DisruptionSegment | null;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Description
+     */
+    description: string;
+    /**
+     * Details
+     */
+    details: Array<string>;
+    /**
+     * Url
+     */
+    url: string;
+    /**
+     * Start
+     */
+    start?: number | null;
+    /**
+     * End
+     */
+    end?: number | null;
+    /**
+     * Lines
+     */
+    lines: Array<DisruptionLine>;
+    /**
+     * Routes
+     */
+    routes: Array<AlertRoute>;
+    /**
+     * Stations
+     */
+    stations: Array<AlertStation>;
+    /**
+     * Trips
+     */
+    trips: Array<AlertTrip>;
+};
+
+/**
+ * DisruptionLine
+ *
+ * A line glyph to show, deduplicated across the affected routes
+ */
+export type DisruptionLine = {
+    /**
+     * Shortname
+     */
+    shortName: string;
+    /**
+     * Name
+     */
+    name?: string | null;
+    /**
+     * Mode
+     */
+    mode?: string | null;
+};
+
+/**
+ * DisruptionSegment
+ *
+ * The stretch between two stations, as MÁV names it in the text
+ */
+export type DisruptionSegment = {
+    /**
+     * Fromname
+     */
+    fromName: string;
+    /**
+     * Toname
+     */
+    toName: string;
+    /**
+     * Fromid
+     */
+    fromId?: string | null;
+    /**
+     * Toid
+     */
+    toId?: string | null;
+};
+
+/**
  * ExpoPushTokenCreate
  *
  * An Expo push token (iOS or Android): alerts about every follow
@@ -1917,6 +2036,31 @@ export type GetAlertsResponses = {
 };
 
 export type GetAlertsResponse = GetAlertsResponses[keyof GetAlertsResponses];
+
+export type GetDisruptionsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/alerts/disruptions';
+};
+
+export type GetDisruptionsErrors = {
+    /**
+     * The upstream timetable service failed
+     */
+    502: unknown;
+};
+
+export type GetDisruptionsResponses = {
+    /**
+     * Response Getdisruptions
+     *
+     * Successful Response
+     */
+    200: Array<Disruption>;
+};
+
+export type GetDisruptionsResponse = GetDisruptionsResponses[keyof GetDisruptionsResponses];
 
 export type RegisterDeviceData = {
     body: DeviceCreate;
