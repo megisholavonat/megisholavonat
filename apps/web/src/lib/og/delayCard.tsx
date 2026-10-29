@@ -59,7 +59,8 @@ export function cardDelay(card: DelaySummary, locale: Locale) {
         case "late":
         case "onTime":
             return {
-                big: card.outcome === "late" ? `+${card.delay}` : "0",
+                // Minutes as a number, "pontos" under a small one, as the sheet
+                big: card.delay ? `+${card.delay}` : "0",
                 caption: `${card.outcome === "late" ? t.minutesLate : t.onTime}${card.soFar ? ` · ${t.soFar}` : ""}`,
                 color: SCALE[card.level].text,
                 background: tint(card.level),
@@ -157,7 +158,8 @@ function TimeRow({
                                 marginLeft: 18,
                                 fontSize: 36,
                                 fontWeight: 600,
-                                color: late ? C.ink2 : C.ink,
+                                // Grey when not measured: only the schedule
+                                color: late || actual == null ? C.ink2 : C.ink,
                                 textDecoration: late ? "line-through" : "none",
                             }}
                         >
@@ -223,16 +225,36 @@ export function delayCardImage(card: DelaySummary, locale: Locale) {
                         <div
                             style={{
                                 marginLeft: 14,
+                                // The destination keeps its room first
+                                flexShrink: 4,
+                                minWidth: 0,
                                 fontSize: 28,
                                 fontWeight: 600,
                                 color: C.ink2,
+                                ...ellipsis,
                             }}
                         >
                             {card.name}
                         </div>
                     )}
+                    {/* Where the rider was going, also when its arrival
+                        was not measured and the timeline ends before it */}
                     <div
                         style={{
+                            marginLeft: 14,
+                            marginRight: 24,
+                            flexShrink: 1,
+                            minWidth: 0,
+                            fontSize: 30,
+                            fontWeight: 700,
+                            ...ellipsis,
+                        }}
+                    >
+                        {`→ ${card.to.name}`}
+                    </div>
+                    <div
+                        style={{
+                            flexShrink: 0,
                             marginLeft: "auto",
                             fontSize: 28,
                             fontWeight: 600,
