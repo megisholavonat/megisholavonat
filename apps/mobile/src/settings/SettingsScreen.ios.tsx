@@ -182,6 +182,11 @@ export function SettingsScreen() {
                         modifiers={[disabled(s.deleting)]}
                     />
                 </Section>
+                {s.devApiUrl ? (
+                    <Section title="Development">
+                        <Text>{`API: ${s.devApiUrl}`}</Text>
+                    </Section>
+                ) : null}
             </Form>
         </Host>
     );

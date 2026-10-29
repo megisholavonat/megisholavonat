@@ -205,6 +205,11 @@ export function SettingsScreen() {
                         {s.t("delete_data")}
                     </ListItem>
                 </FieldGroup.Section>
+                {s.devApiUrl ? (
+                    <FieldGroup.Section title="Development">
+                        <ListItem supportingText={s.devApiUrl}>API</ListItem>
+                    </FieldGroup.Section>
+                ) : null}
             </FieldGroup>
         </ComposeHost>
     );
