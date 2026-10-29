@@ -12,6 +12,7 @@
         "ios": {
             "bundleIdentifier": "info.megisholavonat.app",
             "supportsTablet": true,
+            "associatedDomains": ["applinks:megisholavonat.info"],
             "infoPlist": {
                 "ITSAppUsesNonExemptEncryption": false,
                 "NSLocationWhenInUseUsageDescription": "A helyzeted csak a térképen jelenik meg, nem küldjük el sehova.",
@@ -51,6 +52,25 @@
                 "backgroundColor": "#FFFFFF"
             },
             "predictiveBackGestureEnabled": false,
+            "intentFilters": [
+                {
+                    "action": "VIEW",
+                    "autoVerify": true,
+                    "data": [
+                        {
+                            "scheme": "https",
+                            "host": "megisholavonat.info",
+                            "path": "/hu"
+                        },
+                        {
+                            "scheme": "https",
+                            "host": "megisholavonat.info",
+                            "path": "/en"
+                        }
+                    ],
+                    "category": ["BROWSABLE", "DEFAULT"]
+                }
+            ],
             "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"],
             "blockedPermissions": [
                 "android.permission.SYSTEM_ALERT_WINDOW",
