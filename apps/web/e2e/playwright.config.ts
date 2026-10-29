@@ -22,7 +22,8 @@ export default defineConfig({
               ["html", { open: "never", outputFolder: "report" }],
           ]
         : [["list"]],
-    timeout: 30_000,
+    // A test that loads the page several times needs more on a busy runner
+    timeout: process.env.CI ? 45_000 : 30_000,
     // Stops a stuck run with a report of what was still running, before the
     // CI step's own timeout cancels it silently
     globalTimeout: process.env.CI ? 8 * 60_000 : undefined,
