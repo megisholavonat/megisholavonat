@@ -158,7 +158,7 @@ function drawBody(
     const canvas = document.createElement("canvas");
     canvas.width = Math.ceil((w + margin * 2) * PIXEL_RATIO);
     canvas.height = Math.ceil((h + margin * 2) * PIXEL_RATIO);
-    const ctx = canvas.getContext("2d");
+    const ctx = context(canvas);
     if (!ctx) return { canvas, margin };
     ctx.scale(PIXEL_RATIO, PIXEL_RATIO);
     const x = margin;
@@ -212,8 +212,16 @@ function drawBody(
     return { canvas, margin };
 }
 
+/**
+ * A 2D context kept on the CPU: each sprite is read back once with
+ * getImageData, which on a GPU canvas stalls for a readback.
+ */
+function context(canvas: HTMLCanvasElement): CanvasRenderingContext2D | null {
+    return canvas.getContext("2d", { willReadFrequently: true });
+}
+
 function toImage(canvas: HTMLCanvasElement): ImageData | null {
-    const ctx = canvas.getContext("2d");
+    const ctx = context(canvas);
     return ctx ? ctx.getImageData(0, 0, canvas.width, canvas.height) : null;
 }
 
@@ -314,7 +322,7 @@ function arrow(scheme: ColorScheme) {
     const canvas = document.createElement("canvas");
     canvas.width = (width + 2) * PIXEL_RATIO;
     canvas.height = (height + 2) * PIXEL_RATIO;
-    const ctx = canvas.getContext("2d");
+    const ctx = context(canvas);
     if (!ctx) return null;
     ctx.scale(PIXEL_RATIO, PIXEL_RATIO);
     ctx.beginPath();
@@ -338,7 +346,7 @@ function station(scheme: ColorScheme) {
     const canvas = document.createElement("canvas");
     canvas.width = size * PIXEL_RATIO;
     canvas.height = size * PIXEL_RATIO;
-    const ctx = canvas.getContext("2d");
+    const ctx = context(canvas);
     if (!ctx) return null;
     ctx.scale(PIXEL_RATIO, PIXEL_RATIO);
     const c = size / 2;
@@ -366,7 +374,7 @@ function follow(scheme: ColorScheme) {
     const canvas = document.createElement("canvas");
     canvas.width = size * PIXEL_RATIO;
     canvas.height = size * PIXEL_RATIO;
-    const ctx = canvas.getContext("2d");
+    const ctx = context(canvas);
     if (!ctx) return null;
     ctx.scale(PIXEL_RATIO, PIXEL_RATIO);
     const c = size / 2;
@@ -400,10 +408,103 @@ function follow(scheme: ColorScheme) {
 const ID_PATTERN =
     /^mhav-(light|dark)-(?:(dot|pill)-(onTime|slight|moderate|severe|stale|inactive)-(train|hev|tramtrain)(-sel)?|(arrow)|(station)|(follow))$/;
 
-/** Builds the sprite for one of our ids, or null for other ids. */
-export function markerImage(
-    id: string,
-): { data: ImageData; meta: Partial<StyleImageMetadata> } | null {
+type Sprite = { data: ImageData; meta: Partial<StyleImageMetadata> };
+
+/** Sprites drawn so far, by id: each is drawn once per page */
+const sprites = new Map<string, Sprite | null>();
+
+/** The sprite for one of our ids (drawn once, then cached), or null. */
+export function markerImage(id: string): Sprite | null {
+    let sprite = sprites.get(id);
+    if (sprite === undefined) {
+        sprite = drawSprite(id);
+        sprites.set(id, sprite);
+    }
+    return sprite;
+}
+
+const LEVELS: MarkerLevel[] = [
+    "onTime",
+    "slight",
+    "moderate",
+    "severe",
+    "stale",
+    "inactive",
+];
+const SHAPES: MarkerShape[] = ["train", "hev", "tramtrain"];
+
+/**
+ * Every sprite id of a scheme, the likeliest first: what a selected train
+ * needs, then plain trains, then the HÉV and tram-train shapes.
+ */
+export function markerImageIds(scheme: ColorScheme): string[] {
+    const ids = [arrowImageId(scheme), followImageId(scheme)];
+    for (const shape of SHAPES) {
+        for (const selected of [true, false]) {
+            for (const level of LEVELS) {
+                for (const kind of ["pill", "dot"] as const) {
+                    ids.push(
+                        markerImageId(scheme, kind, level, shape, selected),
+                    );
+                }
+            }
+        }
+    }
+    ids.push(stationImageId(scheme));
+    return ids;
+}
+
+interface ImageTarget {
+    hasImage(id: string): boolean;
+    addImage(
+        id: string,
+        data: ImageData,
+        meta: Partial<StyleImageMetadata>,
+    ): unknown;
+}
+
+/**
+ * Draws and adds a scheme's sprites while the main thread is idle, a few at
+ * a time, so selecting a train never waits on canvas work. Returns a cancel.
+ */
+export function prewarmMarkerImages(
+    map: ImageTarget,
+    scheme: ColorScheme,
+): () => void {
+    const queue = markerImageIds(scheme);
+    const hasIdle = typeof requestIdleCallback === "function";
+    let handle: ReturnType<typeof setTimeout> | number | null = null;
+    const schedule = () => {
+        handle = hasIdle
+            ? requestIdleCallback(work, { timeout: 2000 })
+            : setTimeout(
+                  () => work({ didTimeout: false, timeRemaining: () => 8 }),
+                  50,
+              );
+    };
+    const work = (deadline: IdleDeadline) => {
+        handle = null;
+        while (queue.length && deadline.timeRemaining() > 3) {
+            const id = queue.shift() as string;
+            try {
+                if (map.hasImage(id)) continue;
+                const sprite = markerImage(id);
+                if (sprite) map.addImage(id, sprite.data, sprite.meta);
+            } catch {
+                /* The style is being swapped; the resolver covers it */
+            }
+        }
+        if (queue.length) schedule();
+    };
+    schedule();
+    return () => {
+        if (handle === null) return;
+        if (hasIdle) cancelIdleCallback(handle as number);
+        else clearTimeout(handle as ReturnType<typeof setTimeout>);
+    };
+}
+
+function drawSprite(id: string): Sprite | null {
     const match = ID_PATTERN.exec(id);
     if (!match) return null;
     const scheme = match[1] as ColorScheme;
