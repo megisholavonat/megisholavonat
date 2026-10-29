@@ -6,7 +6,7 @@ from typing import Any
 import fakeredis
 
 from api.core.redis import add_key
-from api.services.commute import find_commute_trip, resolve_commute_trip, train_number
+from api.services.commute import find_commute_trip, number_key, resolve_commute_trip
 
 MONDAY = date(2026, 10, 26)
 TUESDAY = date(2026, 10, 27)
@@ -57,10 +57,11 @@ def location(
     }
 
 
-def test_train_number() -> None:
-    assert train_number("559 AGRIA InterRégió") == "559"
-    assert train_number("H4117 HÉV") == "h4117"
-    assert train_number("  ") == ""
+def test_number_key() -> None:
+    assert number_key("559 AGRIA InterRégió") == "559"
+    assert number_key("H4117 HÉV") == "h4117"
+    assert number_key(" 559  AGRIA") == "559"
+    assert number_key("  ") == ""
 
 
 def test_resolves_live_trip() -> None:
