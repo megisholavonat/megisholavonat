@@ -202,7 +202,9 @@
         "contact": "Kapcsolat",
         "punctuality": "Pontosság",
         "license": "Licenc",
-        "open_source": "Az alkalmazás nyílt forráskódú. Hibát, ötletet és segítséget a GitHubon várunk."
+        "open_source": "Az alkalmazás nyílt forráskódú. Hibát, ötletet és segítséget a GitHubon várunk.",
+        "clear_data": "Mentett adatok törlése",
+        "clear_data_confirm": "Törlöd a böngészőben mentett követett vonatokat, legutóbbi állomásokat, beállításokat és a statisztikai hozzájárulásodat?"
     },
     "Consent": {
         "title": "Használati statisztika?",

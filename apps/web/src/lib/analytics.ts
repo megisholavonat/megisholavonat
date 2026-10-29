@@ -240,6 +240,23 @@ async function startPosthog() {
     if (ph.__loaded && currentMode !== mode) switchMode(ph, mode);
 }
 
+/**
+ * "Clear saved data": forget the choice and PostHog's identity. Counting
+ * goes back to cookieless until the user is asked again.
+ */
+export function forgetConsent() {
+    if (posthog?.__loaded && currentMode === "persistent") {
+        switchMode(posthog, "cookieless");
+    }
+    clearPosthogStorage();
+    try {
+        localStorage.removeItem(CONSENT_STORAGE_KEY);
+    } catch {
+        // Storage unavailable.
+    }
+    notify();
+}
+
 /** Start PostHog, or switch its mode, according to the stored choice. */
 export function applyConsent(value: ConsentStatus = getConsent()) {
     if (typeof window === "undefined") return;

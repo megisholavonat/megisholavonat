@@ -20,6 +20,7 @@ import { useTheme } from "@/components/ui/ThemeProvider";
 import { useAnalyticsConsent } from "@/hooks/useAnalyticsConsent";
 import { type Settings, setSetting, useSettings } from "@/hooks/useSettings";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
+import { clearSavedData } from "@/lib/savedData";
 import { cn } from "@/lib/utils";
 
 const GITHUB_URL = "https://github.com/megisholavonat/megisholavonat";
@@ -207,6 +208,28 @@ function ConsentRow() {
     );
 }
 
+/** Destructive row: confirms, clears the browser's saved data, reloads. */
+function ClearDataRow() {
+    const t = useTranslations("Settings");
+    return (
+        <button
+            type="button"
+            className={cn(
+                rowClass,
+                "cursor-pointer text-delay-severe transition-colors active:bg-surface-2",
+            )}
+            onClick={() => {
+                if (!window.confirm(t("clear_data_confirm"))) return;
+                clearSavedData();
+                // Follows, settings and the consent card start over
+                window.location.reload();
+            }}
+        >
+            {t("clear_data")}
+        </button>
+    );
+}
+
 function StationNameOpacity() {
     const t = useTranslations("Settings");
     const { showStationNames, stationNamesOpacity } = useSettings();
@@ -330,6 +353,7 @@ function SettingsList({
             <Group>
                 <ConsentRow />
                 <LinkRow label={t("privacy")} href="/privacy" />
+                <ClearDataRow />
             </Group>
             <Group>
                 <LinkRow
