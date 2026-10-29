@@ -176,7 +176,16 @@
         "canceled": "Törölve",
         "ticket": "Jegy",
         "empty": "Nincs találat erre az időre",
-        "error": "Most nem sikerült útvonalat tervezni"
+        "error": "Most nem sikerült útvonalat tervezni",
+        "any_budapest": "Budapest (bármely állomás)",
+        "from_station": "{station} állomásról",
+        "to_station": "{station} állomásra",
+        "city_ticket": "A helyi járatokhoz külön jegy vagy bérlet kell",
+        "city_metro": "metró",
+        "city_tram": "villamos",
+        "city_trolleybus": "troli",
+        "city_bus": "busz",
+        "city_rail": "HÉV"
     },
     "Trains": {
         "title": "Vonatok",
