@@ -21,35 +21,31 @@ test("a delayed train shows its delay in minutes", async ({ page }) => {
 test("P3: an on-time train shows a number, not just 'pontos'", async ({
     page,
 }) => {
-    knownGap("P3: the delay tile prints 'pontos' instead of 0");
     const region = await openTrain(page, "ontime", "peek");
     await expect(delayNumber(region)).toBeVisible();
 });
 
 test("P3: an early train shows a signed number", async ({ page }) => {
-    knownGap("P3/B7: early trains are shown as 'pontos'");
     const region = await openTrain(page, "early", "peek");
     await expect(delayNumber(region)).toHaveText(/[−-]\s?1/);
 });
 
 test("P4: a stale train marks its delay as uncertain", async ({ page }) => {
-    knownGap("P4: on-time delays drop the stale '?'");
     const region = await openTrain(page, "stale", "peek");
     await expect(delayNumber(region)).toHaveText(/\?/);
 });
 
 test("P4: an inactive HÉV does not show a live delay", async ({ page }) => {
-    knownGap("P4: the sheet ignores the feed's inactive flag");
     const region = await openTrain(page, "hev", "peek");
     await expect(region).toContainText("H8000");
-    // The feed calls it stale or inactive: no solid "+127"
-    await expect(delayNumber(region)).not.toHaveText(/^\s*\+\s?127\s*$/);
+    // Standing at its terminus: no delay at all, the tile shows "–"
+    await expect(region.getByText("–", { exact: true }).first()).toBeVisible();
+    await expect(region.getByText(/\+\s?127/)).toHaveCount(0);
 });
 
 test("P1: the delay reason says it is the cause of the delay", async ({
     page,
 }) => {
-    knownGap("P1: the reason label is printed bare");
     const region = await openTrain(page, "delayed", "half");
     const reason = region.getByText("Más vonat", { exact: true }).first();
     await expect(reason).toBeVisible();
@@ -59,7 +55,6 @@ test("P1: the delay reason says it is the cause of the delay", async ({
 });
 
 test("P1: no delay reason on a train that is on time", async ({ page }) => {
-    knownGap("P1/B9: the reason shows for a train 4 min late");
     const region = await openTrain(page, "minor", "half");
     await expect(region).toContainText("6009");
     await expect(region.getByText("Műszaki hiba")).toBeHidden();
@@ -107,13 +102,17 @@ test("the stop list shows where a running train is", async ({ page }) => {
 });
 
 test("P2: the position marker moves along the rail", async ({ page }) => {
-    knownGap("P2: the marker is a fixed row above the next stop");
-    // The feed's progress: 6009 is 44 % of the way from Püspökladány to
-    // Karcag, 2909 is 70 % of the way from Táborfalva to Örkény
+    // The fixtures' progress: 6009 is 55 % of the way from Püspökladány to
+    // Karcag, and its 86 km/h over the 98 s since its last report carries
+    // it on to about 70 %; 2909 is 17 % from Örkény to Hernád, about 35 %
+    // with its 50 km/h over 55 s. The marker keeps clear of the stop dots,
+    // so the label's share of the gap between the names is a little
+    // compressed towards the middle.
     const minor = await positionShare(page, "minor", "Püspökladány", "Karcag");
-    const ontime = await positionShare(page, "ontime", "Táborfalva", "Örkény");
-    expect(Math.abs(minor - 0.44)).toBeLessThan(0.15);
-    expect(Math.abs(ontime - 0.7)).toBeLessThan(0.15);
+    const ontime = await positionShare(page, "ontime", "Örkény", "Hernád");
+    expect(Math.abs(minor - 0.65)).toBeLessThan(0.12);
+    expect(Math.abs(ontime - 0.35)).toBeLessThan(0.12);
+    expect(minor).toBeGreaterThan(ontime);
 });
 
 test("follow and unfollow survive a reload", async ({ page, isPhone }) => {

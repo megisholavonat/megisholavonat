@@ -1,10 +1,11 @@
 "use client";
 
 import { getDelayLevel } from "@megisholavonat/core/delay";
-import { ChevronLeft, RefreshCw } from "lucide-react";
+import { ChartColumn, ChevronLeft, RefreshCw } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import { useTranslations } from "next-intl";
 import { parseAsInteger, useQueryState } from "nuqs";
-import type { ReactNode } from "react";
+import { type ReactNode, useId } from "react";
 import { FILL_CLASS, type Level, TINT_CLASS } from "@/components/ui/Delay";
 import { useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -150,7 +151,7 @@ export function StatsHeader({
                 type="button"
                 onClick={back}
                 aria-label={t("back")}
-                className="-ml-2 flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-full text-ink hover:bg-surface-2"
+                className="pressable -ml-2 flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-full text-ink hover:bg-surface-2"
             >
                 <ChevronLeft className="size-6" aria-hidden />
             </button>
@@ -175,7 +176,7 @@ export function Card({
     return (
         <section
             className={cn(
-                "flex flex-col gap-3 rounded-lg bg-surface p-4",
+                "flex animate-in flex-col gap-3 rounded-lg bg-surface p-4 duration-200 fade-in-0 motion-reduce:animate-none",
                 className,
             )}
         >
@@ -192,7 +193,7 @@ export function LoadError({ onRetry }: { onRetry: () => void }) {
             <p className="text-ink-2">{t("load_error")}</p>
             <button
                 type="button"
-                className="flex h-10 cursor-pointer items-center gap-2 rounded-full bg-surface-2 px-4 text-sm font-semibold"
+                className="pressable flex h-10 cursor-pointer items-center gap-2 rounded-full bg-surface-2 px-4 text-sm font-semibold hover:bg-line"
                 onClick={onRetry}
             >
                 <RefreshCw className="size-4" aria-hidden />
@@ -204,7 +205,7 @@ export function LoadError({ onRetry }: { onRetry: () => void }) {
 
 export function RowsSkeleton({ rows = 6 }: { rows?: number }) {
     return (
-        <div className="flex flex-col gap-5 py-2" aria-hidden>
+        <div className="flex animate-pulse flex-col gap-5 py-2" aria-hidden>
             {Array.from({ length: rows }, (_, i) => (
                 <div
                     // biome-ignore lint/suspicious/noArrayIndexKey: placeholders
@@ -232,6 +233,8 @@ export function Segmented<T extends string>({
     options: { value: T; label: string }[];
     onChange: (value: T) => void;
 }) {
+    const pillId = useId();
+    const reduceMotion = useReducedMotion() ?? false;
     return (
         <div
             role="tablist"
@@ -246,15 +249,42 @@ export function Segmented<T extends string>({
                     aria-selected={value === o.value}
                     onClick={() => onChange(o.value)}
                     className={cn(
-                        "h-9 cursor-pointer truncate rounded-[8px] px-3 text-sm transition-colors",
+                        "relative h-9 cursor-pointer rounded-[8px] px-3 text-sm transition-colors",
                         value === o.value
-                            ? "bg-surface font-semibold text-ink shadow-sm"
-                            : "text-ink-2",
+                            ? "font-semibold text-ink"
+                            : "text-ink-2 hover:text-ink",
                     )}
                 >
-                    {o.label}
+                    {value === o.value && (
+                        <motion.span
+                            layoutId={pillId}
+                            aria-hidden
+                            className="absolute inset-0 rounded-[8px] bg-surface shadow-sm"
+                            transition={{
+                                duration: reduceMotion ? 0 : 0.24,
+                                ease: [0.32, 0.72, 0, 1],
+                            }}
+                        />
+                    )}
+                    <span className="relative block truncate">{o.label}</span>
                 </button>
             ))}
+        </div>
+    );
+}
+
+/** "Not enough data yet": a quiet chart mark, what is missing and when. */
+export function EmptyState() {
+    const t = useTranslations("Stats");
+    return (
+        <div className="flex flex-col items-center gap-3 px-4 py-10 text-center">
+            <span className="flex size-12 items-center justify-center rounded-full bg-surface-2 text-ink-2">
+                <ChartColumn className="size-6" aria-hidden />
+            </span>
+            <div className="flex max-w-72 flex-col gap-1">
+                <p className="text-headline">{t("no_data")}</p>
+                <p className="text-sm text-ink-2">{t("no_data_hint")}</p>
+            </div>
         </div>
     );
 }

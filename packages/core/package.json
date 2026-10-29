@@ -8,6 +8,7 @@
         "./commute": "./src/commute.ts",
         "./constants": "./src/constants.ts",
         "./delay": "./src/delay.ts",
+        "./display": "./src/display.ts",
         "./delayReasons": "./src/delayReasons.ts",
         "./i18n": "./src/i18n.ts",
         "./mavRoutes": "./src/mavRoutes.ts",

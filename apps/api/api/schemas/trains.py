@@ -4,6 +4,12 @@ from pydantic import BaseModel, model_validator
 
 from api.schemas.alerts import DelayReason
 
+# What a train is doing, by its position and schedule: only "running" trains
+# show a live delay. See api.util.vehicle.activity and core's trainDisplay.
+TrainActivity = Literal[
+    "running", "beforeDeparture", "arrived", "offRoute", "cancelled"
+]
+
 
 class StopWithCounty(BaseModel):
     """Stop information with county data"""
@@ -25,6 +31,8 @@ class StopTimeWithCounty(BaseModel):
     realtimeArrival: int
     scheduledDeparture: int
     realtimeDeparture: int
+    # OTP's realtime state of the stop ("CANCELED" when it is cancelled)
+    realtimeState: str | None = None
     stop: StopWithCounty
 
 
@@ -127,6 +135,8 @@ class VehiclePositionWithDelay(BaseModel):
     totalRouteDistance: float
     processedStops: list[ProcessedStop]
     vehicleProgress: VehicleProgress
+    # None for details cached before the field existed
+    activity: TrainActivity | None = None
 
 
 class APIResponse(BaseModel):
@@ -156,10 +166,12 @@ class TrainFeatureProperties(BaseModel):
     distanceToNextStop: float | None = None
     # Unix seconds of the last position update
     lastUpdated: int
-    # No update for 30+ minutes, or not running its trip (off route, waiting at
-    # its origin, at its destination). See api.util.vehicle.is_stale_or_inactive.
-    # Defaults to False for features cached before the field existed.
+    # No update for 5+ minutes at refresh time, or not running its trip.
+    # Superseded by `activity` with the age of `lastUpdated` (core's
+    # trainDisplay); kept for older clients. False for old cached features.
     isStale: bool = False
+    # None for features cached before the field existed
+    activity: TrainActivity | None = None
     # First known delay reason among the trip's alerts
     reason: DelayReason | None = None
 
