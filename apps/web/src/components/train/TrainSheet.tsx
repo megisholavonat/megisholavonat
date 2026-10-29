@@ -1,12 +1,20 @@
 "use client";
 
 import type { TrainFeatureProperties } from "@megisholavonat/api-client";
+import { getDelayLevel } from "@megisholavonat/core/delay";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
 import { type Detent, SheetClose } from "@/components/sheet/BottomSheet";
 import { TrainHistoryLink } from "@/components/stats/HistoryLinks";
-import { DelayText } from "@/components/ui/Delay";
+import {
+    formatDelay,
+    levelOf,
+    RollingText,
+    TEXT_CLASS,
+} from "@/components/ui/Delay";
 import { PlatformBadge } from "@/components/ui/Platform";
 import { destinationOf } from "@/lib/train";
+import { cn } from "@/lib/utils";
 import {
     Punctuality,
     ReasonBanner,
@@ -54,6 +62,43 @@ export function useScrollToCurrentStop(
 }
 
 /**
+ * The full header's delay: signed minutes like the tile ("+3", "0", "−2"),
+ * with the tile's small "pontos" / "korán" caption under an on-time number.
+ */
+function HeaderDelay({ delay, stale }: { delay: number; stale: boolean }) {
+    const t = useTranslations("Delay");
+    const minutes = Math.round(delay);
+    const caption =
+        stale || getDelayLevel(minutes) !== "onTime"
+            ? null
+            : minutes < 0
+              ? t("early")
+              : t("on_time");
+    const label = `${formatDelay(minutes)}${stale ? "?" : ""}`;
+    return (
+        <span
+            role="img"
+            aria-label={t("tile_label", { delay: label })}
+            className={cn(
+                "flex shrink-0 flex-col items-end leading-none",
+                TEXT_CLASS[levelOf(minutes, stale)],
+            )}
+        >
+            <RollingText
+                value={label}
+                order={minutes}
+                className="tnum text-headline leading-none font-extrabold"
+            />
+            {caption && (
+                <span className="mt-0.5 text-[11px] leading-[13px] font-semibold">
+                    {caption}
+                </span>
+            )}
+        </span>
+    );
+}
+
+/**
  * Mobile train sheet header. Peek and half: the summary row (with the
  * platform at peek); full: the title and the actions, which stay pinned
  * while the stops scroll. The close button sits beside the handle at every
@@ -85,10 +130,9 @@ export function TrainSheetHeader({
                             destination={destinationOf(view.vehicle)}
                             className="flex-1 text-headline"
                         />
-                        <DelayText
+                        <HeaderDelay
                             delay={view.vehicle.delay}
                             stale={view.stale}
-                            className="shrink-0 text-headline"
                         />
                     </div>
                     <TrainActions view={view} onFollow={onFollow} />

@@ -1,13 +1,11 @@
 "use client";
 
-import { DELAY_REASONS } from "@megisholavonat/core/delayReasons";
-import type { Locale } from "@megisholavonat/core/i18n";
 import { formatSecondsAsTime } from "@megisholavonat/core/time";
 import { Star } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { DelayText, levelOf, TEXT_CLASS } from "@/components/ui/Delay";
+import { DelayText, levelOf } from "@/components/ui/Delay";
 import { PlatformBadge } from "@/components/ui/Platform";
-import { ReasonIcon } from "@/components/ui/ReasonIcon";
+import { ReasonLabel } from "@/components/ui/Reason";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
 import type { Follow } from "@/hooks/useFollows";
 import { cn } from "@/lib/utils";
@@ -77,13 +75,16 @@ function Row({
     onOpen: (row: CommuteRow) => void;
     compact: boolean;
 }) {
-    const locale = useLocale() as Locale;
     const { follow, live, platform } = row;
+    // The cause only next to a live delay that is actually late
+    const level = levelOf(live?.delay ?? 0, live?.stale);
     const reason =
-        live?.reason && !live.canceled
-            ? DELAY_REASONS[live.reason]?.[locale]
+        live?.reason &&
+        !live.canceled &&
+        live.delay != null &&
+        levelOf(live.delay) !== "onTime"
+            ? live.reason
             : null;
-    const level = levelOf(Math.max(live?.delay ?? 0, 5));
     return (
         <button
             type="button"
@@ -107,18 +108,11 @@ function Row({
                     </span>
                 </span>
                 {reason && (
-                    <span
-                        className={cn(
-                            "flex min-w-0 items-center gap-1 text-caption",
-                            TEXT_CLASS[level],
-                        )}
-                    >
-                        <ReasonIcon
-                            code={live?.reason ?? null}
-                            className="size-3.5 shrink-0"
-                        />
-                        <span className="truncate">{reason}</span>
-                    </span>
+                    <ReasonLabel
+                        code={reason}
+                        level={level}
+                        className="text-caption"
+                    />
                 )}
             </span>
             {platform && (

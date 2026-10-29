@@ -17,7 +17,12 @@
         "close": "Close"
     },
     "Delay": {
-        "on_time": "on time"
+        "on_time": "on time",
+        "early": "early",
+        "note": "We compute this delay from the train's GPS position, so it is more accurate. Timetable times are MÁV's official data and are sometimes off.",
+        "tile_label": "Delay: {delay} min",
+        "reason": "Delay cause: <b>{reason}</b>",
+        "reason_plain": "Delay cause: {reason}"
     },
     "Platform": {
         "announced": "Platform {platform}",
@@ -74,7 +79,15 @@
             "suburban": "LEW Henningsdorf MX/MXA",
             "unknown": "Unknown vehicle"
         },
-        "history": "Punctuality"
+        "history": "Punctuality",
+        "notice": "Notice",
+        "more_info": "More information",
+        "valid": "Valid: {range}",
+        "more_alerts": "{count, plural, one {+# notice} other {+# notices}}",
+        "departs": "dep. {time}",
+        "to_go": "{km, number} km to go",
+        "county": "{county} County",
+        "position": "Train position"
     },
     "Station": {
         "board": "Timetable board",
