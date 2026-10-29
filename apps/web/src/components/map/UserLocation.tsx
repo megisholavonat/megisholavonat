@@ -1,13 +1,8 @@
 "use client";
 
 import { GeolocateControl, type GeolocatePositionEvent } from "maplibre-gl";
-import { AnimatePresence, motion } from "motion/react";
-import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FaLocationArrow } from "react-icons/fa6";
-import { MdLocationOff } from "react-icons/md";
 import { useMap } from "react-map-gl/maplibre";
-import { Z_LAYERS } from "@/util/constants";
 
 type GeoCtrl = GeolocateControl & {
     _setup?: boolean;
@@ -15,102 +10,22 @@ type GeoCtrl = GeolocateControl & {
     _watchState?: string;
 };
 
-function LocationButton({
-    hasLocation,
-    hasError,
-    isLoading,
-    onActivate,
-}: {
+export interface UserLocationState {
     hasLocation: boolean;
     hasError: boolean;
     isLoading: boolean;
-    onActivate: () => void;
-}) {
-    const t = useTranslations("UserLocation");
-    const containerRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        if (!containerRef.current) return;
-        const container = containerRef.current;
-        const prevent = (e: MouseEvent) => e.preventDefault();
-        container.addEventListener("wheel", prevent);
-        return () => container.removeEventListener("wheel", prevent);
-    }, []);
-
-    const iconClassName = () => {
-        if (isLoading) return "scale-150 text-gray-500 dark:text-gray-400";
-        if (hasError) return "scale-150 text-red-500 dark:text-red-400";
-        if (hasLocation) return "scale-150 text-blue-600 dark:text-blue-400";
-        return "scale-150 text-gray-700 dark:text-gray-300";
-    };
-
-    return (
-        <div
-            className="absolute top-34 left-3"
-            style={{ zIndex: Z_LAYERS.MAP_CONTROLS }}
-            ref={containerRef}
-        >
-            <div className="relative">
-                <motion.button
-                    onClick={onActivate}
-                    disabled={isLoading}
-                    className="w-12 h-12 bg-white/95 dark:bg-card/95 backdrop-blur-md rounded-lg cursor-pointer shadow-lg border border-gray-200/50 dark:border-white/50 flex items-center justify-center group hover:bg-white dark:hover:bg-black"
-                    aria-label={
-                        hasError
-                            ? t("location_error")
-                            : hasLocation
-                              ? t("center_map_on_user")
-                              : t("get_location")
-                    }
-                    whileHover={
-                        !isLoading
-                            ? {
-                                  scale: 1.05,
-                                  boxShadow: "0 10px 25px rgba(0, 0, 0, 0.15)",
-                              }
-                            : {}
-                    }
-                    whileTap={
-                        !isLoading
-                            ? { scale: 0.95, transition: { duration: 0.1 } }
-                            : {}
-                    }
-                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                >
-                    {hasError ? (
-                        <MdLocationOff className={iconClassName()} />
-                    ) : (
-                        <FaLocationArrow className={iconClassName()} />
-                    )}
-                </motion.button>
-
-                <AnimatePresence>
-                    {isLoading && (
-                        <motion.div
-                            initial={{ scale: 0, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0, opacity: 0 }}
-                            transition={{
-                                type: "spring",
-                                stiffness: 400,
-                                damping: 17,
-                            }}
-                            className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white dark:bg-card shadow-md flex items-center justify-center"
-                        >
-                            <div className="w-3 h-3 rounded-full border-2 border-gray-200 dark:border-gray-600 border-t-blue-500 dark:border-t-blue-400 animate-spin" />
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </div>
-        </div>
-    );
+    activate: () => void;
 }
 
-export function UserLocation({
+/**
+ * MapLibre's GeolocateControl with its own button hidden: draws the user's
+ * position and returns the state for our locate button.
+ */
+export function useUserLocation({
     disableInitialFly = false,
 }: {
     disableInitialFly?: boolean;
-}) {
+} = {}): UserLocationState {
     const { current: mapRef } = useMap();
     const [hasLocation, setHasLocation] = useState(false);
     const [hasError, setHasError] = useState(false);
@@ -217,12 +132,5 @@ export function UserLocation({
         }
     }, [mapRef]);
 
-    return (
-        <LocationButton
-            hasLocation={hasLocation}
-            hasError={hasError}
-            isLoading={isLoading}
-            onActivate={handleActivate}
-        />
-    );
+    return { hasLocation, hasError, isLoading, activate: handleActivate };
 }

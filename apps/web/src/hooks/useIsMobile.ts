@@ -1,23 +1,22 @@
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
-const MOBILE_BREAKPOINT = 768;
+const DESKTOP_QUERY = "(min-width: 768px)";
+
+function subscribe(listener: () => void) {
+    const mq = window.matchMedia(DESKTOP_QUERY);
+    mq.addEventListener("change", listener);
+    return () => mq.removeEventListener("change", listener);
+}
+
+/** Desktop layout (side panel) from 768 px; phones get bottom sheets. */
+export function useIsDesktop(): boolean {
+    return useSyncExternalStore(
+        subscribe,
+        () => window.matchMedia(DESKTOP_QUERY).matches,
+        () => true,
+    );
+}
 
 export function useIsMobile(): boolean {
-    const [isMobile, setIsMobile] = useState(false);
-
-    useEffect(() => {
-        const checkMobile = () => {
-            setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
-        };
-
-        checkMobile();
-
-        window.addEventListener("resize", checkMobile);
-
-        return () => {
-            window.removeEventListener("resize", checkMobile);
-        };
-    }, []);
-
-    return isMobile;
+    return !useIsDesktop();
 }

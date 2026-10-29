@@ -21,6 +21,9 @@ export const LAYER_IDS = {
     ROUTE_LINE: "polyline-layer",
     STOP_CIRCLES: "stops-layer",
     STOP_LABELS: "stops-labels",
+    STATION: "station-layer",
+    TRAIN_DOT: "marker-dot",
     TRAIN_HEADING: "marker-heading",
-    TRAIN_MAIN: "marker-main",
+    TRAIN_PLAIN: "marker-plain",
+    TRAIN_PILL: "marker-pill",
 } as const;

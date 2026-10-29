@@ -1,80 +1,43 @@
 {
     "Home": {
-        "loading_map": "Térkép betöltése...",
-        "contact_us": "Kapcsolat",
         "app_title": "Mégis hol a vonat?",
-        "app_description": "Vonatkövető alkalmazás, pontos adatokkal és hasznos információkkal.",
-        "privacy_notice": "Adatvédelem"
+        "app_description": "Vonatkövető alkalmazás, pontos adatokkal és hasznos információkkal."
     },
-    "SearchComponent": {
-        "search_placeholder": "Szám, típus, állomás, UIC kód...",
-        "search_button": "Vonat keresése",
-        "sort_by": "Rendezés",
-        "sort_by_options": {
-            "number": "Vonatszám",
-            "delay": "Késés",
-            "speed": "Sebesség"
-        },
-        "sort_ascending": "növekvő",
-        "sort_descending": "csökkenő",
-        "no_search_results": "Nincs találat a keresésre",
-        "no_trains_available": "Nincs elérhető vonat",
-        "select_train": "Vonat kiválasztása",
-        "delay_short": "{delay}p"
+    "Map": {
+        "locate": "Saját helyzet",
+        "location_error": "A helyzeted nem érhető el",
+        "zoom_in": "Nagyítás",
+        "zoom_out": "Kicsinyítés"
     },
-    "SettingsComponent": {
-        "settings_button": "Beállítások",
-        "dialog_title": "Beállítások",
-        "dialog_description": "Itt találod az egyéni MHaV beállításaidat. Ezek csak ide, erre az eszközre vannak elmentve.",
-        "tab_settings": "Beállítások",
-        "tab_changelog": "Változások",
-        "language_label": "Nyelv",
-        "language_description": "Váltás magyar és angol nyelv között",
-        "theme_label": "Téma",
-        "theme_description": "Preferált színtéma beállítása",
-        "theme_light": "Világos",
-        "theme_dark": "Sötét",
-        "theme_system": "Rendszer",
-        "tooltip_label": "Gyors járattípus megjelenítése a térképen",
-        "tooltip_description": "A járat típusa és esetleges neve megjelenítése, ha a vonatok fölé húzod az egeret",
-        "station_names_label": "Állomásnevek megjelenítése",
-        "station_names_description": "Az állomásnevek megjelenítése a térképen",
-        "station_names_opacity_label": "Állomásnevek átlátszósága",
-        "station_names_opacity_description": "Az állomásnevek átlátszóságának beállítása",
-        "vehicle_types_title": "Megjelenített járművek",
-        "trains_label": "Vonat",
-        "trains_description": "MÁV vonatok megjelenítése",
-        "tramtrains_label": "TramTrain",
-        "tramtrains_description": "Szeged - Hódmezővásárhely vonalon közlekedő TramTrain járatok megjelenítése",
-        "hev_label": "HÉV",
-        "hev_description": "HÉV járatok megjelenítése",
-        "idk_where_the_trains_are": "Azokat a járműveket, amelyeket a hivatalos források sem jelölnek, mi sem tudjuk megjeleníteni. Ha mégis eltérést tapasztalsz, kérjük, jelezd nekünk emailben.",
-        "changelog_not_available": "A változások nem elérhetők",
-        "open_source_notice": "Ez az alkalmazás nyílt forráskódú. Javaslatokat, hibajelentéseket, valamint nagyra értékelt fejlesztési segítséget a GitHub oldalunkon lehetséges leadni.",
-        "map_settings_title": "Térkép beállítások",
-        "railway_overlay_label": "Vasútvonalak megjelenítése",
-        "animate_vehicles_label": "Járművek animálása",
-        "animate_vehicles_description": "A járművek pozíciójának folyamatos animálása frissítések között",
-        "privacy_title": "Adatvédelem"
+    "Sheet": {
+        "resize": "Panel átméretezése"
     },
-    "TrainPanel": {
-        "uic_code": "UIC kód",
+    "Delay": {
+        "on_time": "pontos"
+    },
+    "Platform": {
+        "announced": "{platform}. vágány",
+        "predicted": "Várhatóan {platform}. vágány"
+    },
+    "Train": {
+        "sheet_label": "Vonat",
+        "close": "Bezárás",
+        "back": "Vissza",
+        "ticket": "Jegy",
+        "share": "Megosztás",
+        "copied": "Link másolva",
+        "usually_late": "Általában késik",
+        "usually_very_late": "Általában sokat késik",
+        "disruption": "Zavar",
+        "punctuality": "{station}: <b>10-ből {count, select, 0 {0-szor} 1 {1-szer} 2 {2-szer} 3 {3-szor} 4 {4-szer} 5 {5-ször} 6 {6-szor} 7 {7-szer} 8 {8-szor} 9 {9-szer} other {10-szer}}</b> pontos",
+        "standing": "áll",
+        "vehicle": "Jármű",
+        "vehicle_type_label": "Típus",
+        "uic": "UIC",
         "speed": "Sebesség",
-        "delay": "Késés",
-        "delay_note": "Ez az általunk számított, pontosabb adat. A menetrendi adatok közvetlenül hivatalos forrásokon alapulnak (esetenként pontatlanok lehetnek).",
-        "last_updated": "Utolsó frissítés",
-        "timetable": {
-            "station": "Állomás",
-            "arrival": "Érkezés",
-            "departure": "Indulás",
-            "platform": "Vágány"
-        },
-        "alerts": "{count} figyelmeztetés",
-        "county_hover": "{county}",
-        "delay_minutes": "{delay} perc",
-        "data_discrepancy_warning": "Ezen a vonaton a MÁV által közölt késési adatok nem egyeznek a vonat valós, GPS-alapú pozíciójával.",
-        "algorithm_note": "Ez az általunk fejlesztett algoritmus alapján működik. Még dolgozunk a tökéletesítésén, és időnként tévedhet.",
-        "route_data_warning": "Úgy tűnik, hogy ez a jármű rossz útvonaladatokat tartalmaz.",
+        "updated": "Frissítve",
+        "far_from_route": "A jármű útvonaladata hibásnak tűnik.",
+        "data_mismatch": "A MÁV késésadata eltér a GPS-alapú helyzettől.",
         "vehicle_type": {
             "v431": "Ganz V43 1xxx \"Szili\"",
             "v432": "Ganz V43 2xxx \"Papagáj szili\"",
@@ -106,76 +69,78 @@
             "dsb_me": "DSB ME sorozat \"Viking\"",
             "suburban": "LEW Henningsdorf MX/MXA",
             "unknown": "Ismeretlen járműtípus"
-        },
+        }
+    },
+    "Station": {
+        "board": "Menetrendi tábla",
+        "board_of": "{station} indulási és érkezési táblája",
+        "departures": "Indulás",
+        "arrivals": "Érkezés",
+        "from": "{station} felől",
+        "canceled": "törölve",
+        "empty": "Most nincs vonat"
+    },
+    "States": {
+        "stale": "{minutes} perce nincs friss adat",
+        "no_trains": "Most nem jár vonat",
+        "source_down": "A MÁV-adat nem érkezik",
+        "unreachable": "Nem érjük el a szervert",
+        "since": "{time} óta",
+        "load_error": "Nem sikerült betölteni",
+        "retry": "Újra"
+    },
+    "Search": {
+        "placeholder": "Vonat vagy állomás",
+        "clear": "Törlés",
+        "back": "Vissza",
+        "results": "Találatok",
+        "no_results": "Nincs találat",
+        "station_label": "{station} állomás"
+    },
+    "Legend": {
+        "label": "Késés jelmagyarázat",
+        "on_time": "pontos",
+        "slight": "5+",
+        "moderate": "15+",
+        "severe": "60+",
+        "stale": "nincs adat"
+    },
+    "Settings": {
+        "title": "Beállítások",
         "close": "Bezárás",
-        "more_info": "További információ"
+        "back": "Vissza",
+        "language": "Nyelv",
+        "theme": "Téma",
+        "theme_system": "Rendszer",
+        "theme_light": "Világos",
+        "theme_dark": "Sötét",
+        "map": "Térkép",
+        "layers": "Térképrétegek",
+        "railway_lines": "Vasútvonalak",
+        "station_names": "Állomásnevek",
+        "station_names_opacity": "Átlátszóság",
+        "animation": "Animáció",
+        "hover_info": "Vonatinfó egérrel",
+        "vehicles": "Járművek",
+        "trains": "Vonat",
+        "hev": "HÉV",
+        "tramtrain": "TramTrain",
+        "statistics": "Használati statisztika",
+        "privacy": "Adatvédelem",
+        "map_data": "Térképadatok",
+        "changelog": "Változások",
+        "changelog_unavailable": "A változások most nem érhetők el.",
+        "contact": "Kapcsolat"
     },
-    "DelayLegend": {
-        "title": "Késés színkódok",
-        "note": "A színek a térképre és a menetrendre is vonatkoznak",
-        "aria_label": "Késés jelmagyarázat",
-        "labels": {
-            "on_time": "Időben",
-            "small_delay": "Kisebb késés",
-            "medium_delay": "Közepes késés",
-            "large_delay": "Nagy késés",
-            "no_data": "Nincs adat"
-        },
-        "ranges": {
-            "on_time": "< 5 perc",
-            "small_delay": "5-14 perc",
-            "medium_delay": "15-59 perc",
-            "large_delay": "≥ 60 perc",
-            "no_data": "Inaktív"
-        },
-        "map_credits_title": "Térkép források",
-        "map_credits_base": "<maplibre>MapLibre</maplibre>, <ofm>OpenFreeMap</ofm>, <osm>OpenStreetMap</osm>, <orm>OpenRailwayMap</orm>."
-    },
-    "DragModal": {
-        "down": "Le",
-        "up": "Fel",
-        "close": "Bezárás",
-        "drag_handle": "Panel átméretezése húzással"
-    },
-    "ZoomButtons": {
-        "zoom_in": "Nagyítás",
-        "zoom_out": "Kicsinyítés"
-    },
-    "UserLocation": {
-        "locate": "Jelenlegi helyzet",
-        "get_location": "Helyzet lekérése",
-        "location_error": "Nem sikerült meghatározni a helyzeted. Kérjük, ellenőrizd a böngésződ beállításait.",
-        "center_map_on_user": "Mozgatás a jelenlegi helyzetre"
-    },
-    "LanguageSwitcher": {
-        "switch_to": "Váltás {language} nyelvre"
-    },
-    "ComputerBadge": {
-        "text": "Ez a funkció csak a számítógépen érhető el"
-    },
-    "MobileBadge": {
-        "text": "Ez a funkció csak a mobil eszközön érhető el"
-    },
-    "NewFeature": {
-        "text": "Új funkció"
-    },
-    "NoDataDialog": {
-        "title": "Nincsenek elérhető adatok",
-        "description": "Már hosszabb ideje nem érkeznek adatok. Kérjük, próbáld újra később.",
-        "stale_data_title": "Elavult adatok megjelenítve",
-        "stale_data_description": "A külső adatforrás nem válaszol. A megjelenített adatok {minutes} percesek.",
-        "close_button": "Rendben"
+    "Consent": {
+        "title": "Használati statisztika?",
+        "details": "Részletek",
+        "accept": "Elfogadom",
+        "reject": "Elutasítom"
     },
     "AnalyticsConsentSwitch": {
         "label": "Használati statisztika",
         "description": "Részletes statisztika egy véletlenszerű azonosítóval (PostHog, EU-s szerver). Kikapcsolva csak a napi látogatószámot mérjük, sütik és tárolt azonosító nélkül, és töröljük a böngésződből a PostHog adatait."
-    },
-    "ConsentBanner": {
-        "title": "Használati statisztika",
-        "description": "Ez egy ingyenes hobbiprojekt. Ha engeded, egy véletlenszerű azonosítóval használati statisztikát gyűjtünk, ami segít eldönteni, mit fejlesszünk. Ha nem engeded, akkor is mérjük a napi látogatószámot, de sütik és tárolt azonosító nélkül.",
-        "privacy_link": "Adatvédelmi tájékoztató",
-        "accept": "Elfogadom",
-        "reject": "Elutasítom"
     },
     "PrivacyPage": {
         "title": "Adatvédelmi tájékoztató",
