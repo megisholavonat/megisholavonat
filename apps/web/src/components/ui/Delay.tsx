@@ -43,7 +43,7 @@ export function formatDelay(delay: number): string {
     return MARKER.label.delayed(delay);
 }
 
-/** "pontos", "+7", "+7?" when stale, or "–" without a delay to show. */
+/** "pontos", "+7", "+3?" when stale, or "–" without a delay to show. */
 function useDelayLabel(delay: number | null, stale: boolean) {
     const t = useTranslations("Delay");
     if (delay == null) return { onTime: false, text: "–" };
