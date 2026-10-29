@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import {
     AnimatePresence,
     motion,
+    useIsPresent,
     usePresence,
     useReducedMotion,
 } from "motion/react";
@@ -69,6 +70,37 @@ function currentTranslateY(el: HTMLElement): number {
 
 /** Content swap inside the persistent sheet */
 const FADE_TRANSITION = { duration: 0.16, ease: "easeOut" } as const;
+
+/**
+ * One side of the content cross-fade. The side fading out stays on screen
+ * for a moment, over the new one: it is inert and hidden from assistive
+ * tech, so a tap or a screen reader cannot reach the old content (the
+ * station's close button under a train that just opened).
+ */
+function FadingContent({
+    className,
+    transition,
+    children,
+}: {
+    className?: string;
+    transition: { duration: number };
+    children: ReactNode;
+}) {
+    const present = useIsPresent();
+    return (
+        <motion.div
+            className={className}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={transition}
+            inert={!present}
+            aria-hidden={!present || undefined}
+        >
+            {children}
+        </motion.div>
+    );
+}
 
 export interface SheetViewport {
     /** Visible height (the visual viewport, so above the keyboard) */
@@ -568,16 +600,13 @@ export function BottomSheet({
                         )}
                     </div>
                     <AnimatePresence mode="popLayout" initial={false}>
-                        <motion.div
+                        <FadingContent
                             key={contentKey}
                             className="relative"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
                             transition={fade}
                         >
                             {header}
-                        </motion.div>
+                        </FadingContent>
                     </AnimatePresence>
                 </div>
                 <div
@@ -590,18 +619,15 @@ export function BottomSheet({
                     )}
                 >
                     <AnimatePresence mode="popLayout" initial={false}>
-                        <motion.div
+                        <FadingContent
                             key={contentKey}
                             className={cn(
                                 !bodyScroll && "flex min-h-0 flex-1 flex-col",
                             )}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
                             transition={fade}
                         >
                             {children}
-                        </motion.div>
+                        </FadingContent>
                     </AnimatePresence>
                 </div>
             </section>
