@@ -24,6 +24,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('format_version', sa.Integer(), nullable=False),
+    sa.Column('features', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
     sa.Column('trained_from', sa.Date(), nullable=False),
     sa.Column('trained_to', sa.Date(), nullable=False),
     sa.Column('metrics', postgresql.JSONB(astext_type=sa.Text()), nullable=False),

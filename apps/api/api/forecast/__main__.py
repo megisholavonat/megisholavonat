@@ -1,7 +1,8 @@
 """
 Delay forecast CLI (run from apps/api, or /app in the image).
 
-    # train on the last 28 days up to yesterday, store the model
+    # train on the last 28 days up to yesterday and store the model (needs
+    # LightGBM: the trainer image, or `uv sync --group train`)
     python -m api.forecast train
     # fixed window and holdout, print metrics without storing
     python -m api.forecast train --end 2026-09-09 --holdout-from 2026-09-01 --dry-run
@@ -19,17 +20,20 @@ from typing import Any
 
 from api.core.db import SessionLocal, engine
 from api.core.logging_config import setup_logging
+from api.forecast.train import TrainConfig
 
 
 async def _train(args: argparse.Namespace) -> None:
-    from api.forecast.train import TrainConfig, save_model, train, training_engine
+    from api.forecast.train import save_model, train, training_engine
 
     cfg = TrainConfig(
         days=args.days,
         holdout_days=args.holdout_days,
         max_rows=args.rows,
         n_trees=args.trees,
-        depth=args.depth,
+        max_depth=args.max_depth,
+        num_leaves=args.leaves,
+        num_threads=args.threads,
     )
     end = date.fromisoformat(args.end) if args.end else None
     holdout_from = date.fromisoformat(args.holdout_from) if args.holdout_from else None
@@ -94,9 +98,11 @@ def main() -> None:
     t.add_argument("--days", type=int, default=28)
     t.add_argument("--holdout-days", type=int, default=7)
     t.add_argument("--holdout-from", help="first holdout date (overrides days)")
-    t.add_argument("--rows", type=int, default=600_000)
-    t.add_argument("--trees", type=int, default=300)
-    t.add_argument("--depth", type=int, default=6)
+    t.add_argument("--rows", type=int, default=TrainConfig.max_rows)
+    t.add_argument("--trees", type=int, default=TrainConfig.n_trees)
+    t.add_argument("--leaves", type=int, default=TrainConfig.num_leaves)
+    t.add_argument("--threads", type=int, default=TrainConfig.num_threads)
+    t.add_argument("--max-depth", type=int, default=TrainConfig.max_depth)
     t.add_argument("--dry-run", action="store_true", help="do not store")
 
     b = sub.add_parser("bench", help="time inference on recorded snapshots")

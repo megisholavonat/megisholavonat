@@ -1,10 +1,15 @@
 """
-Weekly training: load the last few weeks of stop_delay_observations, hold out
-the most recent days, fit, evaluate against the constant and c1 baselines,
-then (by default) refit on the whole window and store the artifact.
+Weekly training, run by the trainer image (a Kubernetes CronJob calling
+`python -m api.forecast train`): load the last few weeks of
+stop_delay_observations, hold out the most recent days, fit LightGBM, evaluate
+against the constant and c1 baselines, and store the artifact.
+
+LightGBM is only installed in the trainer (the `train` dependency group); the
+API serves the exported JSON with api.forecast.trees.
 """
 
 import asyncio
+import json
 import time
 from dataclasses import asdict, dataclass, field
 from datetime import date, datetime, timedelta
@@ -17,7 +22,6 @@ from sqlalchemy.pool import NullPool
 
 from api.core.config import settings
 from api.core.logging_config import get_logger
-from api.forecast import gbm
 from api.forecast.dataset import available_dates, load_day
 from api.forecast.features import (
     FEATURES,
@@ -42,6 +46,9 @@ logger = get_logger(__name__)
 HORIZON_BINS = {"10": (450, 750), "30": (1500, 2100), "60": (3000, 4200)}
 MIN_TRAIN_DAYS = 7
 MODELS_KEPT = 8
+# The numpy evaluator must reproduce LightGBM's predictions this closely
+# (seconds) on the holdout, or the model is not stored
+MAX_PARITY_ERROR_S = 1e-3
 
 
 class NotEnoughData(Exception):
@@ -54,10 +61,14 @@ class TrainConfig:
     holdout_days: int = 7
     # Examples the trees are fitted on (spread evenly over the training days);
     # bounds memory. History tables always use every example.
-    max_rows: int = 600_000
-    n_trees: int = 300
-    depth: int = 6
-    learning_rate: float = 0.1
+    max_rows: int = 1_000_000
+    n_trees: int = 400
+    num_leaves: int = 63
+    # Bounds the serving cost: the evaluator steps all trees `max_depth` times
+    max_depth: int = 10
+    learning_rate: float = 0.08
+    min_data_in_leaf: int = 200
+    num_threads: int = 2
     history_folds: int = 4
     # History tables are built in this many passes over the data, each
     # holding one hash bucket of keys, to bound memory
@@ -169,14 +180,13 @@ async def collect(
     return histories, samples
 
 
-def fit_trees(
+def training_matrix(
     folds: list[list[date]],
     histories: dict[str, History],
     samples: dict[date, Examples],
-    cfg: TrainConfig,
-) -> gbm.ObliviousGBM:
-    """Fit on the training samples, each day with the history of the other
-    folds (out-of-fold), so the trees never see history containing the target."""
+) -> tuple[np.ndarray, FloatArray]:
+    """Training samples, each day with the history of the other folds
+    (out-of-fold), so the trees never see history containing the target."""
     n = sum(len(samples[d]) for group in folds for d in group)
     X = np.empty((n, len(FEATURES)), dtype=np.float32)
     y = np.empty(n, dtype=np.float64)
@@ -188,14 +198,29 @@ def fit_trees(
             feature_matrix(ex, hv, hl, out=X[row : row + len(ex)])
             y[row : row + len(ex)] = _change(ex)
             row += len(ex)
-    return gbm.fit(
-        X,
-        y,
-        n_trees=cfg.n_trees,
-        depth=cfg.depth,
-        learning_rate=cfg.learning_rate,
-        seed=cfg.seed,
-    )
+    return X, y
+
+
+def fit_lightgbm(X: np.ndarray, y: FloatArray, cfg: TrainConfig) -> Any:
+    """L1 LightGBM on the delay change. Every feature is numeric (product codes
+    included), so the export has no categorical splits."""
+    import lightgbm as lgb  # trainer image only
+
+    params = {
+        "objective": "l1",
+        "learning_rate": cfg.learning_rate,
+        "num_leaves": cfg.num_leaves,
+        "max_depth": cfg.max_depth,
+        "min_data_in_leaf": cfg.min_data_in_leaf,
+        "feature_fraction": 0.8,
+        "bagging_fraction": 0.8,
+        "bagging_freq": 1,
+        "num_threads": cfg.num_threads,
+        "seed": cfg.seed,
+        "verbose": -1,
+    }
+    data = lgb.Dataset(X, y, feature_name=list(FEATURES), free_raw_data=True)
+    return lgb.train(params, data, num_boost_round=cfg.n_trees)
 
 
 async def train(
@@ -242,7 +267,10 @@ async def train(
     logger.info(f"Forecast training: data and history ready ({load_s:.0f}s)")
 
     fit_started = time.monotonic()
-    trees = await asyncio.to_thread(fit_trees, folds, histories, samples, cfg)
+    X, y = training_matrix(folds, histories, samples)
+    booster = await asyncio.to_thread(fit_lightgbm, X, y, cfg)
+    del X, y
+    model_json = json.dumps(booster.dump_model())
     fit_s = time.monotonic() - fit_started
 
     holdout = _sample(
@@ -250,7 +278,21 @@ async def train(
         cfg.max_eval_rows,
         np.random.default_rng(cfg.seed),
     )
-    evaluated = ForecastModel(histories["train"], trees)
+    evaluated = ForecastModel(histories["train"], model_json)
+    # The API evaluates the JSON export with numpy; it has to agree with
+    # LightGBM itself before the model is stored
+    hv, hl = histories["train"].predict(holdout)
+    X_holdout = feature_matrix(holdout, hv, hl)
+    assert evaluated.trees is not None
+    parity = float(
+        np.max(
+            np.abs(evaluated.trees.predict(X_holdout) - booster.predict(X_holdout)),
+            initial=0.0,
+        )
+    )
+    del X_holdout
+    if parity > MAX_PARITY_ERROR_S:
+        raise RuntimeError(f"Exported trees disagree with LightGBM by {parity} s")
     metrics = evaluate(
         holdout,
         {
@@ -262,7 +304,7 @@ async def train(
     logger.info(f"Forecast holdout metrics: {metrics}")
 
     return TrainResult(
-        model=ForecastModel(histories["all"], trees),
+        model=ForecastModel(histories["all"], model_json),
         trained_from=dates[0],
         trained_to=dates[-1],
         metrics={
@@ -278,6 +320,11 @@ async def train(
                 "history_keys": [int(t.keys.size) for t in histories["all"].tables],
             },
             "config": asdict(cfg),
+            "parity_max_abs_error_s": parity,
+            "trees": {
+                "n": evaluated.trees.n_trees,
+                "max_depth": evaluated.trees.depth,
+            },
             "seconds": {
                 "load": round(load_s, 1),
                 "fit": round(fit_s, 1),
@@ -301,6 +348,7 @@ async def save_model(session: AsyncSession, result: TrainResult) -> int:
     """Store the artifact, keep the newest MODELS_KEPT rows. Commits."""
     row = DelayForecastModel(
         format_version=FORMAT_VERSION,
+        features=list(result.model.features),
         trained_from=result.trained_from,
         trained_to=result.trained_to,
         metrics=result.metrics,

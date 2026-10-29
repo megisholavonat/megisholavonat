@@ -1,12 +1,15 @@
 """
 The served forecast: c1 history tables plus the boosted trees, with the
-fallback chain model -> history (c1) -> constant delay, and (de)serialisation
-to a single npz blob without pickle.
+fallback chain model -> history (c1) -> constant delay.
+
+The artifact is one npz (no pickle) holding the history tables, the
+LightGBM model as its `dump_model()` JSON, and the format version and feature
+list it was trained with.
 """
 
 import io
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import IntEnum
 from typing import Any
 
@@ -20,12 +23,13 @@ from api.forecast.features import (
     History,
     feature_matrix,
 )
-from api.forecast.gbm import ObliviousGBM
+from api.forecast.trees import TreeEnsemble
 
 logger = get_logger(__name__)
 
-# Bump when the artifact layout or FEATURES change
-FORMAT_VERSION = 1
+# Bump when the artifact layout or FEATURES change. 1 was the numpy-trained
+# oblivious trees; 2 is a LightGBM JSON dump
+FORMAT_VERSION = 2
 
 
 class Source(IntEnum):
@@ -41,8 +45,17 @@ MAX_ABS_CHANGE_S = 3 * 3600
 @dataclass
 class ForecastModel:
     history: History
-    gbm: ObliviousGBM | None
+    # LightGBM `dump_model()` output as JSON text, None for history only
+    model_json: str | None = None
     features: tuple[str, ...] = FEATURES
+    trees: TreeEnsemble | None = field(init=False, default=None)
+
+    def __post_init__(self) -> None:
+        self.trees = (
+            None
+            if self.model_json is None
+            else TreeEnsemble.from_dump(json.loads(self.model_json))
+        )
 
     def predict(
         self, ex: Examples
@@ -62,10 +75,10 @@ class ForecastModel:
         pred[found] = delay[found] + hist[found]
         source[found] = Source.HISTORY
 
-        if self.gbm is None:
+        if self.trees is None:
             return pred, source
         try:
-            change = self.gbm.predict(feature_matrix(ex, hist, level))
+            change = self.trees.predict(feature_matrix(ex, hist, level))
         except Exception as e:
             logger.error(f"Forecast: model inference failed: {e}")
             return pred, source
@@ -76,8 +89,10 @@ class ForecastModel:
 
     def to_bytes(self) -> bytes:
         arrays: dict[str, np.ndarray] = dict(self.history.to_arrays())
-        if self.gbm is not None:
-            arrays.update(self.gbm.to_arrays())
+        if self.model_json is not None:
+            arrays["model_json"] = np.frombuffer(
+                self.model_json.encode(), dtype=np.uint8
+            )
         meta = {"format_version": FORMAT_VERSION, "features": list(self.features)}
         arrays["meta"] = np.frombuffer(json.dumps(meta).encode(), dtype=np.uint8)
         buf = io.BytesIO()
@@ -96,5 +111,5 @@ class ForecastModel:
         features = tuple(meta["features"])
         if features != FEATURES:
             raise ValueError("Forecast artifact was trained on other features")
-        gbm = ObliviousGBM.from_arrays(a) if "gbm_leaves" in a else None
-        return cls(History.from_arrays(a), gbm, features)
+        model_json = a["model_json"].tobytes().decode() if "model_json" in a else None
+        return cls(History.from_arrays(a), model_json, features)

@@ -13,14 +13,13 @@ from sqlalchemy import func, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.core.redis import add_key
-from api.forecast import gbm, serve
+from api.forecast import serve
 from api.forecast.dataset import examples_from_rows
 from api.forecast.features import (
     FEATURES,
     Examples,
     History,
     daytype,
-    feature_matrix,
     product_code,
 )
 from api.forecast.model import FORMAT_VERSION, ForecastModel, Source
@@ -202,57 +201,41 @@ def test_history_falls_back_to_coarser_levels() -> None:
     assert set(level) == {3}
 
 
-# --- trees ---
+# --- model ---
 
 
-def test_gbm_learns_a_step_and_missing_values() -> None:
-    rng = np.random.default_rng(0)
-    X = rng.random((5000, 2))
-    X[:500, 1] = np.nan
-    y = np.where(X[:, 0] > 0.5, 100.0, 0.0) + np.where(np.isnan(X[:, 1]), 50, 0)
-
-    model = gbm.fit(X, y, n_trees=60, depth=3, learning_rate=0.3)
-
-    err = np.abs(model.predict(X) - y)
-    assert np.median(err) < 5
-    assert model.predict(np.array([[0.9, np.nan]]))[0] == pytest.approx(150, abs=10)
-
-
-def test_gbm_arrays_roundtrip() -> None:
-    rng = np.random.default_rng(1)
-    X = rng.random((500, 3))
-    model = gbm.fit(X, X[:, 0] * 10, n_trees=10, depth=4)
-
-    again = gbm.ObliviousGBM.from_arrays(model.to_arrays())
-
-    np.testing.assert_array_equal(again.predict(X), model.predict(X))
+def _dump(n_trees: int) -> dict[str, Any]:
+    """A LightGBM-style dump of `n_trees` stumps on the horizon: +30 s up to
+    30 minutes ahead, +120 s beyond."""
+    stump = {
+        "split_feature": FEATURES.index("horizon_s"),
+        "threshold": 1800.0,
+        "decision_type": "<=",
+        "default_left": True,
+        "missing_type": "None",
+        "left_child": {"leaf_value": 30.0},
+        "right_child": {"leaf_value": 120.0},
+    }
+    return {
+        "objective": "regression_l1",
+        "num_tree_per_iteration": 1,
+        "max_feature_idx": len(FEATURES) - 1,
+        "tree_info": [{"tree_structure": stump} for _ in range(n_trees)],
+    }
 
 
-def _model(n_trees: int = 30) -> ForecastModel:
-    ex = _synthetic(4000)
-    hist = History.fit(ex)
-    hv, hl = hist.predict(ex)
-    assert ex.target_s is not None
-    trees = gbm.fit(
-        feature_matrix(ex, hv, hl),
-        ex.target_s - ex.cols["delay_s"],
-        n_trees=n_trees,
-        depth=4,
-        learning_rate=0.3,
-    )
-    return ForecastModel(hist, trees)
+def _model(n_trees: int = 2) -> ForecastModel:
+    return ForecastModel(History.fit(_synthetic(4000)), json.dumps(_dump(n_trees)))
 
 
-def test_model_beats_constant_on_synthetic_data() -> None:
-    model = _model()
-    ex = _synthetic(2000, seed=5)
-    assert ex.target_s is not None
+def test_model_adds_tree_output_to_current_delay() -> None:
+    ex = _synthetic(200, seed=5)
 
-    pred, source = model.predict(ex)
+    pred, source = _model(2).predict(ex)
 
     assert set(source) == {Source.MODEL}
-    const_mae = np.abs(ex.cols["delay_s"] - ex.target_s).mean()
-    assert np.abs(pred - ex.target_s).mean() < const_mae / 3
+    expected = np.where(ex.cols["horizon_s"] <= 1800, 60, 240)
+    np.testing.assert_allclose(pred - ex.cols["delay_s"], expected)
 
 
 # --- fallbacks ---
@@ -268,8 +251,8 @@ def test_falls_back_to_history_when_inference_fails(
     def boom(*args: Any, **kwargs: Any) -> None:
         raise RuntimeError("broken trees")
 
-    assert model.gbm is not None
-    monkeypatch.setattr(model.gbm, "predict", boom)
+    assert model.trees is not None
+    monkeypatch.setattr(model.trees, "predict", boom)
     pred, source = model.predict(ex)
 
     assert set(source) == {Source.HISTORY}
@@ -281,9 +264,9 @@ def test_falls_back_per_row_on_non_finite_predictions(
 ) -> None:
     model = _model(5)
     ex = _synthetic(4, seed=3)
-    assert model.gbm is not None
+    assert model.trees is not None
     monkeypatch.setattr(
-        model.gbm, "predict", lambda X: np.array([10.0, np.nan, np.inf, 1e9])
+        model.trees, "predict", lambda X: np.array([10.0, np.nan, np.inf, 1e9])
     )
 
     pred, source = model.predict(ex)
@@ -402,8 +385,8 @@ async def test_cache_loads_latest_stored_model(db_session: AsyncSession) -> None
     assert second > first
     assert cache.model_id == second
     assert model is not None
-    assert model.gbm is not None
-    assert model.gbm.n_trees == 3
+    assert model.trees is not None
+    assert model.trees.n_trees == 3
     # Within the check interval the database is not asked again
     await save_model(db_session, _result(_model(4)))
     assert await cache.get() is model
@@ -510,8 +493,16 @@ async def _insert_history(session: AsyncSession, days: int) -> None:
 
 
 async def test_training_end_to_end(db_session: AsyncSession) -> None:
+    pytest.importorskip("lightgbm")
     await _insert_history(db_session, days=10)
-    cfg = TrainConfig(days=10, holdout_days=2, n_trees=20, depth=3, max_rows=5000)
+    cfg = TrainConfig(
+        days=10,
+        holdout_days=2,
+        n_trees=20,
+        max_depth=3,
+        min_data_in_leaf=5,
+        max_rows=5000,
+    )
 
     result = await train(db_session, DAY + timedelta(days=9), cfg)  # type: ignore[arg-type]
 
@@ -527,7 +518,9 @@ async def test_training_end_to_end(db_session: AsyncSession) -> None:
     model_id = await save_model(db_session, result)
     stored = await db_session.get(DelayForecastModel, model_id)
     assert stored is not None
-    assert ForecastModel.from_bytes(stored.artifact).gbm is not None
+    assert stored.features == list(FEATURES)
+    assert ForecastModel.from_bytes(stored.artifact).trees is not None
+    assert result.metrics["parity_max_abs_error_s"] < 1e-6
 
 
 def test_evaluate_reports_each_horizon() -> None:
