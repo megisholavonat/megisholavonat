@@ -1435,6 +1435,62 @@
           }
         }
       }
+    },
+    "/v1/map/network": {
+      "get": {
+        "tags": [
+          "map"
+        ],
+        "summary": "Get Map Network",
+        "description": "The passenger rail network of the day as GeoJSON lines, each with the\nnumber of trains running on it (both directions)",
+        "operationId": "getMapNetwork",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MapNetwork"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The upstream timetable service failed"
+          },
+          "304": {
+            "description": "Unchanged since the ETag in If-None-Match"
+          }
+        }
+      }
+    },
+    "/v1/map/stations": {
+      "get": {
+        "tags": [
+          "map"
+        ],
+        "summary": "Get Map Stations",
+        "description": "Rail stations as GeoJSON points, ranked by trains per day",
+        "operationId": "getMapStations",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MapStations"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The upstream timetable service failed"
+          },
+          "304": {
+            "description": "Unchanged since the ETag in If-None-Match"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2944,6 +3000,202 @@
         ],
         "title": "LiveActivityStartTokenCreate",
         "description": "The device's ActivityKit push-to-start token (iOS 17.2+). The API starts\nthe Live Activity of a follow with `liveActivity` set with it shortly\nbefore departure; the started activity's own token is then registered as\n`liveactivity`. A device has one: registering another replaces it."
+      },
+      "MapLineString": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "LineString",
+            "title": "Type"
+          },
+          "coordinates": {
+            "items": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Coordinates"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "coordinates"
+        ],
+        "title": "MapLineString"
+      },
+      "MapNetwork": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "FeatureCollection",
+            "title": "Type"
+          },
+          "features": {
+            "items": {
+              "$ref": "#/components/schemas/MapNetworkFeature"
+            },
+            "type": "array",
+            "title": "Features"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "features"
+        ],
+        "title": "MapNetwork",
+        "description": "The passenger rail network, quietest sections first"
+      },
+      "MapNetworkFeature": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "Feature",
+            "title": "Type"
+          },
+          "properties": {
+            "$ref": "#/components/schemas/MapNetworkProperties"
+          },
+          "geometry": {
+            "$ref": "#/components/schemas/MapLineString"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "properties",
+          "geometry"
+        ],
+        "title": "MapNetworkFeature"
+      },
+      "MapNetworkProperties": {
+        "properties": {
+          "n": {
+            "type": "integer",
+            "title": "N"
+          },
+          "hev": {
+            "type": "integer",
+            "enum": [
+              0,
+              1
+            ],
+            "title": "Hev"
+          }
+        },
+        "type": "object",
+        "required": [
+          "n",
+          "hev"
+        ],
+        "title": "MapNetworkProperties"
+      },
+      "MapPoint": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "Point",
+            "title": "Type"
+          },
+          "coordinates": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Coordinates"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "coordinates"
+        ],
+        "title": "MapPoint"
+      },
+      "MapStationFeature": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "Feature",
+            "title": "Type"
+          },
+          "properties": {
+            "$ref": "#/components/schemas/MapStationProperties"
+          },
+          "geometry": {
+            "$ref": "#/components/schemas/MapPoint"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "properties",
+          "geometry"
+        ],
+        "title": "MapStationFeature"
+      },
+      "MapStationProperties": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "short": {
+            "type": "string",
+            "title": "Short"
+          },
+          "perDay": {
+            "type": "number",
+            "title": "Perday"
+          },
+          "hev": {
+            "type": "integer",
+            "enum": [
+              0,
+              1
+            ],
+            "title": "Hev"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "short",
+          "perDay",
+          "hev"
+        ],
+        "title": "MapStationProperties"
+      },
+      "MapStations": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "FeatureCollection",
+            "title": "Type"
+          },
+          "features": {
+            "items": {
+              "$ref": "#/components/schemas/MapStationFeature"
+            },
+            "type": "array",
+            "title": "Features"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "features"
+        ],
+        "title": "MapStations",
+        "description": "Rail stations, busiest first"
       },
       "PlatformPrediction": {
         "properties": {

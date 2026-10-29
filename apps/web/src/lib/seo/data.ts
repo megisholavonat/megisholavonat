@@ -167,7 +167,7 @@ export interface TrainPageData {
 }
 
 /** The live vehicle running as this train number, fresh ones first. */
-async function liveVehicleId(number: string): Promise<string | null> {
+export async function liveVehicleId(number: string): Promise<string | null> {
     const feed = await apiTry<TrainFeatureCollection>(
         "/v1/trains",
         REVALIDATE.live,

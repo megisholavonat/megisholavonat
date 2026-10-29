@@ -17,6 +17,14 @@ import type {
     VehiclePositionWithDelay,
 } from "@megisholavonat/api-client";
 import {
+    MAP_DATA_PATHS,
+    MAP_FONTS,
+    NETWORK_SOURCE,
+    networkLayer,
+    STATIONS_SOURCE,
+    stationLayers,
+} from "@megisholavonat/core/mapStyle";
+import {
     COLORS,
     type ColorScheme,
     DELAY_SCALE,
@@ -24,6 +32,12 @@ import {
     MOTION,
     STALE_COLORS,
 } from "@megisholavonat/core/tokens";
+import {
+    MAP_FOCUS,
+    MAP_MARKS,
+    MAP_PALETTE,
+    markSizeAt,
+} from "@megisholavonat/core/tokens/map";
 import {
     createVehicleState,
     onPositionUpdate,
@@ -60,17 +74,19 @@ import {
 } from "react";
 import {
     basemapTransform,
+    mapStyle,
     SLOTS,
-    STYLE_URLS,
 } from "@/components/map/basemapStyle";
 import { MapAttribution } from "@/components/map/MapAttribution";
 import { MapControls } from "@/components/map/MapControls";
 import {
     arrowImageId,
+    CLUSTER_SIZE,
+    clusterImageId,
     followImageId,
     labelSize,
-    levelColors,
     type MarkerLevel,
+    markBody,
     markerImage,
     PILL_PADDING_X,
     pillHeight,
@@ -141,8 +157,14 @@ const RAILWAY_NAMES_MIN_ZOOM = 10.5;
 /** No limit: without the overlay the route's stop names always show */
 const NO_MAX_ZOOM = 24;
 
+/**
+ * Shape = vehicle type: round trains, square HÉV, pointed tram-trains. Set to
+ * false to draw every vehicle round.
+ */
+const VEHICLE_SHAPES = true;
+
 // Overlapping trains merge into a count bubble up to this zoom
-const CLUSTER_RADIUS = 22;
+const CLUSTER_RADIUS = MAP_MARKS.clusterRadius;
 const CLUSTER_MAX_ZOOM = 15;
 /** A cluster whose trains are still this close (px) when zoomed in lists them. */
 const CLUSTER_LIST_SPREAD_PX = 36;
@@ -156,6 +178,8 @@ const SOURCES = {
 type Group = keyof typeof SOURCES;
 
 const PINNED = (id: string) => `${id}-pinned`;
+/** "+N" beside unselected late trains, close in */
+const DELAY_TEXT = "marker-delay";
 const SEL = {
     dot: "marker-sel-dot",
     dotRing: "marker-sel-dot-ring",
@@ -166,11 +190,7 @@ const SEL = {
     pillRing: "marker-sel-pill-ring",
     follow: "marker-sel-follow",
 } as const;
-const CLUSTER = {
-    bubble: "marker-cluster",
-    count: "marker-cluster-count",
-    badge: "marker-cluster-badge",
-} as const;
+const CLUSTER = { bubble: "marker-cluster" } as const;
 
 const EMPTY: FeatureCollection = { type: "FeatureCollection", features: [] };
 
@@ -334,7 +354,6 @@ function arrowOffset(extra: number): ExpressionSpecification {
         ["literal", [0, -(ARROW_OFFSET_MIN + extra)]],
     ] as unknown as ExpressionSpecification;
 }
-const ARROW_OFFSET = arrowOffset(0);
 /** The selected train's arrow clears its ring */
 const ARROW_OFFSET_SELECTED = arrowOffset(
     MARKER.selected.gap + MARKER.selected.ringWidth,
@@ -398,16 +417,6 @@ const FOLLOW_OFFSET = ((): ExpressionSpecification => {
     ] as unknown as ExpressionSpecification;
 })();
 
-/** Severity rank for the cluster badge: the worst train in a bubble. */
-const SEVERITY: Record<MarkerLevel, number> = {
-    inactive: -1,
-    stale: -1,
-    onTime: 0,
-    slight: 1,
-    moderate: 2,
-    severe: 3,
-};
-
 /**
  * The open train's list entry with the delay and state of its details, which
  * poll faster than the list, so its marker and sheet show the same.
@@ -459,11 +468,11 @@ function enrich(
             pillHeight(level),
         ),
         shape:
-            props.type === "hev" || props.type === "tramtrain"
+            VEHICLE_SHAPES &&
+            (props.type === "hev" || props.type === "tramtrain")
                 ? props.type
                 : "train",
         label,
-        sev: SEVERITY[level],
         arrowOffset: Math.min(
             ARROW_OFFSET_MAX,
             Math.max(
@@ -526,6 +535,67 @@ const HAS_HEADING: ExpressionSpecification = [
     ["in", ["get", "level"], ["literal", ["stale", "inactive"]]],
 ];
 
+/** Zoom stops the marks' size and their "+N" offset are given at */
+const MARK_ZOOMS = [6, 10, 12, 13, 16];
+/** One size for every vehicle at a zoom (MAP_MARKS.size), scaling the sprite */
+const MARK_ICON_SIZE = [
+    "interpolate",
+    ["linear"],
+    ["zoom"],
+    ...MAP_MARKS.size.flatMap(([z, d]) => [z, d / MAP_MARKS.spriteSize]),
+] as unknown as ExpressionSpecification;
+/**
+ * From the zoom "+N" appears, marks take part in collision (still always
+ * drawn), so a number never covers a mark. Further out they stay out of it,
+ * so trains never push station names away at country zoom.
+ */
+const MARK_IGNORE_PLACEMENT = [
+    "step",
+    ["zoom"],
+    true,
+    MAP_MARKS.delayTextMinZoom,
+    false,
+] as unknown as ExpressionSpecification;
+/** Late trains say by how much, stale ones how old their data is */
+const HAS_DELAY_TEXT: ExpressionSpecification = [
+    "in",
+    ["get", "level"],
+    ["literal", ["slight", "moderate", "severe", "stale"]],
+];
+/** Room the mark sprites keep around a body for its outline rings (px) */
+const MARK_SPRITE_MARGIN = 4;
+/**
+ * "+N" just clear of its own mark's collision box (half the sprite, outline
+ * room included), in ems: right, left, above or below it, wherever it fits.
+ */
+const DELAY_TEXT_OFFSET = [
+    "interpolate",
+    ["linear"],
+    ["zoom"],
+    ...MARK_ZOOMS.filter((z) => z >= MAP_MARKS.delayTextMinZoom).flatMap(
+        (z) => {
+            const d = markSizeAt(z);
+            const em = (shape: "train" | "hev" | "tramtrain") =>
+                (markBody(shape, d).w / 2 +
+                    (MARK_SPRITE_MARGIN * d) / MAP_MARKS.spriteSize +
+                    MAP_MARKS.delayTextGap) /
+                MAP_MARKS.delayTextSize;
+            return [
+                z,
+                [
+                    "match",
+                    ["get", "shape"],
+                    "tramtrain",
+                    em("tramtrain"),
+                    "hev",
+                    em("hev"),
+                    em("train"),
+                ],
+            ];
+        },
+    ),
+] as unknown as ExpressionSpecification;
+
 export interface FlyTarget {
     lon: number;
     lat: number;
@@ -571,8 +641,8 @@ export default function MapComponent({
     const t = useTranslations("Map");
     // The style the map is created with; later themes go through setStyle
     const [initialStyle] = useState(() => ({
-        url: STYLE_URLS[scheme],
-        transform: basemapTransform(scheme, locale),
+        style: mapStyle(scheme, locale),
+        transform: basemapTransform(),
     }));
     const mapLocale = useMemo(
         () => ({
@@ -1018,7 +1088,7 @@ export default function MapComponent({
     const stationLabelLayout = useMemo(
         () => ({
             "text-field": ["get", "name"] as ExpressionSpecification,
-            "text-font": ["Noto Sans Bold"],
+            "text-font": [...MAP_FONTS.bold],
             "text-size": 13,
             "text-anchor": "top" as const,
             "text-offset": [0, 1.35] as [number, number],
@@ -1033,9 +1103,10 @@ export default function MapComponent({
         [scheme],
     );
 
-    // Every other marker fades to 60 % while a train is selected. A constant
-    // (not per-feature) opacity, so MapLibre can transition it.
-    const othersOpacity = selectedId ? MARKER.selected.othersOpacity : 1;
+    // Focus: every other marker fades while a train is selected, and the
+    // network and stations step back. A constant (not per-feature) opacity,
+    // so MapLibre can transition it.
+    const othersOpacity = selectedId ? MAP_FOCUS.othersOpacity : 1;
     const fade = useMemo(
         () => ({ duration: prefersReducedMotion ? 0 : FADE_MS, delay: 0 }),
         [prefersReducedMotion],
@@ -1074,41 +1145,57 @@ export default function MapComponent({
         [],
     );
 
-    const dotRadius = useMemo(
-        () =>
-            byLevel((level) =>
-                level === "stale"
-                    ? MARKER.stale.dot / 2
-                    : level === "inactive"
-                      ? MARKER.levels.onTime.dot / 2
-                      : MARKER.levels[level].dot / 2,
-            ),
-        [byLevel],
-    );
-
-    /** The selection ring around a z < 9 dot, `grow` px wider. */
+    /**
+     * The selection ring around a z < 9 mark, `grow` px wider: just outside
+     * the mark's outline (its widest side for a tram-train).
+     */
     const ringRadius = useCallback(
-        (grow: number): ExpressionSpecification => [
-            "+",
-            dotRadius,
-            MARKER.outlineWidth +
-                MARKER.selected.gap +
-                MARKER.selected.ringWidth / 2 +
-                grow,
-        ],
-        [dotRadius],
+        (grow: number): ExpressionSpecification =>
+            [
+                "interpolate",
+                ["linear"],
+                ["zoom"],
+                ...MARK_ZOOMS.flatMap((z) => {
+                    const d = markSizeAt(z);
+                    const r = (shape: "train" | "hev" | "tramtrain") =>
+                        markBody(shape, d).w / 2 +
+                        MARKER.outlineWidth +
+                        MARKER.selected.gap +
+                        MARKER.selected.ringWidth / 2 +
+                        grow;
+                    return [
+                        z,
+                        [
+                            "match",
+                            ["get", "shape"],
+                            "tramtrain",
+                            r("tramtrain"),
+                            r("train"),
+                        ],
+                    ];
+                }),
+            ] as unknown as ExpressionSpecification,
+        [],
     );
 
-    const dotPaint = useMemo(
+    /** Unselected marks: one size, the delay band's colour, the vehicle's shape */
+    const markLayout = useMemo(
         () => ({
-            "circle-radius": dotRadius,
-            "circle-color": byLevel((level) => levelColors(scheme, level).fill),
-            "circle-stroke-width": MARKER.outlineWidth,
-            "circle-stroke-color": byLevel(
-                (level) => levelColors(scheme, level).outline,
-            ),
+            "icon-image": [
+                "concat",
+                `mhav-${scheme}-mark-`,
+                ["get", "level"],
+                "-",
+                ["get", "shape"],
+            ] as ExpressionSpecification,
+            "icon-size": MARK_ICON_SIZE,
+            "icon-padding": 0,
+            "icon-allow-overlap": true,
+            "icon-ignore-placement": MARK_IGNORE_PLACEMENT,
+            // Bigger delays draw on top
+            "symbol-sort-key": ["get", "sortKey"] as ExpressionSpecification,
         }),
-        [scheme, byLevel, dotRadius],
+        [scheme],
     );
 
     const pillTextSize = useMemo(
@@ -1134,96 +1221,115 @@ export default function MapComponent({
         [scheme, byLevel],
     );
 
-    /** Dots, heading, plain and pill markers for the base / pinned groups. */
-    const markerLayers = (prefix: (id: string) => string, base: boolean) => {
-        const only = (filter: ExpressionSpecification) =>
-            base
-                ? (["all", NOT_CLUSTER, filter] as ExpressionSpecification)
-                : filter;
-        return [
-            /* Below zoom 9: unlabelled dots, size by severity */
-            <Layer
-                key="dot"
-                id={prefix(LAYER_IDS.TRAIN_DOT)}
-                type="circle"
-                maxzoom={MARKER.labelMinZoom}
-                filter={base ? NOT_CLUSTER : ["has", "vehicleId"]}
-                layout={{ "circle-sort-key": ["get", "sortKey"] }}
-                paint={{
-                    ...dotPaint,
-                    "circle-opacity": othersOpacity,
-                    "circle-stroke-opacity": othersOpacity,
-                    "circle-opacity-transition": fade,
-                    "circle-stroke-opacity-transition": fade,
-                }}
-            />,
-            /* Direction of travel */
-            <Layer
-                key="heading"
-                id={prefix(LAYER_IDS.TRAIN_HEADING)}
-                type="symbol"
-                minzoom={MARKER.labelMinZoom}
-                filter={only(HAS_HEADING)}
-                layout={{
-                    "icon-image": arrowImageId(scheme),
-                    "icon-rotate": ["coalesce", ["get", "heading"], 0],
-                    "icon-rotation-alignment": "map",
-                    "icon-allow-overlap": true,
-                    "icon-ignore-placement": true,
-                    "icon-offset": ARROW_OFFSET,
-                }}
-                paint={{
-                    "icon-opacity": othersOpacity,
-                    "icon-opacity-transition": fade,
-                }}
-            />,
-            /* On time or inactive: a plain 16 px dot */
-            <Layer
-                key="plain"
-                id={prefix(LAYER_IDS.TRAIN_PLAIN)}
-                type="symbol"
-                minzoom={MARKER.labelMinZoom}
-                filter={only(IS_PLAIN)}
-                layout={{
-                    "icon-image": imageId("dot"),
-                    "icon-allow-overlap": true,
-                    "icon-ignore-placement": true,
-                    "symbol-sort-key": ["get", "sortKey"],
-                }}
-                paint={{
-                    "icon-opacity": othersOpacity,
-                    "icon-opacity-transition": fade,
-                }}
-            />,
-            /* Late or stale: a pill with "+N" or "6′" */
-            <Layer
-                key="pill"
-                id={prefix(LAYER_IDS.TRAIN_PILL)}
-                type="symbol"
-                minzoom={MARKER.labelMinZoom}
-                filter={only(["!", IS_PLAIN])}
-                layout={{
-                    "icon-image": imageId("pill"),
-                    "icon-text-fit": "both",
-                    "icon-allow-overlap": true,
-                    "icon-ignore-placement": true,
-                    "text-field": ["get", "label"],
-                    "text-font": ["Noto Sans Bold"],
-                    "text-size": pillTextSize,
-                    "text-allow-overlap": true,
-                    "text-ignore-placement": true,
-                    "symbol-sort-key": ["get", "sortKey"],
-                }}
-                paint={{
-                    "text-color": pillTextColor,
-                    "icon-opacity": othersOpacity,
-                    "text-opacity": othersOpacity,
-                    "icon-opacity-transition": fade,
-                    "text-opacity-transition": fade,
-                }}
-            />,
-        ];
-    };
+    /**
+     * Unselected trains: a mark, and from zoom 12 "+N" beside late ones. The
+     * numbers sit in a layer under the marks: MapLibre places upper layers
+     * first, so every mark is in the collision index before any number, and a
+     * number goes right, left, above or below its mark where it covers no
+     * mark (or other number) at all, else it stays out. Bigger delays first.
+     */
+    const baseMarkerLayers = () => [
+        <Layer
+            key="delay"
+            id={DELAY_TEXT}
+            type="symbol"
+            minzoom={MAP_MARKS.delayTextMinZoom}
+            filter={["all", NOT_CLUSTER, HAS_DELAY_TEXT]}
+            layout={{
+                "text-field": ["get", "label"],
+                "text-font": [...MAP_FONTS.bold],
+                "text-size": MAP_MARKS.delayTextSize,
+                "text-variable-anchor": ["left", "right", "bottom", "top"],
+                "text-radial-offset": DELAY_TEXT_OFFSET,
+                "text-justify": "auto",
+                "text-padding": 0,
+                "symbol-sort-key": ["-", 0, ["get", "sortKey"]],
+            }}
+            paint={{
+                "text-color": byLevel((level) =>
+                    level === "stale" || level === "inactive"
+                        ? STALE_COLORS[scheme].text
+                        : DELAY_SCALE[scheme][level].text,
+                ),
+                "text-halo-color": COLORS[scheme].surface,
+                "text-halo-width": 1.25,
+                "text-opacity": othersOpacity,
+                "text-opacity-transition": fade,
+            }}
+        />,
+        <Layer
+            key="mark"
+            id={LAYER_IDS.TRAIN_DOT}
+            type="symbol"
+            filter={NOT_CLUSTER}
+            layout={markLayout}
+            paint={{
+                "icon-opacity": othersOpacity,
+                "icon-opacity-transition": fade,
+            }}
+        />,
+    ];
+
+    /**
+     * Followed trains: the same mark at country zoom, then their "+N" chip
+     * (a plain dot when on time), never clustered.
+     */
+    const pinnedMarkerLayers = () => [
+        <Layer
+            key="mark"
+            id={PINNED(LAYER_IDS.TRAIN_DOT)}
+            type="symbol"
+            maxzoom={MARKER.labelMinZoom}
+            layout={markLayout}
+            paint={{
+                "icon-opacity": othersOpacity,
+                "icon-opacity-transition": fade,
+            }}
+        />,
+        <Layer
+            key="plain"
+            id={PINNED(LAYER_IDS.TRAIN_PLAIN)}
+            type="symbol"
+            minzoom={MARKER.labelMinZoom}
+            filter={IS_PLAIN}
+            layout={{
+                "icon-image": imageId("dot"),
+                "icon-allow-overlap": true,
+                "icon-ignore-placement": MARK_IGNORE_PLACEMENT,
+                "symbol-sort-key": ["get", "sortKey"],
+            }}
+            paint={{
+                "icon-opacity": othersOpacity,
+                "icon-opacity-transition": fade,
+            }}
+        />,
+        <Layer
+            key="pill"
+            id={PINNED(LAYER_IDS.TRAIN_PILL)}
+            type="symbol"
+            minzoom={MARKER.labelMinZoom}
+            filter={["!", IS_PLAIN]}
+            layout={{
+                "icon-image": imageId("pill"),
+                "icon-text-fit": "both",
+                "icon-allow-overlap": true,
+                "icon-ignore-placement": MARK_IGNORE_PLACEMENT,
+                "text-field": ["get", "label"],
+                "text-font": [...MAP_FONTS.bold],
+                "text-size": pillTextSize,
+                "text-allow-overlap": true,
+                "text-ignore-placement": MARK_IGNORE_PLACEMENT,
+                "symbol-sort-key": ["get", "sortKey"],
+            }}
+            paint={{
+                "text-color": pillTextColor,
+                "icon-opacity": othersOpacity,
+                "text-opacity": othersOpacity,
+                "icon-opacity-transition": fade,
+                "text-opacity-transition": fade,
+            }}
+        />,
+    ];
 
     /** Followed trains: a star on the marker, always visible. */
     const followLayer = (id: string, opacity: number) => (
@@ -1312,9 +1418,9 @@ export default function MapComponent({
         const map = mapRef.current?.getMap();
         if (!map || appliedSchemeRef.current === scheme) return;
         appliedSchemeRef.current = scheme;
-        map.setStyle(STYLE_URLS[scheme], {
+        map.setStyle(mapStyle(scheme, locale), {
             diff: true,
-            transformStyle: basemapTransform(scheme, locale),
+            transformStyle: basemapTransform(),
         });
     }, [scheme, locale]);
 
@@ -1338,21 +1444,46 @@ export default function MapComponent({
         [scheme],
     );
 
-    const markerLayerIds = useMemo(() => {
-        const base = [
+    // Our network and stations: built daily by the API, the same files for
+    // every visitor (long-cached)
+    const mapData = useMemo(() => {
+        const origin =
+            typeof window === "undefined" ? "" : window.location.origin;
+        return {
+            network: `${origin}/api${MAP_DATA_PATHS.network}`,
+            stations: `${origin}/api${MAP_DATA_PATHS.stations}`,
+        };
+    }, []);
+    const focused = !!selectedId;
+    const railFade = prefersReducedMotion ? 0 : MAP_FOCUS.fadeMs;
+    const network = useMemo(
+        () => networkLayer({ scheme, dim: focused, fadeMs: railFade }),
+        [scheme, focused, railFade],
+    );
+    const stations = useMemo(
+        () =>
+            stationLayers({
+                scheme,
+                dim: focused,
+                fadeMs: railFade,
+                labelOpacity: settings.stationNamesOpacity,
+            }),
+        [scheme, focused, railFade, settings.stationNamesOpacity],
+    );
+
+    const markerLayerIds = useMemo(
+        () => [
             LAYER_IDS.TRAIN_DOT,
-            LAYER_IDS.TRAIN_PLAIN,
-            LAYER_IDS.TRAIN_PILL,
-        ];
-        return [
-            ...base,
-            ...base.map(PINNED),
+            PINNED(LAYER_IDS.TRAIN_DOT),
+            PINNED(LAYER_IDS.TRAIN_PLAIN),
+            PINNED(LAYER_IDS.TRAIN_PILL),
             SEL.dot,
             SEL.plain,
             SEL.pill,
             CLUSTER.bubble,
-        ];
-    }, []);
+        ],
+        [],
+    );
 
     const onHover = useCallback(
         (e: MapMouseEvent) => {
@@ -1503,8 +1634,8 @@ export default function MapComponent({
         () => ({
             paint: {
                 "line-color": colors.ink,
-                "line-opacity": 0.72,
-                "line-width": 4,
+                "line-opacity": MAP_FOCUS.route.opacity,
+                "line-width": MAP_FOCUS.route.width,
             },
             layout: {
                 "line-cap": "round",
@@ -1534,7 +1665,7 @@ export default function MapComponent({
                 "text-size": 13,
                 "text-offset": [0, 1] as [number, number],
                 "text-anchor": "top" as const,
-                "text-font": ["Noto Sans Bold"],
+                "text-font": [...MAP_FONTS.bold],
             },
             paint: {
                 "text-color": colors.ink,
@@ -1580,17 +1711,19 @@ export default function MapComponent({
                 layout: stopLabel.layout,
                 paint: { ...stopLabel.paint, "text-opacity": hint },
             },
-            // Zoomed out, a phone shows only dots; the "+N" pills of a
-            // zoomed-in train and the selected dot draw for the first time
+            // Zoomed out, a phone shows only marks; the "+N" pills of a
+            // zoomed-in train and the selection ring draw for the first time
             // when a train opens
             {
-                id: id("dot"),
+                id: id("ring"),
                 type: "circle",
                 source: "mhav-warmup",
                 filter: ["==", ["geometry-type"], "Point"],
                 paint: {
-                    ...dotPaint,
-                    "circle-opacity": hint,
+                    "circle-radius": ringRadius(0),
+                    "circle-color": "transparent",
+                    "circle-stroke-width": MARKER.selected.ringWidth,
+                    "circle-stroke-color": colors.ink,
                     "circle-stroke-opacity": hint,
                 },
             },
@@ -1605,7 +1738,7 @@ export default function MapComponent({
                     "icon-allow-overlap": true,
                     "icon-ignore-placement": true,
                     "text-field": ["get", "label"],
-                    "text-font": ["Noto Sans Bold"],
+                    "text-font": [...MAP_FONTS.bold],
                     "text-size": pillTextSize,
                     "text-allow-overlap": true,
                     "text-ignore-placement": true,
@@ -1646,7 +1779,7 @@ export default function MapComponent({
                 touchPitch={false}
                 attributionControl={false}
                 style={{ width: "100%", height: "100%" }}
-                mapStyle={initialStyle.url}
+                mapStyle={initialStyle.style}
                 transformStyle={initialStyle.transform}
                 locale={mapLocale}
                 interactiveLayerIds={markerLayerIds}
@@ -1666,6 +1799,14 @@ export default function MapComponent({
                     skipInitialFly={!!selectedId || !!station}
                     showLocate={!isDesktop || !panelOpen}
                 />
+                {/* Our passenger network, under the place names */}
+                <Source
+                    id={NETWORK_SOURCE}
+                    type="geojson"
+                    data={mapData.network}
+                >
+                    <Layer {...network} beforeId={SLOTS.railway} />
+                </Source>
                 {settings.showRailwayOverlay && (
                     <Source
                         id="railway-source"
@@ -1681,12 +1822,46 @@ export default function MapComponent({
                         />
                     </Source>
                 )}
+                {/* Our station names, by trains a day, over the place names */}
+                <Source
+                    id={STATIONS_SOURCE}
+                    type="geojson"
+                    data={mapData.stations}
+                >
+                    {stations.dots.map((layer) => (
+                        <Layer
+                            key={layer.id}
+                            {...layer}
+                            beforeId={SLOTS.route}
+                        />
+                    ))}
+                    {settings.showStationNames &&
+                        stations.labels.map((layer) => (
+                            <Layer
+                                key={layer.id}
+                                {...layer}
+                                beforeId={SLOTS.route}
+                            />
+                        ))}
+                </Source>
                 {polylineGeojson && (
                     <Source
                         id="polyline-source"
                         type="geojson"
                         data={polylineGeojson}
                     >
+                        {/* Focus: the route over a land-coloured casing */}
+                        <Layer
+                            id={LAYER_IDS.ROUTE_CASING}
+                            type="line"
+                            beforeId={SLOTS.stops}
+                            paint={{
+                                "line-color": MAP_PALETTE[scheme].land,
+                                "line-width": MAP_FOCUS.route.casingWidth,
+                                "line-opacity": MAP_FOCUS.route.casingOpacity,
+                            }}
+                            layout={routeLine.layout}
+                        />
                         <Layer
                             id={LAYER_IDS.ROUTE_LINE}
                             type="line"
@@ -1734,102 +1909,50 @@ export default function MapComponent({
                     data={sourceData("base")}
                     cluster
                     clusterRadius={CLUSTER_RADIUS}
+                    clusterMinPoints={MAP_MARKS.clusterMinPoints}
                     clusterMaxZoom={CLUSTER_MAX_ZOOM}
-                    clusterProperties={{ sev: ["max", ["get", "sev"]] }}
                 >
-                    {markerLayers((id) => id, true)}
-                    {/* Overlapping trains: a count bubble… */}
+                    {baseMarkerLayers()}
+                    {/* Overlapping trains: a neutral bubble with their count */}
                     <Layer
                         id={CLUSTER.bubble}
-                        beforeId={LAYER_IDS.TRAIN_PILL}
-                        type="circle"
-                        filter={["has", "point_count"]}
-                        paint={{
-                            "circle-radius": [
-                                "step",
-                                ["get", "point_count"],
-                                12,
-                                10,
-                                14,
-                                50,
-                                17,
-                            ],
-                            "circle-color": colors.surface,
-                            "circle-stroke-width": MARKER.outlineWidth,
-                            "circle-stroke-color": colors.ink2,
-                            "circle-opacity": othersOpacity,
-                            "circle-stroke-opacity": othersOpacity,
-                            "circle-opacity-transition": fade,
-                            "circle-stroke-opacity-transition": fade,
-                        }}
-                    />
-                    <Layer
-                        id={CLUSTER.count}
-                        beforeId={LAYER_IDS.TRAIN_PILL}
+                        beforeId={LAYER_IDS.TRAIN_DOT}
                         type="symbol"
                         filter={["has", "point_count"]}
                         layout={{
+                            "icon-image": clusterImageId(scheme),
+                            "icon-size": [
+                                "step",
+                                ["get", "point_count"],
+                                1,
+                                10,
+                                24 / CLUSTER_SIZE,
+                                50,
+                                30 / CLUSTER_SIZE,
+                            ],
+                            "icon-padding": 0,
+                            "icon-allow-overlap": true,
+                            "icon-ignore-placement": MARK_IGNORE_PLACEMENT,
                             "text-field": ["get", "point_count_abbreviated"],
-                            "text-font": ["Noto Sans Bold"],
+                            "text-font": [...MAP_FONTS.bold],
                             "text-size": 12,
                             "text-allow-overlap": true,
                             "text-ignore-placement": true,
                         }}
                         paint={{
                             "text-color": colors.ink,
-                            "text-opacity": othersOpacity,
-                            "text-opacity-transition": fade,
-                        }}
-                    />
-                    {/* …with a dot in the colour of its most delayed train */}
-                    <Layer
-                        id={CLUSTER.badge}
-                        beforeId={LAYER_IDS.TRAIN_PILL}
-                        type="symbol"
-                        filter={[
-                            "all",
-                            ["has", "point_count"],
-                            [">=", ["get", "sev"], 1],
-                        ]}
-                        layout={{
-                            "icon-image": [
-                                "concat",
-                                `mhav-${scheme}-dot-`,
-                                [
-                                    "match",
-                                    ["get", "sev"],
-                                    3,
-                                    "severe",
-                                    2,
-                                    "moderate",
-                                    "slight",
-                                ],
-                                "-train",
-                            ],
-                            "icon-size": 0.7,
-                            "icon-offset": [
-                                "step",
-                                ["get", "point_count"],
-                                ["literal", [12, -12]],
-                                10,
-                                ["literal", [14, -14]],
-                                50,
-                                ["literal", [17, -17]],
-                            ],
-                            "icon-allow-overlap": true,
-                            "icon-ignore-placement": true,
-                        }}
-                        paint={{
                             "icon-opacity": othersOpacity,
+                            "text-opacity": othersOpacity,
                             "icon-opacity-transition": fade,
+                            "text-opacity-transition": fade,
                         }}
                     />
                 </Source>
                 {/*
                  * The selected station: its edge under the trains, its ring
-                 * above the clusters and plain dots (late pills still draw
-                 * over it) and its name above every unpinned train, so a busy
-                 * station stays readable.
+                 * above the clusters (the marks still draw over it) and its
+                 * name above every unpinned train, so a busy station stays
+                 * readable.
                  */}
                 {/* Always mounted, so its layers keep their place in the order */}
                 <Source
@@ -1850,7 +1973,7 @@ export default function MapComponent({
                     <Layer
                         id={LAYER_IDS.STATION_RING}
                         type="symbol"
-                        beforeId={LAYER_IDS.TRAIN_PILL}
+                        beforeId={LAYER_IDS.TRAIN_DOT}
                         layout={{
                             "icon-image": stationImageId(scheme, "ring"),
                             "icon-allow-overlap": true,
@@ -1870,7 +1993,7 @@ export default function MapComponent({
                     type="geojson"
                     data={sourceData("pinned")}
                 >
-                    {markerLayers(PINNED, false)}
+                    {pinnedMarkerLayers()}
                     {followLayer(PINNED(LAYER_IDS.TRAIN_FOLLOW), othersOpacity)}
                 </Source>
                 {/* The selected train, on top, with its ring */}
@@ -1881,9 +2004,9 @@ export default function MapComponent({
                 >
                     <Layer
                         id={SEL.dot}
-                        type="circle"
+                        type="symbol"
                         maxzoom={MARKER.labelMinZoom}
-                        paint={dotPaint}
+                        layout={markLayout}
                     />
                     <Layer
                         id={SEL.dotRing}
@@ -1920,7 +2043,7 @@ export default function MapComponent({
                         layout={{
                             "icon-image": imageId("dot"),
                             "icon-allow-overlap": true,
-                            "icon-ignore-placement": true,
+                            "icon-ignore-placement": MARK_IGNORE_PLACEMENT,
                         }}
                     />
                     <Layer
@@ -1949,9 +2072,13 @@ export default function MapComponent({
                                 ),
                                 "icon-text-fit": "both",
                                 "icon-allow-overlap": true,
-                                "icon-ignore-placement": true,
+                                // Numbers of other trains keep clear of it
+                                "icon-ignore-placement":
+                                    key === "pill"
+                                        ? MARK_IGNORE_PLACEMENT
+                                        : true,
                                 "text-field": ["get", "label"],
-                                "text-font": ["Noto Sans Bold"],
+                                "text-font": [...MAP_FONTS.bold],
                                 "text-size": pillTextSize,
                                 "text-allow-overlap": true,
                                 "text-ignore-placement": true,

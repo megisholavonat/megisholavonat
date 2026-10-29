@@ -325,3 +325,46 @@ JOURNEYS_QUERY = """
     }
   }
 """
+
+# Stops in a bounding box with the codes of the patterns calling there; the
+# first step of building the map's rail network
+MAP_PATTERN_CODES_QUERY = """
+  query MapPatternCodes(
+    $minLat: Float!
+    $minLon: Float!
+    $maxLat: Float!
+    $maxLon: Float!
+  ) {
+    stopsByBbox(
+      minLat: $minLat
+      minLon: $minLon
+      maxLat: $maxLat
+      maxLon: $maxLon
+      feeds: ["1"]
+    ) {
+      vehicleMode
+      patterns {
+        code
+      }
+    }
+  }
+"""
+
+# Fields of one pattern for the map's rail network. The query selecting a
+# batch of patterns by code is built around it (api.services.map_layers).
+MAP_PATTERN_FRAGMENT = """
+  fragment MapPattern on Pattern {
+    route {
+      mode
+      agency {
+        name
+      }
+    }
+    patternGeometry {
+      points
+    }
+    tripsForDate(serviceDate: $date) {
+      id
+    }
+  }
+"""

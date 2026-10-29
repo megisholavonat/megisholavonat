@@ -52,28 +52,58 @@ const json = (route: Route, body: unknown, status = 200) =>
     });
 
 /**
- * A basemap style without tiles: the canvas shows only the background. The
- * empty source keeps the basemap's attribution, which must stay visible.
+ * The basemap's vector source without tiles: the style is the app's own, its
+ * tiles come back empty, so the canvas shows only the land colour.
  */
-const EMPTY_STYLE = {
-    version: 8,
-    name: "e2e",
-    glyphs: "https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf",
-    sources: {
-        land: {
-            type: "geojson",
-            data: { type: "FeatureCollection", features: [] },
-            attribution:
-                '<a href="https://www.openstreetmap.org/copyright">© OpenStreetMap</a>',
-        },
-    },
-    layers: [
+const EMPTY_TILEJSON = {
+    tilejson: "3.0.0",
+    tiles: ["https://tiles.openfreemap.org/planet/e2e/{z}/{x}/{y}.pbf"],
+    minzoom: 0,
+    maxzoom: 14,
+};
+
+/** Our rail network and stations: one line and two stations, Szolnok's */
+const MAP_NETWORK = {
+    type: "FeatureCollection",
+    features: [
         {
-            id: "background",
-            type: "background",
-            paint: { "background-color": "#e8e8e8" },
+            type: "Feature",
+            properties: { n: 80, hev: 0 },
+            geometry: {
+                type: "LineString",
+                coordinates: [
+                    [19.0835, 47.5005],
+                    [20.1956, 47.1806],
+                ],
+            },
         },
-        { id: "land", type: "fill", source: "land" },
+    ],
+};
+const MAP_STATIONS = {
+    type: "FeatureCollection",
+    features: [
+        {
+            type: "Feature",
+            properties: {
+                id: "005510009",
+                name: "Budapest-Keleti",
+                short: "Keleti",
+                perDay: 180,
+                hev: 0,
+            },
+            geometry: { type: "Point", coordinates: [19.0835, 47.5005] },
+        },
+        {
+            type: "Feature",
+            properties: {
+                id: "005513748",
+                name: "Szolnok",
+                short: "Szolnok",
+                perDay: 160,
+                hev: 0,
+            },
+            geometry: { type: "Point", coordinates: [20.1956, 47.1806] },
+        },
     ],
 };
 
@@ -148,13 +178,17 @@ export async function mockApi(page: Page, baseURL: string) {
         (route) => route.abort(),
     );
 
-    await page.route(/^https:\/\/tiles\.openfreemap\.org\/styles\//, (route) =>
-        json(route, EMPTY_STYLE),
+    await page.route(/^https:\/\/tiles\.openfreemap\.org\/planet$/, (route) =>
+        json(route, EMPTY_TILEJSON),
+    );
+    await page.route(/^https:\/\/tiles\.openfreemap\.org\/planet\//, (route) =>
+        route.fulfill({ status: 204 }),
     );
     await page.route(/^https:\/\/[^/]*openfreemap\.org\/fonts\//, (route) =>
         route.fulfill({ status: 200, body: "" }),
     );
-    await page.route(/openrailwaymap\.org/, (route) =>
+    // The detailed railway map, direct or through the tile cache
+    await page.route(/openrailwaymap\.org|\/orm\/\d+\/\d+\/\d+\.png/, (route) =>
         route.fulfill({ status: 204 }),
     );
     await page.route(/\/relay-OfoJ\//, (route) => {
@@ -184,6 +218,8 @@ export async function mockApi(page: Page, baseURL: string) {
         const train = path.match(/^\/v1\/trains\/(.+)$/);
 
         if (path === "/v1/trains") return json(route, trains);
+        if (path === "/v1/map/network") return json(route, MAP_NETWORK);
+        if (path === "/v1/map/stations") return json(route, MAP_STATIONS);
         if (train) {
             const detail = details[decodeURIComponent(train[1])];
             return detail

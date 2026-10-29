@@ -18,6 +18,7 @@ export const Z_LAYERS = {
 
 export const LAYER_IDS = {
     RAILWAY: "railway-layer",
+    ROUTE_CASING: "polyline-casing",
     ROUTE_LINE: "polyline-layer",
     STOP_CIRCLES: "stops-layer",
     STOP_LABELS: "stops-labels",

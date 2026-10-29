@@ -1,13 +1,19 @@
 import type { TrainFeatureCollection } from "@megisholavonat/api-client";
-import { darkTheme, lightTheme } from "@megisholavonat/core/tokens/native";
+import { DELAY_SCALE, STALE_COLORS } from "@megisholavonat/core/tokens";
 import { describe, expect, it } from "vitest";
-import { fittedRadius, markerCollection } from "./markers";
+import { markerCollection, markShape, VEHICLE_SHAPES } from "./markers";
 
 const now = new Date("2026-08-14T08:00:00Z");
 const nowS = now.getTime() / 1000;
 
 function feed(
-    ...trains: { id: string; delay: number; ago: number; isStale?: boolean }[]
+    ...trains: {
+        id: string;
+        delay: number;
+        ago: number;
+        isStale?: boolean;
+        type?: "train" | "hev" | "tramtrain";
+    }[]
 ): TrainFeatureCollection {
     return {
         timestamp: now.toISOString(),
@@ -15,7 +21,7 @@ function feed(
             type: "Feature",
             geometry: { type: "Point", coordinates: [19, 47] },
             properties: {
-                type: "train",
+                type: t.type ?? "train",
                 vehicleId: t.id,
                 lat: 47,
                 lon: 19,
@@ -37,7 +43,7 @@ describe("markerCollection", () => {
                 { id: "a", delay: 2, ago: 10 },
                 { id: "b", delay: 2, ago: 10 },
             ),
-            lightTheme,
+            "light",
             now,
             new Set(["b"]),
         );
@@ -46,27 +52,67 @@ describe("markerCollection", () => {
         expect(b).toMatchObject({ followed: true, sort: 11 });
     });
 
-    it("colours by delay level and labels delays with +N", () => {
+    it("colours by the delay band only, with a +N for late trains", () => {
         const fc = markerCollection(
             feed(
                 { id: "a", delay: 2, ago: 10 },
                 { id: "b", delay: 23, ago: 10 },
                 { id: "c", delay: 74, ago: 10 },
             ),
-            lightTheme,
+            "light",
             now,
         );
         const [a, b, c] = fc.features.map((f) => f.properties);
-        expect(a).toMatchObject({ fill: "#1A6CCF", label: "", sort: 1 });
-        expect(a?.halo).toBe("rgba(20,22,26,0.45)");
-        expect(b).toMatchObject({
-            fill: "#E5660B",
-            label: "+23",
-            labelColor: "#14161A",
-            stroke: "#14161A",
-            halo: "",
+        expect(a).toMatchObject({
+            icon: "mhav-light-onTime-train",
+            text: "",
+            label: "",
+            chip: "",
+            sort: 1,
         });
-        expect(c).toMatchObject({ fill: "#C41E16", label: "+74", sort: 4 });
+        expect(b).toMatchObject({
+            icon: "mhav-light-moderate-train",
+            text: "+23",
+            textColor: DELAY_SCALE.light.moderate.text,
+            label: "+23",
+            labelColor: DELAY_SCALE.light.moderate.label,
+            chip: "mhav-light-chip-moderate",
+            delay: 23,
+        });
+        expect(c).toMatchObject({
+            icon: "mhav-light-severe-train",
+            text: "+74",
+            sort: 4,
+        });
+    });
+
+    it("gives every vehicle type its shape at the same size", () => {
+        const fc = markerCollection(
+            feed(
+                { id: "t", delay: 0, ago: 0, type: "train" },
+                { id: "h", delay: 0, ago: 0, type: "hev" },
+                { id: "x", delay: 0, ago: 0, type: "tramtrain" },
+            ),
+            "dark",
+            now,
+        );
+        expect(fc.features.map((f) => f.properties.icon)).toEqual([
+            "mhav-dark-onTime-train",
+            "mhav-dark-onTime-hev",
+            "mhav-dark-onTime-tramtrain",
+        ]);
+        expect(fc.features.map((f) => f.properties.ring)).toEqual([
+            "mhav-dark-ring-train",
+            "mhav-dark-ring-hev",
+            "mhav-dark-ring-tramtrain",
+        ]);
+    });
+
+    it("keeps the shapes behind one switch", () => {
+        expect(VEHICLE_SHAPES).toBe(true);
+        expect(markShape("hev")).toBe("hev");
+        expect(markShape("tramtrain")).toBe("tramtrain");
+        expect(markShape(undefined)).toBe("train");
     });
 
     it("greys stale trains with the minutes since the update and hides old ones", () => {
@@ -76,51 +122,29 @@ describe("markerCollection", () => {
                 { id: "flagged", delay: 0, ago: 60, isStale: true },
                 { id: "gone", delay: 0, ago: 31 * 60 },
             ),
-            darkTheme,
+            "dark",
             now,
         );
         expect(fc.features.map((f) => f.properties.vehicleId)).toEqual([
             "stale",
             "flagged",
         ]);
+        // Old data: hollow, its age beside it (and on the chip when open)
         expect(fc.features[0]?.properties).toMatchObject({
+            icon: "mhav-dark-stale-train",
             label: "7′",
-            fill: darkTheme.stale.background,
-            labelColor: darkTheme.stale.text,
+            labelColor: STALE_COLORS.dark.text,
+            chip: "mhav-dark-chip-stale",
+            text: "7′",
+            textColor: STALE_COLORS.dark.text,
             sort: 0,
         });
-        // Fresh but not running (waiting or arrived): grey without "0′"
+        // Fresh but not running (waiting or arrived): solid grey, no "0′"
         expect(fc.features[1]?.properties).toMatchObject({
+            icon: "mhav-dark-inactive-train",
             label: "",
-            fill: darkTheme.stale.fill,
+            chip: "",
             sort: 0,
         });
-    });
-
-    it("sizes dots by severity", () => {
-        const fc = markerCollection(
-            feed(
-                { id: "a", delay: 0, ago: 0 },
-                { id: "b", delay: 7, ago: 0 },
-                { id: "c", delay: 20, ago: 0 },
-                { id: "d", delay: 90, ago: 0 },
-            ),
-            lightTheme,
-            now,
-        );
-        expect(fc.features.map((f) => f.properties.dotRadius)).toEqual([
-            4, 5, 6, 7,
-        ]);
-    });
-});
-
-describe("fittedRadius", () => {
-    it("is half the pill height for short or no labels", () => {
-        expect(fittedRadius("", 0, 16)).toBe(8);
-        expect(fittedRadius("+7", 12, 22)).toBe(11);
-    });
-
-    it("grows for longer labels", () => {
-        expect(fittedRadius("+123", 14, 26)).toBeGreaterThan(13);
     });
 });

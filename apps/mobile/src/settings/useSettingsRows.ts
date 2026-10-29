@@ -63,12 +63,12 @@ export function useSettingsRows() {
             });
             update({ dynamicColor });
         },
-        setRailwayLayer: (railwayLayer: boolean) => {
+        setDetailedRailwayMap: (detailedRailwayMap: boolean) => {
             track("settings_changed", {
                 key: "railway_layer",
-                value: railwayLayer ? "on" : "off",
+                value: detailedRailwayMap ? "on" : "off",
             });
-            update({ railwayLayer });
+            update({ detailedRailwayMap });
         },
         setAnalytics: (granted: boolean) => {
             track(

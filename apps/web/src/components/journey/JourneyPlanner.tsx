@@ -19,7 +19,7 @@ import {
     X,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
     DEFAULT_STATIONS,
     rememberStation,
@@ -48,11 +48,11 @@ import {
     RISK_TINT,
     type RiskLevel,
     rides,
-    toLocalInput,
     transferGap,
     worstTransfer,
 } from "./journey";
 import type { PlannerState } from "./PlannerButton";
+import { TimeRow } from "./TimeRow";
 
 type Field = "from" | "to";
 
@@ -372,85 +372,6 @@ function Suggestions({
                     />
                 </button>
             ))}
-        </div>
-    );
-}
-
-function TimeRow({
-    state,
-    onChange,
-    surface,
-}: {
-    state: PlannerState;
-    onChange: (state: PlannerState) => void;
-    surface: string;
-}) {
-    const t = useTranslations("Journey");
-    const id = useId();
-    return (
-        <div className="flex items-center gap-2">
-            <div
-                role="tablist"
-                aria-label={t("time")}
-                className={cn("grid grid-cols-2 rounded-md p-0.5", surface)}
-            >
-                {([false, true] as const).map((arriveBy) => (
-                    <button
-                        key={String(arriveBy)}
-                        type="button"
-                        role="tab"
-                        aria-selected={state.arriveBy === arriveBy}
-                        onClick={() => onChange({ ...state, arriveBy })}
-                        className={cn(
-                            "h-9 cursor-pointer rounded-[8px] px-3 text-sm transition-colors",
-                            state.arriveBy === arriveBy
-                                ? "bg-canvas font-semibold text-ink shadow-sm dark:bg-line"
-                                : "text-ink-2",
-                        )}
-                    >
-                        {t(arriveBy ? "arrive" : "depart")}
-                    </button>
-                ))}
-            </div>
-            <label htmlFor={id} className="sr-only">
-                {t("time")}
-            </label>
-            <div
-                className={cn(
-                    "focus-field relative flex h-10 min-w-0 flex-1 items-center rounded-md px-3",
-                    surface,
-                )}
-            >
-                {state.time === null && (
-                    <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm font-semibold text-ink">
-                        {t("now")}
-                    </span>
-                )}
-                <input
-                    id={id}
-                    type="datetime-local"
-                    value={state.time ?? toLocalInput(new Date())}
-                    onChange={(e) =>
-                        onChange({ ...state, time: e.target.value || null })
-                    }
-                    className={cn(
-                        "tnum min-w-0 flex-1 bg-transparent text-sm text-ink outline-none",
-                        state.time === null && "text-transparent",
-                    )}
-                />
-            </div>
-            {state.time !== null && (
-                <button
-                    type="button"
-                    onClick={() => onChange({ ...state, time: null })}
-                    className={cn(
-                        "h-10 shrink-0 cursor-pointer rounded-md px-3 text-sm font-semibold text-ink",
-                        surface,
-                    )}
-                >
-                    {t("now")}
-                </button>
-            )}
         </div>
     );
 }
