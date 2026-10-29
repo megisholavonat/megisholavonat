@@ -88,15 +88,32 @@ export function fetchStationBoard(
 }
 
 /**
- * The segment a station's page lives at: the bare slug when the station is
- * the only one with that slug, else the slug with its id.
+ * The segment a station's page lives at: the bare slug for the first station
+ * of that name in search order (domestic first, then by id), the slug with
+ * its id for any other ("buk-005102723").
  */
 export async function canonicalStationSegment(
     station: Pick<Station, "id" | "name">,
 ): Promise<string> {
     const same = await stationsWithSlug(stationSlug(station.name));
-    const unique = same.length === 1 && same[0]?.id === station.id;
-    return stationSegment(station, !unique);
+    return stationSegment(station, same[0]?.id !== station.id);
+}
+
+/**
+ * Segments of the sitemap's stations, by the same rule without asking the
+ * search: of the listed stations sharing a slug, the lowest id keeps it.
+ */
+export function directorySegments(
+    stations: Pick<Station, "id" | "name">[],
+): string[] {
+    const owner = new Map<string, string>();
+    for (const s of [...stations].sort((a, b) => a.id.localeCompare(b.id))) {
+        const slug = stationSlug(s.name);
+        if (!owner.has(slug)) owner.set(slug, s.id);
+    }
+    return stations.map((s) =>
+        stationSegment(s, owner.get(stationSlug(s.name)) !== s.id),
+    );
 }
 
 export type StationLookup =
@@ -122,8 +139,8 @@ export async function lookupStation(segment: string): Promise<StationLookup> {
     const same = await stationsWithSlug(wanted);
     const first = same[0];
     if (!first) return { kind: "missing" };
-    // A shared name leads to the first (domestic) station of that name
-    const canonical = stationSegment(first, same.length > 1);
+    // A shared name is the first (domestic) station of that name
+    const canonical = stationSegment(first, false);
     return canonical === segment
         ? { kind: "found", station: first, segment }
         : { kind: "redirect", segment: canonical };

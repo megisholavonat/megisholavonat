@@ -1,6 +1,5 @@
 "use client";
 
-import { getDelayLevel } from "@megisholavonat/core/delay";
 import { ChartColumn, ChevronLeft, RefreshCw } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { useTranslations } from "next-intl";
@@ -15,8 +14,7 @@ import { cn } from "@/lib/utils";
 export const DEFAULT_DAYS = 28;
 
 /**
- * Look-back window. Not shown in the UI; `?days=` overrides it (1-365) and
- * is carried to the history pages.
+ * Look-back window. Not shown in the UI; `?days=` overrides it (1-365).
  */
 export function useDays(): number {
     const [days] = useQueryState("days", parseAsInteger);
@@ -24,33 +22,9 @@ export function useDays(): number {
     return Math.min(days, 365);
 }
 
-/** `href` with the non-default look-back window carried along. */
-export function withDays(href: string, days: number): string {
-    return days === DEFAULT_DAYS ? href : `${href}?days=${days}`;
-}
+import { lateLevel, MIN_SAMPLES, of10 } from "./figures";
 
-/**
- * Fewest samples for a figure, the same as the API's rankings use
- * (`DEFAULT_MIN_SAMPLES`): a station counts passages, a train its runs. A
- * headline, a chart and a list row all follow it, so a page never shows a
- * "10-ből 9" next to "kevés adat" for the same data.
- */
-export const MIN_SAMPLES = { stations: 100, lines: 30, trains: 15 } as const;
-
-/** On-time share as whole runs out of ten. */
-export function of10(share: number): number {
-    return Math.round(share * 10);
-}
-
-/**
- * The typical delay as a coarse level, only when the usual run is late
- * (more than 5 minutes); medians are never shown as numbers.
- */
-export function lateLevel(medianDelayMin: number | null | undefined) {
-    if (medianDelayMin == null) return null;
-    const level = getDelayLevel(medianDelayMin);
-    return level === "onTime" ? null : level;
-}
+export { lateLevel, MIN_SAMPLES, of10 };
 
 /**
  * Ten steps, one per run out of ten: on time in blue, the rest neutral, or in

@@ -36,9 +36,10 @@ export function slugQuery(slug: string): string {
  * code when another station shares the name ("buk-005102723"), or the bare
  * code ("005510017", redirected to the slug).
  */
-export function parseStationSegment(
-    segment: string,
-): { slug: string; id: string | null } {
+export function parseStationSegment(segment: string): {
+    slug: string;
+    id: string | null;
+} {
     const match = segment.match(/^(?:(.+)-)?(\d{6,})$/);
     return match
         ? { slug: match[1] ?? "", id: match[2] }

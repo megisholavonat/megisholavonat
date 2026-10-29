@@ -73,7 +73,10 @@ export function Section({
 }) {
     return (
         <section
-            className={cn("flex flex-col gap-3 rounded-lg bg-surface p-4", className)}
+            className={cn(
+                "flex flex-col gap-3 rounded-lg bg-surface p-4",
+                className,
+            )}
         >
             <header className="flex flex-col">
                 <h2 className="text-headline">{title}</h2>
@@ -94,19 +97,21 @@ export function Glyph({
 }) {
     const text = glyphText(routeShortName);
     if (!text || !routeShortName) return null;
-    const name = getMavRouteName(routeShortName) ?? undefined;
+    const name = getMavRouteName(routeShortName);
+    const style = cn(
+        mnr2007.className,
+        "inline-block shrink-0 leading-none",
+        className,
+    );
+    if (!name) {
+        return (
+            <span aria-hidden className={style}>
+                {text}
+            </span>
+        );
+    }
     return (
-        <span
-            role={name ? "img" : undefined}
-            aria-label={name}
-            aria-hidden={name ? undefined : true}
-            title={name}
-            className={cn(
-                mnr2007.className,
-                "inline-block shrink-0 leading-none",
-                className,
-            )}
-        >
+        <span role="img" aria-label={name} title={name} className={style}>
             {text}
         </span>
     );
