@@ -20,6 +20,7 @@ import {
     saveFollow,
     useFollows,
 } from "@/hooks/useFollows";
+import { track } from "@/lib/analytics";
 import { destinationOf, stationIdOf, trainNumber } from "@/lib/train";
 import { cn } from "@/lib/utils";
 
@@ -211,6 +212,9 @@ export function FollowEditor({
     // biome-ignore lint/correctness/useExhaustiveDependencies: only on open
     useEffect(() => {
         if (!target || !setup) return;
+        track("follow_started", {
+            target: target.kind === "train" ? "train" : "edit",
+        });
         const { existing, options } = setup;
         if (existing) {
             setDays(existing.weekdays);
@@ -255,11 +259,21 @@ export function FollowEditor({
             weekdays: days,
             date: days.length === 0 ? boarding.date : null,
         });
+        track("follow_saved", {
+            kind: days.length > 0 ? "commute" : "single",
+            days: days.length,
+            is_new: !setup.existing,
+        });
         onClose();
     };
 
     const unfollow = () => {
-        if (setup?.existing) removeFollow(setup.existing.id);
+        if (setup?.existing) {
+            removeFollow(setup.existing.id);
+            track("follow_removed", {
+                kind: setup.existing.weekdays.length > 0 ? "commute" : "single",
+            });
+        }
         onClose();
     };
 

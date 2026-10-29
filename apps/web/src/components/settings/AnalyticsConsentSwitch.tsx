@@ -25,7 +25,7 @@ export default function AnalyticsConsentSwitch() {
                 checked={consent === "granted"}
                 disabled={consent === null}
                 onCheckedChange={(checked) =>
-                    setConsent(checked ? "granted" : "denied")
+                    setConsent(checked ? "granted" : "denied", "settings")
                 }
                 aria-labelledby="analytics-consent-label"
                 aria-describedby="analytics-consent-description"

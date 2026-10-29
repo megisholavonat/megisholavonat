@@ -79,7 +79,9 @@ import {
 import { useTrainView } from "@/components/train/useTrainView";
 import { type Follow, useFollows } from "@/hooks/useFollows";
 import { useIsDesktop } from "@/hooks/useIsMobile";
+import { useMapAnalytics } from "@/hooks/useMapAnalytics";
 import { useMapTitle } from "@/hooks/useMapTitle";
+import { noteEntry } from "@/lib/analyticsEvents";
 import { cn } from "@/lib/utils";
 import type { FlyTarget, MapInsets } from "./MapComponent";
 
@@ -641,10 +643,12 @@ function MapScreen() {
     const searchHandlers = useMemo(
         () => ({
             onSelectStation: (s: Station) => {
+                noteEntry("search");
                 closeSearch();
                 openStation(s);
             },
             onSelectTrain: (train: TrainFeatureProperties) => {
+                noteEntry("search");
                 closeSearch();
                 openTrainFromList(train.vehicleId);
             },
@@ -742,6 +746,27 @@ function MapScreen() {
             window.removeEventListener("keydown", onKey);
         };
     }, []);
+
+    useMapAnalytics({
+        trains,
+        feed: feed.kind,
+        isDesktop,
+        selectedId,
+        fallback,
+        trainView,
+        followed: followedIds,
+        trainDetent,
+        stationId,
+        stationLoaded: !!station,
+        stationDetent,
+        boardKind,
+        searchOpen,
+        plannerOpen,
+        disruptionsOpen,
+        disruptionsDetent,
+        disruptionCount: disruptions.length,
+        notice,
+    });
 
     const showTrain = !!selectedId;
     const showStation = !showTrain && !!stationId && !!station;

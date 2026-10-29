@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { useAnalyticsConsent } from "@/hooks/useAnalyticsConsent";
 import { Link, usePathname } from "@/i18n/navigation";
+import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 /** Session-only flag, so the banner keeps showing after a reload. */
@@ -149,6 +150,12 @@ export default function ConsentBanner() {
         promptReady &&
         !busy &&
         !(onMap && selectionOpen);
+    const shown = useRef(false);
+    useEffect(() => {
+        if (!show || shown.current) return;
+        shown.current = true;
+        track("consent_shown", { surface: "banner" });
+    }, [show]);
 
     return (
         <AnimatePresence>

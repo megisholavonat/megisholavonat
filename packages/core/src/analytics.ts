@@ -155,13 +155,19 @@ export const EVENT_SCHEMA = {
     },
 
     stats_viewed: {
-        kind: oneOf("rankings", "train", "station", "train_history"),
+        kind: oneOf("rankings", "train", "station"),
         ranking: oneOf("lines", "trains", "stations"),
         days: int(366),
+        train_number: id,
+        station_id: id,
     },
 
-    disruptions_opened: { surface, count: int(500), affects_follow: bool },
-    disruption_expanded: { position: int(500), affects_follow: bool },
+    disruptions_opened: { surface, count: int(500) },
+    /** `context`: the full list, or the card in a train or station view. */
+    disruption_expanded: {
+        context: oneOf("list", "detail"),
+        affects_follow: bool,
+    },
 
     share_clicked: {
         target: oneOf("train", "station", "departure"),

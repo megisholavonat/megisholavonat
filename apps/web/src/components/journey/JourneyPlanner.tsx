@@ -32,6 +32,10 @@ import { BackButton, IconButton } from "@/components/train/TrainParts";
 import { DelayChip } from "@/components/ui/Delay";
 import { PlatformBadge } from "@/components/ui/Platform";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
+import {
+    plannerResultExpanded,
+    usePlannerSearched,
+} from "@/lib/analyticsEvents";
 import { cn } from "@/lib/utils";
 import {
     formatTime,
@@ -474,6 +478,12 @@ function Results({
     const key = `${state.from?.id}-${state.to?.id}-${state.time}-${state.arriveBy}`;
     // biome-ignore lint/correctness/useExhaustiveDependencies: collapse on a new search
     useEffect(() => setOpen(null), [key]);
+    usePlannerSearched(
+        key,
+        plan,
+        state.time !== null,
+        !!state.from && !!state.to,
+    );
 
     if (plan.isPending) {
         return (
@@ -528,7 +538,10 @@ function Results({
                     <ItineraryRow
                         itinerary={itinerary}
                         open={open === i}
-                        onToggle={() => setOpen(open === i ? null : i)}
+                        onToggle={() => {
+                            if (open !== i) plannerResultExpanded(i, itinerary);
+                            setOpen(open === i ? null : i);
+                        }}
                     />
                     {open === i && (
                         <ItineraryDetail

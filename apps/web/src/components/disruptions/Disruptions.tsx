@@ -22,6 +22,7 @@ import type { TrainView } from "@/components/train/useTrainView";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
 import type { Follow } from "@/hooks/useFollows";
 import { useNow } from "@/hooks/useNow";
+import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 /** The feed changes slowly; the API caches it for two minutes */
@@ -196,7 +197,15 @@ export function DisruptionItem({
         >
             <button
                 type="button"
-                onClick={() => setOpen(!open)}
+                onClick={() => {
+                    if (!open) {
+                        track("disruption_expanded", {
+                            context: framed ? "detail" : "list",
+                            affects_follow: mine,
+                        });
+                    }
+                    setOpen(!open);
+                }}
                 aria-expanded={open}
                 aria-controls={bodyId}
                 className={cn(
