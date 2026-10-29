@@ -7,7 +7,7 @@ import PrivacyContentHu from "@/app/[locale]/privacy/PrivacyContentHu";
 import { Link } from "@/i18n/navigation";
 
 /** Update together with the notice text (and CONSENT_VERSION if needed). */
-const LAST_UPDATED = new Date("2026-10-28");
+const LAST_UPDATED = new Date("2026-10-29");
 
 export async function generateMetadata({
     params,
