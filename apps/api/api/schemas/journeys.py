@@ -59,6 +59,33 @@ class TransitLeg(BaseModel):
     vehicleId: str | None = None
 
 
+class CityLeg(BaseModel):
+    """
+    A ride on urban transit (Budapest's BKK, or another town's metro, tram,
+    trolleybus or bus) to the first train, from the last one, or between two
+    trains at different stations
+    """
+
+    type: Literal["city"] = "city"
+    # SUBWAY, TRAM, BUS, TROLLEYBUS, or RAIL/SUBURBAN_RAILWAY for a HÉV line
+    # listed in the BKK feed
+    mode: str
+    line: str  # e.g. "M2", "8E", "4-6"
+    # Hex colours without "#", as in the feed
+    routeColor: str | None = None
+    routeTextColor: str | None = None
+    headsign: str | None = None
+    fromStop: JourneyStop
+    toStop: JourneyStop
+    # Unix seconds
+    scheduledDeparture: int
+    expectedDeparture: int
+    scheduledArrival: int
+    expectedArrival: int
+    realtime: bool
+    intermediateStops: int
+
+
 # How likely a transfer is missed: safe (well under 10%), tight, or likely
 # missed (50% or more)
 ConnectionRisk = Literal["safe", "tight", "likely_missed"]
@@ -67,13 +94,14 @@ ConnectionRisk = Literal["safe", "tight", "likely_missed"]
 ConnectionRiskSource = Literal["forecast", "history", "canceled"]
 
 
-JourneyLeg = Annotated[WalkLeg | TransitLeg, Field(discriminator="type")]
+JourneyLeg = Annotated[WalkLeg | TransitLeg | CityLeg, Field(discriminator="type")]
 
 
 class Transfer(BaseModel):
     """A change between two consecutive trains"""
 
-    # Index of the arriving transit leg in `legs`; the next transit leg departs
+    # Index of the arriving transit leg in `legs`; the next transit leg departs.
+    # Walks and city legs between them belong to the change
     fromLeg: int
     toLeg: int
     station: str  # where the arriving train stops
@@ -99,13 +127,15 @@ class Itinerary(BaseModel):
     transferCount: int
     legs: list[JourneyLeg]
     transfers: list[Transfer]
-    # MÁV ticket shop search for this journey (no train-specific parameter)
+    # MÁV ticket shop search for the train part of this journey (no
+    # train-specific parameter); city legs need a local ticket or pass
     ticketUrl: str
 
 
 class JourneyPlan(BaseModel):
     """Journeys between two rail stations"""
 
+    # A station, or the pseudo-station "budapest" (any Budapest station)
     fromStation: Station
     toStation: Station
     time: int  # requested time, unix seconds

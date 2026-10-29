@@ -133,6 +133,118 @@
     "lat": 46.065833,
     "lon": 18.223611,
     "vehicleMode": "RAIL"
+   },
+   {
+    "gtfsId": "1:005517228",
+    "name": "Szeged",
+    "lat": 46.239722,
+    "lon": 20.143056,
+    "vehicleMode": "RAIL"
+   },
+   {
+    "gtfsId": "1:005500700",
+    "name": "Szeged vasútállomás",
+    "lat": 46.239789,
+    "lon": 20.142561,
+    "vehicleMode": "TRAMTRAIN"
+   },
+   {
+    "gtfsId": "1:005510090",
+    "name": "Zugló",
+    "lat": 47.511389,
+    "lon": 19.101389,
+    "vehicleMode": "RAIL"
+   },
+   {
+    "gtfsId": "1:005510447",
+    "name": "Vác",
+    "lat": 47.782778,
+    "lon": 19.133056,
+    "vehicleMode": "RAIL"
+   },
+   {
+    "gtfsId": "1:005501032",
+    "name": "Budaörs",
+    "lat": 47.4475,
+    "lon": 18.965,
+    "vehicleMode": "RAIL"
+   },
+   {
+    "gtfsId": "1:005513748",
+    "name": "Szolnok",
+    "lat": 47.179167,
+    "lon": 20.175833,
+    "vehicleMode": "RAIL"
+   },
+   {
+    "gtfsId": "1:005512401",
+    "name": "Eger",
+    "lat": 47.891667,
+    "lon": 20.381667,
+    "vehicleMode": "RAIL"
+   },
+   {
+    "gtfsId": "1:005510173",
+    "name": "Kőbánya-Kispest",
+    "lat": 47.463889,
+    "lon": 19.149444,
+    "vehicleMode": "RAIL"
+   },
+   {
+    "gtfsId": "1:005510025",
+    "name": "Ferencváros",
+    "lat": 47.468611,
+    "lon": 19.088056,
+    "vehicleMode": "RAIL"
+   },
+   {
+    "gtfsId": "1:005503129",
+    "name": "Budafok",
+    "lat": 47.425833,
+    "lon": 19.041389,
+    "vehicleMode": "RAIL"
+   },
+   {
+    "gtfsId": "1:005501016",
+    "name": "Budapest-Déli",
+    "lat": 47.498889,
+    "lon": 19.025,
+    "vehicleMode": "RAIL"
+   },
+   {
+    "gtfsId": "1:005510033",
+    "name": "Budapest-Nyugati",
+    "lat": 47.510833,
+    "lon": 19.0575,
+    "vehicleMode": "RAIL"
+   },
+   {
+    "gtfsId": "1:005510199",
+    "name": "Kispest",
+    "lat": 47.448135,
+    "lon": 19.157552,
+    "vehicleMode": "RAIL"
+   },
+   {
+    "gtfsId": "1:005510157",
+    "name": "Kőbánya alsó",
+    "lat": 47.483056,
+    "lon": 19.127222,
+    "vehicleMode": "RAIL"
+   },
+   {
+    "gtfsId": "1:005512674",
+    "name": "Miskolc-Gömöri",
+    "lat": 48.106667,
+    "lon": 20.800278,
+    "vehicleMode": "RAIL"
+   },
+   {
+    "gtfsId": "1:005511387",
+    "name": "Miskolc-Tiszai",
+    "lat": 48.098719,
+    "lon": 20.810916,
+    "vehicleMode": "RAIL"
    }
   ]
  }

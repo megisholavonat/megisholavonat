@@ -241,6 +241,7 @@ JOURNEYS_QUERY = """
     $time: String!
     $arriveBy: Boolean!
     $n: Int!
+    $modes: [TransportMode]!
   ) {
     plan(
       fromPlace: $from
@@ -252,13 +253,10 @@ JOURNEYS_QUERY = """
       # Without it, train categories come in English ("passenger train")
       # unlike everywhere else, and live trains match by gtfsId only
       locale: "hu"
-      transportModes: [
-        { mode: RAIL }
-        { mode: SUBURBAN_RAILWAY }
-        { mode: TRAMTRAIN }
-        { mode: RAIL_REPLACEMENT_BUS }
-        { mode: WALK }
-      ]
+      # Rail, and with city transit also metro, trams and buses (only urban
+      # feeds are kept)
+      # (see services.journeys)
+      transportModes: $modes
     ) {
       itineraries {
         legs {
@@ -292,8 +290,10 @@ JOURNEYS_QUERY = """
             }
           }
           route {
+            gtfsId
             shortName
             longName
+            color
             textColor
           }
           trip {
