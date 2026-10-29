@@ -7,14 +7,20 @@ import type {
     StyleSpecification,
     SymbolLayerSpecification,
 } from "@maplibre/maplibre-react-native";
-import { MAP_DATA_PATHS, MAP_FONTS } from "@megisholavonat/core/mapStyle";
+import {
+    MAP_DATA_PATHS,
+    MAP_FONTS,
+    routePaint,
+} from "@megisholavonat/core/mapStyle";
 import { COLORS, type ColorScheme, MARKER } from "@megisholavonat/core/tokens";
 import {
     MAP_FOCUS,
     MAP_MARKS,
     MAP_PALETTE,
-    MAP_STATION_MARK,
+    MAP_RAILWAY_OVERLAY,
+    MAP_VIEW,
     markSizeAt,
+    railwayOverlayPaint,
 } from "@megisholavonat/core/tokens/map";
 import {
     ARROW,
@@ -32,7 +38,8 @@ import {
 
 // The app's layers over the shared basemap (@megisholavonat/core/mapStyle):
 // the train marks, their numbers and chips, and the selected train's route.
-// The same rules as the web's map; see sprites.ts for the marks themselves.
+// The basemap, network, stations, route paint, railway overlay and camera
+// range come from core, as on the web; see sprites.ts for the marks.
 
 export type { ColorScheme };
 
@@ -76,22 +83,15 @@ export function basemapAnchors(style: StyleSpecification): {
 
 // --- OpenRailwayMap overlay (opt-in setting) -------------------------------
 
-const DIRECT_RAILWAY_TILES =
-    "https://a.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png";
+export { railwayTileUrl } from "@megisholavonat/core/tokens/map";
 
-/** OpenRailwayMap raster tiles, through the tile cache when one is set. */
-export function railwayTileUrl(tileCacheUrl?: string): string {
-    if (!tileCacheUrl) return DIRECT_RAILWAY_TILES;
-    return `${tileCacheUrl.replace(/\/$/, "")}/orm/{z}/{x}/{y}.png`;
-}
+export const RAILWAY_ATTRIBUTION = MAP_RAILWAY_OVERLAY.attribution;
 
-export const RAILWAY_ATTRIBUTION =
-    '<a href="https://www.openrailwaymap.org/">© OpenRailwayMap</a>';
-
+/** As on the web: inverted in dark, so its names stay readable */
 export function railwayPaint(
     scheme: ColorScheme,
 ): RasterLayerSpecification["paint"] {
-    return { "raster-opacity": scheme === "dark" ? 0.6 : 0.8 };
+    return railwayOverlayPaint(scheme);
 }
 
 // --- train marks -----------------------------------------------------------
@@ -551,17 +551,15 @@ export function clusterLayers({
 // --- the selected train's route --------------------------------------------
 
 /**
- * From this zoom the railway overlay (a raster, its z11 tiles picked from
- * 10.5 on) writes out station names: with it on, a route's stop names show
- * below it only, so a station is never named twice in one spot (as on the
- * web)
+ * From this zoom the railway overlay writes out station names: with it on,
+ * a route's stop names show below it only, so a station is never named
+ * twice in one spot (as on the web)
  */
-export const RAILWAY_NAMES_MIN_ZOOM = 10.5;
+export const RAILWAY_NAMES_MIN_ZOOM = MAP_RAILWAY_OVERLAY.namesMinZoom;
 
 /**
- * The selected train's route over a land-coloured casing, and its stops
- * (passed ones filled grey) with their names, sized as on the web. The
- * names follow the station names setting.
+ * The selected train's route and its stops with their names, painted as on
+ * the web (core routePaint). The names follow the station names setting.
  */
 export function routeLayers(
     scheme: ColorScheme,
@@ -580,48 +578,34 @@ export function routeLayers(
     stops: CircleLayerSpecification;
     stopLabels: SymbolLayerSpecification;
 } {
-    const colors = COLORS[scheme];
-    const land = MAP_PALETTE[scheme].land;
-    const { route } = MAP_FOCUS;
-    const round = { "line-cap": "round", "line-join": "round" } as const;
+    // Core types its paint with a newer style-spec than MapLibre RN
+    // bundles; the JSON is the same
+    const paint = routePaint(scheme) as unknown as {
+        casing: Pick<LineLayerSpecification, "layout" | "paint">;
+        line: Pick<LineLayerSpecification, "layout" | "paint">;
+        stops: Pick<CircleLayerSpecification, "paint">;
+        stopLabels: Required<
+            Pick<SymbolLayerSpecification, "layout" | "paint">
+        >;
+    };
     return {
         casing: {
             id: ROUTE_LAYER_IDS.casing,
             type: "line",
             source: ROUTE_SOURCE,
-            layout: round,
-            paint: {
-                "line-color": land,
-                "line-width": route.casingWidth,
-                "line-opacity": route.casingOpacity,
-            },
+            ...paint.casing,
         },
         line: {
             id: ROUTE_LAYER_IDS.line,
             type: "line",
             source: ROUTE_SOURCE,
-            layout: round,
-            paint: {
-                "line-color": colors.ink,
-                "line-width": route.width,
-                "line-opacity": route.opacity,
-            },
+            ...paint.line,
         },
         stops: {
             id: ROUTE_LAYER_IDS.stops,
             type: "circle",
             source: STOPS_SOURCE,
-            paint: {
-                "circle-radius": 4.5,
-                "circle-color": [
-                    "case",
-                    ["get", "passed"],
-                    colors.ink2,
-                    colors.surface,
-                ],
-                "circle-stroke-color": colors.ink,
-                "circle-stroke-width": 2,
-            },
+            ...paint.stops,
         },
         stopLabels: {
             id: ROUTE_LAYER_IDS.stopLabels,
@@ -629,22 +613,11 @@ export function routeLayers(
             source: STOPS_SOURCE,
             ...(railwayOverlay ? { maxzoom: RAILWAY_NAMES_MIN_ZOOM } : {}),
             layout: {
+                ...paint.stopLabels.layout,
                 // Hidden rather than removed: the layers above name it
                 visibility: names ? "visible" : "none",
-                "text-field": ["get", "name"],
-                "text-font": [...MAP_FONTS.bold],
-                "text-size": MAP_STATION_MARK.label.size,
-                "text-variable-anchor": ["left", "right", "top", "bottom"],
-                "text-radial-offset": 0.7,
-                "text-justify": "auto",
-                "text-max-width": 9,
             },
-            paint: {
-                "text-color": colors.ink,
-                "text-halo-color": land,
-                "text-halo-width": 1.5,
-                "text-opacity": namesOpacity,
-            },
+            paint: { ...paint.stopLabels.paint, "text-opacity": namesOpacity },
         },
     };
 }
@@ -680,11 +653,11 @@ export function stationMarkLayers(scheme: ColorScheme): {
     };
 }
 
-/** Hungary, as on the web. */
-export const INITIAL_VIEW = {
-    center: [19.4, 47.17] as [number, number],
-    zoom: 6,
+/** The whole country; the web opens on Budapest (see MAP_VIEW) */
+export const INITIAL_VIEW: { center: [number, number]; zoom: number } = {
+    center: [...MAP_VIEW.initial.app.center],
+    zoom: MAP_VIEW.initial.app.zoom,
 };
 
-/** [west, south, east, north], matching the web's maxBounds. */
-export const MAX_BOUNDS: LngLatBounds = [5.5, 43, 30, 52.5];
+/** [west, south, east, north], as on the web */
+export const MAX_BOUNDS: LngLatBounds = [...MAP_VIEW.bounds];

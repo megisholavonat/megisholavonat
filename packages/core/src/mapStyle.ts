@@ -16,11 +16,14 @@ import {
     MAP_LABELS,
     MAP_NETWORK,
     MAP_PALETTE,
+    MAP_STATION_MARK,
     MAP_STATIONS,
+    MAP_STOPS,
     type MapPalette,
+    type StopShape,
     type ZoomStops,
 } from "./tokens/map";
-import type { ColorScheme } from "./tokens/tokens";
+import { COLORS, type ColorScheme } from "./tokens/tokens";
 
 export const OFM_TILES = "https://tiles.openfreemap.org/planet";
 /** OpenFreeMap's glyphs (Noto Sans), also used by the app's own labels */
@@ -41,7 +44,24 @@ export const MAP_LAYER_IDS = {
     network: "mhav-network",
     stationDot: (tier: number) => `mhav-station-dot-${tier}`,
     stationLabel: (tier: number) => `mhav-station-label-${tier}`,
+    /** HÉV and tram-train stops' shaped marks, over the dots */
+    stationShape: "mhav-station-shape",
 } as const;
+
+/** Stop shapes drawn as sprites; a circle layer draws the round ones */
+export const SPRITE_STOP_SHAPES = [
+    "square",
+    "tramtrain",
+] as const satisfies readonly StopShape[];
+export type SpriteStopShape = (typeof SPRITE_STOP_SHAPES)[number];
+
+/**
+ * The sprite of a shaped station mark: the web draws it on demand, the app
+ * ships it as a PNG (scripts/map-sprites.mjs)
+ */
+export function stopImageId(scheme: ColorScheme, shape: SpriteStopShape) {
+    return `mhav-${scheme}-stop-${shape}`;
+}
 
 /** API paths of the daily network and station files */
 export const MAP_DATA_PATHS = {
@@ -567,14 +587,29 @@ export function networkLayer({
 }
 
 /**
- * A station's tier (MAP_STATIONS.tiers) from its trains a day. HÉV stops and
- * tram-train street stops (named "City, stop", e.g. "Szeged, Anna-kút") see
- * many trains but are city stops: they name themselves at city zoom only.
+ * A station's kind (rail, hev, tramtrain, childrens_railway). Files built
+ * before `type` existed only flag HÉV stops (`hev`).
+ */
+export const STATION_TYPE: Expr = [
+    "coalesce",
+    ["get", "type"],
+    ["match", ["get", "hev"], 1, "hev", "rail"],
+];
+
+/** Kinds of stop drawn with a sprite, and the sprite's shape */
+const SPRITE_STOP_TYPES = Object.entries(MAP_STOPS.shape).filter(
+    ([, shape]) => shape !== "circle",
+) as [string, SpriteStopShape][];
+
+/**
+ * A station's tier (MAP_STATIONS.tiers) from its trains a day. Stops that
+ * are not railway stations (HÉV, tram-train, Children's Railway) see many
+ * trains but are city stops: they show at city zoom only.
  */
 export const STATION_TIER: Expr = [
-    "case",
-    ["any", ["==", ["get", "hev"], 1], ["in", ", ", ["get", "name"]]],
-    5,
+    "match",
+    STATION_TYPE,
+    "rail",
     [
         "step",
         ["get", "perDay"],
@@ -586,12 +621,21 @@ export const STATION_TIER: Expr = [
         MAP_STATIONS.tiers[0].min,
         1,
     ],
+    5,
 ];
 
+/** A station dot's radius by zoom, by tier */
+function dotRadius(tier: number): ZoomStops {
+    const { dot } = MAP_STATIONS;
+    return tier === 1 ? dot.top : tier <= 2 ? dot.major : dot.minor;
+}
+
 /**
- * Station dots and names by tier: the busiest from country zoom, the rest
- * closer in. Names lose "Budapest-" from city zoom and hide in focus mode
- * (the route's stops name themselves).
+ * Station marks and names by tier: the busiest from country zoom, the rest
+ * closer in. Railway stations are dots; HÉV and tram-train stops are drawn
+ * in their vehicles' shape (MAP_STOPS), over the dots. Names lose
+ * "Budapest-" from city zoom and hide in focus mode (the route's stops name
+ * themselves).
  */
 export function stationLayers({
     scheme,
@@ -610,6 +654,13 @@ export function stationLayers({
     const { major, minor } = MAP_STATIONS.labelSize;
     const dots: LayerSpecification[] = [];
     const labels: LayerSpecification[] = [];
+    const shaped: Expr = [
+        "match",
+        STATION_TYPE,
+        SPRITE_STOP_TYPES.map(([type]) => type),
+        true,
+        false,
+    ];
     for (const t of MAP_STATIONS.tiers) {
         const big = t.tier <= 2;
         const filter: FilterSpecification = ["==", STATION_TIER, t.tier];
@@ -618,16 +669,14 @@ export function stationLayers({
             type: "circle",
             source: STATIONS_SOURCE,
             minzoom: t.dot,
-            filter,
+            filter: ["all", filter, ["!", shaped]],
             paint: {
-                "circle-radius": zoom([
-                    [6, t.tier === 1 ? 2.5 : 2],
-                    [12, big ? 4.5 : 3.5],
-                    [15, big ? 6 : 5],
-                ]),
+                "circle-radius": zoom(dotRadius(t.tier)),
                 "circle-color": p.stationFill,
                 "circle-stroke-color": p.stationStroke,
-                "circle-stroke-width": big ? 1.5 : 1.2,
+                "circle-stroke-width": big
+                    ? MAP_STATIONS.stroke.major
+                    : MAP_STATIONS.stroke.minor,
                 "circle-opacity": opacity,
                 "circle-stroke-opacity": opacity,
                 "circle-opacity-transition": fade,
@@ -671,5 +720,103 @@ export function stationLayers({
             },
         });
     }
+    // Every shaped stop is a tier 5 city stop: one layer, the tier's size
+    const city = MAP_STATIONS.tiers[4];
+    dots.push({
+        id: MAP_LAYER_IDS.stationShape,
+        type: "symbol",
+        source: STATIONS_SOURCE,
+        minzoom: city.dot,
+        filter: shaped as FilterSpecification,
+        layout: {
+            "icon-image": [
+                "match",
+                STATION_TYPE,
+                ...SPRITE_STOP_TYPES.flatMap(([type, shape]) => [
+                    type,
+                    stopImageId(scheme, shape),
+                ]),
+                "",
+            ] as unknown as Expr,
+            "icon-size": zoom(
+                dotRadius(city.tier).map(
+                    ([z, r]) =>
+                        [z, (r * 2) / MAP_STOPS.spriteDiameter] as const,
+                ),
+            ),
+            // As the dots: drawn always, never in the names' way
+            "icon-allow-overlap": true,
+            "icon-ignore-placement": true,
+        },
+        paint: {
+            "icon-opacity": opacity,
+            "icon-opacity-transition": fade,
+        },
+    });
     return { dots, labels };
+}
+
+/**
+ * The selected train's route over a land-coloured casing, and its stops
+ * (`passed` ones filled grey) with their names, on the web and in the app.
+ * Each renderer adds its own ids, sources and order.
+ */
+export function routePaint(scheme: ColorScheme) {
+    const colors = COLORS[scheme];
+    const land = MAP_PALETTE[scheme].land;
+    const { route } = MAP_FOCUS;
+    const layout = { "line-cap": "round", "line-join": "round" } as const;
+    return {
+        casing: {
+            layout,
+            paint: {
+                "line-color": land,
+                "line-width": route.casingWidth,
+                "line-opacity": route.casingOpacity,
+            },
+        },
+        line: {
+            layout,
+            paint: {
+                "line-color": colors.ink,
+                "line-width": route.width,
+                "line-opacity": route.opacity,
+            },
+        },
+        stops: {
+            paint: {
+                "circle-radius": 4.5,
+                "circle-color": [
+                    "case",
+                    ["boolean", ["get", "passed"], false],
+                    colors.ink2,
+                    colors.surface,
+                ] as Expr,
+                "circle-stroke-color": colors.ink,
+                "circle-stroke-width": 2,
+            },
+        },
+        stopLabels: {
+            layout: {
+                "text-field": ["get", "name"] as Expr,
+                "text-font": [...MAP_FONTS.bold],
+                "text-size": MAP_STATION_MARK.label.size,
+                // Beside the stop first: clear of a north-south route line
+                "text-variable-anchor": ["left", "right", "top", "bottom"] as (
+                    | "left"
+                    | "right"
+                    | "top"
+                    | "bottom"
+                )[],
+                "text-radial-offset": 0.7,
+                "text-justify": "auto" as const,
+                "text-max-width": 9,
+            },
+            paint: {
+                "text-color": colors.ink,
+                "text-halo-color": land,
+                "text-halo-width": 2,
+            },
+        },
+    };
 }

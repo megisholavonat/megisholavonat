@@ -36,7 +36,12 @@ const sprites = await import("../src/map/sprites.ts");
 const { COLORS } = await import("@megisholavonat/core/tokens");
 const {
     MAP_FOLLOW_STAR,
+    MAP_PALETTE,
     MAP_STATION_MARK,
+    MAP_STATIONS,
+    MAP_STOPS,
+    stopShapeBody,
+    tramtrainPoints,
     directionArrowBox,
     directionArrowPaint,
     directionArrowPoints,
@@ -48,6 +53,8 @@ const {
     arrowId,
     followId,
     stationId,
+    stopId,
+    SPRITE_STOP_SHAPES,
     CHIP,
     CHIP_LEVELS,
     HEV_CORNER,
@@ -507,6 +514,36 @@ function station(scheme, part) {
     };
 }
 
+/**
+ * A HÉV stop's square or a tram-train stop's pointed mark, in the station
+ * dot's colours, its outline outside the body as a circle layer's stroke
+ * (MAP_STOPS): the layer scales it with the dots.
+ */
+function stop(scheme, shape) {
+    const body = stopShapeBody(shape, MAP_STOPS.spriteDiameter);
+    const sdf =
+        shape === "square"
+            ? roundRect(body.w / 2, body.h / 2, body.r)
+            : polygon(tramtrainPoints(body.w, body.h));
+    const stroke = MAP_STATIONS.stroke.minor;
+    const palette = MAP_PALETTE[scheme];
+    const margin = stroke + 1;
+    return {
+        w: Math.ceil(body.w + margin * 2),
+        h: Math.ceil(body.h + margin * 2),
+        paint: over([
+            {
+                color: parseColor(palette.stationFill),
+                covers: (x, y) => sdf(x, y) < 0,
+            },
+            {
+                color: parseColor(palette.stationStroke),
+                covers: (x, y) => sdf(x, y) < stroke,
+            },
+        ]),
+    };
+}
+
 // --- output ---------------------------------------------------------------
 
 const drawn = [];
@@ -529,6 +566,9 @@ for (const scheme of SCHEMES) {
         [stationId(scheme, "clear"), station(scheme, "clear")],
         [stationId(scheme, "ring"), station(scheme, "ring")],
     );
+    for (const shape of SPRITE_STOP_SHAPES) {
+        drawn.push([stopId(scheme, shape), stop(scheme, shape)]);
+    }
 }
 
 const ids = drawn.map(([id]) => id);

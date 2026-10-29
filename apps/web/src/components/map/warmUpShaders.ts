@@ -145,7 +145,7 @@ export function warmUpShaders(
                             type: "Feature",
                             properties: {
                                 name: "·",
-                                hasPassed: false,
+                                passed: false,
                                 level: "slight",
                                 shape: "train",
                                 label: "+6",

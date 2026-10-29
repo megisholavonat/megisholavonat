@@ -1,5 +1,10 @@
 import type { DelayLevel } from "@megisholavonat/core/delay";
 import {
+    SPRITE_STOP_SHAPES,
+    type SpriteStopShape,
+    stopImageId,
+} from "@megisholavonat/core/mapStyle";
+import {
     COLORS,
     type ColorScheme,
     DELAY_SCALE,
@@ -56,6 +61,10 @@ export const followId = (s: ColorScheme) => `mhav-${s}-follow`;
 export type StationPart = "clear" | "ring";
 export const stationId = (s: ColorScheme, part: StationPart) =>
     `mhav-${s}-station-${part}`;
+/** A HÉV or tram-train stop's shaped mark (core MAP_STOPS) */
+export const stopId = (s: ColorScheme, shape: SpriteStopShape) =>
+    stopImageId(s, shape);
+export { SPRITE_STOP_SHAPES };
 
 /** Every sprite id, in a stable order */
 export function spriteIds(): string[] {
@@ -72,6 +81,7 @@ export function spriteIds(): string[] {
             stationId(s, "clear"),
             stationId(s, "ring"),
         );
+        for (const shape of SPRITE_STOP_SHAPES) ids.push(stopId(s, shape));
     }
     return ids;
 }
@@ -103,9 +113,9 @@ export function bodySize(shape: MarkShape): { w: number; h: number } {
 }
 
 /** Corner radius of a HÉV square, as a share of its side */
-export const HEV_CORNER = 0.25;
+export const HEV_CORNER = MAP_MARKS.hevCorner;
 /** Depth of a tram-train's pointed ends, as a share of half its height */
-export const TRAMTRAIN_POINT = 0.75;
+export const TRAMTRAIN_POINT = MAP_MARKS.tramtrain.point;
 
 /**
  * Transparent margin (css px) around every mark's body: room for the widest

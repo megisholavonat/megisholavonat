@@ -27,7 +27,7 @@ import {
     STATIONS_SOURCE,
     stationLayers,
 } from "@megisholavonat/core/mapStyle";
-import { MAP_FOCUS } from "@megisholavonat/core/tokens/map";
+import { MAP_FOCUS, MAP_VIEW } from "@megisholavonat/core/tokens/map";
 import { useQuery } from "@tanstack/react-query";
 import {
     type Ref,
@@ -76,8 +76,8 @@ import type { MapView } from "./useVehicleMotion";
 import { VehicleSources } from "./VehicleSources";
 
 const DATA_URLS = mapDataUrls(API_URL);
-const MIN_ZOOM = 5;
-const MAX_ZOOM = 19;
+const MIN_ZOOM = MAP_VIEW.minZoom;
+const MAX_ZOOM = MAP_VIEW.maxZoom;
 /** Flights and bubble zooms, as on the web (none with reduce motion) */
 const FLY_MS = 1600;
 const EASE_MS = 500;

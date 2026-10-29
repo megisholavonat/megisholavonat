@@ -22,6 +22,7 @@ import {
     MAP_FONTS,
     NETWORK_SOURCE,
     networkLayer,
+    routePaint,
     STATIONS_SOURCE,
     stationLayers,
 } from "@megisholavonat/core/mapStyle";
@@ -37,9 +38,12 @@ import {
     MAP_DIRECTION_ARROW,
     MAP_FOCUS,
     MAP_MARKS,
-    MAP_PALETTE,
+    MAP_RAILWAY_OVERLAY,
     MAP_STATION_MARK,
+    MAP_VIEW,
     markSizeAt,
+    railwayOverlayPaint,
+    railwayTileUrl,
 } from "@megisholavonat/core/tokens/map";
 import { trainNumber } from "@megisholavonat/core/trainName";
 import type { VehicleState } from "@megisholavonat/core/VehicleTracker";
@@ -107,7 +111,6 @@ import { RouteGlyph } from "@/components/ui/RouteGlyph";
 import { useTheme } from "@/components/ui/ThemeProvider";
 import { useSettings } from "@/hooks/useSettings";
 import { LAYER_IDS } from "@/util/constants";
-import { OVERLAYS } from "@/util/mapConfigs";
 
 // maplibre-gl 6 can't find its worker from inside a bundle; point it at the
 // copy Next.js emits as a hashed asset.
@@ -144,12 +147,17 @@ const HIT_RADIUS = MARKER.hitArea / 2;
 const CLOCK_TICK_MS = 30_000;
 
 /**
- * From this zoom the railway overlay (a raster, its z11 tiles picked from
- * zoom 10.5 on) writes out station names;
- * below it only codes ("SL"). A drawn route's stop names show below it
- * only, so a station is never named twice in the same spot.
+ * From this zoom the railway overlay writes out station names; below it
+ * only codes ("SL"). A drawn route's stop names show below it only, so a
+ * station is never named twice in the same spot.
  */
-const RAILWAY_NAMES_MIN_ZOOM = 10.5;
+const RAILWAY_NAMES_MIN_ZOOM = MAP_RAILWAY_OVERLAY.namesMinZoom;
+/**
+ * The overlay's tiles, through the tile cache when one is set. Read
+ * directly: env/client brings zod into the map's bundle just for this;
+ * next.config still validates it at build time.
+ */
+const RAILWAY_TILES = railwayTileUrl(process.env.NEXT_PUBLIC_TILE_CACHE_URL);
 /** No limit: without the overlay the route's stop names always show */
 const NO_MAX_ZOOM = 24;
 
@@ -1006,7 +1014,7 @@ export default function MapComponent({
                     type: "Feature" as const,
                     properties: {
                         name: stoptime.stop.name,
-                        hasPassed,
+                        passed: hasPassed,
                     },
                     geometry: {
                         type: "Point" as const,
@@ -1414,25 +1422,9 @@ export default function MapComponent({
         });
     }, [scheme, locale, mapLoaded]);
 
-    // On the dark map the overlay's tiles are inverted (and hue-rotated back),
-    // so its dark-blue station names turn light and stay readable; mostly
-    // desaturated, so tram and metro lines read as grey, not magenta
-    const railwayPaint = useMemo(
-        () =>
-            scheme === "dark"
-                ? {
-                      // Not too bright: a dense station yard would turn
-                      // into a pale slab
-                      "raster-opacity": 0.55,
-                      "raster-brightness-min": 0.48,
-                      "raster-brightness-max": 0.2,
-                      "raster-hue-rotate": 180,
-                      "raster-saturation": -0.75,
-                  }
-                : // Softer pink and lilac in light too: no loud purple lines
-                  { "raster-opacity": 0.75, "raster-saturation": -0.4 },
-        [scheme],
-    );
+    // Inverted on the dark map, so its names stay readable (shared with
+    // the app)
+    const railwayPaint = useMemo(() => railwayOverlayPaint(scheme), [scheme]);
 
     // Our network and stations: built daily by the API, the same files for
     // every visitor (long-cached)
@@ -1632,52 +1624,12 @@ export default function MapComponent({
 
     const colors = COLORS[scheme];
 
-    // The selected train's route and stops, shared with the shader warm-up
-    const routeLine = useMemo(
-        () => ({
-            paint: {
-                "line-color": colors.ink,
-                "line-opacity": MAP_FOCUS.route.opacity,
-                "line-width": MAP_FOCUS.route.width,
-            },
-            layout: {
-                "line-cap": "round",
-                "line-join": "round",
-            } as const,
-        }),
-        [colors],
-    );
-    const stopCircle = useMemo(
-        () => ({
-            "circle-radius": 4.5,
-            "circle-color": [
-                "case",
-                ["boolean", ["get", "hasPassed"], false],
-                colors.ink2,
-                colors.surface,
-            ] as ExpressionSpecification,
-            "circle-stroke-width": 2,
-            "circle-stroke-color": colors.ink,
-        }),
-        [colors],
-    );
-    const stopLabel = useMemo(
-        () => ({
-            layout: {
-                "text-field": ["get", "name"] as ExpressionSpecification,
-                "text-size": 13,
-                "text-offset": [0, 1] as [number, number],
-                "text-anchor": "top" as const,
-                "text-font": [...MAP_FONTS.bold],
-            },
-            paint: {
-                "text-color": colors.ink,
-                "text-halo-color": colors.map,
-                "text-halo-width": 2,
-            },
-        }),
-        [colors],
-    );
+    // The selected train's route and stops (shared with the app and the
+    // shader warm-up)
+    const route = useMemo(() => routePaint(scheme), [scheme]);
+    const routeLine = route.line;
+    const stopCircle = route.stops.paint;
+    const stopLabel = route.stopLabels;
 
     // Compile those shaders in idle time, before any train is opened
     // biome-ignore lint/correctness/useExhaustiveDependencies: once per map, the programs stay compiled
@@ -1770,10 +1722,11 @@ export default function MapComponent({
         <div className="relative h-full w-full bg-map">
             <MapLibreMap
                 ref={attachMap}
+                // Budapest; the app opens on the country (MAP_VIEW)
                 initialViewState={{
-                    longitude: 19.045,
-                    latitude: 47.499,
-                    zoom: 13,
+                    longitude: MAP_VIEW.initial.web.center[0],
+                    latitude: MAP_VIEW.initial.web.center[1],
+                    zoom: MAP_VIEW.initial.web.zoom,
                 }}
                 onLoad={() => setMapLoaded(true)}
                 onZoomStart={closeClusterList}
@@ -1789,10 +1742,10 @@ export default function MapComponent({
                 cursor={cursor ?? undefined}
                 onClick={onClick}
                 onMouseMove={onHover}
-                // [west, south, east, north]
-                maxBounds={[5.5, 43, 30, 52.5]}
-                minZoom={5}
-                maxZoom={19}
+                // [west, south, east, north], as in the app
+                maxBounds={[...MAP_VIEW.bounds]}
+                minZoom={MAP_VIEW.minZoom}
+                maxZoom={MAP_VIEW.maxZoom}
                 // Keep v5's overscaling past the basemap's max zoom; v6's
                 // default (4) changes label placement at zoom 15+.
                 zoomLevelsToOverscale={undefined}
@@ -1814,7 +1767,7 @@ export default function MapComponent({
                     <Source
                         id="railway-source"
                         type="raster"
-                        tiles={[OVERLAYS.railway.url.replace("{s}", "a")]}
+                        tiles={[RAILWAY_TILES]}
                         tileSize={256}
                     >
                         <Layer
@@ -1859,12 +1812,8 @@ export default function MapComponent({
                             id={LAYER_IDS.ROUTE_CASING}
                             type="line"
                             beforeId={SLOTS.stops}
-                            paint={{
-                                "line-color": MAP_PALETTE[scheme].land,
-                                "line-width": MAP_FOCUS.route.casingWidth,
-                                "line-opacity": MAP_FOCUS.route.casingOpacity,
-                            }}
-                            layout={routeLine.layout}
+                            paint={route.casing.paint}
+                            layout={route.casing.layout}
                         />
                         <Layer
                             id={LAYER_IDS.ROUTE_LINE}
