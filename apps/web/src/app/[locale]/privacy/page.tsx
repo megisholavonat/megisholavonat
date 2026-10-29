@@ -9,7 +9,7 @@ import { subpageMetadata } from "@/lib/og/metadata";
 import { siteUrl } from "@/lib/og/server";
 
 /** Update together with the notice text (and CONSENT_VERSION if needed). */
-const LAST_UPDATED = new Date("2026-10-28");
+const LAST_UPDATED = new Date("2026-10-29");
 
 export async function generateMetadata({
     params,
