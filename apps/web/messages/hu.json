@@ -103,8 +103,8 @@
         "scheduled_time": "menetrend szerint",
         "board": "Menetrendi tábla",
         "board_of": "{station} indulási és érkezési táblája",
-        "departures": "Indulás",
-        "arrivals": "Érkezés",
+        "departures": "Indulások",
+        "arrivals": "Érkezések",
         "from": "{station} felől",
         "canceled": "törölve",
         "empty": "Most nincs vonat",
@@ -224,7 +224,6 @@
     "PrivacyPage": {
         "description": "Milyen adatot kezel az alkalmazás, és mire.",
         "title": "Adatvédelmi tájékoztató",
-        "back_to_map": "Vissza a térképhez",
         "last_updated": "Utolsó frissítés: {date}"
     },
     "Follow": {
@@ -250,7 +249,6 @@
     },
     "Stats": {
         "title": "Pontosság",
-        "back": "Vissza",
         "window": "Elmúlt {days} nap",
         "runs": "{runs} menet",
         "rankings": "Rangsor",
@@ -277,7 +275,6 @@
         "few_data": "kevés adat",
         "no_data": "Még kevés az adat",
         "no_data_hint": "Gyűjtjük a menetadatokat, pár nap múlva nézz vissza.",
-        "show_on_map": "Megnyitás a térképen",
         "description": "Mennyire pontosak a vonatok: vonalak, vonatok és állomások az elmúlt 28 napban.",
         "train_description": "{subject} pontossága megállónként, az elmúlt 28 nap menetei alapján.",
         "station_description": "{station}: mennyire pontosak a vonatok napszak szerint, az elmúlt 28 napban.",
@@ -308,7 +305,7 @@
         "transfer_minutes": "{m} perc átszállásra",
         "transfer_minutes_expected": "{m} perc átszállásra, várhatóan {e}",
         "walk": "{m} perc séta",
-        "on_map": "Mutasd a térképen",
+        "on_map": "Megnézem a térképen",
         "empty": "Nincs találat",
         "same_station": "Válassz két különböző állomást",
         "any_budapest": "Budapest (bármely állomás)",
@@ -356,7 +353,6 @@
         "share": "Megosztom a késést",
         "share_so_far": "Késés megosztása eddig",
         "copied": "Link másolva",
-        "open_map": "Élőben a térképen",
         "open_station": "{station} indulásai a térképen",
         "history": "Korábbi menetek",
         "image_alt": "Késéskártya: {sentence}",

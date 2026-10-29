@@ -45,7 +45,7 @@ test("the card's map button opens today's run of the train", async ({
 }) => {
     // Train 9 ran on the 28th and is on the map again today
     await page.goto("/hu/kesesek/9/2026-10-28");
-    await page.getByRole("link", { name: c.open_map }).click();
+    await page.getByRole("link", { name: t.Pages.map_link }).click();
     await expect(page).toHaveURL(
         `/hu?vehicleId=${encodeURIComponent(TRAINS.late.id)}`,
     );
@@ -59,7 +59,9 @@ test("without a run today the map button opens the boarding station", async ({
     // 5009 is not on the map now: its departures from Miskolc-Tiszai list
     // a later run today
     await page.goto("/hu/kesesek/5009/2026-10-27");
-    await expect(page.getByRole("link", { name: c.open_map })).toHaveCount(0);
+    await expect(
+        page.getByRole("link", { name: t.Pages.map_link }),
+    ).toHaveCount(0);
     await page
         .getByRole("link", {
             name: c.open_station.replace("{station}", "Miskolc-Tiszai"),
@@ -166,4 +168,14 @@ test("a commute row shares the delay after the run", async ({ page }) => {
         /\/hu\/kesesek\/2019\/2026-10-29\?from=005501511$/,
     );
     expect(data?.text).toBeUndefined();
+});
+
+test("the card's earlier runs open the train's page, not a redirect", async ({
+    page,
+}) => {
+    await page.goto("/hu/kesesek/5009/2026-10-27");
+    await expect(page.getByRole("link", { name: c.history })).toHaveAttribute(
+        "href",
+        "/hu/vonat/5009",
+    );
 });

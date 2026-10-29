@@ -1,10 +1,10 @@
 // Metadata and structured data of the station and train pages.
 
 import type { Locale } from "@megisholavonat/core/i18n";
+import { type PageKind, pageAlternates } from "@megisholavonat/core/links";
 import { huTrainSubject } from "@megisholavonat/core/share";
 import type { Metadata } from "next";
 import { documentTitle, OG_SIZE } from "@/lib/og/metadata";
-import { type PageKind, pageAlternates } from "./paths";
 
 /** "10-es vonat", "Train 10" */
 export function trainSubject(locale: Locale, number: string): string {

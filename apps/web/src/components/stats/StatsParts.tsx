@@ -1,13 +1,12 @@
 "use client";
 
-import { ChartColumn, ChevronLeft, RefreshCw } from "lucide-react";
+import { ChartColumn, RefreshCw } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { useTranslations } from "next-intl";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { type ReactNode, useId } from "react";
+import { Button } from "@/components/ui/Button";
 import { FILL_CLASS, type Level, TINT_CLASS } from "@/components/ui/Delay";
-import { useRouter } from "@/i18n/navigation";
-import { cameFromApp } from "@/lib/landing";
 import { cn } from "@/lib/utils";
 import { DEFAULT_DAYS } from "./figures";
 
@@ -105,45 +104,6 @@ export function Of10Text({
     );
 }
 
-/** Page header: back, title, the window as a caption. */
-export function StatsHeader({
-    title,
-    caption,
-    fallbackHref,
-    trailing,
-}: {
-    title: ReactNode;
-    caption?: ReactNode;
-    fallbackHref: string;
-    trailing?: ReactNode;
-}) {
-    const t = useTranslations("Stats");
-    const router = useRouter();
-    const back = () => {
-        // Back to wherever the page was opened from in the app (the map
-        // keeps its selection in the URL); a direct visit goes up one level
-        if (cameFromApp()) router.back();
-        else router.push(fallbackHref);
-    };
-    return (
-        <header className="flex items-start gap-2">
-            <button
-                type="button"
-                onClick={back}
-                aria-label={t("back")}
-                className="pressable -ml-2 flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-full text-ink hover:bg-surface-2"
-            >
-                <ChevronLeft className="size-6" aria-hidden />
-            </button>
-            <div className="flex min-w-0 flex-1 flex-col pt-1.5">
-                <h1 className="text-title">{title}</h1>
-                {caption && <p className="text-sm text-ink-2">{caption}</p>}
-            </div>
-            {trailing}
-        </header>
-    );
-}
-
 export function Card({
     title,
     children,
@@ -171,14 +131,10 @@ export function LoadError({ onRetry }: { onRetry: () => void }) {
     return (
         <div className="flex flex-col items-center gap-3 py-8 text-center">
             <p className="text-ink-2">{t("load_error")}</p>
-            <button
-                type="button"
-                className="pressable flex h-10 cursor-pointer items-center gap-2 rounded-full bg-surface-2 px-4 text-sm font-semibold hover:bg-line"
-                onClick={onRetry}
-            >
+            <Button variant="secondary" onClick={onRetry}>
                 <RefreshCw className="size-4" aria-hidden />
                 {t("retry")}
-            </button>
+            </Button>
         </div>
     );
 }

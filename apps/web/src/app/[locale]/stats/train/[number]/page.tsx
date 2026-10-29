@@ -1,7 +1,7 @@
+import { trainPath } from "@megisholavonat/core/links";
 import { notFound, permanentRedirect } from "next/navigation";
 import { hasLocale } from "next-intl";
 import { routing } from "@/i18n/routing";
-import { trainPath } from "@/lib/seo/paths";
 import { decodeParam } from "@/lib/utils";
 
 type Params = Promise<{ locale: string; number: string }>;

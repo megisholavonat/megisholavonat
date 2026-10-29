@@ -1,10 +1,10 @@
+import { localeAlternates, privacyPath } from "@megisholavonat/core/links";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { LuArrowLeft } from "react-icons/lu";
 import PrivacyContentEn from "@/app/[locale]/privacy/PrivacyContentEn";
 import PrivacyContentHu from "@/app/[locale]/privacy/PrivacyContentHu";
-import { AppIcon } from "@/components/ui/AppIcon";
-import { Link } from "@/i18n/navigation";
+import { PageHeader } from "@/components/seo/PageHeader";
+import { PageMain } from "@/components/seo/PageMain";
 import { subpageMetadata } from "@/lib/og/metadata";
 import { siteUrl } from "@/lib/og/server";
 
@@ -19,21 +19,18 @@ export async function generateMetadata({
     const { locale } = await params;
     const t = await getTranslations({ locale, namespace: "PrivacyPage" });
     const tHome = await getTranslations({ locale, namespace: "Home" });
+    const origin = siteUrl();
+    const { hu, en } = localeAlternates(origin, privacyPath);
     return {
         ...subpageMetadata({
             locale,
-            origin: siteUrl(),
+            origin,
             appTitle: tHome("app_title"),
             path: "/privacy",
             title: t("title"),
             description: t("description"),
         }),
-        alternates: {
-            languages: {
-                hu: "https://megisholavonat.info/hu/privacy",
-                en: "https://megisholavonat.info/en/privacy",
-            },
-        },
+        alternates: { languages: { hu, en } },
     };
 }
 
@@ -49,34 +46,15 @@ export default async function PrivacyPage({
     }).format(LAST_UPDATED);
 
     return (
-        <div className="min-h-screen bg-background">
-            <main className="mx-auto max-w-3xl px-4 pt-[calc(1.5rem+env(safe-area-inset-top))] pb-48 sm:pt-10">
-                <Link
-                    href="/"
-                    className="inline-flex items-center gap-2 rounded-lg p-2 -ml-2 text-sm text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-                >
-                    <LuArrowLeft className="w-4 h-4" aria-hidden="true" />
-                    {t("back_to_map")}
-                </Link>
-
-                <div className="mt-6 flex items-center gap-3">
-                    <AppIcon size={32} />
-                    <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-                        {t("title")}
-                    </h1>
-                </div>
-                <p className="mt-2 text-sm text-muted-foreground">
-                    {t("last_updated", { date })}
-                </p>
-
-                <article className="mt-8 prose prose-slate dark:prose-invert max-w-none">
-                    {locale === "en" ? (
-                        <PrivacyContentEn />
-                    ) : (
-                        <PrivacyContentHu />
-                    )}
-                </article>
-            </main>
-        </div>
+        // Room below for the consent card, which stays up on this page
+        <PageMain className="pb-48">
+            <PageHeader
+                title={t("title")}
+                caption={t("last_updated", { date })}
+            />
+            <article className="prose max-w-none rounded-lg bg-surface p-4 [--tw-prose-body:var(--mhav-ink)] [--tw-prose-bold:var(--mhav-ink)] [--tw-prose-bullets:var(--mhav-ink-2)] [--tw-prose-captions:var(--mhav-ink-2)] [--tw-prose-code:var(--mhav-ink)] [--tw-prose-counters:var(--mhav-ink-2)] [--tw-prose-headings:var(--mhav-ink)] [--tw-prose-hr:var(--mhav-line)] [--tw-prose-lead:var(--mhav-ink-2)] [--tw-prose-links:var(--mhav-ink)] [--tw-prose-quotes:var(--mhav-ink-2)] [--tw-prose-td-borders:var(--mhav-line)] [--tw-prose-th-borders:var(--mhav-line)] sm:p-6">
+                {locale === "en" ? <PrivacyContentEn /> : <PrivacyContentHu />}
+            </article>
+        </PageMain>
     );
 }

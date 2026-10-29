@@ -1,12 +1,12 @@
 "use client";
 
 import type { Locale } from "@megisholavonat/core/i18n";
+import { stationHref, trainPath } from "@megisholavonat/core/links";
 import { ChartColumn, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
-import { stationHref, trainPath } from "@/lib/seo/paths";
+import { buttonClass } from "@/components/ui/Button";
 import { trainNumber } from "@/lib/train";
-import { cn } from "@/lib/utils";
 
 /** "Pontosság ›" row of the train sheet, to the train's page. */
 export function TrainHistoryLink({ tripShortName }: { tripShortName: string }) {
@@ -17,7 +17,7 @@ export function TrainHistoryLink({ tripShortName }: { tripShortName: string }) {
     return (
         <Link
             href={trainPath(locale, number)}
-            className="flex min-h-11 items-center gap-2 rounded-md bg-surface-2 px-3 text-[15px] font-semibold text-ink"
+            className="flex min-h-11 items-center gap-2 rounded-md bg-surface-2 px-3 text-subhead font-semibold text-ink"
         >
             <ChartColumn className="size-4" aria-hidden />
             <span className="flex-1">{t("history")}</span>
@@ -41,10 +41,7 @@ export function StationHistoryLink({
             href={stationHref(locale, station)}
             aria-label={t("history")}
             title={t("history")}
-            className={cn(
-                "flex size-11 shrink-0 items-center justify-center rounded-full bg-surface-2 text-ink transition-colors hover:bg-line",
-                className,
-            )}
+            className={buttonClass("icon", className)}
         >
             <ChartColumn className="size-5" aria-hidden />
         </Link>
