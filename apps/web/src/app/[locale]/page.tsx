@@ -13,6 +13,15 @@ import { useQuery } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
 import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { CommuteList, FollowHint } from "@/components/commute/CommuteList";
+import {
+    FollowEditor,
+    type FollowTarget,
+} from "@/components/commute/FollowEditor";
+import {
+    followedVehicleIds,
+    useCommute,
+} from "@/components/commute/useCommute";
 import {
     FeedMessage,
     feedState,
@@ -38,6 +47,7 @@ import {
 import { TrainPanel } from "@/components/train/TrainPanel";
 import { TrainSheet } from "@/components/train/TrainSheet";
 import { useTrainView } from "@/components/train/useTrainView";
+import { type Follow, useFollows } from "@/hooks/useFollows";
 import { useIsDesktop } from "@/hooks/useIsMobile";
 import type { FlyTarget } from "./MapComponent";
 
@@ -76,6 +86,15 @@ export default function MapPage() {
     const [searchOpen, setSearchOpen] = useState(false);
     const [settingsOpen, setSettingsOpen] = useState(false);
     const [flyTarget, setFlyTarget] = useState<FlyTarget | null>(null);
+    const [followTarget, setFollowTarget] = useState<FollowTarget | null>(null);
+    const follows = useFollows();
+    const commute = useCommute(follows, trains);
+    // Stable while the same vehicles are followed, so the map keeps its data
+    const followedKey = [...followedVehicleIds(commute)].sort().join(",");
+    const followedIds = useMemo(
+        () => new Set(followedKey ? followedKey.split(",") : []),
+        [followedKey],
+    );
     const [urlRead, setUrlRead] = useState(false);
     const pendingFlyRef = useRef<string | null>(null);
 
@@ -218,6 +237,13 @@ export default function MapPage() {
     );
 
     const closeTrain = useCallback(() => setSelectedId(null), []);
+    const followTrain = useCallback(() => {
+        if (trainView) setFollowTarget({ kind: "train", view: trainView });
+    }, [trainView]);
+    const editFollow = useCallback(
+        (follow: Follow) => setFollowTarget({ kind: "follow", follow }),
+        [],
+    );
     const closeStation = useCallback(() => {
         setStationId(null);
         setPickedStation(null);
@@ -225,7 +251,14 @@ export default function MapPage() {
 
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
-            if (e.key !== "Escape" || settingsOpen || searchOpen) return;
+            if (
+                e.key !== "Escape" ||
+                settingsOpen ||
+                searchOpen ||
+                followTarget
+            ) {
+                return;
+            }
             if (selectedId) closeTrain();
             else if (stationId) closeStation();
         };
@@ -236,6 +269,7 @@ export default function MapPage() {
         stationId,
         settingsOpen,
         searchOpen,
+        followTarget,
         closeTrain,
         closeStation,
     ]);
@@ -281,6 +315,7 @@ export default function MapPage() {
                 key={locale}
                 trains={trains}
                 selectedId={selectedId}
+                followedIds={followedIds}
                 onSelectTrain={(id) => selectTrain(id)}
                 train={trainView?.vehicle}
                 station={showStation ? station : null}
@@ -315,6 +350,16 @@ export default function MapPage() {
                                 <DesktopSearch
                                     trains={trains}
                                     handlers={searchHandlers}
+                                    home={
+                                        <div className="px-2 pb-2 empty:hidden">
+                                            <CommuteList
+                                                rows={commute}
+                                                onOpenTrain={openTrainFromList}
+                                                onEdit={editFollow}
+                                                compact
+                                            />
+                                        </div>
+                                    }
                                 />
                                 {feed.kind !== "ok" &&
                                     feed.kind !== "stale" &&
@@ -337,6 +382,7 @@ export default function MapPage() {
                             view={trainView}
                             fallback={fallback}
                             onClose={closeTrain}
+                            onFollow={followTrain}
                         />
                     )}
                     {showStation && station && (
@@ -370,6 +416,7 @@ export default function MapPage() {
                             detent={trainDetent}
                             onDetentChange={setTrainDetent}
                             onClose={closeTrain}
+                            onFollow={followTrain}
                         />
                     ) : showStation && station ? (
                         <StationSheet
@@ -392,6 +439,21 @@ export default function MapPage() {
                                     <SearchTrigger
                                         onClick={() => setSearchOpen(true)}
                                     />
+                                    {follows.length > 0 ? (
+                                        <CommuteList
+                                            rows={commute}
+                                            onOpenTrain={openTrainFromList}
+                                            onEdit={editFollow}
+                                        />
+                                    ) : (
+                                        feed.kind === "ok" && (
+                                            <FollowHint
+                                                onClick={() =>
+                                                    setSearchOpen(true)
+                                                }
+                                            />
+                                        )
+                                    )}
                                     <FeedMessage state={feed} onRetry={retry} />
                                 </div>
                             }
@@ -406,6 +468,11 @@ export default function MapPage() {
                     )}
                 </>
             )}
+            <FollowEditor
+                target={followTarget}
+                onClose={() => setFollowTarget(null)}
+                isDesktop={isDesktop}
+            />
             <SettingsDialog
                 open={settingsOpen}
                 onOpenChange={setSettingsOpen}
