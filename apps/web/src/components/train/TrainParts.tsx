@@ -52,7 +52,9 @@ import { findFollow, useFollows } from "@/hooks/useFollows";
 import { useNow } from "@/hooks/useNow";
 import { trainShareData } from "@/lib/shareTrain";
 import {
+    arrivalIsEstimate,
     destinationOf,
+    isEstimate,
     runStops,
     type TrainAlert,
     type TrainReason,
@@ -184,29 +186,6 @@ function TimeText({
             {formatSecondsAsTime(seconds)}
         </span>
     );
-}
-
-/**
- * A stop's time is our estimate ("≈"): ahead and estimated, or ahead of a
- * train without live data. A departure from the first stop is the
- * timetable's (or MÁV's) time, and a passed stop's time is actual.
- */
-function isEstimate(stop: StopView, stale: boolean): boolean {
-    if (stop.passed) return false;
-    return stop.timing.estimated || (stale && stop.index > 0);
-}
-
-/**
- * The arrival time shown for a stop. Standing there, the train has arrived:
- * the arrival is actual (no "≈"), and only the departure is still ahead.
- */
-export function arrivalIsEstimate(
-    stop: StopView,
-    stale: boolean,
-    standingHere: boolean,
-): boolean {
-    if (standingHere && stop.index > 0) return false;
-    return isEstimate(stop, stale);
 }
 
 /**
