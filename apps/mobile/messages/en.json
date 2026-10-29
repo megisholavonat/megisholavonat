@@ -73,7 +73,8 @@
         "no_results": "No results",
         "plan": "Plan a journey",
         "late_now": "Running late",
-        "all_trains": "All trains"
+        "all_trains": "All trains",
+        "cancel": "Cancel"
     },
     "Settings": {
         "title": "Settings",

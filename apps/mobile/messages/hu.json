@@ -73,7 +73,8 @@
         "no_results": "Nincs találat",
         "plan": "Útvonaltervezés",
         "late_now": "Most késnek",
-        "all_trains": "Összes vonat"
+        "all_trains": "Összes vonat",
+        "cancel": "Mégse"
     },
     "Settings": {
         "title": "Beállítások",

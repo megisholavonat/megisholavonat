@@ -35,6 +35,7 @@ export const ICONS = {
     route: symbol("arrow.triangle.turn.up.right.diamond", "directions"),
     swap: symbol("arrow.up.arrow.down", "swap_vert"),
     walk: symbol("figure.walk", "directions_walk"),
+    list: symbol("list.bullet", "format_list_bulleted"),
     // Delay reasons, by the lucide names in core/delayReasons
     construction: symbol("hammer", "construction"),
     wrench: symbol("wrench.and.screwdriver", "build"),
