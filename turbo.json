@@ -19,6 +19,12 @@
         "test": {
             "dependsOn": ["^build"],
             "outputs": []
+        },
+        "e2e": {
+            "dependsOn": ["build"],
+            "env": ["CI", "E2E_*", "PLAYWRIGHT_*"],
+            "passThroughEnv": ["HOME"],
+            "cache": false
         }
     }
 }
