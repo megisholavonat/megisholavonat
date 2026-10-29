@@ -1,10 +1,10 @@
 import type { TrainFeatureProperties } from "@megisholavonat/api-client";
+import { trainDisplay } from "@megisholavonat/core/display";
 import type { ReactNode } from "react";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { RouteIcon } from "../train/RouteIcon";
 import { trainTitle } from "../train/trainData";
-import { trainDisplay } from "../train/trainState";
 import { DelayChip } from "../ui/ds";
 
 // Grouped rows of the search and train list screens.

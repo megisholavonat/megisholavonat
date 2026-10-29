@@ -8,6 +8,7 @@ import {
     getTrainStationHistoryOptions,
     getTrainsOptions,
 } from "@megisholavonat/api-client/react-query";
+import { trainDisplay } from "@megisholavonat/core/display";
 import { ticketUrl } from "@megisholavonat/core/ticket";
 import {
     formatSecondsAsTime,
@@ -51,12 +52,10 @@ import {
     stopRows,
     trainTitle,
 } from "./trainData";
-import { patchFeed, sheetInput, trainDisplay } from "./trainState";
+import { patchFeed } from "./trainState";
 
 const DETAILS_REFRESH_MS = 15_000;
 const HISTORY_STALE_MS = 6 * 3600_000;
-/** Ages and staleness are judged again this often */
-const CLOCK_MS = 15_000;
 
 /**
  * The train sheet body: header, delay at the next stop, actions, delay
@@ -76,7 +75,7 @@ export function TrainSheet({
     const tc = useTranslations("Common");
     const router = useRouter();
     const follows = useFollows();
-    const now = useNow(CLOCK_MS);
+    const now = useNow();
 
     // The map's feed is cached, so the header shows before the details load
     const { data: feature } = useQuery({
@@ -108,7 +107,7 @@ export function TrainSheet({
 
     // One state for the tile, the times and the rail, by the same rules as
     // the map marker
-    const input = sheetInput(details, feature, now);
+    const input = details ?? feature;
     const display = input ? trainDisplay(input, now) : null;
     const running = display?.state === "running";
     const stale = display?.state === "stale";
@@ -382,6 +381,8 @@ function DelayTile({
         switch (tile.caption?.kind) {
             case "on_time":
                 return tc("on_time");
+            case "early":
+                return t("early");
             case "departs":
                 return first
                     ? t("departs", {

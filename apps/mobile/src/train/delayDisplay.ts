@@ -1,5 +1,5 @@
 import { type DelayLevel, getDelayLevel } from "@megisholavonat/core/delay";
-import type { TrainActivity, TrainDisplay } from "./trainState";
+import type { TrainActivity, TrainDisplay } from "@megisholavonat/core/display";
 
 // What the delay tile, chips and reason lines show. Pure, unit tested.
 
@@ -13,6 +13,7 @@ export function signedDelay(delay: number): string {
 
 export type TileCaption =
     | { kind: "on_time" }
+    | { kind: "early" }
     | { kind: "departs" }
     | { kind: "arrived" }
     | { kind: "not_running" }
@@ -57,21 +58,27 @@ export function delayTile(display: TrainDisplay): DelayTileModel {
             caption: idleCaption(display.activity),
         };
     }
-    const text = signedDelay(display.delay);
+    const minutes = Math.round(display.delay);
+    const text = signedDelay(minutes);
     if (display.state === "stale") {
         return {
             text: `${text}?`,
-            delay: display.delay,
+            delay: minutes,
             level: "stale",
             caption: null,
         };
     }
-    const level = getDelayLevel(display.delay);
+    const level = getDelayLevel(minutes);
     return {
         text,
-        delay: display.delay,
+        delay: minutes,
         level,
-        caption: level === "onTime" ? { kind: "on_time" } : null,
+        caption:
+            level !== "onTime"
+                ? null
+                : minutes < 0
+                  ? { kind: "early" }
+                  : { kind: "on_time" },
     };
 }
 

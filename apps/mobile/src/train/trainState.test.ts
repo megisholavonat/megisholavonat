@@ -2,171 +2,18 @@ import type {
     TrainFeatureCollection,
     VehiclePositionWithDelay,
 } from "@megisholavonat/api-client";
+import { trainDisplay } from "@megisholavonat/core/display";
 import { describe, expect, it } from "vitest";
-import {
-    localActivity,
-    patchFeed,
-    sheetInput,
-    type TrainDisplayInput,
-    trainDisplay,
-} from "./trainState";
+import { patchFeed } from "./trainState";
 
 const now = new Date("2026-08-14T08:00:00Z");
 const ago = (s: number) => Math.floor(now.getTime() / 1000) - s;
-const H = 3600;
-
-describe("trainDisplay", () => {
-    it("shows a running train's live delay", () => {
-        expect(
-            trainDisplay({ delay: 23.4, lastUpdated: ago(30) }, now),
-        ).toEqual({
-            state: "running",
-            activity: null,
-            delay: 23,
-            level: "moderate",
-            outdated: false,
-            minutesSinceUpdate: 0,
-        });
-    });
-
-    it("keeps an old train's last delay, greyed", () => {
-        expect(
-            trainDisplay({ delay: 23, lastUpdated: ago(7 * 60) }, now),
-        ).toMatchObject({ state: "stale", delay: 23, level: "stale" });
-    });
-
-    it("treats the list's flag on fresh data as idle, without a delay", () => {
-        // A HÉV waiting at its terminus, updated 36 s ago
-        expect(
-            trainDisplay(
-                { delay: 109, lastUpdated: ago(36), isStale: true },
-                now,
-            ),
-        ).toMatchObject({ state: "idle", delay: null, level: "stale" });
-    });
-
-    it("lets an old flagged train be stale, not idle", () => {
-        expect(
-            trainDisplay(
-                { delay: 9, lastUpdated: ago(600), isStale: true },
-                now,
-            ).state,
-        ).toBe("stale");
-    });
-
-    it("follows an explicit activity", () => {
-        const base = { delay: 9, lastUpdated: ago(30), isStale: true };
-        expect(trainDisplay({ ...base, activity: "running" }, now).state).toBe(
-            "running",
-        );
-        expect(
-            trainDisplay({ ...base, activity: "arrived" }, now),
-        ).toMatchObject({ state: "idle", activity: "arrived" });
-        expect(
-            trainDisplay({ ...base, activity: "cancelled" }, now).state,
-        ).toBe("cancelled");
-    });
-});
-
-function details(
-    last: number | null,
-    next: number | null,
-    progress: number,
-): VehiclePositionWithDelay {
-    const stop = (name: string, t: number) => ({
-        scheduledArrival: t,
-        realtimeArrival: t,
-        scheduledDeparture: t,
-        realtimeDeparture: t,
-        stop: { name, lat: 47, lon: 19 },
-    });
-    return {
-        delay: 12,
-        lastUpdated: ago(20),
-        vehicleProgress: {
-            lastStop: "",
-            nextStop: "",
-            lastStopIndex: last,
-            nextStopIndex: next,
-            progress,
-        },
-        // 08:00 UTC is 10:00 in Budapest
-        trip: {
-            serviceDate: "2026-08-14",
-            stoptimes: [stop("A", 9 * H), stop("B", 11 * H), stop("C", 12 * H)],
-        },
-    } as unknown as VehiclePositionWithDelay;
-}
-
-const display = (input: TrainDisplayInput | null) => {
-    if (!input) throw new Error("no input");
-    return trainDisplay(input, now);
-};
-
-describe("localActivity", () => {
-    it("knows a train past its last stop has arrived", () => {
-        expect(localActivity(details(2, 2, 1), now)).toBe("arrived");
-    });
-
-    it("says nothing for a train under way", () => {
-        expect(localActivity(details(0, 1, 0.5), now)).toBeNull();
-    });
-
-    it("knows a train before its first departure", () => {
-        const early = new Date("2026-08-14T06:30:00Z");
-        expect(localActivity(details(0, 0, 0), early)).toBe("beforeDeparture");
-    });
-});
-
-describe("sheetInput", () => {
-    it("uses the details with the list's flag", () => {
-        const input = sheetInput(
-            details(2, 2, 1),
-            { delay: 12, lastUpdated: ago(40), isStale: true },
-            now,
-        );
-        expect(input).toMatchObject({ isStale: true, activity: "arrived" });
-        expect(display(input).state).toBe("idle");
-    });
-
-    it("ignores the details' guess when the list says the train is active", () => {
-        const input = sheetInput(
-            details(2, 2, 1),
-            { delay: 12, lastUpdated: ago(40), isStale: false },
-            now,
-        );
-        expect(input?.activity).toBeNull();
-        expect(display(input).state).toBe("running");
-    });
-
-    it("drops the list's flag once the list's own data is old", () => {
-        // The flag may only mean "no update"; fresher details win
-        const input = sheetInput(
-            details(0, 1, 0.5),
-            { delay: 12, lastUpdated: ago(900), isStale: true },
-            now,
-        );
-        expect(input?.isStale).toBe(false);
-        expect(display(input).state).toBe("running");
-    });
-
-    it("falls back to the list feature while details load", () => {
-        expect(
-            sheetInput(
-                undefined,
-                { delay: 5, lastUpdated: ago(10), isStale: true },
-                now,
-            ),
-        ).toEqual({ delay: 5, lastUpdated: ago(10), isStale: true });
-        expect(sheetInput(undefined, undefined, now)).toBeNull();
-    });
-});
 
 describe("patchFeed", () => {
     const feature = (
         vehicleId: string,
         lastUpdated: number,
-        isStale = false,
+        activity: string | null = "running",
     ) => ({
         type: "Feature",
         geometry: { type: "Point", coordinates: [19, 47] },
@@ -176,25 +23,24 @@ describe("patchFeed", () => {
             lon: 19,
             delay: 4,
             lastUpdated,
-            isStale,
+            activity,
         },
     });
     const feed = (...features: ReturnType<typeof feature>[]) =>
         ({ features }) as unknown as TrainFeatureCollection;
     const fresh = {
-        ...details(0, 1, 0.5),
         vehicleId: "1:1",
         lat: 47.5,
         lon: 19.5,
         delay: 23,
         lastUpdated: ago(5),
+        activity: "running",
     } as VehiclePositionWithDelay;
 
     it("brings the open train up to date from newer details", () => {
         const patched = patchFeed(
             feed(feature("1:1", ago(70)), feature("1:2", ago(70))),
             fresh,
-            now,
         );
         expect(patched?.features[0]?.properties).toMatchObject({
             delay: 23,
@@ -211,19 +57,17 @@ describe("patchFeed", () => {
 
     it("keeps the feed when its data is as new", () => {
         const current = feed(feature("1:1", ago(5)));
-        expect(patchFeed(current, fresh, now)).toBe(current);
+        expect(patchFeed(current, fresh)).toBe(current);
         const other = feed(feature("1:9", ago(70)));
-        expect(patchFeed(other, fresh, now)).toBe(other);
+        expect(patchFeed(other, fresh)).toBe(other);
     });
 
-    it("keeps the not-active flag only from fresh data", () => {
-        const waiting = patchFeed(
-            feed(feature("1:1", ago(70), true)),
-            fresh,
-            now,
-        );
-        expect(waiting?.features[0]?.properties.isStale).toBe(true);
-        const old = patchFeed(feed(feature("1:1", ago(900), true)), fresh, now);
-        expect(old?.features[0]?.properties.isStale).toBe(false);
+    it("makes the marker and the sheet agree", () => {
+        const arrived = { ...fresh, activity: "arrived" } as const;
+        const patched = patchFeed(feed(feature("1:1", ago(70))), arrived);
+        const marker = patched?.features[0]?.properties;
+        if (!marker) throw new Error("no feature");
+        expect(trainDisplay(marker, now)).toEqual(trainDisplay(arrived, now));
+        expect(trainDisplay(marker, now).state).toBe("idle");
     });
 });

@@ -2,13 +2,13 @@ import type {
     TrainFeatureCollection,
     TrainFeatureProperties,
 } from "@megisholavonat/api-client";
+import { trainDisplay } from "@megisholavonat/core/display";
 import { normalizeSearchText } from "@megisholavonat/core/search";
 import { staleness } from "@megisholavonat/core/stale";
 import {
     compareTrains,
     matchesTrainQuery,
 } from "@megisholavonat/core/trainSearch";
-import { trainDisplay } from "../train/trainState";
 
 // Pure search helpers (screen 3). Unit tested.
 

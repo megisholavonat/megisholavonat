@@ -44,6 +44,7 @@
         "share_text": "{train} · {url}",
         "departs": "indul {time}",
         "arrived": "megérkezett",
+        "early": "korán",
         "not_running": "áll",
         "cancelled": "törölve",
         "reason": "Késés oka: {reason}",

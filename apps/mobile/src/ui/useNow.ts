@@ -1,11 +1,27 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-/** The current time, updated every `intervalMs`, for ages and staleness. */
-export function useNow(intervalMs: number): Date {
-    const [now, setNow] = useState(() => new Date());
+/** How often train states are judged again against the clock. */
+const TICK_MS = 15_000;
+
+const tickOf = (ms: number) => Math.floor(ms / TICK_MS) * TICK_MS;
+
+/**
+ * The current time in whole TICK_MS steps of the wall clock. Every caller
+ * sees the same value at the same moment, so the map markers, the sheets
+ * and the rows judge staleness against one clock (as on the web).
+ */
+export function useNow(): Date {
+    const [now, setNow] = useState(() => tickOf(Date.now()));
     useEffect(() => {
-        const timer = setInterval(() => setNow(new Date()), intervalMs);
-        return () => clearInterval(timer);
-    }, [intervalMs]);
-    return now;
+        let timer: ReturnType<typeof setTimeout>;
+        const schedule = () => {
+            const wall = Date.now();
+            setNow(tickOf(wall));
+            timer = setTimeout(schedule, tickOf(wall) + TICK_MS - wall + 5);
+        };
+        schedule();
+        return () => clearTimeout(timer);
+    }, []);
+    // A new Date per tick only, so memoised work can key on it
+    return useMemo(() => new Date(now), [now]);
 }

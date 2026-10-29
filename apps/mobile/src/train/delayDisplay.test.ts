@@ -1,6 +1,9 @@
+import {
+    type TrainDisplayInput,
+    trainDisplay,
+} from "@megisholavonat/core/display";
 import { describe, expect, it } from "vitest";
 import { delayTile, reasonTone, signedDelay } from "./delayDisplay";
-import { type TrainDisplayInput, trainDisplay } from "./trainState";
 
 const now = new Date("2026-08-14T08:00:00Z");
 const ago = (s: number) => now.getTime() / 1000 - s;
@@ -29,8 +32,12 @@ describe("delayTile", () => {
         expect(tile(0).text).toBe("0");
         expect(tile(-2)).toMatchObject({
             text: "−2",
-            caption: { kind: "on_time" },
+            caption: { kind: "early" },
         });
+    });
+
+    it("rounds the API's fractional minutes", () => {
+        expect(tile(22.6)).toMatchObject({ text: "+23", delay: 23 });
     });
 
     it("shows late trains by level without a caption", () => {

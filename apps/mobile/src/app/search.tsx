@@ -102,7 +102,7 @@ export default function SearchScreen() {
     const th = useTranslations("Home");
     const [query, setQuery] = useState("");
     const debounced = useDebounced(query.trim(), DEBOUNCE_MS);
-    const now = useNow(30_000);
+    const now = useNow();
 
     const stations = useQuery({
         ...searchStationsOptions({ query: { q: debounced, limit: 8 } }),

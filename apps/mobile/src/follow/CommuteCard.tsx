@@ -2,6 +2,7 @@ import {
     getStationPlatformsOptions,
     getTrainStationHistoryOptions,
 } from "@megisholavonat/api-client/react-query";
+import { trainDisplay } from "@megisholavonat/core/display";
 import { useQuery } from "@tanstack/react-query";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useFormatter, useTranslations } from "use-intl";
@@ -15,7 +16,6 @@ import {
     mainAlert,
     predictedPlatform,
 } from "../train/trainData";
-import { localActivity, trainDisplay } from "../train/trainState";
 import { DelayChip, PlatformBadge } from "../ui/ds";
 import { Icon } from "../ui/Icon";
 import type { LiveFollow } from "./live";
@@ -99,7 +99,7 @@ function CommuteRow({
                       ? live.details.delay
                       : live.board.delay,
               lastUpdated: live.details.lastUpdated,
-              activity: localActivity(live.details),
+              activity: live.details.activity,
           })
         : null;
     const delay = display?.delay ?? null;

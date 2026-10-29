@@ -22,7 +22,7 @@ export default function TrainsScreen() {
     const theme = useAppTheme();
     const t = useTranslations("Trains");
     const [sort, setSort] = useState<BrowseSort>("delay");
-    const now = useNow(30_000);
+    const now = useNow();
     const { data: feed, dataUpdatedAt } = useQuery({
         ...getTrainsOptions(),
         refetchInterval: POLL_INTERVAL_MS,

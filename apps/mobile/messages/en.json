@@ -44,6 +44,7 @@
         "share_text": "{train} · {url}",
         "departs": "departs {time}",
         "arrived": "arrived",
+        "early": "early",
         "not_running": "standing",
         "cancelled": "cancelled",
         "reason": "Delayed by: {reason}",
