@@ -2,16 +2,13 @@ import type {
     CircleLayerSpecification,
     LngLatBounds,
     RasterLayerSpecification,
+    SymbolLayerSpecification,
 } from "@maplibre/maplibre-react-native";
-import {
-    ORANGE_THRESHOLD,
-    RED_THRESHOLD,
-    YELLOW_THRESHOLD,
-} from "@megisholavonat/core/constants";
-import { DELAY_COLORS, NO_DATA_COLOR } from "@megisholavonat/core/delay";
+import { MARKER } from "@megisholavonat/core/tokens";
 
-// Kept in sync with apps/web/src/app/[locale]/MapComponent.tsx and
-// apps/web/src/util/mapConfigs.ts so both clients render the same map.
+// Base map and railway overlay kept in sync with
+// apps/web/src/app/[locale]/MapComponent.tsx and apps/web/src/util/mapConfigs.ts
+// so both clients render the same map.
 
 export type ColorScheme = "light" | "dark";
 
@@ -42,34 +39,106 @@ export function railwayPaint(
     return { "raster-opacity": scheme === "dark" ? 0.6 : 0.8 };
 }
 
-export const TRAIN_CIRCLE_PAINT = {
-    "circle-radius": 8,
-    "circle-color": [
-        "case",
-        ["==", ["get", "isStale"], true],
-        NO_DATA_COLOR,
-        [
-            "step",
-            ["coalesce", ["get", "delay"], 0],
-            DELAY_COLORS.onTime,
-            YELLOW_THRESHOLD,
-            DELAY_COLORS.slight,
-            ORANGE_THRESHOLD,
-            DELAY_COLORS.moderate,
-            RED_THRESHOLD,
-            DELAY_COLORS.severe,
-        ],
-    ],
-    "circle-stroke-width": 2.5,
-    "circle-stroke-color": [
-        "case",
-        ["==", ["get", "type"], "tramtrain"],
-        "#f9a825",
-        ["==", ["get", "type"], "hev"],
-        "#009860",
-        "#2f4550",
-    ],
-} satisfies CircleLayerSpecification["paint"];
+// Marker layers read the paint values resolved per feature in markers.ts.
+
+/** Zoom where dots turn into labelled markers. */
+export const LABEL_MIN_ZOOM = MARKER.labelMinZoom;
+
+type Expression = CircleLayerSpecification["paint"] extends infer P
+    ? P extends { "circle-radius"?: infer R }
+        ? R
+        : never
+    : never;
+
+function radius(extra = 0): Expression {
+    return [
+        "step",
+        ["zoom"],
+        ["+", ["get", "dotRadius"], extra],
+        LABEL_MIN_ZOOM,
+        ["+", ["get", "pillRadius"], extra],
+    ] as Expression;
+}
+
+/** Others fade while a train is selected. */
+function selectionOpacity(selectedId: string | null): Expression {
+    return selectedId
+        ? ([
+              "case",
+              ["==", ["get", "vehicleId"], selectedId],
+              1,
+              MARKER.selected.othersOpacity,
+          ] as Expression)
+        : 1;
+}
+
+export function markerPaint(
+    selectedId: string | null,
+): CircleLayerSpecification["paint"] {
+    const opacity = selectionOpacity(selectedId);
+    return {
+        "circle-radius": radius(),
+        "circle-color": ["get", "fill"],
+        "circle-stroke-color": ["get", "stroke"],
+        "circle-stroke-width": ["get", "strokeWidth"],
+        "circle-opacity": opacity,
+        "circle-stroke-opacity": opacity,
+    };
+}
+
+/** Soft ink halo outside the white ring (light-mode blue and red). */
+export function haloPaint(
+    selectedId: string | null,
+): CircleLayerSpecification["paint"] {
+    return {
+        // Outline (1.5) + 1 px of halo beyond the fill
+        "circle-radius": radius(2.5),
+        "circle-color": ["get", "halo"],
+        "circle-opacity": selectionOpacity(selectedId),
+    };
+}
+
+export const HALO_FILTER: CircleLayerSpecification["filter"] = [
+    "!=",
+    ["get", "halo"],
+    "",
+];
+
+/** Ink ring around the selected marker, `gap` px off its outline. */
+export function selectedRingPaint(
+    ink: string,
+): CircleLayerSpecification["paint"] {
+    const { gap, ringWidth } = MARKER.selected;
+    return {
+        "circle-radius": radius(MARKER.outlineWidth + gap),
+        "circle-color": "rgba(0,0,0,0)",
+        "circle-stroke-color": ink,
+        "circle-stroke-width": ringWidth,
+    };
+}
+
+export const MARKER_LAYOUT: CircleLayerSpecification["layout"] = {
+    "circle-sort-key": ["get", "sort"],
+};
+
+export const LABEL_LAYOUT: SymbolLayerSpecification["layout"] = {
+    "text-field": ["get", "label"],
+    "text-size": ["get", "fontSize"],
+    // OpenFreeMap's glyph server has this stack for both styles
+    "text-font": ["Noto Sans Bold"],
+    "text-allow-overlap": true,
+    "text-ignore-placement": true,
+    "symbol-sort-key": ["get", "sort"],
+};
+
+export function labelPaint(
+    selectedId: string | null,
+): SymbolLayerSpecification["paint"] {
+    return {
+        "text-color": ["get", "labelColor"],
+        "text-opacity": selectionOpacity(selectedId),
+    };
+}
 
 /** Hungary, as on the web. */
 export const INITIAL_VIEW = {

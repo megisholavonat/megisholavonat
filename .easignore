@@ -1,0 +1,61 @@
+# EAS reads only this file when it exists (no .gitignore files), so it mirrors them.
+# It also stops EAS from walking ./data, which the Postgres container owns.
+
+# Root
+node_modules/
+.turbo/
+/data
+.claude/
+apps/web/AGENTS.md
+.env
+.env*
+!.env.example
+
+# Secrets and signing material
+*.jks
+*.keystore
+*.p8
+*.p12
+*.key
+*.pem
+*.mobileprovision
+credentials.json
+
+# API
+apps/api/**/__pycache__/
+apps/api/**/*.py[oc]
+apps/api/build/
+apps/api/dist/
+apps/api/wheels/
+apps/api/*.egg-info
+apps/api/.venv
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# Mobile
+apps/mobile/.expo/
+apps/mobile/dist/
+apps/mobile/web-build/
+apps/mobile/expo-env.d.ts
+apps/mobile/ios/
+apps/mobile/android/
+apps/mobile/.kotlin/
+apps/mobile/google-services.json
+apps/mobile/GoogleService-Info.plist
+apps/mobile/.metro-health-check*
+apps/mobile/**/*.orig.*
+*.tsbuildinfo
+
+# Web
+apps/web/.next/
+apps/web/out/
+apps/web/build/
+apps/web/coverage/
+apps/web/.vercel
+apps/web/next-env.d.ts
+.DS_Store
+*.log
+
+# Packages
+packages/api-client/dist/

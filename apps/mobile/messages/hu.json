@@ -1,20 +1,74 @@
 {
+    "Common": {
+        "close": "Bezárás",
+        "done": "Kész",
+        "retry": "Újra",
+        "on_time": "pontos",
+        "delay_short": "+{delay}",
+        "delay_a11y": "{delay} perc késés",
+        "stale_minutes": "{minutes}′",
+        "platform": "{platform}. vágány",
+        "platform_predicted": "valószínűleg {platform}. vágány"
+    },
     "Home": {
-        "app_title": "Mégis hol a vonat?",
-        "loading_map": "Térkép betöltése..."
+        "search_placeholder": "Vonat vagy állomás",
+        "settings": "Beállítások",
+        "my_location": "Helyzetem",
+        "map_data": "Térképadatok: © OpenStreetMap közreműködők",
+        "map_data_short": "© OSM",
+        "no_trains": "Most nem jár vonat",
+        "source_down": "A MÁV-adat nem érkezik",
+        "source_down_since": "{time} óta",
+        "offline": "Nem érjük el a szervert",
+        "stale_banner": "{minutes} perce nincs friss adat"
     },
-    "TrainPanel": {
-        "delay": "Késés",
-        "delay_minutes": "{delay} perc",
-        "next_stop": "Következő megálló"
+    "Consent": {
+        "question": "Névtelen statisztika?",
+        "accept": "Elfogadom",
+        "decline": "Elutasítom",
+        "details": "Részletek"
     },
-    "DelayLegend": {
-        "labels": {
-            "on_time": "Időben",
-            "no_data": "Nincs adat"
-        }
+    "Train": {
+        "share": "Megosztás",
+        "ticket": "Jegy",
+        "scheduled": "menetrend szerint {time}",
+        "expected": "várhatóan {time}",
+        "speed": "{speed} km/h",
+        "usually_late": "Általában késik",
+        "stale": "{minutes} perce nincs friss adat",
+        "not_found": "Ez a vonat már nem látszik a térképen",
+        "passed": "elhaladt",
+        "share_text": "{train} · {url}"
     },
-    "NoDataDialog": {
-        "title": "Nincsenek elérhető adatok"
+    "Station": {
+        "departures": "Indulás",
+        "arrivals": "Érkezés",
+        "from": "{name} felől",
+        "empty": "Most nincs több vonat",
+        "error": "A tábla most nem tölthető be",
+        "canceled": "Törölve"
+    },
+    "Search": {
+        "title": "Keresés",
+        "stations": "Állomások",
+        "trains": "Vonatok",
+        "no_results": "Nincs találat"
+    },
+    "Settings": {
+        "title": "Beállítások",
+        "language": "Nyelv",
+        "system": "Rendszer",
+        "theme": "Téma",
+        "theme_light": "Világos",
+        "theme_dark": "Sötét",
+        "dynamic_color": "Dinamikus színek",
+        "map": "Térkép",
+        "railways": "Vasútvonalak",
+        "analytics": "Névtelen statisztika",
+        "map_data": "Térképadatok",
+        "map_data_value": "© OpenStreetMap",
+        "railway_data_value": "© OpenRailwayMap",
+        "railway_data": "Vasúti réteg",
+        "source": "GitHub"
     }
 }

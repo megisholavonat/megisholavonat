@@ -1,20 +1,74 @@
 {
+    "Common": {
+        "close": "Close",
+        "done": "Done",
+        "retry": "Retry",
+        "on_time": "on time",
+        "delay_short": "+{delay}",
+        "delay_a11y": "{delay, plural, =1 {# minute} other {# minutes}} late",
+        "stale_minutes": "{minutes}′",
+        "platform": "platform {platform}",
+        "platform_predicted": "probably platform {platform}"
+    },
     "Home": {
-        "app_title": "Mégis hol a vonat?",
-        "loading_map": "Loading map..."
+        "search_placeholder": "Train or station",
+        "settings": "Settings",
+        "my_location": "My location",
+        "map_data": "Map data: © OpenStreetMap contributors",
+        "map_data_short": "© OSM",
+        "no_trains": "No trains running now",
+        "source_down": "MÁV data isn't coming in",
+        "source_down_since": "Since {time}",
+        "offline": "Can't reach the server",
+        "stale_banner": "No fresh data for {minutes} min"
     },
-    "TrainPanel": {
-        "delay": "Delay",
-        "delay_minutes": "{delay, plural, =1 {# minute} other {# minutes}}",
-        "next_stop": "Next stop"
+    "Consent": {
+        "question": "Share anonymous statistics?",
+        "accept": "Accept",
+        "decline": "Decline",
+        "details": "Details"
     },
-    "DelayLegend": {
-        "labels": {
-            "on_time": "On time",
-            "no_data": "No data"
-        }
+    "Train": {
+        "share": "Share",
+        "ticket": "Ticket",
+        "scheduled": "scheduled {time}",
+        "expected": "expected {time}",
+        "speed": "{speed} km/h",
+        "usually_late": "Usually runs late",
+        "stale": "No fresh data for {minutes} min",
+        "not_found": "This train is no longer on the map",
+        "passed": "passed",
+        "share_text": "{train} · {url}"
     },
-    "NoDataDialog": {
-        "title": "No data available"
+    "Station": {
+        "departures": "Departures",
+        "arrivals": "Arrivals",
+        "from": "from {name}",
+        "empty": "No more trains for now",
+        "error": "The board can't be loaded right now",
+        "canceled": "Cancelled"
+    },
+    "Search": {
+        "title": "Search",
+        "stations": "Stations",
+        "trains": "Trains",
+        "no_results": "No results"
+    },
+    "Settings": {
+        "title": "Settings",
+        "language": "Language",
+        "system": "System",
+        "theme": "Appearance",
+        "theme_light": "Light",
+        "theme_dark": "Dark",
+        "dynamic_color": "Dynamic colours",
+        "map": "Map",
+        "railways": "Railway lines",
+        "analytics": "Anonymous statistics",
+        "map_data": "Map data",
+        "map_data_value": "© OpenStreetMap",
+        "railway_data_value": "© OpenRailwayMap",
+        "railway_data": "Railway layer",
+        "source": "GitHub"
     }
 }
