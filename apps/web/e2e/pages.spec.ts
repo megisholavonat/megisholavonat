@@ -10,7 +10,7 @@ import {
 } from "./support/test";
 
 // The station and train pages render on the server, from the fixture API
-// (support/fixture-api.mjs). Links are absolute on the production origin.
+// (support/stub-api.mjs). Links are absolute on the production origin.
 const SITE = "https://megisholavonat.info";
 
 /** `<link rel=…>` tags of a page's HTML, as rel/hreflang -> href */
@@ -161,4 +161,28 @@ test("SEO-7: the train sheet's punctuality row opens the train's page", async ({
     await expect(page.getByRole("heading", { level: 1 })).toContainText(
         "RUTHENIA",
     );
+});
+
+test("SEO-8: the station page's lists read in order, late rows at their expected time", async ({
+    page,
+}) => {
+    await page.goto("/hu/allomas/szolnok");
+    const list = (name: string) =>
+        page.locator("section").filter({
+            has: page.getByRole("heading", { level: 2, name, exact: true }),
+        });
+    for (const name of [t.Pages.departures, t.Pages.arrivals]) {
+        const times = await list(name)
+            .locator("li > span:first-child > span:first-child")
+            .allTextContents();
+        expect(times.length).toBeGreaterThan(3);
+        expect([...times].sort()).toEqual(times);
+    }
+    // Train 7 arrives 40 minutes late: shown at the expected 04:37, its
+    // scheduled 03:57 struck through, as on the map's board
+    const late = list(t.Pages.arrivals)
+        .locator("li")
+        .filter({ hasText: /\b7\b/ })
+        .filter({ hasText: "04:37" });
+    await expect(late.locator("s")).toContainText("03:57");
 });

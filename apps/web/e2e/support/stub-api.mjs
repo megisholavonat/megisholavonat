@@ -1,12 +1,17 @@
-// The API for the server side of the e2e app (`API_URL`): the station and
-// train pages render from the same JSON fixtures the browser mocks use.
-// Usage: node fixture-api.mjs <port>
+// The API as the Next server sees it in e2e (API_URL): the station and train
+// pages and the sitemap from the same JSON fixtures the browser mocks use,
+// run summaries from fixtures/runs for the delay card pages, 404 for unknown
+// stations, trains and runs, and 503 for everything else, so other
+// server-side lookups fall back as without an API.
 
 import { readdirSync, readFileSync } from "node:fs";
+import { readFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { join } from "node:path";
 
+const PORT = Number(process.env.STUB_API_PORT ?? 3211);
 const FIXTURES = join(import.meta.dirname, "..", "fixtures");
+const RUNS = join(FIXTURES, "runs");
 const fixture = (name) =>
     JSON.parse(readFileSync(join(FIXTURES, name), "utf8"));
 
@@ -109,16 +114,35 @@ function route(url) {
     if (path === "/v1/alerts" || path === "/v1/alerts/disruptions") {
         return [200, []];
     }
-    return [404, { detail: "Not in the e2e fixtures" }];
+    return null;
 }
 
-const port = Number(process.argv[2] ?? 3211);
-createServer((request, response) => {
-    if (request.url === "/") {
+createServer(async (request, response) => {
+    const url = new URL(request.url ?? "/", "http://stub");
+    if (url.pathname === "/") {
         response.writeHead(200).end("ok");
         return;
     }
-    const [status, body] = route(new URL(request.url ?? "/", "http://api"));
+    const run = url.pathname.match(
+        /^\/v1\/history\/runs\/([0-9A-Za-z]+)\/(\d{4}-\d{2}-\d{2})$/,
+    );
+    if (run) {
+        try {
+            const body = await readFile(join(RUNS, `${run[1]}-${run[2]}.json`));
+            response.writeHead(200, { "content-type": "application/json" });
+            response.end(body);
+        } catch {
+            response.writeHead(404, { "content-type": "application/json" });
+            response.end(JSON.stringify({ detail: "Run not found" }));
+        }
+        return;
+    }
+    const answer = route(url);
+    if (!answer) {
+        response.writeHead(503).end();
+        return;
+    }
+    const [status, body] = answer;
     response.writeHead(status, { "content-type": "application/json" });
     response.end(JSON.stringify(body));
-}).listen(port, "127.0.0.1");
+}).listen(PORT, "127.0.0.1");
