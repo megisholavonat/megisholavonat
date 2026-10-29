@@ -148,7 +148,8 @@
         "slight": "5+",
         "moderate": "15+",
         "severe": "60+",
-        "stale": "no data · standing",
+        "stale": "min since fresh data",
+        "inactive": "no live delay",
         "title": "Delay",
         "minutes": "min"
     },
