@@ -467,6 +467,8 @@ export interface RailLayerOptions {
     dim: boolean;
     /** Fade length (ms) of the focus change; 0 with reduced motion */
     fadeMs?: number;
+    /** Station names' opacity (a user setting) */
+    labelOpacity?: number;
 }
 
 function transition(fadeMs: number) {
@@ -557,6 +559,7 @@ export function stationLayers({
     scheme,
     dim,
     fadeMs = MAP_FOCUS.fadeMs,
+    labelOpacity = 1,
 }: RailLayerOptions): {
     dots: LayerSpecification[];
     labels: LayerSpecification[];
@@ -620,7 +623,7 @@ export function stationLayers({
                 "text-color": p.stationLabel,
                 "text-halo-color": p.halo,
                 "text-halo-width": MAP_STATIONS.haloWidth,
-                "text-opacity": dim ? 0 : 1,
+                "text-opacity": dim ? 0 : labelOpacity,
                 "text-opacity-transition": fade,
             },
         });
