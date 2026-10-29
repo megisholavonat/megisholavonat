@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateFollowData, CreateFollowErrors, CreateFollowResponses, DeleteDeviceData, DeleteDeviceErrors, DeleteDeviceResponses, DeleteFollowData, DeleteFollowErrors, DeleteFollowResponses, DeletePushTokenData, DeletePushTokenErrors, DeletePushTokenResponses, GetAlertsData, GetAlertsErrors, GetAlertsResponses, GetDeviceData, GetDeviceErrors, GetDeviceResponses, GetDisruptionsData, GetDisruptionsErrors, GetDisruptionsResponses, GetPosthogKeyData, GetPosthogKeyResponses, GetRankingsData, GetRankingsErrors, GetRankingsResponses, GetRedisStatusData, GetRedisStatusResponses, GetStationBoardData, GetStationBoardErrors, GetStationBoardResponses, GetStationPlatformsData, GetStationPlatformsErrors, GetStationPlatformsResponses, GetTimeOfDayPunctualityData, GetTimeOfDayPunctualityErrors, GetTimeOfDayPunctualityResponses, GetTrainDetailsData, GetTrainDetailsErrors, GetTrainDetailsResponses, GetTrainHistoryData, GetTrainHistoryErrors, GetTrainHistoryResponses, GetTrainsData, GetTrainsResponses, GetTrainStationHistoryData, GetTrainStationHistoryErrors, GetTrainStationHistoryResponses, ListFollowsData, ListFollowsErrors, ListFollowsResponses, PlanJourneysData, PlanJourneysErrors, PlanJourneysResponses, RegisterDeviceData, RegisterDeviceErrors, RegisterDeviceResponses, RegisterPushTokenData, RegisterPushTokenErrors, RegisterPushTokenResponses, RootData, RootResponses, RotateDeviceTokenData, RotateDeviceTokenErrors, RotateDeviceTokenResponses, SearchStationsData, SearchStationsErrors, SearchStationsResponses, UpdateFollowData, UpdateFollowErrors, UpdateFollowResponses } from './types.gen';
+import type { CreateFollowData, CreateFollowErrors, CreateFollowResponses, DeleteDeviceData, DeleteDeviceErrors, DeleteDeviceResponses, DeleteFollowData, DeleteFollowErrors, DeleteFollowResponses, DeletePushTokenData, DeletePushTokenErrors, DeletePushTokenResponses, GetAlertsData, GetAlertsErrors, GetAlertsResponses, GetDeviceData, GetDeviceErrors, GetDeviceResponses, GetDisruptionsData, GetDisruptionsErrors, GetDisruptionsResponses, GetMapNetworkData, GetMapNetworkErrors, GetMapNetworkResponses, GetMapStationsData, GetMapStationsErrors, GetMapStationsResponses, GetPosthogKeyData, GetPosthogKeyResponses, GetRankingsData, GetRankingsErrors, GetRankingsResponses, GetRedisStatusData, GetRedisStatusResponses, GetStationBoardData, GetStationBoardErrors, GetStationBoardResponses, GetStationPlatformsData, GetStationPlatformsErrors, GetStationPlatformsResponses, GetTimeOfDayPunctualityData, GetTimeOfDayPunctualityErrors, GetTimeOfDayPunctualityResponses, GetTrainDetailsData, GetTrainDetailsErrors, GetTrainDetailsResponses, GetTrainHistoryData, GetTrainHistoryErrors, GetTrainHistoryResponses, GetTrainsData, GetTrainsResponses, GetTrainStationHistoryData, GetTrainStationHistoryErrors, GetTrainStationHistoryResponses, ListFollowsData, ListFollowsErrors, ListFollowsResponses, PlanJourneysData, PlanJourneysErrors, PlanJourneysResponses, RegisterDeviceData, RegisterDeviceErrors, RegisterDeviceResponses, RegisterPushTokenData, RegisterPushTokenErrors, RegisterPushTokenResponses, RootData, RootResponses, RotateDeviceTokenData, RotateDeviceTokenErrors, RotateDeviceTokenResponses, SearchStationsData, SearchStationsErrors, SearchStationsResponses, UpdateFollowData, UpdateFollowErrors, UpdateFollowResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -319,5 +319,28 @@ export const getRankings = <ThrowOnError extends boolean = false>(options?: Opti
 export const getTimeOfDayPunctuality = <ThrowOnError extends boolean = false>(options?: Options<GetTimeOfDayPunctualityData, ThrowOnError>) => (options?.client ?? client).get<GetTimeOfDayPunctualityResponses, GetTimeOfDayPunctualityErrors, ThrowOnError>({
     responseType: 'json',
     url: '/v1/rankings/time-of-day',
+    ...options
+});
+
+/**
+ * Get Map Network
+ *
+ * The passenger rail network of the day as GeoJSON lines, each with the
+ * number of trains running on it (both directions)
+ */
+export const getMapNetwork = <ThrowOnError extends boolean = false>(options?: Options<GetMapNetworkData, ThrowOnError>) => (options?.client ?? client).get<GetMapNetworkResponses, GetMapNetworkErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/v1/map/network',
+    ...options
+});
+
+/**
+ * Get Map Stations
+ *
+ * Rail stations as GeoJSON points, ranked by trains per day
+ */
+export const getMapStations = <ThrowOnError extends boolean = false>(options?: Options<GetMapStationsData, ThrowOnError>) => (options?.client ?? client).get<GetMapStationsResponses, GetMapStationsErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/v1/map/stations',
     ...options
 });
