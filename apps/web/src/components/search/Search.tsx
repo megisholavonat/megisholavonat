@@ -5,13 +5,7 @@ import type {
     TrainFeatureCollection,
     TrainFeatureProperties,
 } from "@megisholavonat/api-client";
-import {
-    ArrowRight,
-    ChevronLeft,
-    Search as SearchIcon,
-    Signpost,
-    X,
-} from "lucide-react";
+import { ArrowRight, Search as SearchIcon, Signpost, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import {
     forwardRef,
@@ -126,22 +120,10 @@ export const SearchField = forwardRef<
     );
 });
 
-/** Looks like the search field; opens the search screen on phones. */
-export function SearchTrigger({ onClick }: { onClick: () => void }) {
-    const t = useTranslations("Search");
-    return (
-        <button
-            type="button"
-            onClick={onClick}
-            className="flex h-11 w-full cursor-text items-center gap-2.5 rounded-full bg-surface-2 px-4 text-left text-body text-ink-2"
-        >
-            <SearchIcon className="size-4.5 shrink-0" aria-hidden />
-            {t("placeholder")}
-        </button>
-    );
-}
+export type SearchBox = ReturnType<typeof useSearchState>;
 
-function useSearchState(
+/** Query, results and keyboard navigation of one search field. */
+export function useSearchState(
     trains: TrainFeatureCollection | undefined,
     handlers: SearchHandlers,
 ) {
@@ -223,7 +205,7 @@ function ResultRow({
         <button {...common}>
             <RouteGlyph
                 routeShortName={train.routeShortName}
-                className="w-5 text-center text-lg"
+                className="min-w-5 text-center text-lg"
             />
             <span className="flex min-w-0 flex-1 items-center gap-1.5 text-body">
                 <span className="tnum">
@@ -293,20 +275,68 @@ function useQuickStations(): Station[] {
     return recent.length > 0 ? recent.slice(0, 3) : DEFAULT_STATIONS;
 }
 
-/** Desktop: the search block inside the home card. */
+/** Station chips under an empty desktop field. */
+function QuickChips({
+    stations,
+    onSelect,
+}: {
+    stations: Station[];
+    onSelect: (station: Station) => void;
+}) {
+    return (
+        <div className="flex flex-wrap gap-2 border-t border-line px-4 py-3">
+            {stations.map((station) => (
+                <button
+                    key={station.id}
+                    type="button"
+                    onClick={() => onSelect(station)}
+                    className="h-8 cursor-pointer rounded-full bg-surface-2 px-3 text-sm font-semibold text-ink transition-colors hover:bg-line"
+                >
+                    {station.name}
+                </button>
+            ))}
+        </div>
+    );
+}
+
+/**
+ * Desktop search. In the home card it shows the followed trains and quick
+ * stations under the field; `compact` is the floating field beside an open
+ * panel, which only drops its list down while focused.
+ */
 export function DesktopSearch({
     trains,
     handlers,
     home,
+    compact = false,
+    trailing,
 }: {
     trains: TrainFeatureCollection | undefined;
     handlers: SearchHandlers;
     /** Shown under the field while it is empty (the followed trains) */
     home?: React.ReactNode;
+    compact?: boolean;
+    /** Beside the field (compact) */
+    trailing?: React.ReactNode;
 }) {
-    const state = useSearchState(trains, handlers);
     const inputRef = useRef<HTMLInputElement>(null);
+    const rootRef = useRef<HTMLDivElement>(null);
     const quick = useQuickStations();
+    const [focused, setFocused] = useState(false);
+    const done = () => {
+        setFocused(false);
+        inputRef.current?.blur();
+    };
+    const state = useSearchState(trains, {
+        onSelectStation: (s) => {
+            done();
+            handlers.onSelectStation(s);
+        },
+        onSelectTrain: (train) => {
+            done();
+            handlers.onSelectTrain(train);
+        },
+    });
 
     // "/" focuses the search, like on most map sites
     useEffect(() => {
@@ -327,132 +357,162 @@ export function DesktopSearch({
         return () => window.removeEventListener("keydown", onKey);
     }, []);
 
+    // The compact list closes when focus leaves the card
+    useEffect(() => {
+        if (!compact || !focused) return;
+        const onDown = (e: PointerEvent) => {
+            if (!rootRef.current?.contains(e.target as Node)) setFocused(false);
+        };
+        window.addEventListener("pointerdown", onDown);
+        return () => window.removeEventListener("pointerdown", onDown);
+    }, [compact, focused]);
+
+    const hasQuery = !!state.query.trim();
+    const showList = !compact || focused || hasQuery;
+
     return (
-        <div className="flex flex-col">
-            <div className="px-4 pb-3">
+        <div ref={rootRef} className="flex flex-col">
+            <div
+                className={cn(
+                    "flex items-center gap-1",
+                    compact ? "p-1.5" : "px-4 pb-3",
+                )}
+            >
                 <SearchField
                     ref={inputRef}
                     value={state.query}
                     onChange={state.setQuery}
+                    onFocus={() => setFocused(true)}
                     onKeyDown={(e) => {
                         if (e.key === "Escape") {
+                            e.stopPropagation();
                             state.setQuery("");
-                            inputRef.current?.blur();
+                            done();
                         }
                         state.onKeyDown(e);
                     }}
-                    shortcut="/"
+                    shortcut={compact ? undefined : "/"}
+                    className="flex-1"
                     activeId={
                         state.items.length
                             ? `search-item-${state.active}`
                             : undefined
                     }
                 />
+                {trailing}
             </div>
-            {state.query.trim() ? (
-                <div className="max-h-[60vh] overflow-y-auto border-t border-line py-1">
-                    <Results state={state} />
-                </div>
-            ) : (
-                <>
-                    {home}
-                    <div className="flex flex-wrap gap-2 border-t border-line px-4 py-3">
-                        {quick.map((station) => (
-                            <button
-                                key={station.id}
-                                type="button"
-                                onClick={() =>
-                                    handlers.onSelectStation(station)
-                                }
-                                className="h-8 cursor-pointer rounded-full bg-surface-2 px-3 text-sm font-semibold text-ink hover:bg-line"
-                            >
-                                {station.name}
-                            </button>
-                        ))}
+            {showList &&
+                (hasQuery ? (
+                    <div className="max-h-[60vh] overflow-y-auto border-t border-line py-1">
+                        <Results state={state} />
                     </div>
-                </>
+                ) : (
+                    <>
+                        {!compact && home}
+                        <QuickChips
+                            stations={quick}
+                            onSelect={(s) =>
+                                state.select({ kind: "station", station: s })
+                            }
+                        />
+                    </>
+                ))}
+        </div>
+    );
+}
+
+/**
+ * Phones: the search field in the home sheet. It is a real field from the
+ * start, so a tap raises the keyboard at once; focusing it opens the sheet
+ * into its search state, and Cancel, Esc or a drag down closes it.
+ */
+export function SheetSearchHeader({
+    state,
+    open,
+    onOpen,
+    onCancel,
+    inputRef,
+    trailing,
+}: {
+    state: SearchBox;
+    open: boolean;
+    onOpen: () => void;
+    onCancel: () => void;
+    inputRef: React.RefObject<HTMLInputElement | null>;
+    /** Beside the field while the sheet is closed (the planner button) */
+    trailing?: React.ReactNode;
+}) {
+    const t = useTranslations("Search");
+    return (
+        <div className="flex items-center gap-2">
+            <SearchField
+                ref={inputRef}
+                value={state.query}
+                onChange={(value) => {
+                    if (!open) onOpen();
+                    state.setQuery(value);
+                }}
+                onFocus={onOpen}
+                onKeyDown={(e) => {
+                    if (e.key === "Escape") {
+                        e.stopPropagation();
+                        onCancel();
+                    }
+                    state.onKeyDown(e);
+                }}
+                // Safari will not focus a field under user-select: none
+                className="flex-1 select-text"
+                activeId={
+                    state.items.length
+                        ? `search-item-${state.active}`
+                        : undefined
+                }
+            />
+            {open ? (
+                <button
+                    type="button"
+                    onClick={onCancel}
+                    className="h-11 shrink-0 cursor-pointer px-1 text-[15px] font-semibold text-ink"
+                >
+                    {t("cancel")}
+                </button>
+            ) : (
+                trailing
             )}
         </div>
     );
 }
 
-/** Mobile: a full-screen search over the map. */
-export function MobileSearch({
-    trains,
+/** Phones: results, or recent and quick stations, in the open home sheet. */
+export function SheetSearchBody({
+    state,
     handlers,
-    onClose,
 }: {
-    trains: TrainFeatureCollection | undefined;
+    state: SearchBox;
     handlers: SearchHandlers;
-    onClose: () => void;
 }) {
     const t = useTranslations("Search");
-    const state = useSearchState(trains, handlers);
     const quick = useQuickStations();
+    if (state.query.trim()) return <Results state={state} />;
     return (
-        <div
-            role="dialog"
-            aria-modal="true"
-            aria-label={t("placeholder")}
-            className="fixed inset-0 z-40 flex flex-col bg-canvas pt-[env(safe-area-inset-top)]"
-        >
-            <div className="flex items-center gap-2 px-3 py-3">
+        <section aria-label={t("stations")} className="flex flex-col">
+            {quick.map((station) => (
                 <button
+                    key={station.id}
                     type="button"
-                    onClick={onClose}
-                    aria-label={t("back")}
-                    className="flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-full text-ink"
+                    onClick={() => handlers.onSelectStation(station)}
+                    className="flex min-h-13 w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-surface-2/60"
                 >
-                    <ChevronLeft className="size-6" aria-hidden />
+                    <Signpost
+                        className="size-5 shrink-0 text-ink-2"
+                        aria-hidden
+                    />
+                    <span className="min-w-0 flex-1 truncate text-body">
+                        {station.name}
+                    </span>
+                    <ArrowRight className="size-4 text-ink-2" aria-hidden />
                 </button>
-                <SearchField
-                    value={state.query}
-                    onChange={state.setQuery}
-                    onKeyDown={(e) => {
-                        if (e.key === "Escape") onClose();
-                        state.onKeyDown(e);
-                    }}
-                    autoFocus
-                    className="flex-1 bg-surface"
-                    activeId={
-                        state.items.length
-                            ? `search-item-${state.active}`
-                            : undefined
-                    }
-                />
-            </div>
-            <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-[env(safe-area-inset-bottom)]">
-                {state.query.trim() ? (
-                    <div className="overflow-hidden rounded-lg bg-surface">
-                        <Results state={state} />
-                    </div>
-                ) : (
-                    <div className="overflow-hidden rounded-lg bg-surface">
-                        {quick.map((station) => (
-                            <button
-                                key={station.id}
-                                type="button"
-                                onClick={() =>
-                                    handlers.onSelectStation(station)
-                                }
-                                className="flex min-h-13 w-full cursor-pointer items-center gap-3 border-b border-line px-4 py-2.5 text-left last:border-b-0"
-                            >
-                                <Signpost
-                                    className="size-5 shrink-0 text-ink-2"
-                                    aria-hidden
-                                />
-                                <span className="flex-1 truncate text-body">
-                                    {station.name}
-                                </span>
-                                <ArrowRight
-                                    className="size-4 text-ink-2"
-                                    aria-hidden
-                                />
-                            </button>
-                        ))}
-                    </div>
-                )}
-            </div>
-        </div>
+            ))}
+        </section>
     );
 }

@@ -153,10 +153,16 @@ export function FollowEditor({
     const follows = useFollows();
     const recent = useRecentStations();
 
+    // The last target stays on screen while the editor animates out
+    const [shown, setShown] = useState(target);
+    if (target && target !== shown) setShown(target);
+    const open = !!target;
+
     const setup = useMemo(() => {
-        if (!target) return null;
-        if (target.kind === "follow") {
-            const { follow } = target;
+        const current = shown;
+        if (!current) return null;
+        if (current.kind === "follow") {
+            const { follow } = current;
             return {
                 existing: follow,
                 trainNumber: follow.trainNumber,
@@ -165,9 +171,9 @@ export function FollowEditor({
                 options: [optionOf(follow)],
             };
         }
-        const { vehicle } = target.view;
+        const { vehicle } = current.view;
         const number = trainNumber(vehicle.trip.tripShortName);
-        const options = trainOptions(target.view);
+        const options = trainOptions(current.view);
         const existing = findFollow(
             follows,
             number,
@@ -185,9 +191,9 @@ export function FollowEditor({
             routeShortName: vehicle.trip.route.shortName,
             destination: destinationOf(vehicle),
             options,
-            next: target.view.next,
+            next: current.view.next,
         };
-    }, [target, follows]);
+    }, [shown, follows]);
 
     const [days, setDays] = useState<number[]>([]);
     const [boardingKey, setBoardingKey] = useState("");
@@ -195,7 +201,7 @@ export function FollowEditor({
     // Fresh choices whenever the editor opens on something
     // biome-ignore lint/correctness/useExhaustiveDependencies: only on open
     useEffect(() => {
-        if (!setup) return;
+        if (!target || !setup) return;
         const { existing, options } = setup;
         if (existing) {
             setDays(existing.weekdays);
@@ -243,18 +249,19 @@ export function FollowEditor({
 
     return (
         <DialogPrimitive.Root
-            open={!!setup}
+            open={open}
             onOpenChange={(open) => !open && onClose()}
         >
             <DialogPrimitive.Portal>
-                <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/40 data-[state=open]:animate-in data-[state=open]:fade-in-0" />
+                <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/40 duration-(--mhav-duration-sheet) ease-sheet data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0 motion-reduce:animate-none" />
                 <DialogPrimitive.Content
                     aria-describedby={undefined}
                     className={cn(
-                        "fixed z-50 flex flex-col gap-5 bg-surface p-4 outline-none",
+                        "fixed z-50 flex flex-col gap-5 bg-surface p-4 outline-none motion-reduce:animate-none",
+                        "data-[state=closed]:animate-out data-[state=open]:animate-in",
                         isDesktop
-                            ? "top-1/2 left-1/2 w-[400px] -translate-x-1/2 -translate-y-1/2 rounded-sheet shadow-2xl data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95"
-                            : "inset-x-0 bottom-0 rounded-t-sheet pb-[max(env(safe-area-inset-bottom),16px)] data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom",
+                            ? "top-1/2 left-1/2 w-[400px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 rounded-sheet shadow-2xl duration-200 ease-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95"
+                            : "inset-x-0 bottom-0 max-h-[calc(100dvh-56px)] overflow-y-auto rounded-t-sheet pb-[max(env(safe-area-inset-bottom),16px)] duration-(--mhav-duration-sheet) ease-sheet data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
                     )}
                 >
                     {!isDesktop && (

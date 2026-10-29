@@ -13,7 +13,6 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
     ArrowUpDown,
     ArrowUpRight,
-    ChevronLeft,
     Footprints,
     RefreshCw,
     Route as RouteIcon,
@@ -28,6 +27,7 @@ import {
     useRecentStations,
     useSearch,
 } from "@/components/search/useSearch";
+import { SheetClose } from "@/components/sheet/BottomSheet";
 import { BackButton, IconButton } from "@/components/train/TrainParts";
 import { DelayChip } from "@/components/ui/Delay";
 import { PlatformBadge } from "@/components/ui/Platform";
@@ -81,7 +81,7 @@ export function PlannerButton({
             aria-label={t("open")}
             title={t("open")}
             className={cn(
-                "flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-full bg-surface-2 text-ink transition-colors hover:bg-line",
+                "flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-full bg-surface-2 text-ink pressable transition-colors hover:bg-line",
                 className,
             )}
         >
@@ -89,14 +89,13 @@ export function PlannerButton({
         </button>
     );
 }
-
 /** Desktop: a floating panel in place of the home card. */
 export function JourneyPanel(props: PlannerProps) {
     const t = useTranslations("Journey");
     return (
         <section
             aria-label={t("title")}
-            className="floating-card absolute top-4 bottom-4 left-4 z-30 flex w-[440px] flex-col overflow-hidden rounded-sheet"
+            className="floating-card flex h-full w-[440px] max-w-full flex-col overflow-hidden rounded-sheet"
         >
             <div className="flex items-center gap-3 px-4 pt-4 pb-1">
                 <BackButton onClick={props.onClose} />
@@ -109,39 +108,22 @@ export function JourneyPanel(props: PlannerProps) {
     );
 }
 
-/** Phones: a full screen over the map, like the search. */
-export function JourneyScreen({
-    hidden,
-    ...props
-}: PlannerProps & { hidden?: boolean }) {
+/** Phones: the planner title in the bottom sheet (full detent). */
+export function PlannerSheetHeader({ onClose }: { onClose: () => void }) {
     const t = useTranslations("Journey");
-    const tSearch = useTranslations("Search");
     return (
-        <div
-            role="dialog"
-            aria-modal="true"
-            aria-label={t("title")}
-            className={cn(
-                "fixed inset-0 z-40 flex flex-col bg-canvas pt-[env(safe-area-inset-top)]",
-                hidden && "hidden",
-            )}
-        >
-            <div className="flex items-center gap-2 px-3 pt-3">
-                <button
-                    type="button"
-                    onClick={props.onClose}
-                    aria-label={tSearch("back")}
-                    className="flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-full text-ink"
-                >
-                    <ChevronLeft className="size-6" aria-hidden />
-                </button>
-                <h2 className="min-w-0 flex-1 truncate text-title">
-                    {t("title")}
-                </h2>
-            </div>
-            <Planner {...props} phone />
-        </div>
+        <>
+            <SheetClose onClick={onClose} />
+            <h2 className="truncate px-4 pr-14 pb-1 text-title">
+                {t("title")}
+            </h2>
+        </>
     );
+}
+
+/** Phones: the planner inside the bottom sheet; it scrolls itself. */
+export function PlannerSheetBody(props: PlannerProps) {
+    return <Planner {...props} />;
 }
 
 interface PlannerProps {

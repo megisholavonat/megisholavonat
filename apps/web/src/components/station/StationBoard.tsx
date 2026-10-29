@@ -7,9 +7,9 @@ import type { DelayReasonCode } from "@megisholavonat/core/delayReasons";
 import { useQuery } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { BottomSheet, type Detent } from "@/components/sheet/BottomSheet";
+import { SheetClose } from "@/components/sheet/BottomSheet";
 import { StationHistoryLink } from "@/components/stats/HistoryLinks";
-import { BackButton, CloseButton } from "@/components/train/TrainParts";
+import { BackButton } from "@/components/train/TrainParts";
 import { DelayChip } from "@/components/ui/Delay";
 import { PlatformBadge } from "@/components/ui/Platform";
 import { ReasonLabel } from "@/components/ui/Reason";
@@ -247,89 +247,112 @@ function BoardList({
     );
 }
 
-export function StationSheet({
+/** Mobile station sheet header (half · full): name, history, board switch. */
+export function StationSheetHeader({
     station,
     kind,
     onKindChange,
-    detent,
-    onDetentChange,
     onClose,
-    onSelectTrain,
 }: {
     station: Station;
     kind: BoardKind;
     onKindChange: (kind: BoardKind) => void;
-    detent: Detent;
-    onDetentChange: (detent: Detent) => void;
     onClose: () => void;
-    onSelectTrain: (vehicleId: string) => void;
 }) {
-    const t = useTranslations("Station");
     return (
-        <BottomSheet
-            label={t("board_of", { station: station.name })}
-            detents={["half", "full"]}
-            detent={detent}
-            onDetentChange={onDetentChange}
-            onDismiss={onClose}
-            header={
-                <div className="flex flex-col gap-3 px-4 pb-2">
-                    <div className="flex items-center gap-2">
-                        <h2 className="min-w-0 flex-1 truncate text-title">
-                            {station.name}
-                        </h2>
-                        <StationHistoryLink stationId={station.id} />
-                        <CloseButton onClick={onClose} />
-                    </div>
-                    <KindSwitch kind={kind} onChange={onKindChange} />
+        <>
+            <SheetClose onClick={onClose} />
+            <div className="flex flex-col gap-3 px-4 pb-2">
+                <div className="flex min-h-9 items-center gap-2 pr-8">
+                    <h2 className="min-w-0 flex-1 truncate text-title">
+                        {station.name}
+                    </h2>
+                    <StationHistoryLink stationId={station.id} />
                 </div>
-            }
-        >
-            <div className="px-4 pb-6">
-                <BoardList
-                    station={station}
-                    kind={kind}
-                    onSelectTrain={onSelectTrain}
-                    wide={false}
-                />
+                <KindSwitch kind={kind} onChange={onKindChange} />
             </div>
-        </BottomSheet>
+        </>
     );
 }
 
+export function StationSheetBody({
+    station,
+    kind,
+    onSelectTrain,
+}: {
+    station: Station;
+    kind: BoardKind;
+    onSelectTrain: (vehicleId: string) => void;
+}) {
+    return (
+        <div className="px-4 pb-6">
+            <BoardList
+                station={station}
+                kind={kind}
+                onSelectTrain={onSelectTrain}
+                wide={false}
+            />
+        </div>
+    );
+}
+
+/** Desktop board panel: wide rows from 1024 px, the phone rows below. */
 export function StationPanel({
     station,
     kind,
     onKindChange,
     onClose,
     onSelectTrain,
+    wide,
 }: {
     station: Station;
     kind: BoardKind;
     onKindChange: (kind: BoardKind) => void;
     onClose: () => void;
     onSelectTrain: (vehicleId: string) => void;
+    wide: boolean;
 }) {
     const t = useTranslations("Station");
     return (
         <section
             aria-label={t("board_of", { station: station.name })}
-            className="floating-card absolute top-4 bottom-4 left-4 z-30 flex w-[560px] flex-col overflow-hidden rounded-sheet"
+            className={cn(
+                "floating-card flex h-full max-w-full flex-col overflow-hidden rounded-sheet",
+                wide ? "w-[560px]" : "w-[400px]",
+            )}
         >
-            <div className="flex items-center gap-3 border-b border-line p-4">
-                <BackButton onClick={onClose} />
-                <h2 className="min-w-0 flex-1 truncate text-title">
-                    {station.name}
-                </h2>
+            <div
+                className={cn(
+                    "flex border-b border-line p-4",
+                    wide ? "items-center gap-3" : "flex-col gap-3",
+                )}
+            >
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <BackButton onClick={onClose} />
+                    <h2 className="min-w-0 flex-1 truncate text-title">
+                        {station.name}
+                    </h2>
+                    {!wide && (
+                        <StationHistoryLink
+                            stationId={station.id}
+                            className="size-9"
+                        />
+                    )}
+                </div>
                 <KindSwitch kind={kind} onChange={onKindChange} />
-                <StationHistoryLink stationId={station.id} className="size-9" />
+                {wide && (
+                    <StationHistoryLink
+                        stationId={station.id}
+                        className="size-9"
+                    />
+                )}
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto px-4">
                 <BoardList
                     station={station}
                     kind={kind}
                     onSelectTrain={onSelectTrain}
-                    wide
+                    wide={wide}
                 />
             </div>
         </section>

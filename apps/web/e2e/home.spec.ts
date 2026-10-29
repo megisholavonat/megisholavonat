@@ -1,7 +1,6 @@
 import {
     boardRegion,
     expect,
-    knownGap,
     openHome,
     openSearch,
     STATIONS,
@@ -59,7 +58,6 @@ test("search finds a train and opens it", async ({ page }) => {
 
 test("P5: phone search keeps the map in view", async ({ page, isPhone }) => {
     test.skip(!isPhone, "the desktop search is a card beside the map");
-    knownGap("P5: mobile search covers the whole screen");
     await openHome(page);
     const field = await openSearch(page);
     await field.fill("Szoln");

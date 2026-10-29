@@ -30,7 +30,7 @@ export function MapControls({
     return (
         <div
             className={cn(
-                "absolute right-4 z-10 flex flex-col items-end gap-2 transition-[bottom] duration-300 ease-sheet",
+                "absolute right-4 z-10 flex flex-col items-end gap-2 transition-[bottom] duration-300 ease-sheet motion-reduce:transition-none",
                 isDesktop
                     ? "bottom-8"
                     : "bottom-[calc(var(--mhav-sheet-inset,0px)+2.25rem)]",
