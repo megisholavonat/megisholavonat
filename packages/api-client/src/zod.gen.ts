@@ -192,6 +192,27 @@ export const zDeviceInfo = z.object({
 });
 
 /**
+ * DirectoryStation
+ *
+ * A domestic station with regular service
+ */
+export const zDirectoryStation = z.object({
+    id: z.string(),
+    name: z.string()
+});
+
+/**
+ * DirectoryTrain
+ *
+ * A train number that runs regularly
+ */
+export const zDirectoryTrain = z.object({
+    trainNumber: z.string(),
+    tripShortName: z.string(),
+    routeShortName: z.string().nullish()
+});
+
+/**
  * DisruptionLine
  *
  * A line glyph to show, deduplicated across the affected routes
@@ -293,6 +314,18 @@ export const zHistoryWindow = z.object({
     start: z.iso.date(),
     end: z.iso.date(),
     days: z.int()
+});
+
+/**
+ * Directory
+ *
+ * Stations and train numbers with regular service in the window: the pages
+ * the website lists for search engines
+ */
+export const zDirectory = z.object({
+    window: zHistoryWindow,
+    stations: z.array(zDirectoryStation),
+    trains: z.array(zDirectoryTrain)
 });
 
 /**
@@ -1089,6 +1122,15 @@ export const zGetStationPlatformsQuery = z.object({
  * Successful Response
  */
 export const zGetStationPlatformsResponse = zStationPlatforms;
+
+export const zGetDirectoryQuery = z.object({
+    days: z.int().gte(1).lte(365).optional().default(28)
+});
+
+/**
+ * Successful Response
+ */
+export const zGetDirectoryResponse = zDirectory;
 
 export const zGetRankingsQuery = z.object({
     kind: z.enum([

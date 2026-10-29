@@ -141,3 +141,30 @@ class StationPlatforms(BaseModel):
     predictions: list[PlatformPrediction]
     # Trains whose median delay here is at least a minute
     typicalDelays: list[TypicalDelay] = []
+
+
+class DirectoryStation(BaseModel):
+    """A domestic station with regular service"""
+
+    id: str
+    name: str
+
+
+class DirectoryTrain(BaseModel):
+    """A train number that runs regularly"""
+
+    trainNumber: str
+    # The most common full name, e.g. "10 TRANSCARPATHIA"
+    tripShortName: str
+    routeShortName: str | None = None
+
+
+class Directory(BaseModel):
+    """
+    Stations and train numbers with regular service in the window: the pages
+    the website lists for search engines
+    """
+
+    window: HistoryWindow
+    stations: list[DirectoryStation]
+    trains: list[DirectoryTrain]

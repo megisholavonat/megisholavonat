@@ -1126,6 +1126,54 @@
         }
       }
     },
+    "/v1/history/directory": {
+      "get": {
+        "tags": [
+          "history"
+        ],
+        "summary": "Get Directory",
+        "description": "Domestic stations with a train on most days and train numbers that run at\nleast weekly, for the website's sitemap",
+        "operationId": "getDirectory",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 365,
+              "minimum": 1,
+              "description": "Number of service dates to look back",
+              "default": 28,
+              "title": "Days"
+            },
+            "description": "Number of service dates to look back"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Directory"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/rankings": {
       "get": {
         "tags": [
@@ -1935,6 +1983,84 @@
         ],
         "title": "DeviceInfo",
         "description": "The calling device"
+      },
+      "Directory": {
+        "properties": {
+          "window": {
+            "$ref": "#/components/schemas/HistoryWindow"
+          },
+          "stations": {
+            "items": {
+              "$ref": "#/components/schemas/DirectoryStation"
+            },
+            "type": "array",
+            "title": "Stations"
+          },
+          "trains": {
+            "items": {
+              "$ref": "#/components/schemas/DirectoryTrain"
+            },
+            "type": "array",
+            "title": "Trains"
+          }
+        },
+        "type": "object",
+        "required": [
+          "window",
+          "stations",
+          "trains"
+        ],
+        "title": "Directory",
+        "description": "Stations and train numbers with regular service in the window: the pages\nthe website lists for search engines"
+      },
+      "DirectoryStation": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "DirectoryStation",
+        "description": "A domestic station with regular service"
+      },
+      "DirectoryTrain": {
+        "properties": {
+          "trainNumber": {
+            "type": "string",
+            "title": "Trainnumber"
+          },
+          "tripShortName": {
+            "type": "string",
+            "title": "Tripshortname"
+          },
+          "routeShortName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Routeshortname"
+          }
+        },
+        "type": "object",
+        "required": [
+          "trainNumber",
+          "tripShortName"
+        ],
+        "title": "DirectoryTrain",
+        "description": "A train number that runs regularly"
       },
       "Disruption": {
         "properties": {
