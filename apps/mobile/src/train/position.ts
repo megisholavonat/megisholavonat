@@ -21,6 +21,11 @@ const MAX_EXTRAPOLATED_FRACTION = 0.95;
 
 const EARTH_RADIUS_M = 6_371_000;
 
+/** The API's speed (m/s) in whole km/h, for the position label. */
+export function speedKmh(metresPerSecond: number): number {
+    return Math.round(metresPerSecond * 3.6);
+}
+
 export function haversineMeters(
     a: { lat: number; lon: number },
     b: { lat: number; lon: number },
@@ -89,7 +94,8 @@ export function railPosition(
             MAX_EXTRAPOLATE_S,
         );
         if (segment > 0) {
-            const ahead = fraction + ((speed / 3.6) * elapsed) / segment;
+            // The API's speed is in m/s
+            const ahead = fraction + (speed * elapsed) / segment;
             fraction = Math.min(
                 ahead,
                 Math.max(fraction, MAX_EXTRAPOLATED_FRACTION),

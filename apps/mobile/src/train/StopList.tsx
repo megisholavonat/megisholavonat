@@ -24,6 +24,7 @@ import {
     placeLabel,
     type RailPosition,
     railPosition,
+    speedKmh,
 } from "./position";
 import { MNR2007_FONT } from "./RouteIcon";
 import { type StopRow, serviceGlyph } from "./trainData";
@@ -138,7 +139,7 @@ export function StopList({
     const nowLabel = [
         place,
         running && speed != null && speed > 0
-            ? t("speed", { speed: Math.round(speed) })
+            ? t("speed", { speed: speedKmh(speed) })
             : null,
     ]
         .filter(Boolean)
