@@ -7,7 +7,10 @@
         "locate": "Saját helyzet",
         "location_error": "A helyzeted nem érhető el",
         "zoom_in": "Nagyítás",
-        "zoom_out": "Kicsinyítés"
+        "zoom_out": "Kicsinyítés",
+        "inactive": "nem halad",
+        "cluster": "{count} vonat itt",
+        "map_data": "Térképadatok"
     },
     "Sheet": {
         "resize": "Panel átméretezése"

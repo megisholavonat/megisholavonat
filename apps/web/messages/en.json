@@ -7,7 +7,10 @@
         "locate": "My location",
         "location_error": "Your location is unavailable",
         "zoom_in": "Zoom in",
-        "zoom_out": "Zoom out"
+        "zoom_out": "Zoom out",
+        "inactive": "not running",
+        "cluster": "{count} trains here",
+        "map_data": "Map data"
     },
     "Sheet": {
         "resize": "Resize panel"
