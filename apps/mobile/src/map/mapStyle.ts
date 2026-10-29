@@ -13,16 +13,21 @@ import {
     MAP_FOCUS,
     MAP_MARKS,
     MAP_PALETTE,
+    MAP_STATION_MARK,
     markSizeAt,
 } from "@megisholavonat/core/tokens/map";
 import {
+    ARROW,
+    arrowId,
     CHIP,
     chipFitPadding,
+    followId,
     MARK_SHAPES,
     type MarkShape,
     markBox,
     ringReach,
     SPRITE_SIZE,
+    stationId,
 } from "./sprites";
 
 // The app's layers over the shared basemap (@megisholavonat/core/mapStyle):
@@ -97,14 +102,22 @@ export const VEHICLES_SOURCE = "vehicles-source";
 export const PINNED_SOURCE = "vehicles-pinned-source";
 export const ROUTE_SOURCE = "route-source";
 export const STOPS_SOURCE = "stops-source";
+/** The chosen station's mark */
+export const STATION_MARK_SOURCE = "station-mark-source";
 
 /** Bottom to top */
 export const TRAIN_LAYER_IDS = {
     text: "train-text",
     marks: "trains",
     ring: "train-selected",
+    arrow: "train-arrow",
     badge: "train-followed",
     chip: "train-chip",
+} as const;
+
+export const STATION_MARK_LAYER_IDS = {
+    clear: "station-mark-clear",
+    ring: "station-mark-ring",
 } as const;
 
 export const CLUSTER_LAYER_IDS = {
@@ -135,7 +148,7 @@ function sizeZooms(from: number): number[] {
 }
 
 /** A value per shape (`get shape`), for offsets that clear the mark */
-function perShape(value: (shape: MarkShape) => number): Expression {
+function perShape(value: (shape: MarkShape) => unknown): Expression {
     const [first, ...rest] = MARK_SHAPES;
     if (!first) throw new Error("No shapes");
     return expr([
@@ -214,6 +227,62 @@ function isSelected(selectedId: string | null): Expression {
     return expr(["==", ["get", "vehicleId"], selectedId ?? ""]);
 }
 
+/** A value per zoom step of the marks' size, each at the step's largest size */
+function bySizeStep(value: (zoom: number) => unknown): Expression {
+    const zooms = MAP_MARKS.size.map(([z]) => z);
+    const steps: unknown[] = ["step", ["zoom"], value(zooms[1] ?? 0)];
+    for (let i = 1; i < zooms.length; i++) {
+        const z = zooms[i] ?? 0;
+        steps.push(z, value(zooms[i + 1] ?? z));
+    }
+    return expr(steps);
+}
+
+/** From the mark's centre to the direction arrow's centre (css px) */
+export function arrowDistance(shape: MarkShape, zoom: number): number {
+    const scale = markSizeAt(zoom) / SPRITE_SIZE;
+    // Clear of the selection ring around the shape, with a 1 px gap
+    return round3(ringReach(shape) * scale + 1 + ARROW.height / 2);
+}
+
+/**
+ * The direction arrow straight ahead of the mark: icon-rotate turns the
+ * offset with the heading
+ */
+const ARROW_OFFSET = bySizeStep((zoom) =>
+    perShape((shape) => expr(["literal", [0, -arrowDistance(shape, zoom)]])),
+);
+
+/** Below this zoom the follow star is drawn smaller, on the small marks */
+const FOLLOW_FULL_ZOOM = MARKER.labelMinZoom;
+const FOLLOW_SMALL = 0.75;
+const FOLLOW_SIZE = expr(["step", ["zoom"], FOLLOW_SMALL, FOLLOW_FULL_ZOOM, 1]);
+
+/** The star on the mark's upper right edge, as on the web (css px) */
+function followOffset(zoom: number, size: number): Expression {
+    const r = markSizeAt(zoom) / 2;
+    // icon-offset is scaled by icon-size
+    return expr(["literal", [round3((r + 2) / size), round3(-r / size)]]);
+}
+
+const FOLLOW_OFFSET = (() => {
+    const zooms = MAP_MARKS.size
+        .map(([z]) => z)
+        .filter((z) => z > FOLLOW_FULL_ZOOM);
+    const steps: unknown[] = [
+        "step",
+        ["zoom"],
+        followOffset(FOLLOW_FULL_ZOOM, FOLLOW_SMALL),
+        FOLLOW_FULL_ZOOM,
+        followOffset(zooms[0] ?? FOLLOW_FULL_ZOOM, 1),
+    ];
+    for (let i = 0; i < zooms.length; i++) {
+        const z = zooms[i] ?? 0;
+        steps.push(z, followOffset(zooms[i + 1] ?? z, 1));
+    }
+    return expr(steps);
+})();
+
 /**
  * The trains, bottom to top: "+N" of unselected late trains (from city
  * zoom), the marks, the selection ring, the followed badge and the chips of
@@ -229,6 +298,8 @@ export function trainLayers({
     selectedId,
     source = VEHICLES_SOURCE,
     suffix = "",
+    dimmed,
+    fadeMs = MAP_FOCUS.fadeMs,
 }: {
     scheme: ColorScheme;
     selectedId: string | null;
@@ -236,15 +307,28 @@ export function trainLayers({
     source?: string;
     /** Appended to the layer ids, one set per source */
     suffix?: string;
+    /**
+     * Every train of the source steps back (another one is open). A
+     * constant, so MapLibre fades it over `fadeMs`; by default the trains
+     * fade by feature (focusOpacity), without a transition
+     */
+    dimmed?: boolean;
+    fadeMs?: number;
 }): {
     text: SymbolLayerSpecification;
     marks: SymbolLayerSpecification;
     ring: SymbolLayerSpecification;
-    badge: CircleLayerSpecification;
+    arrow: SymbolLayerSpecification;
+    badge: SymbolLayerSpecification;
     chip: SymbolLayerSpecification;
 } {
-    const colors = COLORS[scheme];
-    const opacity = focusOpacity(selectedId);
+    const opacity =
+        dimmed === undefined
+            ? focusOpacity(selectedId)
+            : dimmed
+              ? MAP_FOCUS.othersOpacity
+              : 1;
+    const fade = { duration: fadeMs, delay: 0 };
     return {
         text: {
             id: TRAIN_LAYER_IDS.text + suffix,
@@ -274,6 +358,7 @@ export function trainLayers({
                 "text-halo-color": MAP_PALETTE[scheme].land,
                 "text-halo-width": 1,
                 "text-opacity": opacity,
+                "text-opacity-transition": fade,
             },
         },
         marks: {
@@ -301,7 +386,7 @@ export function trainLayers({
                     ["get", "sort"],
                 ],
             },
-            paint: { "icon-opacity": opacity },
+            paint: { "icon-opacity": opacity, "icon-opacity-transition": fade },
         },
         ring: {
             id: TRAIN_LAYER_IDS.ring + suffix,
@@ -316,27 +401,40 @@ export function trainLayers({
                 "icon-ignore-placement": false,
             },
         },
+        // Direction of travel, as on the web: from the zoom the web's
+        // markers get their labels, not for old data or a standing train
+        arrow: {
+            id: TRAIN_LAYER_IDS.arrow + suffix,
+            type: "symbol",
+            source,
+            minzoom: MARKER.labelMinZoom,
+            filter: [
+                "all",
+                isSelected(selectedId),
+                ["==", ["get", "moving"], true],
+            ] as FilterSpecification,
+            layout: {
+                "icon-image": arrowId(scheme),
+                "icon-rotate": ["get", "heading"],
+                "icon-rotation-alignment": "map",
+                "icon-offset": ARROW_OFFSET,
+                "icon-allow-overlap": true,
+                "icon-ignore-placement": true,
+            },
+        },
+        // The web's star on the mark's upper right edge
         badge: {
             id: TRAIN_LAYER_IDS.badge + suffix,
-            type: "circle",
+            type: "symbol",
             source,
             filter: ["==", ["get", "followed"], true],
-            paint: {
-                "circle-radius": 3.5,
-                "circle-color": colors.ink,
-                "circle-stroke-color": colors.surface,
-                "circle-stroke-width": 1.5,
-                // On the mark's upper right, as it grows with zoom
-                "circle-translate": [
-                    "step",
-                    ["zoom"],
-                    ["literal", [5, -5]],
-                    10,
-                    ["literal", [5.5, -5.5]],
-                    13,
-                    ["literal", [6.5, -6.5]],
-                ],
-            } as CircleLayerSpecification["paint"],
+            layout: {
+                "icon-image": followId(scheme),
+                "icon-size": FOLLOW_SIZE,
+                "icon-offset": FOLLOW_OFFSET,
+                "icon-allow-overlap": true,
+                "icon-ignore-placement": true,
+            },
         },
         chip: {
             id: TRAIN_LAYER_IDS.chip + suffix,
@@ -375,12 +473,15 @@ export function trainLayers({
 export function clusterLayers({
     scheme,
     selectedId,
+    fadeMs = MAP_FOCUS.fadeMs,
 }: {
     scheme: ColorScheme;
     selectedId: string | null;
+    fadeMs?: number;
 }): { bubble: CircleLayerSpecification; count: SymbolLayerSpecification } {
     const colors = COLORS[scheme];
     const opacity = selectedId ? MAP_FOCUS.othersOpacity : 1;
+    const fade = { duration: fadeMs, delay: 0 };
     return {
         bubble: {
             id: CLUSTER_LAYER_IDS.bubble,
@@ -403,6 +504,8 @@ export function clusterLayers({
                 "circle-stroke-width": MARKER.outlineWidth,
                 "circle-opacity": opacity,
                 "circle-stroke-opacity": opacity,
+                "circle-opacity-transition": fade,
+                "circle-stroke-opacity-transition": fade,
             },
         },
         count: {
@@ -424,7 +527,11 @@ export function clusterLayers({
                     false,
                 ],
             },
-            paint: { "text-color": colors.ink, "text-opacity": opacity },
+            paint: {
+                "text-color": colors.ink,
+                "text-opacity": opacity,
+                "text-opacity-transition": fade,
+            },
         },
     };
 }
@@ -432,10 +539,30 @@ export function clusterLayers({
 // --- the selected train's route --------------------------------------------
 
 /**
- * The selected train's route over a land-coloured casing, and its stops
- * (passed ones filled) with their names.
+ * From this zoom the railway overlay (a raster, its z11 tiles picked from
+ * 10.5 on) writes out station names: with it on, a route's stop names show
+ * below it only, so a station is never named twice in one spot (as on the
+ * web)
  */
-export function routeLayers(scheme: ColorScheme): {
+export const RAILWAY_NAMES_MIN_ZOOM = 10.5;
+
+/**
+ * The selected train's route over a land-coloured casing, and its stops
+ * (passed ones filled grey) with their names, sized as on the web. The
+ * names follow the station names setting.
+ */
+export function routeLayers(
+    scheme: ColorScheme,
+    {
+        names = true,
+        namesOpacity = 1,
+        railwayOverlay = false,
+    }: {
+        names?: boolean;
+        namesOpacity?: number;
+        railwayOverlay?: boolean;
+    } = {},
+): {
     casing: LineLayerSpecification;
     line: LineLayerSpecification;
     stops: CircleLayerSpecification;
@@ -473,25 +600,28 @@ export function routeLayers(scheme: ColorScheme): {
             type: "circle",
             source: STOPS_SOURCE,
             paint: {
-                "circle-radius": 3.5,
+                "circle-radius": 4.5,
                 "circle-color": [
                     "case",
                     ["get", "passed"],
-                    colors.ink,
+                    colors.ink2,
                     colors.surface,
                 ],
                 "circle-stroke-color": colors.ink,
-                "circle-stroke-width": 1.5,
+                "circle-stroke-width": 2,
             },
         },
         stopLabels: {
             id: ROUTE_LAYER_IDS.stopLabels,
             type: "symbol",
             source: STOPS_SOURCE,
+            ...(railwayOverlay ? { maxzoom: RAILWAY_NAMES_MIN_ZOOM } : {}),
             layout: {
+                // Hidden rather than removed: the layers above name it
+                visibility: names ? "visible" : "none",
                 "text-field": ["get", "name"],
                 "text-font": [...MAP_FONTS.bold],
-                "text-size": 12,
+                "text-size": MAP_STATION_MARK.label.size,
                 "text-variable-anchor": ["left", "right", "top", "bottom"],
                 "text-radial-offset": 0.7,
                 "text-justify": "auto",
@@ -501,7 +631,39 @@ export function routeLayers(scheme: ColorScheme): {
                 "text-color": colors.ink,
                 "text-halo-color": land,
                 "text-halo-width": 1.5,
+                "text-opacity": namesOpacity,
             },
+        },
+    };
+}
+
+// --- the chosen station ------------------------------------------------------
+
+/**
+ * The chosen station, as on the web: under the trains a clearing in the map
+ * colour (keeps the ring legible over the railway overlay), and above the
+ * bubbles the ring. Its name is a card view over the map (TrainMap).
+ */
+export function stationMarkLayers(scheme: ColorScheme): {
+    clear: SymbolLayerSpecification;
+    ring: SymbolLayerSpecification;
+} {
+    const layout = {
+        "icon-allow-overlap": true,
+        "icon-ignore-placement": true,
+    } as const;
+    return {
+        clear: {
+            id: STATION_MARK_LAYER_IDS.clear,
+            type: "symbol",
+            source: STATION_MARK_SOURCE,
+            layout: { ...layout, "icon-image": stationId(scheme, "clear") },
+        },
+        ring: {
+            id: STATION_MARK_LAYER_IDS.ring,
+            type: "symbol",
+            source: STATION_MARK_SOURCE,
+            layout: { ...layout, "icon-image": stationId(scheme, "ring") },
         },
     };
 }

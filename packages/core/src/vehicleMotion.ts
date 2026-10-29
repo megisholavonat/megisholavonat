@@ -138,6 +138,7 @@ export function vehicleFrame(
         glides,
         id,
         minGlideDeg = COORD_EPSILON,
+        maxDeltaMs,
     }: {
         advance: boolean;
         fresh: boolean;
@@ -145,10 +146,12 @@ export function vehicleFrame(
         glides: Map<string, Glide>;
         id: string;
         minGlideDeg?: number;
+        /** See tick: raised by callers that draw less often than 1 fps */
+        maxDeltaMs?: number;
     },
 ): Shown {
     const target = advance
-        ? tick(state, timestamp)
+        ? tick(state, timestamp, maxDeltaMs)
         : { coords: state.coords, bearing: state.bearing };
     let pos: Shown = [target.coords[0], target.coords[1], target.bearing];
     if (fresh && prev) {

@@ -217,9 +217,15 @@ export function onPositionUpdate(
     }
 }
 
+/**
+ * Moves the train along its route to `timestamp`. A step covers at most
+ * `maxDeltaMs`, so a pause (a hidden tab) doesn't jump it ahead; a caller
+ * that draws less often raises it.
+ */
 export function tick(
     state: VehicleState,
     timestamp: number,
+    maxDeltaMs = MAX_DELTA_MS,
 ): { coords: [number, number]; bearing: number } {
     // Without a route there is nothing to interpolate — return as-is
     if (!state.initialized || !state.route) {
@@ -227,7 +233,7 @@ export function tick(
     }
 
     if (state.lastTimestamp !== null && state.speedKmh > 0) {
-        const deltaMs = Math.min(timestamp - state.lastTimestamp, MAX_DELTA_MS);
+        const deltaMs = Math.min(timestamp - state.lastTimestamp, maxDeltaMs);
         const fullDeltaKm = state.speedKmh * (deltaMs / 3_600_000);
 
         state.distanceAlongRoute = advanceWithBraking(
