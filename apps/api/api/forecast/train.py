@@ -9,7 +9,6 @@ API serves the exported JSON with api.forecast.trees.
 """
 
 import asyncio
-import json
 import time
 from dataclasses import asdict, dataclass, field
 from datetime import date, datetime, timedelta
@@ -37,6 +36,7 @@ from api.forecast.features import (
     merge_tables,
 )
 from api.forecast.model import FORMAT_VERSION, ForecastModel
+from api.forecast.trees import TreeEnsemble
 from api.models.forecast import DelayForecastModel
 from api.util.time import BUDAPEST_TZ
 
@@ -270,7 +270,8 @@ async def train(
     X, y = training_matrix(folds, histories, samples)
     booster = await asyncio.to_thread(fit_lightgbm, X, y, cfg)
     del X, y
-    model_json = json.dumps(booster.dump_model())
+    # The API gets flat arrays, never the (large) JSON dump
+    trees = TreeEnsemble.from_dump(booster.dump_model())
     fit_s = time.monotonic() - fit_started
 
     holdout = _sample(
@@ -278,7 +279,7 @@ async def train(
         cfg.max_eval_rows,
         np.random.default_rng(cfg.seed),
     )
-    evaluated = ForecastModel(histories["train"], model_json)
+    evaluated = ForecastModel(histories["train"], trees)
     # The API evaluates the JSON export with numpy; it has to agree with
     # LightGBM itself before the model is stored
     hv, hl = histories["train"].predict(holdout)
@@ -304,7 +305,7 @@ async def train(
     logger.info(f"Forecast holdout metrics: {metrics}")
 
     return TrainResult(
-        model=ForecastModel(histories["all"], model_json),
+        model=ForecastModel(histories["all"], trees),
         trained_from=dates[0],
         trained_to=dates[-1],
         metrics={

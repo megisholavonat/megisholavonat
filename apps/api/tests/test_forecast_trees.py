@@ -100,7 +100,9 @@ def test_matches_lightgbm_predict() -> None:
         "num_threads": 1,
     }
     booster = lgb.train(params, lgb.Dataset(X, y), num_boost_round=50)
-    ens = TreeEnsemble.from_dump(json.loads(json.dumps(booster.dump_model())))
+    # Through the stored form: dump -> arrays -> what a worker loads
+    stored = TreeEnsemble.from_dump(json.loads(json.dumps(booster.dump_model())))
+    ens = TreeEnsemble.from_arrays(stored.to_arrays())
 
     X_test = rng.normal(size=(5000, 6)) * [1, 10, 100, 1, 1, 1000]
     X_test[:, 3] = rng.integers(-1, 12, 5000)
@@ -110,3 +112,18 @@ def test_matches_lightgbm_predict() -> None:
     np.testing.assert_allclose(
         ens.predict(X_test), booster.predict(X_test), rtol=0, atol=1e-6
     )
+
+
+def test_arrays_roundtrip_and_validation() -> None:
+    tree = _split(0, 1.0, _leaf(1), _split(1, 2.0, _leaf(2), _leaf(3), missing="NaN"))
+    ens = TreeEnsemble.from_dump(_dump(tree, _leaf(0.5)))
+    X = np.array([[0.0, 0.0], [2.0, np.nan], [2.0, 5.0]])
+
+    again = TreeEnsemble.from_arrays(ens.to_arrays())
+
+    np.testing.assert_array_equal(again.predict(X), ens.predict(X))
+    assert (again.depth, again.n_features) == (2, 2)
+    broken = ens.to_arrays()
+    broken["tree_left"] = broken["tree_left"] + 100
+    with pytest.raises(ValueError, match="Inconsistent"):
+        TreeEnsemble.from_arrays(broken)

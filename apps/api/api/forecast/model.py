@@ -3,13 +3,13 @@ The served forecast: c1 history tables plus the boosted trees, with the
 fallback chain model -> history (c1) -> constant delay.
 
 The artifact is one npz (no pickle) holding the history tables, the
-LightGBM model as its `dump_model()` JSON, and the format version and feature
-list it was trained with.
+trees as flat numpy arrays (converted from LightGBM's `dump_model()` by the
+trainer), and the format version and feature list it was trained with.
 """
 
 import io
 import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import IntEnum
 from typing import Any
 
@@ -28,8 +28,8 @@ from api.forecast.trees import TreeEnsemble
 logger = get_logger(__name__)
 
 # Bump when the artifact layout or FEATURES change. 1 was the numpy-trained
-# oblivious trees; 2 is a LightGBM JSON dump
-FORMAT_VERSION = 2
+# oblivious trees, 2 a LightGBM JSON dump, 3 the dump converted to arrays
+FORMAT_VERSION = 3
 
 
 class Source(IntEnum):
@@ -45,17 +45,9 @@ MAX_ABS_CHANGE_S = 3 * 3600
 @dataclass
 class ForecastModel:
     history: History
-    # LightGBM `dump_model()` output as JSON text, None for history only
-    model_json: str | None = None
+    # None for history only
+    trees: TreeEnsemble | None = None
     features: tuple[str, ...] = FEATURES
-    trees: TreeEnsemble | None = field(init=False, default=None)
-
-    def __post_init__(self) -> None:
-        self.trees = (
-            None
-            if self.model_json is None
-            else TreeEnsemble.from_dump(json.loads(self.model_json))
-        )
 
     def predict(
         self, ex: Examples
@@ -89,10 +81,8 @@ class ForecastModel:
 
     def to_bytes(self) -> bytes:
         arrays: dict[str, np.ndarray] = dict(self.history.to_arrays())
-        if self.model_json is not None:
-            arrays["model_json"] = np.frombuffer(
-                self.model_json.encode(), dtype=np.uint8
-            )
+        if self.trees is not None:
+            arrays.update(self.trees.to_arrays())
         meta = {"format_version": FORMAT_VERSION, "features": list(self.features)}
         arrays["meta"] = np.frombuffer(json.dumps(meta).encode(), dtype=np.uint8)
         buf = io.BytesIO()
@@ -111,5 +101,5 @@ class ForecastModel:
         features = tuple(meta["features"])
         if features != FEATURES:
             raise ValueError("Forecast artifact was trained on other features")
-        model_json = a["model_json"].tobytes().decode() if "model_json" in a else None
-        return cls(History.from_arrays(a), model_json, features)
+        trees = TreeEnsemble.from_arrays(a) if "tree_roots" in a else None
+        return cls(History.from_arrays(a), trees, features)

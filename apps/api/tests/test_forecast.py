@@ -31,6 +31,7 @@ from api.forecast.train import (
     save_model,
     train,
 )
+from api.forecast.trees import TreeEnsemble
 from api.models.forecast import DelayForecastModel
 from api.models.history import Stop, StopDelayObservation
 from api.services import train_service
@@ -225,7 +226,9 @@ def _dump(n_trees: int) -> dict[str, Any]:
 
 
 def _model(n_trees: int = 2) -> ForecastModel:
-    return ForecastModel(History.fit(_synthetic(4000)), json.dumps(_dump(n_trees)))
+    return ForecastModel(
+        History.fit(_synthetic(4000)), TreeEnsemble.from_dump(_dump(n_trees))
+    )
 
 
 def test_model_adds_tree_output_to_current_delay() -> None:

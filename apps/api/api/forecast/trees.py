@@ -1,7 +1,9 @@
 """
 Numpy evaluator for a LightGBM model exported with `Booster.dump_model()`.
 
-The trainer runs LightGBM in its own image; the API only needs these arrays.
+The trainer runs LightGBM in its own image and converts the dump into these
+arrays (`from_dump`); the stored artifact holds only the arrays
+(`to_arrays`), so the API never parses the JSON.
 Every tree is flattened into one table of nodes. Leaves point to themselves,
 so all (row, tree) pairs can step down together for `depth` iterations and
 then read their leaf value. Splits follow LightGBM's NumericalDecision: NaN
@@ -100,6 +102,58 @@ class TreeEnsemble:
             depth=depth,
             n_features=int(dump.get("max_feature_idx", -1)) + 1,
         )
+
+    def to_arrays(self, prefix: str = "tree_") -> dict[str, np.ndarray]:
+        return {
+            f"{prefix}roots": self.roots,
+            f"{prefix}feature": self.feature,
+            f"{prefix}threshold": self.threshold,
+            f"{prefix}missing": self.missing,
+            f"{prefix}default_left": self.default_left,
+            f"{prefix}left": self.left,
+            f"{prefix}right": self.right,
+            f"{prefix}value": self.value,
+            f"{prefix}shape": np.array([self.depth, self.n_features], dtype=np.int64),
+        }
+
+    @classmethod
+    def from_arrays(
+        cls, a: dict[str, np.ndarray], prefix: str = "tree_"
+    ) -> "TreeEnsemble":
+        """Rebuild from `to_arrays`, checking every index stays in bounds."""
+        depth, n_features = (int(v) for v in a[f"{prefix}shape"])
+        ens = cls(
+            roots=a[f"{prefix}roots"].astype(np.int32),
+            feature=a[f"{prefix}feature"].astype(np.int32),
+            threshold=a[f"{prefix}threshold"].astype(np.float64),
+            missing=a[f"{prefix}missing"].astype(np.int8),
+            default_left=a[f"{prefix}default_left"].astype(bool),
+            left=a[f"{prefix}left"].astype(np.int32),
+            right=a[f"{prefix}right"].astype(np.int32),
+            value=a[f"{prefix}value"].astype(np.float64),
+            depth=depth,
+            n_features=n_features,
+        )
+        n = ens.feature.size
+        per_node = (
+            ens.threshold,
+            ens.missing,
+            ens.default_left,
+            ens.left,
+            ens.right,
+            ens.value,
+        )
+        if (
+            any(v.size != n for v in per_node)
+            or not np.all((ens.roots >= 0) & (ens.roots < n))
+            or not np.all((ens.left >= 0) & (ens.left < n))
+            or not np.all((ens.right >= 0) & (ens.right < n))
+            or not np.all((ens.feature >= 0) & (ens.feature < max(n_features, 1)))
+            or not np.isin(ens.missing, (0, 1, 2)).all()
+            or depth < 0
+        ):
+            raise ValueError("Inconsistent tree arrays")
+        return ens
 
     def predict(
         self, X: npt.NDArray[np.floating], chunk_rows: int = 2_000
