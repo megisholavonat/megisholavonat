@@ -2,19 +2,17 @@
 
 import type { BoardEntry, Station } from "@megisholavonat/api-client";
 import { getStationBoardOptions } from "@megisholavonat/api-client/react-query";
-import {
-    DELAY_REASONS,
-    type DelayReasonCode,
-} from "@megisholavonat/core/delayReasons";
-import type { Locale } from "@megisholavonat/core/i18n";
+import { getDelayLevel } from "@megisholavonat/core/delay";
+import type { DelayReasonCode } from "@megisholavonat/core/delayReasons";
 import { useQuery } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { BottomSheet, type Detent } from "@/components/sheet/BottomSheet";
 import { StationHistoryLink } from "@/components/stats/HistoryLinks";
 import { BackButton, CloseButton } from "@/components/train/TrainParts";
 import { DelayChip } from "@/components/ui/Delay";
 import { PlatformBadge } from "@/components/ui/Platform";
+import { ReasonLabel } from "@/components/ui/Reason";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
 import { usePredictedPlatforms } from "@/hooks/usePredictedPlatforms";
 import { trainNumber } from "@/lib/train";
@@ -93,18 +91,20 @@ function BoardRow({
     wide: boolean;
 }) {
     const t = useTranslations("Station");
-    const locale = useLocale() as Locale;
     const number = trainNumber(entry.tripShortName);
     const place = entry.headsign
         ? kind === "arrivals"
             ? t("from", { station: entry.headsign })
             : entry.headsign
         : "";
-    const reason = entry.reason?.code
-        ? DELAY_REASONS[entry.reason.code as DelayReasonCode][locale]
-        : null;
     const platform = entry.platform ?? predictedPlatform;
     const live = entry.realtime || entry.delaySource === "gps";
+    // The cause only next to a live delay that is actually late
+    const level = getDelayLevel(entry.delayMinutes);
+    const reason =
+        live && !entry.canceled && level !== "onTime" && entry.reason?.code
+            ? (entry.reason.code as DelayReasonCode)
+            : null;
     const chip = entry.canceled ? (
         <span className="inline-flex h-5 items-center rounded-full bg-delay-severe-tint px-1.5 text-caption font-bold text-delay-severe">
             {t("canceled")}
@@ -131,22 +131,23 @@ function BoardRow({
                 {chip}
             </div>
             <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span className="truncate text-headline">
-                    {place}
-                    {wide && reason && (
-                        <span className="ml-1.5 text-sm font-normal text-delay-severe">
-                            {reason}
-                        </span>
-                    )}
-                </span>
+                <span className="truncate text-headline">{place}</span>
+                {wide && reason && (
+                    <ReasonLabel
+                        code={reason}
+                        level={level}
+                        className="text-sm"
+                    />
+                )}
                 {!wide && (
                     <span className="flex min-w-0 items-center gap-1 text-sm text-ink-2">
                         <RouteGlyph routeShortName={entry.routeShortName} />
                         <span className="tnum">{number}</span>
                         {reason && (
-                            <span className="truncate text-delay-severe">
-                                · {reason}
-                            </span>
+                            <>
+                                <span aria-hidden>·</span>
+                                <ReasonLabel code={reason} level={level} />
+                            </>
                         )}
                     </span>
                 )}
