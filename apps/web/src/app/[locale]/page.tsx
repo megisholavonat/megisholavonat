@@ -11,6 +11,7 @@ import {
 } from "@megisholavonat/api-client/react-query";
 import { POLL_INTERVAL_MS } from "@megisholavonat/core/constants";
 import { useQuery } from "@tanstack/react-query";
+import { Info } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import dynamic from "next/dynamic";
 import { useLocale, useTranslations } from "next-intl";
@@ -121,6 +122,161 @@ function readParam(name: string): string | null {
     return new URLSearchParams(window.location.search).get(name);
 }
 
+/**
+ * A layer over the map that has its own history entry. The train and the
+ * station live in the URL (shareable); the others only in the entry's
+ * state, so a reload reopens them but a shared link does not.
+ */
+type Overlay = "search" | "planner" | "disruptions";
+
+interface Nav {
+    vehicleId: string | null;
+    station: string | null;
+    overlay: Overlay | null;
+}
+
+/** What this app keeps in `history.state` (Next adds its own keys) */
+interface NavEntry {
+    mhav: 1;
+    overlay: Overlay | null;
+    /** The entry under this one, when this one was pushed on top of it */
+    from: string | null;
+}
+
+const navKey = (nav: Nav) =>
+    `${nav.vehicleId ?? ""}|${nav.station ?? ""}|${nav.overlay ?? ""}`;
+
+function navEntry(): Partial<NavEntry> {
+    const state = window.history.state as Partial<NavEntry> | null;
+    return state?.mhav === 1 ? state : {};
+}
+
+function currentNav(): Nav {
+    return {
+        vehicleId: readParam("vehicleId"),
+        station: readParam("station"),
+        overlay: navEntry().overlay ?? null,
+    };
+}
+
+/** `next` only takes layers off `current`: closing, not opening */
+function isClose(current: Nav, next: Nav): boolean {
+    return (
+        (next.vehicleId === null || next.vehicleId === current.vehicleId) &&
+        (next.station === null || next.station === current.station) &&
+        (next.overlay === null || next.overlay === current.overlay)
+    );
+}
+
+/** One train or station swapped for another of the same kind */
+function isSwap(current: Nav, next: Nav): boolean {
+    if (current.overlay !== next.overlay) return false;
+    if (current.vehicleId && next.vehicleId) {
+        return current.station === next.station;
+    }
+    return (
+        !current.vehicleId &&
+        !next.vehicleId &&
+        !!current.station &&
+        !!next.station
+    );
+}
+
+/**
+ * Mirrors the open layers in the session history, so the back button (and
+ * Android's back gesture) closes the top layer instead of leaving the site.
+ * Opening a layer pushes an entry; closing one goes back when the entry was
+ * pushed on top of what remains, and replaces it otherwise (a shared link).
+ * Swapping one train for another, and leaving search for its result,
+ * replace the entry. Nothing is written while a back navigation is under
+ * way: its popstate brings the state in line.
+ */
+function syncHistory(next: Nav, backPending: { current: boolean }) {
+    if (backPending.current) return;
+    const current = currentNav();
+    const key = navKey(next);
+    if (navKey(current) === key) return;
+    const entry = navEntry();
+    const params = new URLSearchParams(window.location.search);
+    for (const [name, value] of [
+        ["vehicleId", next.vehicleId],
+        ["station", next.station],
+    ] as const) {
+        if (value) params.set(name, value);
+        else params.delete(name);
+    }
+    const search = params.toString();
+    const url = `${window.location.pathname}${search ? `?${search}` : ""}`;
+    const write = (mode: "push" | "replace", from: string | null) => {
+        const state: NavEntry = { mhav: 1, overlay: next.overlay, from };
+        if (mode === "push") window.history.pushState(state, "", url);
+        else window.history.replaceState(state, "", url);
+    };
+
+    const close = isClose(current, next);
+    if (close && entry.from === key) {
+        backPending.current = true;
+        window.history.back();
+    } else if (close) {
+        write("replace", null);
+    } else if (
+        isSwap(current, next) ||
+        (current.overlay === "search" && next.overlay !== "search")
+    ) {
+        write("replace", entry.from ?? null);
+    } else {
+        write("push", navKey(current));
+    }
+}
+
+type NoticeKind = "train_gone" | "station_unknown";
+
+/**
+ * The API said no (a 404 for an unknown station, a 422 for a malformed
+ * id), as opposed to a lost request or a server error worth retrying.
+ */
+function isApiError(error: unknown): boolean {
+    const status = (error as { response?: { status?: number } } | null)
+        ?.response?.status;
+    return typeof status === "number" && status >= 400 && status < 500;
+}
+
+/** A short note at the top of the map that goes away by itself */
+function Notice({
+    kind,
+    onDone,
+}: {
+    kind: NoticeKind | null;
+    onDone: () => void;
+}) {
+    const t = useTranslations("Shell");
+    const reduced = useReducedMotion() ?? false;
+    useEffect(() => {
+        if (!kind) return;
+        const timer = window.setTimeout(onDone, 5000);
+        return () => window.clearTimeout(timer);
+    }, [kind, onDone]);
+    return (
+        <div role="status" className="flex justify-center">
+            <AnimatePresence>
+                {kind && (
+                    <motion.div
+                        key={kind}
+                        initial={{ opacity: 0, y: reduced ? 0 : -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: reduced ? 0 : -8 }}
+                        transition={{ duration: 0.24, ease: "easeOut" }}
+                        className="floating-card flex min-h-9 items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-semibold dark:ring-1 dark:ring-line"
+                    >
+                        <Info className="size-4 shrink-0" aria-hidden />
+                        {t(kind)}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+}
+
 /** Close to the old panel spring (damping 30, stiffness 300), in ~220 ms */
 const PANEL_SPRING = {
     type: "spring",
@@ -221,6 +377,7 @@ function MapScreen() {
     const tStation = useTranslations("Station");
     const tJourney = useTranslations("Journey");
     const tDisruptions = useTranslations("Disruptions");
+    const tShell = useTranslations("Shell");
     const isDesktop = useIsDesktop();
     const isWide = useIsWide();
     const sheetViewport = useSheetViewport();
@@ -260,37 +417,46 @@ function MapScreen() {
     const [urlRead, setUrlRead] = useState(false);
     const pendingFlyRef = useRef<string | null>(null);
 
-    // Restore the selection from the URL once
+    const [notice, setNotice] = useState<NoticeKind | null>(null);
+    const clearNotice = useCallback(() => setNotice(null), []);
+    const backPendingRef = useRef(false);
+    /** From a shared link or a reload: say so when it no longer exists */
+    const restoredStationRef = useRef<string | null>(null);
+
+    // Restore the selection (and, after a reload, the open layer) once
     useEffect(() => {
-        const vehicleId = readParam("vehicleId");
-        const station = readParam("station");
+        const { vehicleId, station, overlay } = currentNav();
         if (vehicleId) {
             setSelectedId(vehicleId);
             pendingFlyRef.current = vehicleId;
         }
-        if (station) setStationId(station);
+        if (station) {
+            setStationId(station);
+            restoredStationRef.current = station;
+        }
+        if (overlay === "search") setSearchOpen(true);
+        if (overlay === "planner") setPlannerOpen(true);
+        if (overlay === "disruptions") setDisruptionsOpen(true);
         setUrlRead(true);
     }, []);
 
-    // Mirror the selection in the URL (shareable; the consent prompt also
-    // watches ?vehicleId to notice a closed panel)
+    const overlay: Overlay | null = searchOpen
+        ? "search"
+        : plannerOpen
+          ? "planner"
+          : disruptionsOpen
+            ? "disruptions"
+            : null;
+
+    // Mirror the layers in the URL and the history (shareable; back closes
+    // the top one; the consent prompt watches ?vehicleId for a closed panel)
     useEffect(() => {
         if (!urlRead) return;
-        const params = new URLSearchParams(window.location.search);
-        for (const [key, value] of [
-            ["vehicleId", selectedId],
-            ["station", stationId],
-        ] as const) {
-            if (value) params.set(key, value);
-            else params.delete(key);
-        }
-        const search = params.toString();
-        window.history.replaceState(
-            null,
-            "",
-            `${window.location.pathname}${search ? `?${search}` : ""}`,
+        syncHistory(
+            { vehicleId: selectedId, station: stationId, overlay },
+            backPendingRef,
         );
-    }, [selectedId, stationId, urlRead]);
+    }, [selectedId, stationId, overlay, urlRead]);
 
     const board = useQuery({
         ...getStationBoardOptions({
@@ -298,12 +464,24 @@ function MapScreen() {
             query: { kind: boardKind, limit: 30 },
         }),
         enabled: !!stationId,
+        // An unknown station answers 404 at once; only network trouble retries
+        retry: (count, error) => !isApiError(error) && count < 3,
     });
     const station = useMemo((): Station | null => {
         if (!stationId) return null;
         if (pickedStation?.id === stationId) return pickedStation;
         return board.data?.station ?? null;
     }, [stationId, pickedStation, board.data]);
+
+    // A station that does not exist (a bad or outdated link) is dropped
+    // from the URL, with a note instead of an empty map
+    useEffect(() => {
+        if (!stationId || station || !isApiError(board.error)) return;
+        if (restoredStationRef.current === stationId) {
+            setNotice("station_unknown");
+        }
+        setStationId(null);
+    }, [stationId, station, board.error]);
 
     // A station restored from the URL is flown to once its board names it
     const flewToStationRef = useRef<string | null>(null);
@@ -352,7 +530,10 @@ function MapScreen() {
         const pending = pendingFlyRef.current;
         if (!pending || !trains) return;
         pendingFlyRef.current = null;
-        if (!flyToTrain(pending)) setSelectedId(null);
+        if (!flyToTrain(pending)) {
+            setSelectedId(null);
+            setNotice("train_gone");
+        }
     }, [trains, flyToTrain]);
 
     // Close the sheet only when the train has also left the live feed; a
@@ -437,34 +618,63 @@ function MapScreen() {
         setDisruptionsOpen(true);
     }, []);
 
+    // Back and forward: take the layers from the entry
+    const { setQuery: setSheetQuery } = sheetSearch;
     useEffect(() => {
-        const onKey = (e: KeyboardEvent) => {
-            if (e.key !== "Escape" || settingsOpen || followTarget) return;
-            if (searchOpen) {
-                sheetSearch.setQuery("");
+        const onPop = () => {
+            backPendingRef.current = false;
+            const nav = currentNav();
+            setSelectedId(nav.vehicleId);
+            setStationId(nav.station);
+            if (nav.overlay !== "search") {
+                setSheetQuery("");
                 closeSearch();
-            } else if (selectedId) closeTrain();
-            else if (stationId) closeStation();
-            else if (plannerOpen) closePlanner();
-            else if (disruptionsOpen) closeDisruptions();
+            } else setSearchOpen(true);
+            setPlannerOpen(nav.overlay === "planner");
+            setDisruptionsOpen(nav.overlay === "disruptions");
         };
+        window.addEventListener("popstate", onPop);
+        return () => window.removeEventListener("popstate", onPop);
+    }, [closeSearch, setSheetQuery]);
+
+    // Esc closes the top layer only. A dialog or popover that is open when
+    // the key goes down takes it alone: that is checked before either
+    // handles the key, since they close themselves and re-render the page
+    // before the key reaches the window.
+    const escRef = useRef(() => {});
+    escRef.current = () => {
+        if (settingsOpen || followTarget) return;
+        if (searchOpen) {
+            sheetSearch.setQuery("");
+            closeSearch();
+        } else if (selectedId) closeTrain();
+        else if (stationId) closeStation();
+        else if (plannerOpen) closePlanner();
+        else if (disruptionsOpen) closeDisruptions();
+    };
+    useEffect(() => {
+        let blocked = false;
+        const onKeyCapture = (e: KeyboardEvent) => {
+            if (e.key !== "Escape") return;
+            blocked = !!document.querySelector(
+                [
+                    '[role="dialog"]:not([data-sheet])',
+                    '[role="alertdialog"]',
+                    "[data-radix-popper-content-wrapper]",
+                ].join(","),
+            );
+        };
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key !== "Escape" || blocked || e.defaultPrevented) return;
+            escRef.current();
+        };
+        window.addEventListener("keydown", onKeyCapture, true);
         window.addEventListener("keydown", onKey);
-        return () => window.removeEventListener("keydown", onKey);
-    }, [
-        selectedId,
-        stationId,
-        settingsOpen,
-        searchOpen,
-        followTarget,
-        plannerOpen,
-        closeTrain,
-        closeStation,
-        closePlanner,
-        closeSearch,
-        sheetSearch.setQuery,
-        disruptionsOpen,
-        closeDisruptions,
-    ]);
+        return () => {
+            window.removeEventListener("keydown", onKeyCapture, true);
+            window.removeEventListener("keydown", onKey);
+        };
+    }, []);
 
     const showTrain = !!selectedId;
     const showStation = !showTrain && !!stationId && !!station;
@@ -666,36 +876,70 @@ function MapScreen() {
     return (
         <main className="relative h-dvh w-screen overflow-hidden bg-map">
             <h1 className="sr-only">{tHome("app_title")}</h1>
-            <DynamicMap
-                key={locale}
-                trains={trains}
-                selectedId={selectedId}
-                followedIds={followedIds}
-                onSelectTrain={(id) => selectTrain(id)}
-                train={trainView?.vehicle}
-                station={showStation ? station : null}
-                flyTarget={flyTarget}
-                insets={insets}
-                isDesktop={isDesktop}
-            />
-            <KeepTrainVisible
-                selectedId={selectedId}
-                trains={trains}
-                insets={insets}
-            />
+            {/* Tab order follows the reading order: the search and the
+                panels first, then the map and its controls, the credits
+                last. The map comes last in the DOM; z-index keeps it below. */}
+            {isDesktop && (
+                <button
+                    type="button"
+                    onClick={() =>
+                        document
+                            .querySelector<HTMLInputElement>(
+                                "main input[role='combobox']",
+                            )
+                            ?.focus()
+                    }
+                    className="sr-only z-50 cursor-pointer rounded-full bg-ink px-4 py-2 text-sm font-semibold text-surface focus:not-sr-only focus:absolute focus:top-4 focus:px-4 focus:py-2 focus:left-1/2 focus:-translate-x-1/2"
+                >
+                    {tShell("skip_to_search")}
+                </button>
+            )}
 
-            <div className="pointer-events-none absolute inset-x-0 top-[calc(env(safe-area-inset-top)+12px)] z-20 flex justify-center">
+            <div className="pointer-events-none absolute inset-x-0 top-[calc(env(safe-area-inset-top)+12px)] z-20 flex flex-col items-center gap-2">
                 <StaleBanner
                     minutes={feed.kind === "stale" ? feed.minutes : null}
                 />
+                <Notice kind={notice} onDone={clearNotice} />
             </div>
 
             {isDesktop ? (
                 <>
-                    <div className="absolute top-4 right-4 z-20">
-                        <LayersButton />
-                    </div>
                     <AnimatePresence initial={false}>
+                        {/* Search and settings stay reachable beside a panel */}
+                        {desktopPanel !== "home" && (
+                            <DockedPanel
+                                key="search"
+                                className="top-4"
+                                style={{
+                                    left: panelLeft,
+                                    width: `min(360px, calc(100vw - ${panelLeft + 76}px))`,
+                                }}
+                            >
+                                <div className="floating-card overflow-hidden rounded-sheet">
+                                    <DesktopSearch
+                                        trains={trains}
+                                        handlers={searchHandlers}
+                                        compact
+                                        trailing={
+                                            <>
+                                                {desktopPanel !== "planner" && (
+                                                    <PlannerButton
+                                                        onClick={openPlanner}
+                                                        className="hidden size-9 bg-transparent hover:bg-surface-2 lg:flex"
+                                                    />
+                                                )}
+                                                <SettingsButton
+                                                    onClick={() =>
+                                                        setSettingsOpen(true)
+                                                    }
+                                                    className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-ink hover:bg-surface-2"
+                                                />
+                                            </>
+                                        }
+                                    />
+                                </div>
+                            </DockedPanel>
+                        )}
                         {desktopPanel === "home" && (
                             <DockedPanel key="home" className="top-4 left-4">
                                 <div className="floating-card flex max-h-[calc(100dvh-104px)] w-[380px] flex-col overflow-y-auto rounded-sheet">
@@ -802,41 +1046,6 @@ function MapScreen() {
                                 />
                             </DockedPanel>
                         )}
-                        {/* Search and settings stay reachable beside a panel */}
-                        {desktopPanel !== "home" && (
-                            <DockedPanel
-                                key="search"
-                                className="top-4"
-                                style={{
-                                    left: panelLeft,
-                                    width: `min(360px, calc(100vw - ${panelLeft + 76}px))`,
-                                }}
-                            >
-                                <div className="floating-card overflow-hidden rounded-sheet">
-                                    <DesktopSearch
-                                        trains={trains}
-                                        handlers={searchHandlers}
-                                        compact
-                                        trailing={
-                                            <>
-                                                {desktopPanel !== "planner" && (
-                                                    <PlannerButton
-                                                        onClick={openPlanner}
-                                                        className="hidden size-9 bg-transparent hover:bg-surface-2 lg:flex"
-                                                    />
-                                                )}
-                                                <SettingsButton
-                                                    onClick={() =>
-                                                        setSettingsOpen(true)
-                                                    }
-                                                    className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-ink hover:bg-surface-2"
-                                                />
-                                            </>
-                                        }
-                                    />
-                                </div>
-                            </DockedPanel>
-                        )}
                     </AnimatePresence>
                     <div
                         className={cn(
@@ -895,6 +1104,28 @@ function MapScreen() {
                     </BottomSheet>
                 )}
             </AnimatePresence>
+            {isDesktop && (
+                <div className="absolute top-4 right-4 z-20">
+                    <LayersButton />
+                </div>
+            )}
+            <DynamicMap
+                key={locale}
+                trains={trains}
+                selectedId={selectedId}
+                followedIds={followedIds}
+                onSelectTrain={(id) => selectTrain(id)}
+                train={trainView?.vehicle}
+                station={showStation ? station : null}
+                flyTarget={flyTarget}
+                insets={insets}
+                isDesktop={isDesktop}
+            />
+            <KeepTrainVisible
+                selectedId={selectedId}
+                trains={trains}
+                insets={insets}
+            />
             <FollowEditor
                 target={followTarget}
                 onClose={() => setFollowTarget(null)}
