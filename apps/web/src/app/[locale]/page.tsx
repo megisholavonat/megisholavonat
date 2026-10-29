@@ -656,11 +656,12 @@ function MapScreen() {
         let blocked = false;
         const onKeyCapture = (e: KeyboardEvent) => {
             if (e.key !== "Escape") return;
+            // One still fading out after it closed does not count
             blocked = !!document.querySelector(
                 [
-                    '[role="dialog"]:not([data-sheet])',
-                    '[role="alertdialog"]',
-                    "[data-radix-popper-content-wrapper]",
+                    '[role="dialog"]:not([data-sheet]):not([data-state="closed"])',
+                    '[role="alertdialog"]:not([data-state="closed"])',
+                    '[data-radix-popper-content-wrapper]:not(:has(> [data-state="closed"]))',
                 ].join(","),
             );
         };

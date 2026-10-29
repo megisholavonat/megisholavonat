@@ -39,6 +39,10 @@ async function boardTrain(page: Page) {
         .click();
     await expect(trainRegion(page)).toBeVisible();
     await expect.poll(() => param(page, "vehicleId")).toBe(TRAINS.late.id);
+    // The pointer stays where the row was, and may now hover one of the
+    // train's hover tips: that tip would rightly take the next Esc
+    const width = page.viewportSize()?.width ?? 390;
+    await page.mouse.move(width - 100, 120);
 }
 
 test("M-1: back closes the train, then the board, and stays in the app", async ({
