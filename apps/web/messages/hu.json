@@ -341,6 +341,7 @@
         "share_so_far": "Késés megosztása eddig",
         "copied": "Link másolva",
         "open_map": "Élőben a térképen",
+        "open_station": "{station} indulásai a térképen",
         "history": "Korábbi menetek",
         "image_alt": "Késéskártya: {sentence}",
         "not_found": "Nincs ilyen menet",

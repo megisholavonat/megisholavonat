@@ -15,6 +15,8 @@ import { routing } from "@/i18n/routing";
 import { OG_SIZE } from "@/lib/og/metadata";
 import { type RunParams, runParams } from "@/lib/og/runParams";
 import { fetchRun, siteUrl } from "@/lib/og/server";
+import { liveVehicleId } from "@/lib/seo/data";
+import { trainPath } from "@/lib/seo/paths";
 
 type Params = Promise<{ locale: string; number: string; date: string }>;
 type Search = Promise<Record<string, string | string[] | undefined>>;
@@ -95,7 +97,33 @@ export async function generateMetadata({
     };
 }
 
-/** A run's delay card with a link to the live map; unknown runs are 404. */
+/**
+ * Where the card's map button goes. The map opens a train only while it
+ * runs: today's run of this number when there is one, else the board of
+ * the rider's boarding station, which lists a later run today.
+ */
+async function mapLink(
+    locale: Locale,
+    number: string,
+    stationId: string,
+): Promise<{ href: string; live: boolean }> {
+    const vehicleId = await liveVehicleId(number);
+    if (vehicleId) {
+        return {
+            href: `/${locale}?vehicleId=${encodeURIComponent(vehicleId)}`,
+            live: true,
+        };
+    }
+    if (stationId) {
+        return {
+            href: `/${locale}?station=${encodeURIComponent(stationId)}`,
+            live: false,
+        };
+    }
+    return { href: trainPath(locale, number), live: false };
+}
+
+/** A run's delay card with a link to the train on the map; unknown runs are 404. */
 export default async function Page({
     params,
     searchParams,
@@ -107,6 +135,7 @@ export default async function Page({
     if (!run || !card) notFound();
     const t = await getTranslations({ locale, namespace: "DelayCard" });
     const sentence = delaySummarySentence(locale, card);
+    const map = await mapLink(locale, run.number, card.from.stationId);
     return (
         <main className="mx-auto flex min-h-dvh max-w-2xl flex-col gap-5 px-4 py-8">
             <p className="text-caption font-semibold tracking-wide text-ink-2 uppercase">
@@ -127,10 +156,12 @@ export default async function Page({
             </p>
             <div className="flex flex-wrap gap-2">
                 <a
-                    href={`/${locale}`}
+                    href={map.href}
                     className="pressable flex h-11 items-center gap-2 rounded-full bg-action px-5 font-semibold text-on-action"
                 >
-                    {t("open_map")}
+                    {map.live
+                        ? t("open_map")
+                        : t("open_station", { station: card.from.name })}
                     <ArrowRight className="size-4" aria-hidden />
                 </a>
                 <a
