@@ -10,6 +10,30 @@ const OPACITY = [
     "text-opacity",
 ] as const;
 
+/** WebGL renderers that run on the CPU: SwiftShader, Mesa's llvmpipe, ... */
+const SOFTWARE_RENDERER =
+    /swiftshader|llvmpipe|softpipe|software|basic render/i;
+
+/**
+ * Whether the map draws with a software renderer. There a shader compile is
+ * CPU work on the page's own cores (several CPU seconds for these layers),
+ * so compiling them all up front costs more than the stutter it saves.
+ */
+export function isSoftwareRenderer(map: MaplibreMap): boolean {
+    try {
+        const canvas = map.getCanvas();
+        const gl = canvas.getContext("webgl2") ?? canvas.getContext("webgl");
+        if (!gl) return false;
+        const info = gl.getExtension("WEBGL_debug_renderer_info");
+        const renderer = gl.getParameter(
+            info ? info.UNMASKED_RENDERER_WEBGL : gl.RENDERER,
+        );
+        return SOFTWARE_RENDERER.test(String(renderer));
+    } catch {
+        return false;
+    }
+}
+
 /**
  * WebGL compiles a layer type's shaders the first time it draws. Selecting a
  * train adds the route line, stop circles and stop names at once, and their
@@ -17,12 +41,14 @@ const OPACITY = [
  * This draws the same layers, nearly transparent, in idle time, then
  * removes them. They go in at once, at opacity 0 (parsed, not drawn), and
  * are shown one per idle period: drawing all of them in one frame was a
- * long task of its own on first load. Returns a cancel.
+ * long task of its own on first load. Skipped on a software renderer.
+ * Returns a cancel.
  */
 export function warmUpShaders(
     map: MaplibreMap,
     layers: LayerSpecification[],
 ): () => void {
+    if (isSoftwareRenderer(map)) return () => {};
     let done = false;
     let handle: number | null = null;
     let timer: ReturnType<typeof setTimeout> | null = null;

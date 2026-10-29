@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- 17 to 20 px: solid M, larger dot -->
+  <rect width="100" height="100" rx="23" fill="#16181C"/>
+  <path d="M24 76V32L50 60L76 32V76" fill="none" stroke="#F2F3F5" stroke-width="16" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="78" cy="26" r="13" fill="#F2C230" stroke="#16181C" stroke-width="4"/>
+</svg>

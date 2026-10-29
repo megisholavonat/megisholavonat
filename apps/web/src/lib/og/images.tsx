@@ -98,7 +98,7 @@ const loadFonts = cachedLoad(() =>
 );
 
 const loadIcon = cachedLoad(() =>
-    readFile(join(process.cwd(), "public/web-app-manifest-192x192.png")).then(
+    readFile(join(process.cwd(), "public/icon-192.png")).then(
         (data) => `data:image/png;base64,${data.toString("base64")}`,
     ),
 );
@@ -151,13 +151,7 @@ export function Frame({
                 }}
             >
                 {/* biome-ignore lint/performance/noImgElement: satori */}
-                <img
-                    src={icon}
-                    width={44}
-                    height={44}
-                    style={{ borderRadius: 10 }}
-                    alt=""
-                />
+                <img src={icon} width={44} height={44} alt="" />
                 <div
                     style={{
                         marginLeft: 16,
@@ -723,13 +717,7 @@ export function genericImage(locale: Locale) {
             }}
         >
             {/* biome-ignore lint/performance/noImgElement: satori */}
-            <img
-                src={icon}
-                width={128}
-                height={128}
-                style={{ borderRadius: 28 }}
-                alt=""
-            />
+            <img src={icon} width={128} height={128} alt="" />
             <div
                 style={{
                     marginTop: 40,

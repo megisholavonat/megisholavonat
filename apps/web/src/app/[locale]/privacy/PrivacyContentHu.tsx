@@ -2,45 +2,114 @@ import AnalyticsConsentSwitch from "@/components/settings/AnalyticsConsentSwitch
 
 const CONTACT_EMAIL = "hello@megisholavonat.info";
 
+function External({ href, children }: { href: string; children: string }) {
+    return (
+        <a href={href} target="_blank" rel="noopener noreferrer">
+            {children}
+        </a>
+    );
+}
+
 export default function PrivacyContentHu() {
     return (
         <>
             <p>
                 Ebben a tájékoztatóban leírjuk, milyen adatokat kezel a{" "}
-                <strong>Mégis hol a vonat?</strong> (megisholavonat.info), miért
-                és meddig, és milyen jogaid vannak. Nincs regisztráció, nem
-                kérjük el a neved vagy az e-mail-címed. Az oldal egy ingyenes
-                hobbiprojekt; a látogatószámot mindenkinél mérjük, de részletes,
-                azonosítóhoz kötött statisztikát csak akkor gyűjtünk, ha ehhez
-                hozzájárulsz.
+                <strong>Mégis hol a vonat?</strong> (a megisholavonat.info
+                weboldal és az MHaV alkalmazás iPhone-ra és Androidra), miért és
+                meddig, ki kapja még meg őket, és milyen jogaid vannak. Nincs
+                regisztráció: nem kérjük el a neved, az e-mail-címed vagy a
+                telefonszámod. Ez egy ingyenes hobbiprojekt. A látogatószámot
+                mindenkinél mérjük, de részletes, azonosítóhoz kötött
+                statisztikát csak akkor gyűjtünk, ha ehhez hozzájárulsz.
             </p>
 
             <h2>Ki kezeli az adataidat?</h2>
             <p>
-                Az oldalt Reicher Martin és Gyóni Márk üzemelteti, közös
-                adatkezelőként. Kapcsolat:{" "}
+                Az oldalt és az alkalmazást Reicher Martin és Gyóni Márk
+                üzemelteti, közös adatkezelőként. Kapcsolat:{" "}
                 <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
             </p>
             <p>
-                Az oldal nyílt forráskódú, a kódja megtalálható a{" "}
-                <a
-                    href="https://github.com/megisholavonat/megisholavonat"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
+                A projekt nyílt forráskódú, a kódja megtalálható a{" "}
+                <External href="https://github.com/megisholavonat/megisholavonat">
                     GitHubon
-                </a>
+                </External>
                 .
             </p>
 
-            <h2>Az oldal kiszolgálása</h2>
+            <h2>Röviden</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mit</th>
+                        <th>Miért</th>
+                        <th>Meddig</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>IP-cím, böngésző adatai, a kért cím</td>
+                        <td>
+                            Az oldal és az alkalmazás kiszolgálása, biztonság
+                        </td>
+                        <td>
+                            Felülíródó szervernaplók; korlátozás: legfeljebb 1
+                            óra
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>A tartózkodási helyed</td>
+                        <td>Hogy lásd magad a térképen</td>
+                        <td>Nem tároljuk, nem hagyja el az eszközödet</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Beállítások, legutóbbi állomások, követett vonatok
+                            (web)
+                        </td>
+                        <td>A döntéseid megjegyzése</td>
+                        <td>Az eszközödön, amíg nem törlöd</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Az alkalmazás eszközazonosítója, push-tokenje,
+                            követett vonatai, értesítési állapota
+                        </td>
+                        <td>A kért értesítések küldése</td>
+                        <td>
+                            Amíg nem állítod le a követést; 180 nap használaton
+                            kívül minden törlődik
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Névtelen használati statisztika</td>
+                        <td>A látogatók és a funkciók használatának mérése</td>
+                        <td>A PostHognál, lásd lent</td>
+                    </tr>
+                    <tr>
+                        <td>Véletlen azonosítóhoz kötött statisztika</td>
+                        <td>
+                            Csak a hozzájárulásoddal: a szolgáltatás fejlesztése
+                        </td>
+                        <td>
+                            A PostHognál, amíg vissza nem vonod a hozzájárulást
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>Az oldal és az alkalmazás kiszolgálása</h2>
             <p>
-                Amikor megnyitod az oldalt, a böngésződ kapcsolatba lép a
-                szerverünkkel, és ennek során megkapjuk az IP-címedet, a
-                böngésződ adatait (user agent) és azt, hogy melyik oldalt vagy
-                adatot kérted. Erre azért van szükség, hogy az oldalt és a
-                vonatok adatait egyáltalán el tudjuk küldeni neked, és hogy
-                biztonságosan működjön.
+                Amikor megnyitod az oldalt vagy az alkalmazást, az eszközöd
+                kapcsolatba lép a szerverünkkel, és ennek során megkapjuk az
+                IP-címedet, a böngésződ vagy az alkalmazás adatait (user agent)
+                és azt, hogy melyik oldalt vagy adatot kérted. Erre azért van
+                szükség, hogy az oldalt és a vonatok adatait egyáltalán el
+                tudjuk küldeni neked, és hogy biztonságosan működjön. A kérések
+                először a Cloudflare hálózatán haladnak át, amely védi és
+                gyorsítja a szolgáltatást; a Cloudflare továbbadja nekünk az
+                IP-címedet.
             </p>
             <ul>
                 <li>
@@ -48,55 +117,60 @@ export default function PrivacyContentHu() {
                     pont): a szolgáltatás működtetése és védelme.
                 </li>
                 <li>
-                    <strong>Megőrzés:</strong> a szerver naplóit csak addig
-                    őrizzük, amíg az üzemeltetéshez és a biztonsághoz szükséges,
-                    utána automatikusan törlődnek.
+                    <strong>Megőrzés:</strong> a szervernaplókat nem archiváljuk
+                    és nem gyűjtjük össze, az új bejegyzések automatikusan
+                    felülírják őket. A visszaélések ellen az alkalmazás
+                    eszközeinek regisztrációját IP-címenként (IPv6 esetén a
+                    hálózati előtag szerint) korlátozzuk; ez a számláló
+                    legfeljebb egy óra múlva törlődik.
                 </li>
                 <li>
-                    <strong>Adatfeldolgozó:</strong> londoni (Egyesült
-                    Királyság) tárhelyszolgáltató.
-                </li>
-                <li>
-                    <strong>Adattovábbítás:</strong> az adatok Egyesült
-                    Királyságba történő továbbítása az Európai Bizottság
-                    Egyesült Királyságra vonatkozó megfelelőségi határozatán
-                    alapul.
+                    <strong>Adatfeldolgozók:</strong> londoni (Egyesült
+                    Királyság) tárhelyszolgáltató és a Cloudflare.
                 </li>
             </ul>
+
+            <h2>Vonatadatok, statisztika és útvonaltervezés</h2>
             <p>
-                A vonatadatokat kiszolgáló API-nk nem tárol rólad semmit: nincs
-                felhasználói fiók, és a kéréseidet nem kapcsoljuk hozzád.
+                A vonatok helyzete, késése, az állomási táblák és a pontossági
+                statisztika a vonatokról szól, nem rólad: ezeket a MÁV nyilvános
+                adataiból gyűjtjük, és a felhasználóinkhoz nem kapcsoljuk.
+            </p>
+            <p>
+                Útvonaltervezéskor az eszközöd elküldi a szerverünknek a két
+                állomást és a választott időpontot. A szerverünk ezután a saját
+                nevében kérdezi meg a MÁV útvonaltervezőjét, így a MÁV csak az
+                állomásokat és az időpontot kapja meg, az IP-címedet és rólad
+                semmit sem. Az eredményt egy percig megőrizzük, hogy az azonos
+                keresések gyorsabbak legyenek; ezt nem kapcsoljuk hozzád.
+            </p>
+            <p>
+                Ha megosztasz egy vonatot vagy állomást, az előnézeti képet a
+                szerverünk csak vonatadatokból készíti, személyes adatot nem
+                használ.
             </p>
 
             <h2>A térkép</h2>
             <p>
-                A térkép megjelenítéséhez a böngésződ közvetlenül tölt le
-                térképrészleteket (csempéket) az alábbi helyekről. Ilyenkor ezek
-                a szerverek is megkapják az IP-címedet és azt, hogy a térkép
-                melyik részét nézed.
+                A térkép megjelenítéséhez a weboldal és az alkalmazás
+                közvetlenül tölt le térképrészleteket (csempéket) az alábbi
+                helyekről. Ilyenkor ezek a szerverek is megkapják az IP-címedet
+                és azt, hogy a térkép melyik részét nézed.
             </p>
             <ul>
                 <li>
                     <strong>Alaptérkép:</strong> az{" "}
-                    <a
-                        href="https://openfreemap.org/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
+                    <External href="https://openfreemap.org/">
                         OpenFreeMap
-                    </a>{" "}
+                    </External>{" "}
                     szerverei (tiles.openfreemap.org).
                 </li>
                 <li>
-                    <strong>Vasúti réteg:</strong> a saját
-                    csempe-gyorsítótárunk, amely az{" "}
-                    <a
-                        href="https://www.openrailwaymap.org/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
+                    <strong>Vasúti réteg:</strong> a saját csempe-gyorsítótárunk
+                    (tc.megisholavonat.info), amely az{" "}
+                    <External href="https://www.openrailwaymap.org/">
                         OpenRailwayMap
-                    </a>{" "}
+                    </External>{" "}
                     csempéit tárolja. Az OpenRailwayMap így nem látja az
                     IP-címedet.
                 </li>
@@ -110,20 +184,20 @@ export default function PrivacyContentHu() {
             <h2>A tartózkodási helyed</h2>
             <p>
                 Ha megnyomod a helymeghatározás gombját (vagy korábban már
-                engedélyezted a böngésződben), a böngésződ megadja a
+                engedélyezted), a böngésződ vagy a telefonod megadja a
                 helyzetedet. Ezt <strong>csak a te eszközödön</strong>{" "}
                 használjuk arra, hogy megmutassuk a térképen, hol vagy. A
                 pozíciódat nem küldjük el sem nekünk, sem másnak, és nem
-                tároljuk. Az engedélyt bármikor visszavonhatod a böngésződ
-                beállításaiban.
+                tároljuk. Az engedélyt bármikor visszavonhatod a böngésződ vagy
+                a telefonod beállításaiban.
             </p>
 
-            <h2>Amit a böngésződben tárolunk</h2>
+            <h2>Mit tárolunk az eszközödön?</h2>
             <p>
-                Egyetlen sütit használunk: a <code>NEXT_LOCALE</code>{" "}
-                munkamenet-süti a választott nyelvet jegyzi meg, és a böngésző
-                bezárásakor törlődik. A többi beállításodat a böngésződ helyi
-                tárolójában (localStorage) őrizzük, és ezek el sem jutnak
+                A weboldalon egyetlen sütit használunk: a{" "}
+                <code>NEXT_LOCALE</code> munkamenet-süti megjegyzi a nyelvet, és
+                a böngésző bezárásakor törlődik. Minden mást a böngésződ helyi
+                tárolójában (localStorage) tartunk, és ezek nem jutnak el
                 hozzánk:
             </p>
             <ul>
@@ -136,61 +210,272 @@ export default function PrivacyContentHu() {
                     rendszer);
                 </li>
                 <li>
+                    <code>mhav.recentStations</code>: a legutóbb keresett
+                    állomások;
+                </li>
+                <li>
+                    <code>mhav.follows</code>: a weboldalon követett vonatok.
+                    Ezek csak a böngésződben vannak, a weboldal nem küld
+                    értesítést;
+                </li>
+                <li>
                     <code>mhav.consent.analytics</code>: hogy engedélyezted-e a
                     részletes statisztikát, és mikor döntöttél.
                 </li>
             </ul>
             <p>
-                A munkamenet idejére (a böngészőlap bezárásáig) a{" "}
-                <code>mhav.consent.prompt</code> kulcsot is eltároljuk a
-                munkamenet-tárolóban (sessionStorage), hogy egy újratöltés után
-                ne kelljen újra várnod a statisztikáról szóló kérdésre.
+                Csak az aktuális munkamenetre (a lap bezárásáig) a
+                munkamenet-tárolóban (sessionStorage) is tartunk egy{" "}
+                <code>mhav.consent.prompt</code> kulcsot, hogy újratöltés után
+                ne kelljen ismét várnod a statisztikáról szóló kérdésre.
             </p>
             <p>
-                Ezek az oldal működéséhez és a döntéseid megjegyzéséhez
-                szükségesek, ezért ehhez nem kérünk külön hozzájárulást. A
-                böngésződ adatainak törlésével bármikor eltávolíthatod őket.
+                Az alkalmazás a beállításaidat (a statisztikáról hozott
+                döntésedet is) és a követett vonatokat fájlokban tárolja a
+                telefonodon. Ha követsz egy vonatot, az eszköz belépési adatát
+                (lásd lent) is eltárolja az iPhone kulcskarikájában (Keychain)
+                vagy az Android kulcstárában (Keystore). Ha elfogadod a
+                statisztikát, egy véletlenszerű statisztikai azonosítót is tárol
+                egy fájlban.
+            </p>
+            <p>
+                Ezek az oldal és az alkalmazás működéséhez és a döntéseid
+                megjegyzéséhez szükségesek, ezért nem kérünk hozzájuk külön
+                hozzájárulást. Bármikor törölheted őket a weboldal
+                beállításaiban a <strong>Mentett adatok törlése</strong>, az
+                alkalmazás beállításaiban az <strong>Adataim törlése</strong>{" "}
+                gombbal, a böngésző adatainak törlésével vagy az alkalmazás
+                eltávolításával.
             </p>
 
-            <h2>Látogatószám mérése (mindenkinél)</h2>
+            <h2>Vonatok követése és értesítések az alkalmazásban</h2>
             <p>
-                Hogy tudjuk, naponta hányan használják az oldalt, a{" "}
-                <a
-                    href="https://posthog.com/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    PostHog
-                </a>{" "}
-                „cookieless” (sütimentes) módját használjuk akkor is, ha még nem
-                döntöttél, vagy elutasítottad a részletes statisztikát.
-                Ilyenkor:
+                Az alkalmazásban egy vonatot egyszer vagy rendszeres útként
+                követhetsz, és értesítést kaphatsz, ha késik, ha változik a
+                vágánya, vagy ha az előtte közlekedő vonat késik. Ehhez a
+                szerverünknek tudnia kell, mit figyeljen, és hová küldje az
+                értesítést. Fiók nincs: amikor először követsz egy vonatot, az
+                alkalmazás egy névtelen eszközt regisztrál a szerverünkön. Ezt
+                tároljuk:
             </p>
             <ul>
                 <li>
-                    a böngésződben semmit nem tárolunk: nincs süti és nincs
-                    azonosító;
+                    <strong>az eszköz:</strong> egy véletlenszerű azonosító, a
+                    titkos kulcsának lenyomata (maga a kulcs a telefonod
+                    kulcskarikájában vagy kulcstárában marad), a platform (iOS
+                    vagy Android), az alkalmazás nyelve (az értesítések
+                    nyelvéhez), a létrehozás ideje és az a nap, amikor utoljára
+                    kapcsolatba lépett velünk;
                 </li>
                 <li>
-                    a PostHog megkapja az oldalmegtekintéseket, a kattintásokat
-                    (a szövegek kitakarásával), az oldalon előforduló
-                    programhibákat, a böngésződ és az eszközöd típusát, valamint
-                    az IP-címedet;
+                    <strong>a követett vonatok:</strong> a vonatszám, a dátum
+                    (egyszeri útnál) vagy a hét napjai (rendszeres útnál), a
+                    fel- és leszállási állomásod, valamint az értesítési
+                    beállítások (késési küszöb, vágányváltozás);
                 </li>
                 <li>
-                    a PostHog szervere az IP-címedből és a böngésződ adataiból
-                    (user agent) egy naponta cserélődő titkos kulccsal („sóval”)
-                    képzett kivonatot (hash) számol. Ez egy napon belül
-                    összeköti a látogatásaidat, de másnap már nem lehet hozzád
-                    kapcsolni, és a napi kulcsot a PostHog törli.
+                    <strong>a push-token:</strong> ha engedélyezed az
+                    értesítéseket, az alkalmazás push-címe (Expo push-token), és
+                    hogy a legutóbbi kézbesítések sikerültek-e;
+                </li>
+                <li>
+                    <strong>értesítési állapot:</strong> az utoljára jelzett
+                    késés és vágány, és hogy mikor jeleztük, hogy ne kapd meg
+                    kétszer ugyanazt az értesítést.
                 </li>
             </ul>
+            <p>
+                iPhone-on, ha egy követett vonatot élő tevékenységként (Live
+                Activity) jelenítesz meg, az alkalmazás ennek a tevékenységnek a
+                saját push-tokenjét is elküldi a szerverünknek, mi pedig az
+                Apple push-szolgáltatásán keresztül küldjük rá a frissítéseket.
+            </p>
+            <p>
+                Az értesítéseket az Expo push-szolgáltatásán keresztül küldjük,
+                amely iPhone-ra az Apple-nek (APNs), Androidra a Google-nek
+                (Firebase Cloud Messaging) adja tovább őket. Ők a push-tokent és
+                az értesítés tartalmát kapják meg: a vonatot, a késését vagy a
+                vágányát, és az azonosítókat, amelyekkel az alkalmazás a
+                megfelelő vonatot nyitja meg.
+            </p>
             <ul>
+                <li>
+                    <strong>Jogalap:</strong> az általad kért szolgáltatás
+                    nyújtása (GDPR 6. cikk (1) b) pont). Értesítést csak akkor
+                    küldünk, ha a telefonodon engedélyezed.
+                </li>
+                <li>
+                    <strong>Megőrzés:</strong>
+                    <ul>
+                        <li>
+                            ha leállítod egy vonat követését, azonnal töröljük
+                            azt és az értesítési állapotát;
+                        </li>
+                        <li>
+                            az egyszeri utat két nappal a dátuma után, az
+                            értesítési állapotot két nappal az érintett nap után
+                            automatikusan töröljük;
+                        </li>
+                        <li>
+                            az élő tevékenység tokenjét a tevékenység végén,
+                            legkésőbb 12 óra után töröljük;
+                        </li>
+                        <li>
+                            a push-tokent töröljük, amint az Apple vagy a Google
+                            érvénytelennek jelzi (pl. az alkalmazás törlése
+                            után), vagy ha többször egymás után nem sikerül a
+                            kézbesítés;
+                        </li>
+                        <li>
+                            azt az eszközt, amelyet az alkalmazás 180 napig nem
+                            használt, minden hozzá tartozó adattal együtt
+                            töröljük.
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <strong>Adatfeldolgozók és címzettek:</strong> az Expo (650
+                    Industries, Inc., USA), az Apple és a Google mint
+                    push-szolgáltatók.
+                </li>
+            </ul>
+            <p>
+                <strong>Az értesítések leállítása és az adatok törlése:</strong>{" "}
+                koppints az alkalmazás beállításaiban az{" "}
+                <strong>Adataim törlése</strong> gombra. Ez azonnal törli a
+                szerverünkről az eszközt az összes követett vonatával,
+                push-tokenjével és értesítési állapotával együtt, és törli az
+                alkalmazás adatait a telefonodon; ha épp nincs internet, a
+                szerverről az alkalmazás következő megnyitásakor töröljük. Egy
+                vonat követésének leállítása is azonnal törli azt a
+                szerverünkről. Ha a telefonod beállításaiban kapcsolod ki az
+                értesítéseket, azok csak nem jelennek meg. Ha törlöd az
+                alkalmazást, a push-tokened érvénytelenné válik, és töröljük, a
+                megmaradt eszközadatot pedig, amely már nem kapcsolható hozzád,
+                180 nap múlva töröljük. iPhone-on az eszköz belépési adata az
+                alkalmazás törlése után is megmaradhat a kulcskarikában; ha
+                újratelepíted, az alkalmazás eltávolítja a szerverről azokat a
+                vonatokat, amelyek már nincsenek meg nála.
+            </p>
+
+            <h2>Használati statisztika</h2>
+            <p>
+                Hogy tudjuk, hányan használják a weboldalt és az alkalmazást, és
+                mely funkcióikat, a{" "}
+                <External href="https://posthog.com/">PostHogot</External>{" "}
+                használjuk. Ezt rögzítjük:
+            </p>
+            <ul>
+                <li>
+                    mit nyitsz meg (vonatot, állomást, útvonaltervezőt,
+                    statisztikát, forgalmi zavarokat) és honnan (pl. keresésből,
+                    a térképről, megosztott linkről vagy értesítésből), és hogy
+                    meddig nézel egy vonatot;
+                </li>
+                <li>
+                    keresésnél csak azt, milyen hosszú volt a keresett szöveg,
+                    és hány találatot adott, magát a szöveget soha;
+                </li>
+                <li>
+                    hogy elmentettél vagy töröltél-e egy követést, milyen
+                    típusút és hány napra, az állomásokat nem;
+                </li>
+                <li>
+                    a megosztásokat, hogy melyik beállítást változtattad meg,
+                    hogy megjelent-e a statisztikáról szóló kérdés és mit
+                    válaszoltál, valamint a neked megjelenő hibaüzeneteket;
+                </li>
+                <li>
+                    nyilvános menetrendi azonosítókat: vonatszám,
+                    állomásazonosító, viszonylatkód és járműazonosító;
+                </li>
+                <li>
+                    minden eseménynél: a platformot (web, iOS vagy Android), az
+                    alkalmazás verzióját, a nyelvet, a témát, és nagyjából hány
+                    vonatot követsz (0, 1, 2–3, 4+);
+                </li>
+                <li>
+                    a weboldalon az oldalmegtekintéseket is (az oldal címét,
+                    amelyben benne lehet a megnyitott vonat vagy állomás), a
+                    kattintásokat (a szövegük nélkül) és az oldalon előforduló
+                    hibákat;
+                </li>
+                <li>
+                    az alkalmazásban azt is, hogy engedélyezted-e az
+                    értesítéseket, mely értesítéseket nyitod meg (a típusukat,
+                    és hogy ezzel indult-e az alkalmazás), és hogy egy
+                    követésnél be vannak-e kapcsolva az értesítések; a PostHog
+                    hozzáteszi az operációs rendszert és a verzióját, az eszköz
+                    típusát, a nyelvet és az időzónát;
+                </li>
+                <li>
+                    a böngésződ vagy az eszközöd típusát és az IP-címedet,
+                    amelyből a PostHog hozzávetőleges helyet (ország, város)
+                    állapít meg.
+                </li>
+            </ul>
+            <p>
+                Soha nem küldjük el a helyzetedet, azt, amit a keresőbe írsz,
+                vagy hogy melyik két állomás között tervezel utat. Felhasználói
+                profilt nem hozunk létre, munkamenet-felvételt
+                (képernyőfelvételt) nem készítünk, a nevedet vagy az
+                e-mail-címedet soha nem küldjük el. A fejlesztői változatok
+                semmit sem küldenek.
+            </p>
+
+            <h3>Amíg nem döntöttél, vagy ha elutasítod</h3>
+            <ul>
+                <li>
+                    <strong>Weboldal:</strong> a PostHog sütimentes módja. A
+                    böngésződben semmit sem tárolunk: se sütit, se azonosítót. A
+                    PostHog szervere az IP-címedből és a böngésződ adataiból
+                    (user agent) egy naponta cserélődő titkos kulccsal („só”)
+                    lenyomatot (hash-t) képez. Ezzel egy napon belül össze tudja
+                    kapcsolni a látogatásaidat, de másnap már nem lehet hozzád
+                    kötni, a napi sót pedig a PostHog törli.
+                </li>
+                <li>
+                    <strong>Alkalmazás:</strong> egy véletlenszerű azonosítót
+                    csak a memóriában tartunk, egy indítás idejére. A
+                    telefonodon semmit sem tárolunk, így a következő indítás nem
+                    kapcsolható hozzá.
+                </li>
+                <li>
+                    A statisztikáról szóló kérdésre adott válaszodat ugyanígy,
+                    névtelenül rögzítjük, hogy lássuk, hányan fogadják el. Amit
+                    az elfogadás előtt rögzítettünk, azt utána sem kapcsoljuk
+                    hozzád.
+                </li>
                 <li>
                     <strong>Jogalap:</strong> jogos érdek (GDPR 6. cikk (1) f)
                     pont): egy ingyenes hobbiprojekt fenntartásához tudnunk
-                    kell, hányan használják. Ez ellen bármikor tiltakozhatsz az
-                    alább megadott e-mail-címen.
+                    kell, hányan és mire használják. Ez ellen bármikor
+                    tiltakozhatsz az alább megadott e-mail-címen.
+                </li>
+            </ul>
+
+            <h3>Ha elfogadod</h3>
+            <ul>
+                <li>
+                    Egy véletlenszerű azonosítót tárolunk az eszközödön (a
+                    weboldalon a helyi tárolóban, <code>ph_…</code> és{" "}
+                    <code>__ph_…</code> kezdetű kulcsokkal; az alkalmazásban egy
+                    fájlban), hogy a látogatásaidat napokon át össze tudjuk
+                    kapcsolni (pl. hogy visszatérsz-e). A PostHog
+                    munkamenet-azonosítót is használ.
+                </li>
+                <li>
+                    <strong>Jogalap:</strong> a hozzájárulásod (GDPR 6. cikk (1)
+                    a) pont), amelyet bármikor visszavonhatsz.
+                </li>
+            </ul>
+
+            <ul>
+                <li>
+                    <strong>Megőrzés:</strong> a PostHognál a projektünkben
+                    beállított megőrzési ideig, kérésre korábban is töröljük; az
+                    azonosítót az eszközödön addig, amíg vissza nem vonod a
+                    hozzájárulást, vagy nem törlöd az adatait.
                 </li>
                 <li>
                     <strong>Adatfeldolgozó:</strong> PostHog Inc., EU-s
@@ -198,47 +483,12 @@ export default function PrivacyContentHu() {
                 </li>
             </ul>
 
-            <h2>Részletes statisztika (csak ha engeded)</h2>
-            <p>
-                Ha az erről szóló kérdésnél az „Elfogadom” gombot választod, a
-                PostHog segítségével részletesebb statisztikát gyűjtünk, ami
-                segít eldönteni, mit fejlesszünk. Ilyenkor a fentieken túl:
-            </p>
-            <ul>
-                <li>
-                    egy véletlenszerű azonosítót tárolunk a böngésződ helyi
-                    tárolójában (<code>ph_…</code> és <code>__ph_…</code>{" "}
-                    kezdetű kulcsok), hogy a látogatásaidat napokon át össze
-                    tudjuk kapcsolni (pl. hogy visszatérsz-e);
-                </li>
-                <li>
-                    a PostHog munkamenet-azonosítót is használ, és az
-                    IP-címedből hozzávetőleges helyet (ország, város) állapíthat
-                    meg.
-                </li>
-            </ul>
-            <p>
-                Munkamenet-felvételt (képernyőfelvételt) egyik esetben sem
-                készítünk, az elemek szövegét nem rögzítjük, és a nevedet, az
-                e-mail-címedet vagy a pontos helyzetedet nem küldjük el.
-            </p>
-            <ul>
-                <li>
-                    <strong>Jogalap:</strong> a hozzájárulásod (GDPR 6. cikk (1)
-                    a) pont), amelyet bármikor visszavonhatsz.
-                </li>
-                <li>
-                    <strong>Megőrzés:</strong> a PostHognál a projektünkben
-                    beállított megőrzési ideig, kérésre korábban is töröljük; a
-                    böngésződben addig, amíg vissza nem vonod a hozzájárulást,
-                    vagy nem törlöd a böngésző adatait.
-                </li>
-            </ul>
             <p>
                 Ha elutasítod, fél évig nem kérdezünk újra. A döntésedet itt
-                vagy a Beállításokban bármikor megváltoztathatod. Ha
-                kikapcsolod, töröljük a böngésződből a PostHog adatait, és
-                visszaállunk a sütimentes látogatószám-mérésre.
+                vagy a Beállításokban (a weboldalon és az alkalmazásban is)
+                bármikor megváltoztathatod. Ha kikapcsolod, töröljük a tárolt
+                azonosítót a böngésződből vagy a telefonodról, és visszaállunk a
+                névtelen mérésre.
             </p>
             <div className="not-prose rounded-xl border border-border bg-card p-4">
                 <AnalyticsConsentSwitch />
@@ -246,11 +496,46 @@ export default function PrivacyContentHu() {
 
             <h2>A PostHog</h2>
             <p>
-                A statisztikai adatokat a böngésződ a saját szerverünkön
-                keresztül küldi a PostHog EU-s felhőjébe (eu.i.posthog.com). A
-                PostHog Inc. amerikai cég; az EU-n kívüli hozzáférésre vonatkozó
-                garanciákat a PostHog adatfeldolgozási feltételei tartalmazzák.
+                A statisztikai adatok a PostHog EU-s felhőjébe
+                (eu.i.posthog.com) kerülnek. Az alkalmazás közvetlenül küldi
+                őket, a weboldal pedig a saját szerverünkön keresztül, amely a
+                látogatók számlálásához továbbítja az IP-címedet. A PostHog Inc.
+                amerikai cég; az EU-n kívüli hozzáférésre vonatkozó garanciákat
+                a PostHog adatfeldolgozási feltételei tartalmazzák.
             </p>
+
+            <h2>Ki kap adatot, és hol?</h2>
+            <ul>
+                <li>
+                    <strong>Tárhelyszolgáltató</strong> (London, Egyesült
+                    Királyság): a szervereink. Az Egyesült Királyságba történő
+                    továbbítás az Európai Bizottság Egyesült Királyságra
+                    vonatkozó megfelelőségi határozatán alapul.
+                </li>
+                <li>
+                    <strong>Cloudflare</strong>: a weboldal és az API-nk
+                    hálózati védelme és kiszolgálása.
+                </li>
+                <li>
+                    <strong>PostHog</strong> (EU-s felhő): statisztika.
+                </li>
+                <li>
+                    <strong>OpenFreeMap</strong>: az alaptérkép csempéi,
+                    amelyeket az eszközöd közvetlenül tölt le.
+                </li>
+                <li>
+                    <strong>Expo, Apple és Google</strong>: az alkalmazás
+                    értesítéseinek kézbesítése. Ezek amerikai cégek; az adatok
+                    az EU–USA adatvédelmi keretrendszer vagy az Európai
+                    Bizottság általános szerződési feltételei alapján
+                    kerülhetnek az Egyesült Államokba.
+                </li>
+                <li>
+                    <strong>MÁV</strong>: a szerverünktől kapja az
+                    útvonalkereséseket, rád vonatkozó adat nélkül.
+                </li>
+            </ul>
+            <p>Az adataidat nem adjuk el, és nem használjuk hirdetésre.</p>
 
             <h2>A jogaid</h2>
             <p>A GDPR alapján jogod van:</p>
@@ -266,9 +551,12 @@ export default function PrivacyContentHu() {
                 <li>kérni az adataid hordozható formában való kiadását.</li>
             </ul>
             <p>
-                Mivel nem tudjuk, ki vagy, a statisztikai adataidat csak akkor
-                tudjuk megtalálni, ha megadod a böngésződben tárolt PostHog
-                azonosítót. Kérésedre ebben is segítünk. Írj nekünk:{" "}
+                Mivel nem tudjuk, ki vagy, általában csak olyan adattal tudunk
+                foglalkozni, amelyet meg tudsz mutatni nekünk. A követett
+                vonatokat és az értesítéseiket a fent leírt módon magad is
+                törölheted az alkalmazásban. A statisztikai adataidat akkor
+                tudjuk megtalálni, ha megadod az eszközödön tárolt PostHog
+                azonosítót; ebben szívesen segítünk. Írj nekünk:{" "}
                 <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. Egy
                 hónapon belül válaszolunk.
             </p>
@@ -276,20 +564,14 @@ export default function PrivacyContentHu() {
                 Ha úgy érzed, hogy megsértettük a jogaidat, panaszt tehetsz a
                 Nemzeti Adatvédelmi és Információszabadság Hatóságnál (NAIH,
                 1055 Budapest, Falk Miksa utca 9–11.,{" "}
-                <a
-                    href="https://naih.hu"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    naih.hu
-                </a>
-                , ugyfelszolgalat@naih.hu), vagy bírósághoz fordulhatsz.
+                <External href="https://naih.hu">naih.hu</External>,
+                ugyfelszolgalat@naih.hu), vagy bírósághoz fordulhatsz.
             </p>
 
             <h2>Változások</h2>
             <p>
-                Ha az oldal új funkciói több adatot kezelnek, ezt a tájékoztatót
-                frissítjük, és ha kell, újra megkérdezünk.
+                Ha az oldal vagy az alkalmazás új funkciói több adatot kezelnek,
+                ezt a tájékoztatót frissítjük, és ha kell, újra megkérdezünk.
             </p>
         </>
     );
