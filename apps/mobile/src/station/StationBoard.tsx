@@ -144,6 +144,7 @@ function BoardRowView({
 }) {
     const theme = useAppTheme();
     const t = useTranslations("Station");
+    const td = useTranslations("Disruptions");
     const format = useFormatter();
     const time = format.dateTime(new Date(row.time * 1000), {
         hour: "2-digit",
@@ -214,10 +215,20 @@ function BoardRowView({
                             <Text style={{ color: theme.delay.severe.text }}>
                                 {` · ${t("canceled")}`}
                             </Text>
+                        ) : row.disruption ? (
+                            // A replacement bus or no trains: as on the web
+                            <Text
+                                style={{
+                                    color: theme.delay.severe.text,
+                                    fontWeight: "600",
+                                }}
+                            >
+                                {` · ${td(`effect_${row.disruption}`)}`}
+                            </Text>
                         ) : null}
                     </Text>
                 </View>
-                {row.reason && tone ? (
+                {row.reason && tone && !row.disruption ? (
                     <ReasonLine reason={row.reason} tone={tone} compact />
                 ) : null}
             </View>

@@ -30,6 +30,8 @@ export interface StopRow {
     delay: number;
     /** A forecast beyond the next stop: shown as "≈17:44" */
     approximate: boolean;
+    /** The train stands here: its time is the departure */
+    standing: boolean;
     /** Announced platform */
     platform: string | null;
     /**
@@ -48,6 +50,45 @@ function predictedDelay(stoptime: StopTimeWithCounty): number | null {
     return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
+export interface TrainStop {
+    /** Index of the next stop; the stop count once the train has arrived */
+    next: number;
+    /** The stop the train stands at (its origin or a dwell), else null */
+    standing: number | null;
+    /** At its destination: every stop passed */
+    arrived: boolean;
+}
+
+/**
+ * Where the train is on its stop list, by the API's `activity` and
+ * `dwellStopIndex` before its position: an arrived train has passed every
+ * stop (its position still points at the final one), a train waiting to
+ * depart has passed none, and one waiting out a stop is at that stop.
+ */
+export function trainStop(
+    details: Pick<
+        VehiclePositionWithDelay,
+        "activity" | "dwellStopIndex" | "vehicleProgress" | "trip"
+    >,
+): TrainStop {
+    const count = details.trip.stoptimes.length;
+    if (details.activity === "arrived") {
+        return { next: count, standing: null, arrived: true };
+    }
+    if (details.activity === "beforeDeparture") {
+        return { next: 0, standing: 0, arrived: false };
+    }
+    const dwell = details.dwellStopIndex;
+    if (dwell != null && dwell >= 0 && dwell < count) {
+        return { next: dwell, standing: dwell, arrived: false };
+    }
+    return {
+        next: details.vehicleProgress.nextStopIndex ?? 0,
+        standing: null,
+        arrived: false,
+    };
+}
+
 /**
  * The stop list: passed stops with their actual times, then the next stop
  * and the rest with the live delay carried forward (or the per-stop
@@ -59,7 +100,7 @@ export function stopRows(
     carryDelay = true,
 ): StopRow[] {
     const stoptimes = details.trip.stoptimes;
-    const next = details.vehicleProgress.nextStopIndex ?? 0;
+    const { next, standing } = trainStop(details);
     const liveDelay = carryDelay ? Math.max(0, Math.round(details.delay)) : 0;
 
     return stoptimes.map((st, index) => {
@@ -67,9 +108,12 @@ export function stopRows(
         const isLast = index === stoptimes.length - 1;
         const state: StopState =
             index < next ? "passed" : index === next ? "next" : "upcoming";
+        const isStanding = index === standing;
         // Passed stops show when the train left, the others when it arrives
-        // (the first stop has only a departure, the last only an arrival)
-        const useDeparture = isFirst || (state === "passed" && !isLast);
+        // (the first stop has only a departure, the last only an arrival);
+        // the stop the train stands at, when it leaves
+        const useDeparture =
+            isFirst || ((state === "passed" || isStanding) && !isLast);
         const scheduled = useDeparture
             ? st.scheduledDeparture
             : st.scheduledArrival;
@@ -86,7 +130,7 @@ export function stopRows(
         const dwell = st.scheduledDeparture - st.scheduledArrival;
         if (!isFirst && !isLast && dwell >= MIN_DWELL_S) {
             secondary =
-                state === "passed"
+                state === "passed" || isStanding
                     ? { kind: "arrival", expected: st.realtimeArrival }
                     : {
                           kind: "departure",
@@ -104,6 +148,7 @@ export function stopRows(
             expected,
             delay,
             approximate: state === "upcoming",
+            standing: isStanding,
             platform: st.stop.platformCode ?? null,
             secondary,
         };
@@ -197,6 +242,9 @@ export function sortedAlerts(alerts: readonly Alert[]): Alert[] {
         });
 }
 
+/** MNR2007 has no glyph for these ("Országos vonat" draws a stray "o"). */
+const GLYPHLESS_SERVICES = new Set([339]);
+
 /**
  * Services (bike, buffet, ...) for the whole trip, and those valid only on
  * part of it, by stop index.
@@ -205,7 +253,11 @@ export function serviceGroups(
     services: readonly InfoService[],
     stopCount: number,
 ): { whole: InfoService[]; byStop: InfoService[][] } {
-    const shown = services.filter((s) => s.displayable !== false);
+    const shown = services.filter(
+        (s) =>
+            s.displayable !== false &&
+            !GLYPHLESS_SERVICES.has(Number(s.fontCode)),
+    );
     const isWhole = (s: InfoService) =>
         s.fromStopIndex <= 0 && s.tillStopIndex >= stopCount - 1;
     const partial = shown.filter((s) => !isWhole(s));

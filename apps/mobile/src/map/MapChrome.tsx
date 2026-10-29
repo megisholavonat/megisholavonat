@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
         elevation: 3,
     },
     search: {
-        height: 56,
+        minHeight: 56,
         borderRadius: 28,
         flexDirection: "row",
         alignItems: "center",

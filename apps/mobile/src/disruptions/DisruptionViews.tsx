@@ -276,6 +276,8 @@ export function DisruptionChip({
             onPress={onPress}
             accessibilityRole="button"
             android_ripple={{ color: theme.colors.line }}
+            // 36 pt tall: a 44 pt target
+            hitSlop={4}
             style={({ pressed }) => [
                 styles.chip,
                 { backgroundColor: theme.colors.surface },
@@ -390,7 +392,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         gap: 6,
-        height: 36,
+        minHeight: 36,
         paddingLeft: 12,
         paddingRight: 14,
         borderRadius: 18,

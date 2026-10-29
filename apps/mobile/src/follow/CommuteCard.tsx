@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
     note: { fontSize: 14, marginLeft: 32 },
     reason: { marginLeft: 32 },
     prompt: {
-        height: 52,
+        minHeight: 52,
         borderRadius: 26,
         flexDirection: "row",
         alignItems: "center",

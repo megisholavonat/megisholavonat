@@ -57,4 +57,16 @@ describe("boardRows", () => {
             trainNumber: "924",
         });
     });
+
+    it("flags a train replaced by a bus", () => {
+        const [bus, plain] = boardRows(
+            [
+                entry({ disruption: "replacement_bus" }),
+                entry({ tripId: "1:2" }),
+            ],
+            undefined,
+        );
+        expect(bus?.disruption).toBe("replacement_bus");
+        expect(plain?.disruption).toBeNull();
+    });
 });

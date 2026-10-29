@@ -5,6 +5,13 @@ import { useFormatter, useTranslations } from "use-intl";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { ComposeHost } from "../ui/ComposeHost";
 import { Icon } from "../ui/Icon";
+import {
+    budapestToday,
+    dateDialogDate,
+    timeDialogDate,
+    withPickedDate,
+    withPickedTime,
+} from "./pickerTime";
 import type { TimeFieldProps } from "./TimeField.types";
 
 type Dialog = "date" | "time" | null;
@@ -28,21 +35,11 @@ export function TimeField({ value, onChange }: TimeFieldProps) {
     ];
 
     // Keep the time of day when the date changes, and the date when the
-    // time changes (the dialogs report UTC midnight / today respectively)
-    const setDate = (picked: Date) => {
-        const next = new Date(current);
-        next.setFullYear(
-            picked.getUTCFullYear(),
-            picked.getUTCMonth(),
-            picked.getUTCDate(),
-        );
-        onChange(next.getTime());
-    };
-    const setTime = (picked: Date) => {
-        const next = new Date(current);
-        next.setHours(picked.getHours(), picked.getMinutes(), 0, 0);
-        onChange(next.getTime());
-    };
+    // time changes, on Budapest time whatever the phone's zone (pickerTime)
+    const setDate = (picked: Date) =>
+        onChange(withPickedDate(current.getTime(), picked));
+    const setTime = (picked: Date) =>
+        onChange(withPickedTime(current.getTime(), picked));
 
     return (
         <View style={styles.group}>
@@ -94,8 +91,10 @@ export function TimeField({ value, onChange }: TimeFieldProps) {
                 <ComposeHost style={styles.dialogHost}>
                     {dialog === "date" ? (
                         <DatePickerDialog
-                            initialDate={current.toISOString()}
-                            selectableDates={{ start: startOfToday() }}
+                            initialDate={dateDialogDate(
+                                current.getTime(),
+                            ).toISOString()}
+                            selectableDates={{ start: budapestToday() }}
                             onDateSelected={(date) => {
                                 setDialog(null);
                                 setDate(date);
@@ -104,7 +103,9 @@ export function TimeField({ value, onChange }: TimeFieldProps) {
                         />
                     ) : (
                         <TimePickerDialog
-                            initialDate={current.toISOString()}
+                            initialDate={timeDialogDate(
+                                current.getTime(),
+                            ).toISOString()}
                             is24Hour
                             onDateSelected={(date) => {
                                 setDialog(null);
@@ -119,16 +120,10 @@ export function TimeField({ value, onChange }: TimeFieldProps) {
     );
 }
 
-function startOfToday(): Date {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return today;
-}
-
 const styles = StyleSheet.create({
     group: { flexDirection: "row", gap: 2, alignSelf: "flex-start" },
     button: {
-        height: 48,
+        minHeight: 48,
         paddingHorizontal: 18,
         alignItems: "center",
         justifyContent: "center",

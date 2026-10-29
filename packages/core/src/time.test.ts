@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
     budapestDate,
+    budapestTime,
     formatSecondsAsTime,
+    fromBudapestTime,
     getSecondsSinceDay,
     isoWeekday,
     secondsIntoServiceDay,
@@ -148,5 +150,29 @@ describe("secondsIntoServiceDay", () => {
         expect(secondsIntoServiceDay({ serviceDate: "2026-08-14" }, now)).toBe(
             24 * 3600 + 25 * 60,
         );
+    });
+});
+
+describe("Budapest wall-clock time", () => {
+    it("reads an instant as Budapest time", () => {
+        expect(budapestTime(Date.parse("2026-10-28T23:30:00Z"))).toEqual({
+            year: 2026,
+            month: 10,
+            day: 29,
+            hour: 0,
+            minute: 30,
+        });
+    });
+
+    it("turns Budapest time into an instant across DST", () => {
+        const summer = { year: 2026, month: 7, day: 1, hour: 14, minute: 5 };
+        const winter = { year: 2026, month: 12, day: 1, hour: 14, minute: 5 };
+        expect(fromBudapestTime(summer)).toBe(Date.parse("2026-07-01T12:05Z"));
+        expect(fromBudapestTime(winter)).toBe(Date.parse("2026-12-01T13:05Z"));
+    });
+
+    it("round-trips", () => {
+        const ms = Date.parse("2026-03-29T01:30:00Z");
+        expect(fromBudapestTime(budapestTime(ms))).toBe(ms);
     });
 });

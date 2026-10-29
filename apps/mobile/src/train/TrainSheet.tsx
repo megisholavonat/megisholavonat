@@ -39,7 +39,12 @@ import { Icon } from "../ui/Icon";
 import { RollingText } from "../ui/motion";
 import { SheetHandle } from "../ui/SheetHandle";
 import { useNow } from "../ui/useNow";
-import { type DelayTileModel, delayTile, reasonTone } from "./delayDisplay";
+import {
+    type DelayTileModel,
+    delayTile,
+    notEarlyWhileStanding,
+    reasonTone,
+} from "./delayDisplay";
 import { RouteIcon } from "./RouteIcon";
 import { StopList } from "./StopList";
 import { TrainActions } from "./TrainActions";
@@ -52,6 +57,7 @@ import {
     serviceGroups,
     sortedAlerts,
     stopRows,
+    trainStop,
     trainTitle,
 } from "./trainData";
 import { patchFeed } from "./trainState";
@@ -111,7 +117,13 @@ export function TrainSheet({
     // One state for the tile, the times and the rail, by the same rules as
     // the map marker
     const input = details ?? feature;
-    const display = input ? trainDisplay(input, now) : null;
+    const where = details ? trainStop(details) : null;
+    const display = input
+        ? notEarlyWhileStanding(
+              trainDisplay(input, now),
+              where?.standing != null || input.speed === 0,
+          )
+        : null;
     const running = display?.state === "running";
     const stale = display?.state === "stale";
 
@@ -132,6 +144,9 @@ export function TrainSheet({
     const next = rows.find((r) => r.state === "next") ?? null;
     const last = rows.at(-1) ?? null;
     const first = rows[0] ?? null;
+    const arrived = where?.arrived ?? false;
+    // The summary's stop: the next one, or the final one once arrived
+    const shown = next ?? (arrived ? last : null);
 
     const tripShortName = details?.trip.tripShortName ?? feature?.tripShortName;
     const title = tripShortName
@@ -252,7 +267,7 @@ export function TrainSheet({
                         { borderLeftColor: theme.colors.line },
                     ]}
                 >
-                    {next ? (
+                    {shown ? (
                         <>
                             <Text
                                 style={[
@@ -261,14 +276,13 @@ export function TrainSheet({
                                 ]}
                                 numberOfLines={1}
                             >
-                                {next.name}
+                                {shown.name}
                             </Text>
                             <Text style={[styles.nextTime, theme.tabularNums]}>
                                 <Text style={{ color: theme.colors.ink }}>
-                                    {stale ? "≈" : ""}
-                                    {formatSecondsAsTime(next.expected)}
+                                    {summaryTime(t, shown, arrived, stale)}
                                 </Text>
-                                {next.expected !== next.scheduled ? (
+                                {shown.expected !== shown.scheduled ? (
                                     <Text
                                         style={[
                                             styles.scheduled,
@@ -276,12 +290,12 @@ export function TrainSheet({
                                         ]}
                                         accessibilityLabel={t("scheduled", {
                                             time: formatSecondsAsTime(
-                                                next.scheduled,
+                                                shown.scheduled,
                                             ),
                                         })}
                                     >
                                         {"  "}
-                                        {formatSecondsAsTime(next.scheduled)}
+                                        {formatSecondsAsTime(shown.scheduled)}
                                     </Text>
                                 ) : null}
                             </Text>
@@ -376,6 +390,23 @@ export function TrainSheet({
             )}
         </ScrollView>
     );
+}
+
+/**
+ * The summary's time: "megérkezett 01:20" at the destination, "ind. 04:19"
+ * where the train stands, "≈17:44" for an estimate on old data (never for
+ * the first stop's departure, which is the timetable's).
+ */
+function summaryTime(
+    t: ReturnType<typeof useTranslations<"Train">>,
+    row: StopRow,
+    arrived: boolean,
+    stale: boolean,
+): string {
+    const time = formatSecondsAsTime(row.expected);
+    if (arrived) return `${t("arrived")} ${time}`;
+    if (row.standing) return t("departure_short", { time });
+    return stale && !row.isFirst ? `≈${time}` : time;
 }
 
 /**

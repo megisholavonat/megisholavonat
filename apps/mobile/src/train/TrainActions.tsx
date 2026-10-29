@@ -75,7 +75,7 @@ export function TrainActions({
 const styles = StyleSheet.create({
     group: { flexDirection: "row", gap: 2 },
     button: {
-        height: 52,
+        minHeight: 52,
         paddingHorizontal: 20,
         flexDirection: "row",
         alignItems: "center",

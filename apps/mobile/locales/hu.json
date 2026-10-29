@@ -1,0 +1,6 @@
+{
+    "ios": {
+        "CFBundleDisplayName": "MHaV",
+        "NSLocationWhenInUseUsageDescription": "A helyzeted csak a térképen jelenik meg, nem küldjük el sehova."
+    }
+}
