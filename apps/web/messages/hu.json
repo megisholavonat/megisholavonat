@@ -195,7 +195,7 @@
         "open_source": "Az alkalmazás nyílt forráskódú. Hibát, ötletet és segítséget a GitHubon várunk."
     },
     "Consent": {
-        "title": "Névtelen statisztika?",
+        "title": "Használati statisztika?",
         "details": "Részletek",
         "accept": "Elfogadom",
         "reject": "Elutasítom"

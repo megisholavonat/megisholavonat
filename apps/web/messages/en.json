@@ -195,7 +195,7 @@
         "open_source": "This app is open source. Bug reports, ideas and help are welcome on GitHub."
     },
     "Consent": {
-        "title": "Anonymous statistics?",
+        "title": "Usage statistics?",
         "details": "Details",
         "accept": "Accept",
         "reject": "Reject"
