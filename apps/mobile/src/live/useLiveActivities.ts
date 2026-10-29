@@ -8,6 +8,7 @@ import {
     type RunningActivity,
 } from "../../modules/live-activity";
 import { API_URL } from "../config";
+import { onErase } from "../privacy/erase";
 import { deviceToken, hasDevice, isStatus, withDevice } from "../follow/device";
 import type { LiveFollow } from "../follow/live";
 import type { LocalFollow, Run } from "../follow/model";
@@ -245,6 +246,21 @@ export function writeWidget(items: readonly Item[], now: Date): void {
         widget = null;
     }
 }
+
+// "Delete my data" ends every Live Activity and empties the widget
+onErase(async () => {
+    const native = LiveActivity;
+    if (!native) return;
+    for (const activity of native.list()) {
+        await native.end(activity.id, null, true).catch(() => {});
+    }
+    widget = null;
+    try {
+        native.setWidgetData(
+            JSON.stringify({ updatedAt: Math.round(Date.now() / 1000), runs: [] }),
+        );
+    } catch {}
+});
 
 /** The Live Activities and the widget, driven by home's commute items. */
 export function useLiveActivities(
