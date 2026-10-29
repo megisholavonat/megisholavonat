@@ -13,12 +13,14 @@ import {
     recentRun,
     SHARE_RUN_WITHIN_S,
 } from "@megisholavonat/core/delaySummary";
+import { stationIdOf } from "@megisholavonat/core/stops";
 import {
     budapestDate,
     effectiveServiceDate,
     serviceDayStart,
     shiftDate,
 } from "@megisholavonat/core/time";
+import { trainNumber } from "@megisholavonat/core/trainName";
 import { trainTitle } from "../train/trainData";
 
 // Followed trains: one trip ("only today") or a commute on some weekdays.
@@ -77,21 +79,6 @@ export interface FollowDraft {
     delayThresholdMin: number;
     notifyPlatformChange: boolean;
     liveActivity: boolean;
-}
-
-/** UIC station code of a stop, as the API derives it (util/stop.py). */
-export function stationIdOf(stop: {
-    stationUicPricingCode?: string | null;
-    gtfsId?: string | null;
-}): string | null {
-    if (stop.stationUicPricingCode) return stop.stationUicPricingCode;
-    if (!stop.gtfsId) return null;
-    return stop.gtfsId.split(":").slice(1).join(":").split("_")[0] || null;
-}
-
-/** First word of the trip name: "559 AGRIA InterRégió" -> "559". */
-export function trainNumber(tripShortName: string): string {
-    return tripShortName.trim().split(/\s+/)[0]?.toLocaleLowerCase() ?? "";
 }
 
 export function stopOptions(details: VehiclePositionWithDelay): StopOption[] {

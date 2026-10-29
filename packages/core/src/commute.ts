@@ -1,12 +1,16 @@
 import { DateTime } from "luxon";
-import { effectiveServiceDate, serviceDayStart, type TripTimes } from "./time";
+import {
+    BUDAPEST_TZ,
+    effectiveServiceDate,
+    serviceDayStart,
+    type TripTimes,
+} from "./time";
 
 // When the next run of a followed train is. Same semantics as the API's
 // commute follows (apps/api/api/services/commute.py): weekdays are ISO
 // (1 = Monday) and count the local calendar day of departure from the
 // boarding station.
 
-const BUDAPEST_TZ = "Europe/Budapest";
 const DAY_S = 24 * 3600;
 
 /** Keep showing a run this long after its scheduled departure */

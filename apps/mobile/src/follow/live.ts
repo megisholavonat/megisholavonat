@@ -3,16 +3,12 @@ import type {
     VehiclePositionWithDelay,
 } from "@megisholavonat/api-client";
 import { getTrainDetailsOptions } from "@megisholavonat/api-client/react-query";
+import { stationIdOf } from "@megisholavonat/core/stops";
+import { trainNumber } from "@megisholavonat/core/trainName";
 import { useQueries } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
 import { type StopRow, stopRows } from "../train/trainData";
-import {
-    isRunOf,
-    type LocalFollow,
-    type Run,
-    stationIdOf,
-    trainNumber,
-} from "./model";
+import { isRunOf, type LocalFollow, type Run } from "./model";
 import { rememberVehicle } from "./store";
 
 const DETAILS_REFRESH_MS = 30_000;

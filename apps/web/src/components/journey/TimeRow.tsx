@@ -1,11 +1,11 @@
 "use client";
 
+import { toLocalInput } from "@megisholavonat/core/time";
 import { CalendarDays, Clock } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useTranslations } from "next-intl";
 import { useId } from "react";
 import { cn } from "@/lib/utils";
-import { toLocalInput } from "./journey";
 import type { PlannerState } from "./PlannerButton";
 
 type Mode = "now" | "depart" | "arrive";

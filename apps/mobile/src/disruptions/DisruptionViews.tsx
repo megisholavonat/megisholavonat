@@ -4,6 +4,7 @@ import {
     affectsTrain,
     disruptionLines,
 } from "@megisholavonat/core/disruptions";
+import { formatValidity, formatValidityDate } from "@megisholavonat/core/time";
 import * as WebBrowser from "expo-web-browser";
 import { useMemo, useState } from "react";
 import {
@@ -19,10 +20,8 @@ import { type AppTheme, useAppTheme } from "../theme/ThemeProvider";
 import { RouteIcon } from "../train/RouteIcon";
 import { Icon } from "../ui/Icon";
 import { useReduceMotion } from "../ui/motion";
-import { fullTexts, validityFormat } from "./disruptions";
+import { fullTexts } from "./disruptions";
 import { useDisruptions } from "./useDisruptions";
-
-const BUDAPEST = "Europe/Budapest";
 
 /** Red only where trains do not run. */
 function severityColor(theme: AppTheme, d: Disruption): string {
@@ -58,20 +57,9 @@ function useValidity() {
     const t = useTranslations("Disruptions");
     const locale = useLocale();
     return (d: Disruption) => {
-        const format = new Intl.DateTimeFormat(
-            locale === "hu" ? "hu-HU" : "en-GB",
-            { ...validityFormat(d), timeZone: BUDAPEST },
-        );
-        const at = (s: number) => format.format(new Date(s * 1000));
+        const at = (s: number) => formatValidityDate(s, locale);
         if (d.start != null && d.end != null) {
-            try {
-                return format.formatRange(
-                    new Date(d.start * 1000),
-                    new Date(d.end * 1000),
-                );
-            } catch {
-                return `${at(d.start)} – ${at(d.end)}`;
-            }
+            return formatValidity(d.start, d.end, locale);
         }
         if (d.start != null) return t("since", { date: at(d.start) });
         return d.end != null ? t("until", { date: at(d.end) }) : null;

@@ -16,6 +16,7 @@ import {
     staleNote,
 } from "@megisholavonat/core/display";
 import { shareUrl } from "@megisholavonat/core/share";
+import { beforeDeparture } from "@megisholavonat/core/stops";
 import { ticketUrl } from "@megisholavonat/core/ticket";
 import { formatSecondsAsTime } from "@megisholavonat/core/time";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -44,7 +45,6 @@ import { StopList } from "./StopList";
 import { TrainActions } from "./TrainActions";
 import { AlertList, ReasonLine, ServiceList } from "./TrainInfo";
 import {
-    beforeDeparture,
     isUsuallyLate,
     predictedPlatform,
     type StopRow,
@@ -119,7 +119,14 @@ export function TrainSheet({
     const note = display ? staleNote(display) : null;
 
     const rows = useMemo(
-        () => (details ? stopRows(details, display?.state !== "idle") : []),
+        () =>
+            details
+                ? stopRows(
+                      details,
+                      display?.state !== "idle",
+                      display?.state !== "running",
+                  )
+                : [],
         [details, display?.state],
     );
     const services = useMemo(

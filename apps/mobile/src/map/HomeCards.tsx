@@ -1,7 +1,8 @@
+import { formatClock } from "@megisholavonat/core/time";
 import * as WebBrowser from "expo-web-browser";
 import type { ReactNode } from "react";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
-import { useFormatter, useLocale, useTranslations } from "use-intl";
+import { useLocale, useTranslations } from "use-intl";
 import { WEB_URL } from "../config";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { StateBlock } from "../ui/ds";
@@ -38,7 +39,6 @@ export function FeedStateCard({
 }) {
     const t = useTranslations("Home");
     const tc = useTranslations("Common");
-    const format = useFormatter();
     switch (state.kind) {
         case "offline":
             return (
@@ -62,13 +62,7 @@ export function FeedStateCard({
                             state.sinceMs === null
                                 ? undefined
                                 : t("source_down_since", {
-                                      time: format.dateTime(
-                                          new Date(state.sinceMs),
-                                          {
-                                              hour: "2-digit",
-                                              minute: "2-digit",
-                                          },
-                                      ),
+                                      time: formatClock(state.sinceMs / 1000),
                                   })
                         }
                         action={{ label: tc("retry"), onPress: onRetry }}

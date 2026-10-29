@@ -3,6 +3,7 @@ import {
     LOCALES,
     type Locale,
 } from "@megisholavonat/core/i18n";
+import { BUDAPEST_TZ } from "@megisholavonat/core/time";
 import { useLocales } from "expo-localization";
 import type { ReactNode } from "react";
 import { IntlProvider } from "use-intl";
@@ -42,7 +43,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         <IntlProvider
             locale={locale}
             messages={MESSAGES[locale]}
-            timeZone="Europe/Budapest"
+            timeZone={BUDAPEST_TZ}
         >
             {children}
         </IntlProvider>

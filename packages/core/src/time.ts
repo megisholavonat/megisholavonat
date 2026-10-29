@@ -3,7 +3,10 @@ import { DateTime } from "luxon";
 // Port of apps/api/api/util/time.py (service_day_start, get_seconds_since_day)
 // and apps/api/api/util/trip.py (seconds_into_service_day). Keep both in sync.
 
-const BUDAPEST_TZ = "Europe/Budapest";
+/** The time zone trains run on, whatever the device's own. */
+export const BUDAPEST_TZ = "Europe/Budapest";
+
+const DAY_S = 24 * 3600;
 
 // A neighbouring service date replaces the trip's own only if it puts the
 // time at least this much closer to the trip's schedule
@@ -183,4 +186,61 @@ export function budapestTime(ms: number): BudapestTime {
  */
 export function fromBudapestTime(time: BudapestTime): number {
     return DateTime.fromObject(time, { zone: BUDAPEST_TZ }).toMillis();
+}
+
+/**
+ * "04:10": the Budapest wall-clock time of an instant (Unix seconds), always
+ * 24-hour whatever the UI language, like the timetables.
+ */
+export function formatClock(epochSeconds: number): string {
+    return DateTime.fromSeconds(epochSeconds, { zone: BUDAPEST_TZ }).toFormat(
+        "HH:mm",
+    );
+}
+
+/** "2026-10-29T15:00" in Budapest time, for a time input and the API. */
+export function toLocalInput(date: Date): string {
+    return DateTime.fromJSDate(date, { zone: BUDAPEST_TZ }).toFormat(
+        "yyyy-MM-dd'T'HH:mm",
+    );
+}
+
+function validityFormat(locale: string, withTime: boolean) {
+    return new Intl.DateTimeFormat(locale === "hu" ? "hu-HU" : "en-GB", {
+        month: "short",
+        day: "numeric",
+        ...(withTime ? { hour: "2-digit", minute: "2-digit" } : {}),
+        timeZone: BUDAPEST_TZ,
+    });
+}
+
+/** One end of a validity: "okt. 29." or, with the time, "okt. 29. 01:30". */
+export function formatValidityDate(
+    epochSeconds: number,
+    locale: string,
+    withTime = false,
+): string {
+    return validityFormat(locale, withTime).format(
+        new Date(epochSeconds * 1000),
+    );
+}
+
+/**
+ * A validity range in Budapest time: "okt. 17. – nov. 6.", with times when
+ * it lasts less than a day ("okt. 29. 01:30 – 04:34") or when asked.
+ */
+export function formatValidity(
+    start: number,
+    end: number,
+    locale: string,
+    withTime = end - start < DAY_S,
+): string {
+    const format = validityFormat(locale, withTime);
+    const from = new Date(start * 1000);
+    const to = new Date(end * 1000);
+    try {
+        return format.formatRange(from, to);
+    } catch {
+        return `${format.format(from)} – ${format.format(to)}`;
+    }
 }

@@ -10,10 +10,8 @@ import {
     nextRun,
     parseFollows,
     recentRunDate,
-    stationIdOf,
     stopOptions,
     toggleWeekday,
-    trainNumber,
     upcoming,
     withFrom,
 } from "./model";
@@ -76,20 +74,6 @@ function follow(patch: Partial<LocalFollow> = {}): LocalFollow {
 
 // Thursday 2026-10-29, 16:00 in Budapest (CET, UTC+1)
 const THU_16 = new Date("2026-10-29T15:00:00Z");
-
-describe("stations and numbers", () => {
-    it("prefers the UIC code and falls back to the gtfsId", () => {
-        expect(stationIdOf({ stationUicPricingCode: "005510017" })).toBe(
-            "005510017",
-        );
-        expect(stationIdOf({ gtfsId: "1:005501024_14" })).toBe("005501024");
-        expect(stationIdOf({})).toBeNull();
-    });
-
-    it("takes the number from the trip name", () => {
-        expect(trainNumber("559 AGRIA InterRégió")).toBe("559");
-    });
-});
 
 describe("draft", () => {
     it("never boards at a stop the train has passed", () => {

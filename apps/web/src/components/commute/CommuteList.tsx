@@ -2,7 +2,7 @@
 
 import { getDelayLevel } from "@megisholavonat/core/delay";
 import { delayLabel } from "@megisholavonat/core/display";
-import { formatSecondsAsTime } from "@megisholavonat/core/time";
+import { BUDAPEST_TZ, formatSecondsAsTime } from "@megisholavonat/core/time";
 import { Star } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { CommuteDelayShare } from "@/components/train/DelayShare";
@@ -26,7 +26,7 @@ function dayLabel(
     if (occ.daysAhead === 1) return tomorrow;
     return new Intl.DateTimeFormat(locale, {
         weekday: "long",
-        timeZone: "Europe/Budapest",
+        timeZone: BUDAPEST_TZ,
     }).format(new Date(occ.departure * 1000));
 }
 

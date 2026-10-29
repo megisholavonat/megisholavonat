@@ -1,14 +1,19 @@
 import { describe, expect, it } from "vitest";
 import {
+    BUDAPEST_TZ,
     budapestDate,
     budapestTime,
+    formatClock,
     formatSecondsAsTime,
+    formatValidity,
+    formatValidityDate,
     fromBudapestTime,
     getSecondsSinceDay,
     isoWeekday,
     secondsIntoServiceDay,
     serviceDayStart,
     shiftDate,
+    toLocalInput,
 } from "./time";
 
 describe("calendar helpers", () => {
@@ -174,5 +179,71 @@ describe("Budapest wall-clock time", () => {
     it("round-trips", () => {
         const ms = Date.parse("2026-03-29T01:30:00Z");
         expect(fromBudapestTime(budapestTime(ms))).toBe(ms);
+    });
+});
+
+const unix = (iso: string) => Date.parse(iso) / 1000;
+/** Intl puts thin and no-break spaces around the range dash */
+const plain = (text: string) => text.replace(/\s/g, " ");
+
+describe("formatClock", () => {
+    it("is 24-hour Budapest time", () => {
+        expect(formatClock(unix("2026-10-29T14:05:00Z"))).toBe("15:05");
+        expect(formatClock(unix("2026-07-01T22:30:00Z"))).toBe("00:30");
+        expect(formatClock(unix("2026-07-01T02:09:59Z"))).toBe("04:09");
+    });
+
+    it("reads like the web's former hu-HU formatter", () => {
+        const huHU = new Intl.DateTimeFormat("hu-HU", {
+            hour: "2-digit",
+            minute: "2-digit",
+            timeZone: BUDAPEST_TZ,
+        });
+        for (
+            let s = unix("2026-03-29T00:00:00Z");
+            s < unix("2026-03-30T00:00:00Z");
+            s += 7 * 60 + 13
+        ) {
+            expect(formatClock(s)).toBe(huHU.format(new Date(s * 1000)));
+        }
+    });
+});
+
+describe("toLocalInput", () => {
+    it("is the Budapest wall-clock time for a datetime-local input", () => {
+        expect(toLocalInput(new Date("2026-10-29T14:05:00Z"))).toBe(
+            "2026-10-29T15:05",
+        );
+        expect(toLocalInput(new Date("2026-10-28T23:30:00Z"))).toBe(
+            "2026-10-29T00:30",
+        );
+    });
+});
+
+describe("formatValidity", () => {
+    const start = unix("2026-10-29T00:30:00Z");
+
+    it("shows dates for a range of a day or more", () => {
+        expect(plain(formatValidity(start, start + 8 * 86_400, "hu"))).toBe(
+            "okt. 29. – nov. 6.",
+        );
+        expect(plain(formatValidity(start, start + 8 * 86_400, "en"))).toBe(
+            "29 Oct – 6 Nov",
+        );
+    });
+
+    it("adds 24-hour times within a day, or when asked", () => {
+        const within = formatValidity(start, start + 3 * 3600, "en");
+        expect(within).toMatch(/01:30/);
+        expect(within).toMatch(/04:30/);
+        expect(within).not.toMatch(/AM|PM/);
+        expect(formatValidity(start, start + 8 * 86_400, "en", true)).toMatch(
+            /01:30/,
+        );
+    });
+
+    it("formats one end alone", () => {
+        expect(formatValidityDate(start, "hu")).toBe("okt. 29.");
+        expect(formatValidityDate(start, "en", true)).toBe("29 Oct, 01:30");
     });
 });

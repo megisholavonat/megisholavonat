@@ -11,8 +11,8 @@ import type {
     TrainHistory,
     VehiclePositionWithDelay,
 } from "@megisholavonat/api-client";
+import { trainNumber } from "@megisholavonat/core/trainName";
 import { apiUrl } from "@/lib/og/server";
-import { trainNumber } from "@/lib/train";
 import { parseStationSegment, stationSegment, stationSlug } from "./paths";
 
 /** Seconds each kind of data is reused for */

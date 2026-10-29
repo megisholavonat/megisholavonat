@@ -4,6 +4,7 @@
 import type { Locale } from "@megisholavonat/core/i18n";
 import { huTrainSubject } from "@megisholavonat/core/share";
 import { stationType } from "@megisholavonat/core/stationType";
+import { trainName } from "@megisholavonat/core/trainName";
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import { hasLocale } from "next-intl";
@@ -14,7 +15,6 @@ import { siteUrl } from "@/lib/og/server";
 import { fetchTrainPage, lookupStation } from "@/lib/seo/data";
 import { seoMetadata, trainSubject } from "@/lib/seo/metadata";
 import { type PageKind, stationPath, trainPath } from "@/lib/seo/paths";
-import { trainName } from "@/lib/train";
 import { decodeParam } from "@/lib/utils";
 import { StationPage } from "./StationPage";
 import { TrainPage } from "./TrainPage";

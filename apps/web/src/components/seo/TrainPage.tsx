@@ -4,7 +4,9 @@
 import type { TrainRouteStation } from "@megisholavonat/api-client";
 import type { Locale } from "@megisholavonat/core/i18n";
 import { trainShareText } from "@megisholavonat/core/share";
+import { stationIdOf } from "@megisholavonat/core/stops";
 import { formatSecondsAsTime } from "@megisholavonat/core/time";
+import { trainName } from "@megisholavonat/core/trainName";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import {
@@ -21,7 +23,6 @@ import { siteUrl } from "@/lib/og/server";
 import type { TrainPageData } from "@/lib/seo/data";
 import { breadcrumbs, trainSubject } from "@/lib/seo/metadata";
 import { stationHref, trainPath } from "@/lib/seo/paths";
-import { stationIdOf, trainName } from "@/lib/train";
 import {
     Breadcrumb,
     Glyph,

@@ -1,6 +1,6 @@
 import type { VehiclePositionWithDelay } from "@megisholavonat/api-client";
 import { describe, expect, it } from "vitest";
-import { arrivalIsEstimate, isEstimate, runStops } from "./train";
+import { runStops } from "./train";
 
 const stop = (id: string, at: number) => ({
     stop: { gtfsId: `1:${id}`, name: id, lat: 0, lon: 0 },
@@ -40,29 +40,5 @@ describe("runStops", () => {
             "2026-10-29",
             "2026-10-30",
         ]);
-    });
-});
-
-describe("arrivalIsEstimate", () => {
-    const ahead = { index: 3, passed: false, timing: { estimated: true } };
-
-    it("is an estimate ahead of the train", () => {
-        expect(arrivalIsEstimate(ahead, false, false)).toBe(true);
-    });
-
-    it("is actual once the train stands at the stop", () => {
-        // 36614 at Hajdúdorog: "Itt áll", its 12:05 arrival has happened
-        expect(arrivalIsEstimate(ahead, false, true)).toBe(false);
-        expect(arrivalIsEstimate(ahead, true, true)).toBe(false);
-    });
-
-    it("leaves the departure's estimate alone", () => {
-        expect(isEstimate(ahead, false)).toBe(true);
-    });
-
-    it("is never an estimate at a passed stop", () => {
-        expect(arrivalIsEstimate({ ...ahead, passed: true }, true, false)).toBe(
-            false,
-        );
     });
 });

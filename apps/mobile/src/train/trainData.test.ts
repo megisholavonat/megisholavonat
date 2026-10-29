@@ -1,7 +1,7 @@
 import type { VehiclePositionWithDelay } from "@megisholavonat/api-client";
+import { beforeDeparture } from "@megisholavonat/core/stops";
 import { describe, expect, it } from "vitest";
 import {
-    beforeDeparture,
     isUsuallyLate,
     mainAlert,
     predictedPlatform,
@@ -60,6 +60,27 @@ function vehicle(
     } as unknown as VehiclePositionWithDelay;
 }
 
+/** Stops without published realtime times */
+const onTimeStops = [
+    st("A", 16 * H, 16 * H),
+    st("B", 17 * H, 17 * H),
+    st("C", 18 * H, 18 * H),
+];
+
+/** The API's per-stop forecasts (minutes) on the processed stops. */
+function withForecasts(
+    details: VehiclePositionWithDelay,
+    byIndex: Record<number, number>,
+): VehiclePositionWithDelay {
+    return {
+        ...details,
+        processedStops: Object.entries(byIndex).map(([index, delay]) => ({
+            index: Number(index),
+            predictedDelay: delay,
+        })),
+    } as unknown as VehiclePositionWithDelay;
+}
+
 describe("stopRows", () => {
     it("splits passed, next and upcoming stops", () => {
         const rows = stopRows(vehicle(2, 23));
@@ -69,10 +90,11 @@ describe("stopRows", () => {
             "next",
             "upcoming",
         ]);
+        // "≈" by the web's rule: our estimates ahead, the next stop too
         expect(rows.map((r) => r.approximate)).toEqual([
             false,
             false,
-            false,
+            true,
             true,
         ]);
     });
@@ -92,20 +114,66 @@ describe("stopRows", () => {
         expect(d).toMatchObject({ scheduled: 19 * H, delay: 23, isLast: true });
     });
 
-    it("prefers a per-stop predictedDelay when the API sends one", () => {
+    it("prefers the per-stop predictedDelay of the processed stops", () => {
         const rows = stopRows(
-            vehicle(1, 10, [
-                st("A", 16 * H, 16 * H),
-                st("B", 17 * H, 17 * H),
-                st("C", 18 * H, 18 * H, { predictedDelay: 4 }),
-            ]),
+            withForecasts(
+                vehicle(1, 10, [
+                    st("A", 16 * H, 16 * H),
+                    st("B", 17 * H, 17 * H),
+                    st("C", 18 * H, 18 * H),
+                ]),
+                { 2: 4 },
+            ),
         );
         expect(rows.map((r) => r.delay)).toEqual([0, 10, 4]);
     });
 
-    it("never forecasts an early train", () => {
-        const [, b] = stopRows(vehicle(1, -3));
+    it("shows an early forecast as it is", () => {
+        // Was clamped to the timetable's time before the web's rule
+        const rows = stopRows(
+            withForecasts(vehicle(1, 0, onTimeStops), { 2: -2 }),
+        );
+        expect(rows[2]).toMatchObject({
+            delay: -2,
+            expected: 18 * H - 120,
+            approximate: true,
+        });
+    });
+
+    it("never carries an early train's delay forward", () => {
+        const [, b] = stopRows(vehicle(1, -3, onTimeStops));
         expect(b?.delay).toBe(0);
+    });
+
+    it("uses MÁV's realtime time for a stop ahead", () => {
+        // B is ahead with a published +23; the GPS delay is +3. The app
+        // used to show +3 here, the web +23.
+        const [, b] = stopRows(vehicle(1, 3));
+        expect(b).toMatchObject({
+            state: "next",
+            expected: 17 * H + 23 * 60,
+            delay: 23,
+            estimated: false,
+            approximate: false,
+        });
+    });
+
+    it("never leaves a stop before it arrives", () => {
+        // A published departure before the published arrival
+        const rows = stopRows(
+            vehicle(1, 0, [
+                st("A", 16 * H, 16 * H),
+                st("B", 17 * H, 17 * H + 9 * 60, {
+                    scheduledDeparture: 17 * H + 300,
+                    realtimeDeparture: 17 * H + 5 * 60,
+                }),
+                st("C", 18 * H, 18 * H),
+            ]),
+        );
+        expect(rows[1]?.secondary).toEqual({
+            kind: "departure",
+            expected: 17 * H + 9 * 60,
+        });
     });
 
     it("passes every stop of an arrived train, with its actual arrival", () => {
@@ -146,10 +214,11 @@ describe("stopRows", () => {
             "upcoming",
             "upcoming",
         ]);
+        // Its published departure, +23 like its arrival (not the +4 GPS delay)
         expect(rows[1]).toMatchObject({
             standing: true,
             scheduled: 17 * H + 60,
-            expected: 17 * H + 60 + 4 * 60,
+            expected: 17 * H + 60 + 23 * 60,
             secondary: { kind: "arrival", expected: 17 * H + 23 * 60 },
         });
     });
@@ -175,14 +244,33 @@ describe("estimated stop times", () => {
         expect(waiting[0]?.estimated).toBe(false);
         const onTime = stopRows(vehicle(2, 0));
         expect(onTime[2]?.estimated).toBe(false);
+        // No "≈" ahead of an on-time train (the app used to mark every
+        // stop beyond the next one)
+        expect(onTime[3]?.approximate).toBe(false);
         // A per-stop forecast is one even at zero
         const predicted = stopRows(
-            vehicle(1, 0, [
-                st("A", 16 * H, 16 * H),
-                st("B", 17 * H, 17 * H, { predictedDelay: 0 }),
-            ]),
+            withForecasts(
+                vehicle(1, 0, [
+                    st("A", 16 * H, 16 * H),
+                    st("B", 17 * H, 17 * H),
+                ]),
+                { 1: 0 },
+            ),
         );
         expect(predicted[1]?.estimated).toBe(true);
+    });
+
+    it("marks the times ahead of a train without live data", () => {
+        const rows = stopRows(vehicle(2, 0), true, true);
+        expect(rows.map((r) => r.approximate)).toEqual([
+            false,
+            false,
+            true,
+            true,
+        ]);
+        // Not the first stop's departure, the timetable's time
+        const waiting = stopRows(vehicle(0, 0, onTimeStops), false, true);
+        expect(waiting[0]?.approximate).toBe(false);
     });
 });
 
@@ -205,6 +293,15 @@ describe("trainTitle", () => {
         expect(trainTitle("10 TRANSCARPATHIA", "Záhony").name).toBe(
             "TRANSCARPATHIA",
         );
+        // The category after the name used to hide it
+        expect(trainTitle("10 TRANSCARPATHIA gyorsvonat", null).name).toBe(
+            "TRANSCARPATHIA",
+        );
+        // A number that isn't all digits is the number, as on the web
+        expect(trainTitle("H1500 HÉV", null)).toMatchObject({
+            number: "H1500",
+            name: "HÉV",
+        });
         expect(trainTitle("2010 személyvonat", "Esztergom")).toEqual({
             number: "2010",
             name: null,
@@ -299,7 +396,10 @@ describe("stopRows secondary times", () => {
         const rows = stopRows(
             vehicle(1, 10, [
                 st("A", 16 * H, 16 * H),
-                st("B", 17 * H, 17 * H, { scheduledDeparture: 17 * H + 300 }),
+                st("B", 17 * H, 17 * H, {
+                    scheduledDeparture: 17 * H + 300,
+                    realtimeDeparture: 17 * H + 300,
+                }),
                 st("C", 18 * H, 18 * H),
             ]),
         );
@@ -324,11 +424,33 @@ describe("stopRows secondary times", () => {
         const rows = stopRows(
             vehicle(0, 0, [
                 st("A", 16 * H, 16 * H),
-                st("B", 17 * H, 17 * H, { scheduledDeparture: 17 * H + 30 }),
+                st("B", 17 * H, 17 * H, {
+                    scheduledDeparture: 17 * H + 30,
+                    realtimeDeparture: 17 * H + 30,
+                }),
                 st("C", 18 * H, 18 * H),
             ]),
         );
         expect(rows[1]?.secondary).toBeNull();
+    });
+
+    it("adds the departure where the train is held a minute or more", () => {
+        // A short stop by the timetable, but MÁV expects it to leave 3
+        // minutes after arriving: the app used to show one time
+        const rows = stopRows(
+            vehicle(0, 0, [
+                st("A", 16 * H, 16 * H),
+                st("B", 17 * H, 17 * H + 120, {
+                    scheduledDeparture: 17 * H + 30,
+                    realtimeDeparture: 17 * H + 300,
+                }),
+                st("C", 18 * H, 18 * H),
+            ]),
+        );
+        expect(rows[1]?.secondary).toEqual({
+            kind: "departure",
+            expected: 17 * H + 300,
+        });
     });
 
     it("doesn't carry a delay for a train not under way", () => {

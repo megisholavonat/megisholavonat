@@ -10,7 +10,9 @@ import {
     normalizeAlertText,
 } from "@megisholavonat/core/delayReasons";
 import type { Locale } from "@megisholavonat/core/i18n";
-import { formatSecondsAsTime } from "@megisholavonat/core/time";
+import { arrivalIsEstimate, isEstimate } from "@megisholavonat/core/stops";
+import { formatSecondsAsTime, formatValidity } from "@megisholavonat/core/time";
+import { trainName, trainNumber } from "@megisholavonat/core/trainName";
 import {
     formatUICCode,
     vehicleTypeFromUICCode,
@@ -54,14 +56,10 @@ import { useNow } from "@/hooks/useNow";
 import { track } from "@/lib/analytics";
 import { shareLink, trainShareData } from "@/lib/share";
 import {
-    arrivalIsEstimate,
     destinationOf,
-    isEstimate,
     runStops,
     type TrainAlert,
     type TrainReason,
-    trainName,
-    trainNumber,
 } from "@/lib/train";
 import { cn } from "@/lib/utils";
 import { mnr2007 } from "@/util/fonts";
@@ -422,25 +420,6 @@ export function TrainActions({
     );
 }
 
-/** "okt. 29. 1:30 – 4:34", in Budapest time. */
-function formatValidity(start: number, end: number, locale: string): string {
-    const format = new Intl.DateTimeFormat(
-        locale === "hu" ? "hu-HU" : "en-GB",
-        {
-            month: "short",
-            day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-            timeZone: "Europe/Budapest",
-        },
-    );
-    try {
-        return format.formatRange(new Date(start * 1000), new Date(end * 1000));
-    } catch {
-        return `${format.format(new Date(start * 1000))} – ${format.format(new Date(end * 1000))}`;
-    }
-}
-
 /** Header of an alert: "Késés oka: Más vonat", or "Közlemény" for free text. */
 function AlertTitle({ alert }: { alert: TrainAlert }) {
     const t = useTranslations("Train");
@@ -520,6 +499,7 @@ function AlertItem({
                                 alert.start,
                                 alert.end,
                                 locale,
+                                true,
                             ),
                         })}
                     </p>

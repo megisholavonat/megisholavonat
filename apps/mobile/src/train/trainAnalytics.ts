@@ -1,6 +1,7 @@
 import type { TrainFeatureCollection } from "@megisholavonat/api-client";
 import { getTrainsOptions } from "@megisholavonat/api-client/react-query";
 import { trainDisplay } from "@megisholavonat/core/display";
+import { trainNumber } from "@megisholavonat/core/trainName";
 import { useEffect } from "react";
 import { takeEntry, track } from "../analytics";
 import { queryClient } from "../api";
@@ -28,7 +29,9 @@ export function useTrainAnalytics(vehicleId: string) {
                 delay_level: display?.level ?? "unknown",
                 state: display?.state ?? "unknown",
                 followed: getFollows().some((f) => f.vehicleId === vehicleId),
-                train_number: train?.tripShortName.trim().split(/\s+/, 1)[0],
+                train_number: train
+                    ? trainNumber(train.tripShortName)
+                    : undefined,
                 route: train?.routeShortName ?? undefined,
             });
         }, 0);

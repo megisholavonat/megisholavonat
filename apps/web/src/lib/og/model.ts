@@ -22,15 +22,14 @@ import {
     type StationType,
     stationType,
 } from "@megisholavonat/core/stationType";
-import { formatSecondsAsTime } from "@megisholavonat/core/time";
 import {
     beforeDeparture,
-    destinationOf,
-    nextStopIndex,
+    predictedDelays,
     stopTiming,
-    trainName,
-    trainNumber,
-} from "@/lib/train";
+} from "@megisholavonat/core/stops";
+import { formatClock, formatSecondsAsTime } from "@megisholavonat/core/time";
+import { trainName, trainNumber } from "@megisholavonat/core/trainName";
+import { destinationOf, nextStopIndex } from "@/lib/train";
 
 /** Route line in a unit box: x right, y down, both 0..1, aspect kept. */
 export interface RouteSketch {
@@ -95,17 +94,6 @@ export function glyphText(
         )
         .trim();
     return text || null;
-}
-
-const clock = new Intl.DateTimeFormat("hu-HU", {
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: "Europe/Budapest",
-});
-
-/** "04:10" in Budapest time for unix seconds. */
-export function formatClock(epochSeconds: number): string {
-    return clock.format(new Date(epochSeconds * 1000));
 }
 
 const MAX_POINTS = 240;
@@ -215,9 +203,7 @@ export function trainCard(
     const waiting = status === "waiting";
     const running = status === "running";
     const nextIdx = waiting ? 0 : nextStopIndex(vehicle);
-    const predicted = vehicle.processedStops?.find(
-        (s, i) => (s.index ?? i) === nextIdx,
-    )?.predictedDelay;
+    const predicted = predictedDelays(vehicle).get(nextIdx);
     const stoptime = stoptimes[nextIdx];
     // The sheet's own timing: the expected time that goes with the delay
     const timing =

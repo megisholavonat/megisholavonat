@@ -13,6 +13,8 @@ import {
 import { getDelayLevel } from "@megisholavonat/core/delay";
 import type { DelayReasonCode } from "@megisholavonat/core/delayReasons";
 import { trainDisplay } from "@megisholavonat/core/display";
+import { formatClock } from "@megisholavonat/core/time";
+import { trainNumber } from "@megisholavonat/core/trainName";
 import { useQuery } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -30,20 +32,10 @@ import { useNow } from "@/hooks/useNow";
 import { usePredictedPlatforms } from "@/hooks/usePredictedPlatforms";
 import { boardRowOpened } from "@/lib/analyticsEvents";
 import { rowTime } from "@/lib/board";
-import { trainNumber, usuallyLate } from "@/lib/train";
+import { usuallyLate } from "@/lib/train";
 import { cn } from "@/lib/utils";
 
 export type BoardKind = "departures" | "arrivals";
-
-const timeFormat = new Intl.DateTimeFormat("hu-HU", {
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: "Europe/Budapest",
-});
-
-function formatTime(epochSeconds: number): string {
-    return timeFormat.format(new Date(epochSeconds * 1000));
-}
 
 function useBoard(stationId: string, kind: BoardKind) {
     const board = useQuery({
@@ -234,7 +226,7 @@ function BoardRow({
                         entry.canceled && "text-ink-2 line-through",
                     )}
                 >
-                    {formatTime(time)}
+                    {formatClock(time)}
                 </span>
                 <span className="flex items-center gap-1">
                     {chip}
@@ -243,7 +235,7 @@ function BoardRow({
                             <span className="sr-only">
                                 {t("scheduled_time")}{" "}
                             </span>
-                            {formatTime(entry.scheduledTime)}
+                            {formatClock(entry.scheduledTime)}
                         </s>
                     )}
                 </span>

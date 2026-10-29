@@ -4,6 +4,8 @@
 import type { BoardEntry, StationBoard } from "@megisholavonat/api-client";
 import type { Locale } from "@megisholavonat/core/i18n";
 import { stationType } from "@megisholavonat/core/stationType";
+import { formatClock } from "@megisholavonat/core/time";
+import { trainName, trainNumber } from "@megisholavonat/core/trainName";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import {
@@ -16,12 +18,11 @@ import { Of10Text, TenBar } from "@/components/stats/StatsParts";
 import { DelayChip } from "@/components/ui/Delay";
 import { PlatformBadge } from "@/components/ui/Platform";
 import { type RowDelay, rowTime } from "@/lib/board";
-import { departureDelay, formatClock } from "@/lib/og/model";
+import { departureDelay } from "@/lib/og/model";
 import { siteUrl } from "@/lib/og/server";
 import { fetchStationBoard, fetchTimeOfDay } from "@/lib/seo/data";
 import { breadcrumbs } from "@/lib/seo/metadata";
 import { stationPath, trainPath } from "@/lib/seo/paths";
-import { trainName, trainNumber } from "@/lib/train";
 import {
     Breadcrumb,
     Glyph,

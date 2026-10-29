@@ -8,6 +8,7 @@ import type {
 import { trainDisplay } from "@megisholavonat/core/display";
 import { huTrainSubject } from "@megisholavonat/core/share";
 import { isOtherStop, stationType } from "@megisholavonat/core/stationType";
+import { trainName, trainNumber } from "@megisholavonat/core/trainName";
 import type {
     SortDirection,
     TrainSortOption,
@@ -39,7 +40,6 @@ import { DelayChip } from "@/components/ui/Delay";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
 import { useNow } from "@/hooks/useNow";
 import { track } from "@/lib/analytics";
-import { trainName, trainNumber } from "@/lib/train";
 import { cn } from "@/lib/utils";
 import {
     DEFAULT_STATIONS,

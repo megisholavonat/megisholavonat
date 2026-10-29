@@ -1,7 +1,8 @@
 import type { Locale } from "@megisholavonat/core/i18n";
 import { shareUrl } from "@megisholavonat/core/share";
+import { trainNumber } from "@megisholavonat/core/trainName";
 import type { TrainView } from "@/components/train/useTrainView";
-import { destinationOf, trainNumber } from "@/lib/train";
+import { destinationOf } from "@/lib/train";
 
 /**
  * What sharing a train hands over: its link and a title, no prefilled

@@ -23,6 +23,7 @@ import {
     shiftDate,
     type TripTimes,
 } from "./time";
+import { trainName } from "./trainName";
 
 /** Path segment of the card page, in both locales (the link is stable). */
 export const DELAY_SUMMARY_SEGMENT = "kesesek";
@@ -183,13 +184,6 @@ function stopAt(
                 ? scheduled + Math.round(delay * 60)
                 : null,
     };
-}
-
-/** "10 TRANSCARPATHIA gyorsvonat" -> "TRANSCARPATHIA" */
-function trainName(tripShortName: string): string | null {
-    const words = tripShortName.split(" ").slice(1);
-    const named = words.filter((w) => w.length > 1 && w === w.toUpperCase());
-    return named.length > 0 ? named.join(" ") : null;
 }
 
 /**

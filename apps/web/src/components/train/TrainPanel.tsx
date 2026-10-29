@@ -1,13 +1,14 @@
 "use client";
 
 import type { TrainFeatureProperties } from "@megisholavonat/api-client";
+import { trainName } from "@megisholavonat/core/trainName";
 import { useTranslations } from "next-intl";
 import { TrainDisruptions } from "@/components/disruptions/Disruptions";
 import { TrainHistoryLink } from "@/components/stats/HistoryLinks";
 import { TrainDelayShare } from "@/components/train/DelayShare";
 import { DelayTile, StaleNote } from "@/components/ui/Delay";
 import { PlatformBadge } from "@/components/ui/Platform";
-import { destinationOf, trainName } from "@/lib/train";
+import { destinationOf } from "@/lib/train";
 import {
     BackButton,
     NextStopLine,

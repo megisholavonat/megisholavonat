@@ -3,19 +3,15 @@ import type {
     VehiclePositionWithDelay,
 } from "@megisholavonat/api-client";
 import { roundMinutes } from "@megisholavonat/core/delay";
+import { stationIdOf } from "@megisholavonat/core/stops";
 import { serviceDayStart } from "@megisholavonat/core/time";
+import { trainNumber } from "@megisholavonat/core/trainName";
 import type {
     ActivityAttributes,
     ActivityState,
 } from "../../modules/live-activity";
 import type { LiveFollow } from "../follow/live";
-import {
-    followTitle,
-    type LocalFollow,
-    type Run,
-    stationIdOf,
-    trainNumber,
-} from "../follow/model";
+import { followTitle, type LocalFollow, type Run } from "../follow/model";
 import { stopRows } from "../train/trainData";
 
 // What the Live Activity and the commute widget show, from the follows and

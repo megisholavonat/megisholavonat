@@ -10,6 +10,7 @@ import {
     isDisruptionActive,
     sortDisruptions,
 } from "@megisholavonat/core/disruptions";
+import { formatValidity, formatValidityDate } from "@megisholavonat/core/time";
 import { EASING } from "@megisholavonat/core/tokens";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRight, ChevronDown, TriangleAlert } from "lucide-react";
@@ -82,33 +83,14 @@ function useValidity() {
     const t = useTranslations("Disruptions");
     const locale = useLocale();
     return (d: Disruption) => {
-        const short =
-            d.start != null && d.end != null && d.end - d.start < 86_400;
-        const format = new Intl.DateTimeFormat(
-            locale === "hu" ? "hu-HU" : "en-GB",
-            {
-                month: "short",
-                day: "numeric",
-                ...(short ? { hour: "2-digit", minute: "2-digit" } : {}),
-                timeZone: "Europe/Budapest",
-            },
-        );
         if (d.start != null && d.end != null) {
-            const start = new Date(d.start * 1000);
-            const end = new Date(d.end * 1000);
-            try {
-                return format.formatRange(start, end);
-            } catch {
-                return `${format.format(start)} – ${format.format(end)}`;
-            }
+            return formatValidity(d.start, d.end, locale);
         }
         if (d.start != null) {
-            return t("since", {
-                date: format.format(new Date(d.start * 1000)),
-            });
+            return t("since", { date: formatValidityDate(d.start, locale) });
         }
         return d.end != null
-            ? t("until", { date: format.format(new Date(d.end * 1000)) })
+            ? t("until", { date: formatValidityDate(d.end, locale) })
             : null;
     };
 }

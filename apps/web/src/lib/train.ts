@@ -1,138 +1,21 @@
 import type {
     Alert,
-    StopTimeWithCounty,
-    StopWithCounty,
     TrainRouteStation,
     VehiclePositionWithDelay,
 } from "@megisholavonat/api-client";
 import { tripRun } from "@megisholavonat/core/commute";
-import {
-    getDelayLevel,
-    roundMinutes,
-    secondsToMinutes,
-} from "@megisholavonat/core/delay";
+import { getDelayLevel } from "@megisholavonat/core/delay";
 import {
     type DelayReasonCode,
     delayReasonCode,
 } from "@megisholavonat/core/delayReasons";
-import { secondsIntoServiceDay } from "@megisholavonat/core/time";
+import { stationIdOf } from "@megisholavonat/core/stops";
 import { DISPLAY_RULES } from "@megisholavonat/core/tokens";
-
-/** "10 TRANSCARPATHIA gyorsvonat" -> "10"; the key of the history endpoints. */
-export function trainNumber(tripShortName: string): string {
-    return tripShortName.trim().split(/\s+/, 1)[0] ?? tripShortName;
-}
-
-/**
- * The train's name without its category: "10 TRANSCARPATHIA gyorsvonat" ->
- * "TRANSCARPATHIA", "2010 személyvonat" -> null. Names are the upper-case run.
- */
-export function trainName(tripShortName: string): string | null {
-    const words = tripShortName.trim().split(/\s+/).slice(1);
-    const named = words.filter(
-        (w) => w.length > 1 && w === w.toLocaleUpperCase("hu"),
-    );
-    return named.length > 0 ? named.join(" ") : null;
-}
-
-/** UIC station code of a stop, as the history and board endpoints use. */
-export function stationIdOf(stop: StopWithCounty): string | null {
-    if (stop.stationUicPricingCode) return stop.stationUicPricingCode;
-    if (!stop.gtfsId) return null;
-    return stop.gtfsId.split(":").pop()?.split("_")[0] ?? null;
-}
 
 /** Name of the train's last stop. */
 export function destinationOf(vehicle: VehiclePositionWithDelay): string {
     const stops = vehicle.trip.stoptimes;
     return stops[stops.length - 1]?.stop.name ?? "";
-}
-
-export interface StopTiming {
-    /** Scheduled time, seconds into the service day */
-    scheduled: number;
-    /** Expected / actual time, seconds into the service day */
-    expected: number;
-    /** Minutes late at this stop */
-    delay: number;
-    /** Our estimate rather than a published realtime time: shown with "≈" */
-    estimated: boolean;
-    /**
-     * Departure from an intermediate stop when it differs from the arrival
-     * (the train waits there); null at both ends and for short stops.
-     */
-    departure: { scheduled: number; expected: number } | null;
-}
-
-/**
- * Arrival (or departure at the first stop) of a stop. Passed stops use the
- * published realtime time. Stops ahead prefer the per-stop forecast, then a
- * published realtime time that differs from the timetable, and otherwise
- * carry the train's current (GPS based) delay forward as an estimate.
- */
-export function stopTiming(
-    stoptime: StopTimeWithCounty,
-    index: number,
-    passed: boolean,
-    currentDelay: number,
-    /** Per-stop delay forecast (minutes) from the API, when it has one */
-    predicted?: number | null,
-    isLast = false,
-): StopTiming {
-    const expectedOf = (
-        scheduled: number,
-        realtime: number | null | undefined,
-    ): { expected: number; estimated: boolean } => {
-        if (passed)
-            return { expected: realtime ?? scheduled, estimated: false };
-        if (predicted != null) {
-            return {
-                expected: scheduled + roundMinutes(predicted) * 60,
-                estimated: true,
-            };
-        }
-        if (realtime == null || realtime === scheduled) {
-            return {
-                expected: scheduled + Math.max(0, currentDelay) * 60,
-                estimated: currentDelay > 0,
-            };
-        }
-        return { expected: realtime, estimated: false };
-    };
-    const useDeparture = index === 0;
-    const scheduled = useDeparture
-        ? stoptime.scheduledDeparture
-        : stoptime.scheduledArrival;
-    const { expected, estimated } = expectedOf(
-        scheduled,
-        useDeparture ? stoptime.realtimeDeparture : stoptime.realtimeArrival,
-    );
-
-    let departure: StopTiming["departure"] = null;
-    if (!useDeparture && !isLast) {
-        const dep = expectedOf(
-            stoptime.scheduledDeparture,
-            stoptime.realtimeDeparture,
-        );
-        // A train never leaves before it arrives
-        const depExpected = Math.max(dep.expected, expected);
-        if (
-            stoptime.scheduledDeparture - scheduled >= 60 ||
-            depExpected - expected >= 60
-        ) {
-            departure = {
-                scheduled: stoptime.scheduledDeparture,
-                expected: depExpected,
-            };
-        }
-    }
-    return {
-        scheduled,
-        expected,
-        delay: secondsToMinutes(expected - scheduled),
-        estimated,
-        departure,
-    };
 }
 
 /** Index of the first stop the train has not reached yet. */
@@ -146,17 +29,6 @@ export function nextStopIndex(vehicle: VehiclePositionWithDelay): number {
     return index === -1
         ? Math.max(0, vehicle.trip.stoptimes.length - 1)
         : index;
-}
-
-/** Whether the train is still waiting to leave its first stop. */
-export function beforeDeparture(
-    vehicle: VehiclePositionWithDelay,
-    now: Date = new Date(),
-): boolean {
-    const first = vehicle.trip.stoptimes[0];
-    if (!first) return false;
-    const departure = first.realtimeDeparture ?? first.scheduledDeparture;
-    return secondsIntoServiceDay(vehicle.trip, now) < departure;
 }
 
 /**
@@ -318,34 +190,4 @@ export function predictedPlatform(
 ): string | null {
     if (!station?.typicalPlatform || station.insufficientData) return null;
     return station.typicalPlatform;
-}
-
-/** What deciding on "≈" needs of a stop */
-export interface EstimateStop {
-    index: number;
-    passed: boolean;
-    timing: { estimated: boolean };
-}
-
-/**
- * A stop's time is our estimate ("≈"): ahead and estimated, or ahead of a
- * train without live data. A departure from the first stop is the
- * timetable's (or MÁV's) time, and a passed stop's time is actual.
- */
-export function isEstimate(stop: EstimateStop, stale: boolean): boolean {
-    if (stop.passed) return false;
-    return stop.timing.estimated || (stale && stop.index > 0);
-}
-
-/**
- * The arrival time shown for a stop. Standing there, the train has arrived:
- * the arrival is actual (no "≈"), and only the departure is still ahead.
- */
-export function arrivalIsEstimate(
-    stop: EstimateStop,
-    stale: boolean,
-    standingHere: boolean,
-): boolean {
-    if (standingHere && stop.index > 0) return false;
-    return isEstimate(stop, stale);
 }

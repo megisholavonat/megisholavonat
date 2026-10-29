@@ -1,4 +1,5 @@
 import { DatePickerDialog, TimePickerDialog } from "@expo/ui/jetpack-compose";
+import { formatClock } from "@megisholavonat/core/time";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useFormatter, useTranslations } from "use-intl";
@@ -70,10 +71,7 @@ export function TimeField({ value, onChange }: TimeFieldProps) {
                 <Text style={label}>
                     {value === null
                         ? t("now")
-                        : format.dateTime(current, {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                          })}
+                        : formatClock(current.getTime() / 1000)}
                 </Text>
             </Pressable>
             {value !== null ? (

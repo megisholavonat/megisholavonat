@@ -1,9 +1,9 @@
 import type { TrainFeatureProperties } from "@megisholavonat/api-client";
+import { trainName, trainNumber } from "@megisholavonat/core/trainName";
 import { useTranslations } from "next-intl";
 import { markerDisplay } from "@/components/map/markerState";
 import { DelayText } from "@/components/ui/Delay";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
-import { trainName, trainNumber } from "@/lib/train";
 
 /** Hover card on desktop and cluster list row: glyph, number, name, delay. */
 export function TrainTooltip({

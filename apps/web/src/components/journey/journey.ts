@@ -84,26 +84,3 @@ export function transferGap(
         expected: Math.max(0, scheduled + leave - arrive),
     };
 }
-
-const timeFormat = new Intl.DateTimeFormat("hu-HU", {
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: "Europe/Budapest",
-});
-
-export function formatTime(epochSeconds: number): string {
-    return timeFormat.format(new Date(epochSeconds * 1000));
-}
-
-/** "2026-10-29T15:00" in Budapest time, for the time input and the API. */
-export function toLocalInput(date: Date): string {
-    const parts = new Intl.DateTimeFormat("sv-SE", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        timeZone: "Europe/Budapest",
-    }).format(date);
-    return parts.replace(" ", "T");
-}

@@ -3,6 +3,7 @@
 import type { TrainFeatureCollection } from "@megisholavonat/api-client";
 import { STALE_GREY_AFTER_S } from "@megisholavonat/core/constants";
 import { LEVEL_FROM_MIN } from "@megisholavonat/core/delay";
+import { formatClock } from "@megisholavonat/core/time";
 import {
     Clock,
     Layers,
@@ -300,12 +301,6 @@ export function StaleBanner({ minutes }: { minutes: number | null }) {
     );
 }
 
-const timeFormat = new Intl.DateTimeFormat("hu-HU", {
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: "Europe/Budapest",
-});
-
 /** Empty and error states, shown in the home sheet / card. */
 export function FeedMessage({
     state,
@@ -352,7 +347,9 @@ export function FeedMessage({
                         <p className="tnum text-sm text-ink-2">
                             {state.since
                                 ? `${t("since", {
-                                      time: timeFormat.format(state.since),
+                                      time: formatClock(
+                                          state.since.getTime() / 1000,
+                                      ),
                                   })} · ${t("timetable")}`
                                 : t("timetable")}
                         </p>

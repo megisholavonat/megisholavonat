@@ -7,6 +7,7 @@ import {
 } from "@megisholavonat/api-client/react-query";
 import type { Locale } from "@megisholavonat/core/i18n";
 import { getMavRouteName } from "@megisholavonat/core/mavRoutes";
+import { trainName } from "@megisholavonat/core/trainName";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
@@ -15,7 +16,6 @@ import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
 import { useTrackView } from "@/lib/analyticsEvents";
 import { stationHref, trainPath } from "@/lib/seo/paths";
-import { trainName } from "@/lib/train";
 import { cn } from "@/lib/utils";
 import { HourChart, overallShare } from "./HourChart";
 import {

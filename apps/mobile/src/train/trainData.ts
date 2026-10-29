@@ -3,13 +3,16 @@ import type {
     DelayReason,
     InfoService,
     PlatformPrediction,
-    StopTimeWithCounty,
     VehiclePositionWithDelay,
 } from "@megisholavonat/api-client";
 import { roundMinutes, secondsToMinutes } from "@megisholavonat/core/delay";
-import { secondsIntoServiceDay } from "@megisholavonat/core/time";
+import {
+    isEstimate,
+    predictedDelays,
+    stopTiming,
+} from "@megisholavonat/core/stops";
 import { DISPLAY_RULES } from "@megisholavonat/core/tokens";
-import { splitTripName } from "./labels";
+import { trainName, trainNumber } from "@megisholavonat/core/trainName";
 
 // Pure helpers behind the train sheet. Unit tested under Node.
 
@@ -29,12 +32,14 @@ export interface StopRow {
     expected: number;
     /** Delay at this stop in whole minutes */
     delay: number;
-    /** A forecast beyond the next stop: shown as "≈17:44" */
+    /**
+     * Our estimate rather than a published time: shown as "≈17:44", by the
+     * web's rule (core `isEstimate`)
+     */
     approximate: boolean;
     /**
      * The time ahead is our forecast (the stop's predicted delay, or the
-     * live delay carried forward), not the timetable's: told with "≈" when
-     * shared, as the web does
+     * live delay carried forward), not a published realtime time
      */
     estimated: boolean;
     /** The train stands here: its time is the departure */
@@ -46,15 +51,6 @@ export interface StopRow {
      * passed stop (shown by its departure), the departure of an upcoming one
      */
     secondary: { kind: "arrival" | "departure"; expected: number } | null;
-}
-
-/** A stop's wait shorter than this shows a single time. */
-const MIN_DWELL_S = 60;
-
-/** Optional per-stop forecast; not every API version sends it. */
-function predictedDelay(stoptime: StopTimeWithCounty): number | null {
-    const value = (stoptime as { predictedDelay?: unknown }).predictedDelay;
-    return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
 export interface TrainStop {
@@ -98,54 +94,50 @@ export function trainStop(
 
 /**
  * The stop list: passed stops with their actual times, then the next stop
- * and the rest with the live delay carried forward (or the per-stop
- * `predictedDelay` when the API sends one).
+ * and the rest, timed by the web's rules (core `stopTiming`): the per-stop
+ * forecast, else a published realtime time, else the live delay carried
+ * forward.
  */
 export function stopRows(
     details: VehiclePositionWithDelay,
     /** Carry the live delay forward; off for a train not under way */
     carryDelay = true,
+    /** The train's data is old or it isn't running: times ahead are "≈" */
+    stale = false,
 ): StopRow[] {
     const stoptimes = details.trip.stoptimes;
     const { next, standing } = trainStop(details);
-    const liveDelay = carryDelay ? Math.max(0, roundMinutes(details.delay)) : 0;
+    const liveDelay = carryDelay ? roundMinutes(details.delay) : 0;
+    const predicted = carryDelay
+        ? predictedDelays(details)
+        : new Map<number, number | null | undefined>();
 
     return stoptimes.map((st, index) => {
         const isFirst = index === 0;
         const isLast = index === stoptimes.length - 1;
         const state: StopState =
             index < next ? "passed" : index === next ? "next" : "upcoming";
+        const passed = state === "passed";
         const isStanding = index === standing;
+        const timing = stopTiming(
+            st,
+            index,
+            passed,
+            liveDelay,
+            predicted.get(index),
+            isLast,
+        );
         // Passed stops show when the train left, the others when it arrives
         // (the first stop has only a departure, the last only an arrival);
         // the stop the train stands at, when it leaves
-        const useDeparture =
-            isFirst || ((state === "passed" || isStanding) && !isLast);
-        const scheduled = useDeparture
-            ? st.scheduledDeparture
-            : st.scheduledArrival;
-        let expected: number;
-        let delay: number;
-        let estimated = false;
-        if (state === "passed") {
-            expected = useDeparture ? st.realtimeDeparture : st.realtimeArrival;
-            delay = secondsToMinutes(expected - scheduled);
-        } else {
-            const predicted = predictedDelay(st);
-            delay = Math.max(0, roundMinutes(predicted ?? liveDelay));
-            expected = scheduled + delay * 60;
-            estimated = predicted !== null || delay > 0;
-        }
+        const leaves =
+            !isFirst && (passed || isStanding) ? timing.leaves : null;
+        const shown = leaves ?? timing;
         let secondary: StopRow["secondary"] = null;
-        const dwell = st.scheduledDeparture - st.scheduledArrival;
-        if (!isFirst && !isLast && dwell >= MIN_DWELL_S) {
-            secondary =
-                state === "passed" || isStanding
-                    ? { kind: "arrival", expected: st.realtimeArrival }
-                    : {
-                          kind: "departure",
-                          expected: st.scheduledDeparture + delay * 60,
-                      };
+        if (!isFirst && timing.departure) {
+            secondary = leaves
+                ? { kind: "arrival", expected: timing.expected }
+                : { kind: "departure", expected: timing.departure.expected };
         }
         return {
             key: `${index}-${st.stop.gtfsId ?? st.stop.name}`,
@@ -154,11 +146,14 @@ export function stopRows(
             state,
             isFirst,
             isLast,
-            scheduled,
-            expected,
-            delay,
-            approximate: state === "upcoming",
-            estimated,
+            scheduled: shown.scheduled,
+            expected: shown.expected,
+            delay: secondsToMinutes(shown.expected - shown.scheduled),
+            approximate: isEstimate(
+                { index, passed, timing: { estimated: shown.estimated } },
+                stale,
+            ),
+            estimated: shown.estimated,
             standing: isStanding,
             platform: st.stop.platformCode ?? null,
             secondary,
@@ -167,34 +162,18 @@ export function stopRows(
 }
 
 /**
- * "10 TRANSCARPATHIA" keeps a train's proper name; category words such as
- * "személyvonat" are dropped, like on the design boards.
+ * "10 TRANSCARPATHIA gyorsvonat" keeps a train's proper name; category
+ * words such as "személyvonat" are dropped, like on the design boards.
  */
 export function trainTitle(
     tripShortName: string,
     destination: string | null,
 ): { number: string; name: string | null; destination: string | null } {
-    const split = splitTripName(tripShortName);
-    const number = split.number ?? split.name;
-    const rest = split.number ? split.name.trim() : "";
-    const isProperName =
-        rest.length > 0 && rest === rest.toLocaleUpperCase("hu-HU");
     return {
-        number,
-        name: isProperName ? rest : null,
+        number: trainNumber(tripShortName),
+        name: trainName(tripShortName),
         destination,
     };
-}
-
-/** The train hasn't left its first stop yet. */
-export function beforeDeparture(
-    details: VehiclePositionWithDelay,
-    now: Date = new Date(),
-): boolean {
-    const first = details.trip.stoptimes[0];
-    if (!first) return false;
-    const departure = first.realtimeDeparture ?? first.scheduledDeparture;
-    return secondsIntoServiceDay(details.trip, now) < departure;
 }
 
 interface DelayHistory {

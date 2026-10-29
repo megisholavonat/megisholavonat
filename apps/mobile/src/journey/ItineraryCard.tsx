@@ -10,9 +10,10 @@ import {
     boardingElsewhere,
     legChain,
 } from "@megisholavonat/core/planner";
+import { formatClock } from "@megisholavonat/core/time";
 import * as WebBrowser from "expo-web-browser";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
-import { useFormatter, useTranslations } from "use-intl";
+import { useTranslations } from "use-intl";
 import { withAlpha } from "../theme/palette";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { RouteIcon } from "../train/RouteIcon";
@@ -30,15 +31,6 @@ import {
     transferRisk,
     worstRisk,
 } from "./plan";
-
-function useClock() {
-    const format = useFormatter();
-    return (unix: number) =>
-        format.dateTime(new Date(unix * 1000), {
-            hour: "2-digit",
-            minute: "2-digit",
-        });
-}
 
 /** Coloured dot + plain words: safe, tight, likely missed, cancelled. */
 export function RiskLabel({
@@ -81,7 +73,6 @@ export function ItineraryCard({
 }) {
     const theme = useAppTheme();
     const t = useTranslations("Journey");
-    const clock = useClock();
     const trains = rides(itinerary);
     const first = trains[0];
     const delay = first ? rideDelay(first) : null;
@@ -131,7 +122,7 @@ export function ItineraryCard({
                             },
                         ]}
                     >
-                        {`${clock(itinerary.scheduledDeparture)} – ${clock(itinerary.scheduledArrival)}`}
+                        {`${formatClock(itinerary.scheduledDeparture)} – ${formatClock(itinerary.scheduledArrival)}`}
                     </Text>
                     {delay !== null ? <DelayChip delay={delay} small /> : null}
                     <View style={styles.flex} />
@@ -275,7 +266,6 @@ export function ItineraryCard({
 function RideStep({ leg }: { leg: TransitLeg }) {
     const theme = useAppTheme();
     const t = useTranslations("Journey");
-    const clock = useClock();
     const delay = rideDelay(leg);
     const { name } = trainTitle(leg.tripShortName, null);
     const strike = leg.canceled ? ("line-through" as const) : ("none" as const);
@@ -295,7 +285,7 @@ function RideStep({ leg }: { leg: TransitLeg }) {
                         { color: theme.colors.ink, textDecorationLine: strike },
                     ]}
                 >
-                    {clock(time)}
+                    {formatClock(time)}
                 </Text>
                 {chip && delay !== null ? (
                     <DelayChip delay={delay} small />
@@ -358,7 +348,6 @@ function RideStep({ leg }: { leg: TransitLeg }) {
 /** A metro, tram or bus ride: where it leaves and stops, and its line. */
 function CityStep({ leg }: { leg: CityLeg }) {
     const theme = useAppTheme();
-    const clock = useClock();
     const stopRow = (time: number, station: string) => (
         <View style={styles.stopRow}>
             <View style={styles.timeCell}>
@@ -369,7 +358,7 @@ function CityStep({ leg }: { leg: CityLeg }) {
                         { color: theme.colors.ink2 },
                     ]}
                 >
-                    {clock(time)}
+                    {formatClock(time)}
                 </Text>
             </View>
             <Text

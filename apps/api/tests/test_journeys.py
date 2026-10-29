@@ -340,6 +340,19 @@ def test_walks_are_compact_and_count_towards_the_transfer() -> None:
     assert transfer.transferMinutes == 35
 
 
+def test_transfer_minutes_round_halves_up() -> None:
+    # 34.5 minutes to change: 35 as on the clients, not round()'s even 34
+    raw = load_fixture("otp-journeys-gyor-pecs.json")["data"]["plan"]["itineraries"][0]
+    raw["legs"][0]["endTime"] += 30 * 1000
+
+    itinerary = _itinerary(raw, {})
+
+    assert itinerary is not None
+    (transfer,) = itinerary.transfers
+    assert transfer.transferMinutes == 35
+    assert transfer.expectedTransferMinutes == 35
+
+
 def test_staying_aboard_is_not_a_transfer() -> None:
     raw = load_fixture("otp-journeys-gyor-pecs.json")["data"]["plan"]["itineraries"][0]
     raw["legs"][1]["interlineWithPreviousLeg"] = True
