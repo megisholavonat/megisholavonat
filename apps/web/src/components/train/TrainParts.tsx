@@ -197,6 +197,19 @@ function isEstimate(stop: StopView, stale: boolean): boolean {
 }
 
 /**
+ * The arrival time shown for a stop. Standing there, the train has arrived:
+ * the arrival is actual (no "≈"), and only the departure is still ahead.
+ */
+export function arrivalIsEstimate(
+    stop: StopView,
+    stale: boolean,
+    standingHere: boolean,
+): boolean {
+    if (standingHere && stop.index > 0) return false;
+    return isEstimate(stop, stale);
+}
+
+/**
  * "Szolnok 17:28 ~~17:05~~": the next stop with its expected time. At the
  * first stop it is the departure ("ind. 22:40"); a passed stop is where the
  * train arrived ("érkezett 01:20", actual time, never an estimate).
@@ -206,21 +219,38 @@ function isEstimate(stop: StopView, stale: boolean): boolean {
 export function NextStopLine({
     stop,
     stale,
+    standingHere = false,
 }: {
     stop: StopView;
     stale: boolean;
+    /** The train stands at this stop: its departure is what comes next */
+    standingHere?: boolean;
 }) {
     const t = useTranslations("Train");
-    const { timing } = stop;
+    const departing =
+        standingHere && !stop.passed && stop.index > 0
+            ? stop.timing.departure
+            : null;
+    const timing = departing
+        ? {
+              expected: departing.expected,
+              scheduled: departing.scheduled,
+              delay: Math.round(
+                  (departing.expected - departing.scheduled) / 60,
+              ),
+          }
+        : stop.timing;
     const late = timing.delay >= 1;
     const atEnd = stop.isLast && stop.index > 0;
-    const prefix = stop.passed
-        ? t("arrived_at")
-        : stop.index === 0
-          ? t("departs_at")
-          : atEnd
-            ? t("arrives_at")
-            : null;
+    const prefix = departing
+        ? t("departs_at")
+        : stop.passed
+          ? t("arrived_at")
+          : stop.index === 0
+            ? t("departs_at")
+            : atEnd
+              ? t("arrives_at")
+              : null;
     return (
         <span className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 text-headline">
             {!atEnd && (
@@ -236,7 +266,11 @@ export function NextStopLine({
                 )}
                 <TimeText
                     seconds={timing.expected}
-                    estimated={isEstimate(stop, stale)}
+                    estimated={
+                        departing
+                            ? isEstimate(stop, stale)
+                            : arrivalIsEstimate(stop, stale, standingHere)
+                    }
                     level={null}
                     className="shrink-0"
                 />
@@ -278,7 +312,11 @@ export function TrainSummary({
                     className="text-[15px] font-medium"
                 />
                 {view?.next ? (
-                    <NextStopLine stop={view.next} stale={stale} />
+                    <NextStopLine
+                        stop={view.next}
+                        stale={stale}
+                        standingHere={view.standingAt === view.next.index}
+                    />
                 ) : (
                     <Skeleton className="my-0.5 h-4 w-40" />
                 )}
@@ -1048,6 +1086,7 @@ function StopRow({
     const { timing } = stop;
     const level = levelOf(timing.delay);
     const estimated = isEstimate(stop, stale);
+    const arrivalEstimated = arrivalIsEstimate(stop, stale, here);
     const strong = stop.isNext || stop.isLast;
     const [countyShown, setCountyShown] = useState(false);
     const name = (
@@ -1122,7 +1161,7 @@ function StopRow({
             <span className="flex flex-col items-end">
                 <TimeText
                     seconds={timing.expected}
-                    estimated={estimated}
+                    estimated={arrivalEstimated}
                     level={level}
                     className={cn(
                         "text-[15px] leading-[22px] font-semibold",
