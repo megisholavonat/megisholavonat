@@ -13,6 +13,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRecentStations } from "@/components/search/useSearch";
 import { TrainTitle } from "@/components/train/TrainParts";
 import type { TrainView } from "@/components/train/useTrainView";
+import { Button, buttonClass } from "@/components/ui/Button";
 import {
     type Follow,
     findFollow,
@@ -312,7 +313,7 @@ export function FollowEditor({
                                 </DialogPrimitive.Title>
                                 <DialogPrimitive.Close
                                     aria-label={tTrain("close")}
-                                    className="flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-full bg-surface-2 text-ink hover:bg-line"
+                                    className={buttonClass("icon")}
                                 >
                                     <X className="size-5" aria-hidden />
                                 </DialogPrimitive.Close>
@@ -346,19 +347,18 @@ export function FollowEditor({
                                 </span>
                             </label>
                             <div className="flex flex-col gap-1">
-                                <button
-                                    type="button"
+                                <Button
+                                    variant="primary"
                                     onClick={save}
                                     disabled={!boarding}
-                                    className="flex h-12 cursor-pointer items-center justify-center rounded-full bg-action text-[15px] font-semibold text-on-action disabled:opacity-50"
                                 >
                                     {t("save")}
-                                </button>
+                                </Button>
                                 {setup.existing && (
                                     <button
                                         type="button"
                                         onClick={unfollow}
-                                        className="flex h-11 cursor-pointer items-center justify-center rounded-full text-[15px] font-semibold text-delay-severe hover:bg-surface-2"
+                                        className="flex h-11 cursor-pointer items-center justify-center rounded-full text-subhead font-semibold text-delay-severe hover:bg-surface-2"
                                     >
                                         {t("unfollow")}
                                     </button>

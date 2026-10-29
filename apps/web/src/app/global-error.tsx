@@ -5,6 +5,7 @@ import { Inter } from "next/font/google";
 import Link from "next/link";
 import { useEffect } from "react";
 import { AppIcon } from "@/components/ui/AppIcon";
+import { Button } from "@/components/ui/Button";
 import "@/app/globals.css";
 
 const inter = Inter({
@@ -35,12 +36,9 @@ export default function GlobalError({
                         </h1>
                     </div>
                     <div className="flex flex-wrap items-center justify-center gap-3">
-                        <Link
-                            href="/"
-                            className="rounded-full bg-action px-5 py-2.5 text-sm font-semibold text-on-action"
-                        >
-                            Vissza / Back
-                        </Link>
+                        <Button variant="primary" asChild>
+                            <Link href="/">Vissza / Back</Link>
+                        </Button>
                     </div>
                 </div>
             </body>

@@ -274,7 +274,7 @@ function BoardRow({
                 )}
             </div>
             {wide && (
-                <span className="flex w-24 items-center gap-1 text-[15px] text-ink">
+                <span className="flex w-24 items-center gap-1 text-subhead text-ink">
                     <RouteGlyph routeShortName={entry.routeShortName} />
                     <span className="tnum">{number}</span>
                 </span>

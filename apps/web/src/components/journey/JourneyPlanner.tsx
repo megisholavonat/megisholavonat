@@ -47,6 +47,7 @@ import {
     StationTypeLabel,
 } from "@/components/station/StationType";
 import { BackButton, IconButton } from "@/components/train/TrainParts";
+import { Button } from "@/components/ui/Button";
 import { DelayChip } from "@/components/ui/Delay";
 import { PlatformBadge } from "@/components/ui/Platform";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
@@ -757,15 +758,16 @@ function ItineraryDetail({
                     </div>
                 );
             })}
-            <a
-                href={itinerary.ticketUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-3 flex h-11 items-center justify-center gap-1.5 rounded-full bg-action px-4 text-[15px] font-semibold text-on-action"
-            >
-                {tTrain("ticket")}
-                <ArrowUpRight className="size-4" aria-hidden />
-            </a>
+            <Button variant="primary" asChild className="mt-3 flex gap-1">
+                <a
+                    href={itinerary.ticketUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    {tTrain("ticket")}
+                    <ArrowUpRight className="size-4" aria-hidden />
+                </a>
+            </Button>
             {/* The MÁV ticket covers the trains only */}
             {byCity && (
                 <p className="mt-1.5 text-center text-caption text-ink-2">
@@ -899,7 +901,7 @@ function StopLine({
             <span
                 className={cn(
                     "tnum w-11 shrink-0 font-semibold",
-                    minor ? "text-sm" : "text-[15px]",
+                    minor ? "text-sm" : "text-subhead",
                     canceled && "text-ink-2 line-through",
                 )}
             >
@@ -911,7 +913,7 @@ function StopLine({
             <span
                 className={cn(
                     "min-w-0 flex-1 truncate",
-                    minor ? "text-sm" : "text-[15px]",
+                    minor ? "text-sm" : "text-subhead",
                 )}
             >
                 {stop.name}

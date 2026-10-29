@@ -15,6 +15,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useTranslations } from "next-intl";
 import { useEffect, useId, useRef, useState } from "react";
 import { AppIcon } from "@/components/ui/AppIcon";
+import { Button } from "@/components/ui/Button";
 import { FILL_CLASS, type Level } from "@/components/ui/Delay";
 import {
     Popover,
@@ -359,14 +360,10 @@ export function FeedMessage({
                     )}
                 </div>
             </div>
-            <button
-                type="button"
-                onClick={onRetry}
-                className="pressable flex h-11 cursor-pointer items-center justify-center gap-2 rounded-full bg-action text-[15px] font-semibold text-on-action"
-            >
+            <Button variant="primary" onClick={onRetry}>
                 <RefreshCw className="size-4" aria-hidden />
                 {t("retry")}
-            </button>
+            </Button>
         </div>
     );
 }
@@ -423,7 +420,7 @@ export function LayersButton() {
                     <label
                         key={key}
                         htmlFor={`layer-${key}`}
-                        className="flex h-11 cursor-pointer items-center gap-3 px-3 text-[15px]"
+                        className="flex h-11 cursor-pointer items-center gap-3 px-3 text-subhead"
                     >
                         <span className="flex-1">{label}</span>
                         <Switch
