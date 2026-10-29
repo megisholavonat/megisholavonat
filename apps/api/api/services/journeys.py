@@ -22,11 +22,16 @@ from api.schemas.journeys import (
 from api.schemas.stations import Station
 from api.services.connection_risk import HISTORY_DAYS, assess_transfers
 from api.services.insights import history_window
-from api.services.live_trips import load_live_trip_index, match_live_trip
-from api.services.station_board import keep_best, train_number
+from api.services.live_trips import (
+    apply_live_delay,
+    load_live_trip_index,
+    match_live_trip,
+)
+from api.services.station_board import keep_best
 from api.services.station_index import RAIL_FEED, load_station_index
 from api.util.ticket import ticket_url
 from api.util.time import BUDAPEST_TZ
+from api.util.trip import train_number
 
 JOURNEYS_TTL = 60  # seconds
 # OTP spends several of its itineraries on duplicates of the same trains
@@ -74,11 +79,6 @@ def _transit_leg(leg: dict[str, Any], live_index: dict[str, Any]) -> TransitLeg:
     expected_arrival = leg["endTime"] // 1000
     scheduled_departure = expected_departure - departure_delay
     scheduled_arrival = expected_arrival - arrival_delay
-    delay = round(departure_delay / 60)
-    delay_source = "otp"
-    realtime = bool(leg.get("realTime"))
-    vehicle_id = None
-
     live = match_live_trip(
         live_index,
         trip_id=trip["gtfsId"],
@@ -88,17 +88,14 @@ def _transit_leg(leg: dict[str, Any], live_index: dict[str, Any]) -> TransitLeg:
             "scheduledDeparture"
         ),
     )
-    if live is not None:
-        vehicle_id = live.vehicleId
     # As on boards: no live delay off route, arrived or cancelled
-    if live is not None and live.has_delay:
-        delay_source = "gps"
-        realtime = True
-        # Trains do not leave early; a negative GPS delay before departure
-        # only means the train is waiting. They may arrive early, though.
-        delay = max(live.delay, 0)
-        expected_departure = scheduled_departure + delay * 60
-        expected_arrival = max(scheduled_arrival + live.delay * 60, expected_departure)
+    realtime = bool(leg.get("realTime"))
+    departure = apply_live_delay(
+        live, scheduled_departure, expected_departure, realtime=realtime, departing=True
+    )
+    arrival = apply_live_delay(
+        live, scheduled_arrival, expected_arrival, realtime=realtime, departing=False
+    )
 
     return TransitLeg(
         mode=leg["mode"],
@@ -113,15 +110,16 @@ def _transit_leg(leg: dict[str, Any], live_index: dict[str, Any]) -> TransitLeg:
         fromStop=_stop(leg["from"]),
         toStop=_stop(leg["to"]),
         scheduledDeparture=scheduled_departure,
-        expectedDeparture=expected_departure,
+        expectedDeparture=departure.expected,
         scheduledArrival=scheduled_arrival,
-        expectedArrival=expected_arrival,
-        delayMinutes=delay,
-        delaySource=delay_source,
-        realtime=realtime,
+        # Never before the departure
+        expectedArrival=max(arrival.expected, departure.expected),
+        delayMinutes=departure.minutes,
+        delaySource=departure.source,
+        realtime=departure.realtime,
         canceled=leg.get("realtimeState") == "CANCELED",
         intermediateStops=len(leg.get("intermediateStops") or []),
-        vehicleId=vehicle_id,
+        vehicleId=live.vehicleId if live is not None else None,
     )
 
 

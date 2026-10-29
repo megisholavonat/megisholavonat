@@ -8,7 +8,6 @@ import httpx
 import numpy as np
 import polyline  # type: ignore[import-untyped]
 import pytest
-import pytz
 from sqlalchemy import func, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -37,8 +36,8 @@ from api.models.history import Stop, StopDelayObservation
 from api.services import train_service
 from api.services.history import ensure_partition
 from api.services.train_service import TrainService
+from api.util.time import BUDAPEST_TZ
 
-BUDAPEST = pytz.timezone("Europe/Budapest")
 DAY = date(2026, 8, 14)
 LAT = 47.0
 STOP_LONS = [19.0, 19.1, 19.2, 19.3]
@@ -47,7 +46,7 @@ STOP_TIMES = [10 * 3600 + i * 300 for i in range(4)]
 
 
 def _unix(hh: int, mm: int, ss: int = 0) -> int:
-    return int(BUDAPEST.localize(datetime(2026, 8, 14, hh, mm, ss)).timestamp())
+    return int(datetime(2026, 8, 14, hh, mm, ss, tzinfo=BUDAPEST_TZ).timestamp())
 
 
 def _vehicle(lon: float, at: int, lat: float = LAT) -> dict[str, Any]:
@@ -468,7 +467,7 @@ async def _insert_history(session: AsyncSession, days: int) -> None:
     for n in range(days):
         day = DAY + timedelta(days=n)
         await ensure_partition(session, day)
-        midnight = BUDAPEST.localize(datetime.combine(day, datetime.min.time()))
+        midnight = datetime.combine(day, datetime.min.time(), tzinfo=BUDAPEST_TZ)
         for t in range(12):
             delay = int(rng.integers(0, 300))
             for seq, sched in enumerate(STOP_TIMES):
