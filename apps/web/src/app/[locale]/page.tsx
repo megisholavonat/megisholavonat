@@ -625,8 +625,12 @@ function MapScreen() {
         setDisruptionsOpen(true);
     }, []);
 
-    // Back and forward: take the layers from the entry
-    const { setQuery: setSheetQuery } = sheetSearch;
+    // Back and forward: take the layers from the entry. The listener is
+    // added once, in the capture phase: Next's own popstate listener can
+    // commit a render, and a listener re-added by that render's effects
+    // would miss the event it is being dispatched for.
+    const clearQueryRef = useRef(sheetSearch.setQuery);
+    clearQueryRef.current = sheetSearch.setQuery;
     useEffect(() => {
         const onPop = () => {
             backPendingRef.current = false;
@@ -634,15 +638,15 @@ function MapScreen() {
             setSelectedId(nav.vehicleId);
             setStationId(nav.station);
             if (nav.overlay !== "search") {
-                setSheetQuery("");
+                clearQueryRef.current("");
                 closeSearch();
             } else setSearchOpen(true);
             setPlannerOpen(nav.overlay === "planner");
             setDisruptionsOpen(nav.overlay === "disruptions");
         };
-        window.addEventListener("popstate", onPop);
-        return () => window.removeEventListener("popstate", onPop);
-    }, [closeSearch, setSheetQuery]);
+        window.addEventListener("popstate", onPop, true);
+        return () => window.removeEventListener("popstate", onPop, true);
+    }, [closeSearch]);
 
     // Esc closes the top layer only. A dialog or popover that is open when
     // the key goes down takes it alone: that is checked before either
