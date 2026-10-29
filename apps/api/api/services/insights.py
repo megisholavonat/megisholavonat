@@ -295,9 +295,10 @@ GLYPHS = list(LINE_GLYPHS)
 GLYPH_LINES = list(LINE_GLYPHS.values())
 LINE_NAME = "coalesce(g.line, regexp_replace(route_short_name, '<[^>]+>', '', 'g'))"
 
-# Fewer samples than this and an entry is left out of the rankings. A daily
-# train has at most about 28 runs, so one arrival each, in a 28-day window.
-DEFAULT_MIN_SAMPLES: dict[str, int] = {"stations": 100, "lines": 300, "trains": 15}
+# Fewer samples than this and an entry is left out of the rankings. Lines and
+# trains count runs: a daily train has at most about 28 in a 28-day window, and
+# a line needs about one run a day.
+DEFAULT_MIN_SAMPLES: dict[str, int] = {"stations": 100, "lines": 30, "trains": 15}
 
 RANKING_KEYS: dict[str, str] = {
     "stations": "station_id",
@@ -310,17 +311,16 @@ RANKING_JOINS: dict[str, str] = {
         "AS g(glyph, line) ON g.glyph = route_short_name"
     ),
 }
-# Trains are ranked by how late they arrive: one sample per run, the delay at
-# its last recorded stop. That is the terminus when the recorder caught the
-# arrival; otherwise the last stop before it that was recorded.
-RANKING_SOURCES: dict[str, str] = {
-    "trains": f"""(
-        SELECT DISTINCT ON (service_date, trip_gtfs_id) *
-        FROM stop_delay_observations
-        WHERE {IN_WINDOW}
-        ORDER BY service_date, trip_gtfs_id, stop_sequence DESC
-    ) AS final_stops""",
-}
+# Lines and trains are ranked by how late they arrive: one sample per run, the
+# delay at its final stop. Where the recorder missed the arrival, the last
+# stop before it that was recorded stands in.
+FINAL_STOPS = f"""(
+    SELECT DISTINCT ON (service_date, trip_gtfs_id) *
+    FROM stop_delay_observations
+    WHERE {IN_WINDOW}
+    ORDER BY service_date, trip_gtfs_id, stop_sequence DESC
+) AS final_stops"""
+RANKING_SOURCES: dict[str, str] = {"lines": FINAL_STOPS, "trains": FINAL_STOPS}
 RANKING_FILTERS: dict[str, str] = {
     "lines": f"AND (g.line IS NOT NULL OR {LINE_NAME} ~ :line_pattern)",
 }

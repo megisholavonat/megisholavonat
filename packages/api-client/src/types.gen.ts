@@ -2385,7 +2385,7 @@ export type GetRankingsData = {
         /**
          * Minsamples
          *
-         * Minimum samples to be ranked; defaults to 100 for stations, 300 for lines and 15 for trains
+         * Minimum samples to be ranked; defaults to 100 for stations, 30 for lines and 15 for trains
          */
         minSamples?: number | null;
     };

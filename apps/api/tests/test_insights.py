@@ -316,7 +316,7 @@ async def test_rankings_best_and_worst_respect_min_samples(
     ("kind", "route", "train", "default"),
     [
         ("stations", "S10", "10 X", 100),
-        ("lines", "S10", "10 X", 300),
+        ("lines", "S10", "10 X", 30),
         ("trains", "S10", "10 X", 15),
     ],
 )
@@ -328,8 +328,8 @@ async def test_rankings_min_samples_default_per_kind(
     train: str,
     default: int,
 ) -> None:
-    # Exactly the default for one entry, one short of it for another; trains
-    # count runs, so every observation is its own run here
+    # Exactly the default for one entry, one short of it for another; lines
+    # and trains count runs, so every observation is its own run here
     rows = [
         _obs(0, route=route, train=train, station=KELETI, seq=i) for i in range(default)
     ]
@@ -422,36 +422,50 @@ async def test_rankings_by_line_and_train(
     ]
 
 
-async def test_train_rankings_use_the_arrival_of_each_run(
+async def test_line_and_train_rankings_use_the_arrival_of_each_run(
     client: httpx.AsyncClient, db_session: AsyncSession
 ) -> None:
     rows = []
     for i in range(5):
         day, trip = MONDAY - timedelta(days=i), f"1:run{i}"
-        # Train 10 leaves on time but arrives 15 minutes late
+        # Train 10 (Z30) leaves on time but arrives 15 minutes late
         rows += [
-            _obs(0, day=day, trip=trip, station=KELETI, seq=0),
-            _obs(0, day=day, trip=trip, station=SZOLNOK, seq=5),
-            _obs(900, day=day, trip=trip, station=DEBRECEN, seq=9),
+            _obs(0, day=day, trip=trip, route="Z30", station=KELETI, seq=0),
+            _obs(0, day=day, trip=trip, route="Z30", station=SZOLNOK, seq=5),
+            _obs(900, day=day, trip=trip, route="Z30", station=DEBRECEN, seq=9),
         ]
-        # Train 20 is late on the way but arrives on time
+        # Train 20 (S10) is late on the way but arrives on time
+        twenty: dict[str, Any] = {
+            "day": day,
+            "trip": f"1:twenty{i}",
+            "train": "20 X",
+            "route": "S10",
+        }
         rows += [
-            _obs(900, day=day, trip=f"1:twenty{i}", train="20 X", station=KELETI),
-            _obs(
-                60, day=day, trip=f"1:twenty{i}", train="20 X", station=SZOLNOK, seq=3
-            ),
+            _obs(900, **twenty, station=KELETI),
+            _obs(60, **twenty, station=SZOLNOK, seq=3),
         ]
+    # A run whose arrival was not recorded counts its last recorded stop
+    rows += [
+        _obs(0, trip="1:short", train="30 Y", route="S10", station=KELETI),
+        _obs(420, trip="1:short", train="30 Y", route="S10", station=SZOLNOK, seq=4),
+    ]
     await _seed(db_session, rows)
 
-    body = (await client.get("/v1/rankings?kind=trains&minSamples=5")).json()
+    trains = (await client.get("/v1/rankings?kind=trains&minSamples=5")).json()
+    lines = (await client.get("/v1/rankings?kind=lines&minSamples=5")).json()
     stations = (await client.get("/v1/rankings?kind=stations&minSamples=5")).json()
 
-    assert [(e["id"], e["n"], e["onTimeShare"]) for e in body["entries"]] == [
+    assert [(e["id"], e["n"], e["onTimeShare"]) for e in trains["entries"]] == [
         ("20", 5, 1.0),
         ("10", 5, 0.0),
     ]
+    assert [(e["id"], e["n"], e["onTimeShare"]) for e in lines["entries"]] == [
+        ("S10", 6, round(5 / 6, 3)),
+        ("Z30", 5, 0.0),
+    ]
     # Stations still count every passage
-    assert sum(e["n"] for e in stations["entries"]) == 25
+    assert sum(e["n"] for e in stations["entries"]) == 27
 
 
 async def test_time_of_day(client: httpx.AsyncClient, db_session: AsyncSession) -> None:
