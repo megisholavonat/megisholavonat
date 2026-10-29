@@ -6,6 +6,7 @@ import {
     openSearch,
     openTrain,
     STATIONS,
+    settle,
     t,
     test,
     trainRegion,
@@ -27,28 +28,16 @@ function overlap(a: Box, b: Box): number {
 async function expectNoOverlap(page: Page, items: Record<string, Locator>) {
     const viewport = page.viewportSize();
     if (!viewport) throw new Error("no viewport");
-    // Let sheets and controls finish moving
-    await expect
-        .poll(() =>
-            page.evaluate(
-                () =>
-                    document
-                        .getAnimations()
-                        .filter(
-                            (a) =>
-                                a.playState === "running" &&
-                                a.effect?.getTiming().iterations !== Infinity,
-                        ).length,
-            ),
-        )
-        .toBe(0);
-    const boxes: [string, Box][] = [];
+    const names = Object.keys(items);
+    for (const name of names) {
+        await expect(items[name], `${name} is visible`).toBeVisible();
+    }
+    // Let sheets and controls finish moving, then measure them at rest
+    const settled = await settle(page, Object.values(items));
+    const boxes = names.map((name, i): [string, Box] => [name, settled[i]]);
     const problems: string[] = [];
-    for (const [name, locator] of Object.entries(items)) {
-        await expect(locator, `${name} is visible`).toBeVisible();
-        const box = await locator.boundingBox();
-        if (!box) throw new Error(`${name} has no box`);
-        boxes.push([name, box]);
+    for (const [name, box] of boxes) {
+        const locator = items[name];
         if (
             box.x < -0.5 ||
             box.y < -0.5 ||

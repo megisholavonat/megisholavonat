@@ -5,6 +5,7 @@ import {
     openHome,
     openSearch,
     STATIONS,
+    settle,
     stationLabel,
     t,
     test,
@@ -16,6 +17,8 @@ async function openEmptySearch(page: Page) {
     await openHome(page);
     const field = await openSearch(page);
     await field.click();
+    // The phone's sheet rises to full: tap its rows once it is there
+    await settle(page, [field]);
     return field;
 }
 

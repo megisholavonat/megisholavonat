@@ -1,4 +1,9 @@
-import { test as base, expect, type Page } from "@playwright/test";
+import {
+    test as base,
+    expect,
+    type Locator,
+    type Page,
+} from "@playwright/test";
 import { createTranslator } from "next-intl";
 import hu from "../../messages/hu.json";
 import {
@@ -84,6 +89,55 @@ export function knownGap(description: string, condition = true) {
     test.fixme(condition && !process.env.E2E_RUN_FIXME, description);
 }
 
+type Box = { x: number; y: number; width: number; height: number };
+
+/** Finite animations still running: sheet glides, fades, CSS transitions */
+const runningAnimations = (page: Page) =>
+    page.evaluate(
+        () =>
+            document
+                .getAnimations()
+                .filter(
+                    (a) =>
+                        a.playState === "running" &&
+                        a.effect?.getTiming().iterations !== Infinity,
+                ).length,
+    );
+
+/**
+ * Waits until the layout has come to rest: no finite animation runs and
+ * the elements keep the same boxes from one check to the next. A single
+ * "no animations" check passes too early, before a sheet that is about to
+ * move has started to, or while data still reflows it. Returns the boxes.
+ */
+export async function settle(page: Page, locators: Locator[]): Promise<Box[]> {
+    let previous: string | null = null;
+    let boxes: Box[] = [];
+    await expect
+        .poll(
+            async () => {
+                const idle = (await runningAnimations(page)) === 0;
+                const now: Box[] = [];
+                for (const locator of locators) {
+                    const box = await locator.boundingBox();
+                    if (!box) {
+                        previous = null;
+                        return false;
+                    }
+                    now.push(box);
+                }
+                const key = JSON.stringify(now);
+                const still = idle && key === previous;
+                previous = idle ? key : null;
+                boxes = now;
+                return still && (await runningAnimations(page)) === 0;
+            },
+            { message: "the layout comes to rest" },
+        )
+        .toBe(true);
+    return boxes;
+}
+
 /** Opens the map */
 export async function openHome(page: Page, query = "") {
     await page.goto(`/${query}`);
@@ -119,6 +173,8 @@ export async function openTrain(
         const steps = { peek: 0, half: 1, full: 2 }[detent];
         for (let i = 0; i < steps; i++) await handle.click();
     }
+    // At its detent, not still gliding there
+    await settle(page, [region]);
     return region;
 }
 
