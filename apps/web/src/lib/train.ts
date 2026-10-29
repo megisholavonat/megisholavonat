@@ -57,11 +57,6 @@ export interface StopTiming {
     estimated: boolean;
 }
 
-type StopTimeWithPrediction = StopTimeWithCounty & {
-    /** Per-stop delay forecast (minutes), added to the API in PR #93 */
-    predictedDelay?: number | null;
-};
-
 /**
  * Arrival (or departure at the first stop) of a stop. Passed stops use the
  * published realtime time. Stops ahead prefer the per-stop forecast, then a
@@ -73,6 +68,8 @@ export function stopTiming(
     index: number,
     passed: boolean,
     currentDelay: number,
+    /** Per-stop delay forecast (minutes) from the API, when it has one */
+    predicted?: number | null,
 ): StopTiming {
     const useDeparture = index === 0;
     const scheduled = useDeparture
@@ -81,7 +78,6 @@ export function stopTiming(
     const realtime = useDeparture
         ? stoptime.realtimeDeparture
         : stoptime.realtimeArrival;
-    const predicted = (stoptime as StopTimeWithPrediction).predictedDelay;
 
     let expected = realtime ?? scheduled;
     let estimated = false;

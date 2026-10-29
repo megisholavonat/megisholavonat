@@ -82,6 +82,10 @@ export function useTrainView(vehicleId: string | null): {
         for (const station of history.data?.stations ?? []) {
             byStation.set(station.stationId, station);
         }
+        const predictedByIndex = new Map<number, number | null | undefined>();
+        vehicle.processedStops?.forEach((stop, i) => {
+            predictedByIndex.set(stop.index ?? i, stop.predictedDelay);
+        });
         const nextIdx = nextStopIndex(vehicle);
         const stoptimes = vehicle.trip.stoptimes;
         const stops = stoptimes.map((stoptime, index): StopView => {
@@ -98,7 +102,13 @@ export function useTrainView(vehicleId: string | null): {
                 name: stoptime.stop.name,
                 county: stoptime.stop.county ?? null,
                 stationId,
-                timing: stopTiming(stoptime, index, passed, vehicle.delay),
+                timing: stopTiming(
+                    stoptime,
+                    index,
+                    passed,
+                    vehicle.delay,
+                    predictedByIndex.get(index),
+                ),
                 passed,
                 isNext: index === nextIdx,
                 isLast: index === stoptimes.length - 1,
