@@ -93,7 +93,7 @@
         "more_alerts": "+{count} közlemény",
         "departs": "ind. {time}",
         "to_go": "még {km, number} km",
-        "county": "{county} vármegye",
+        "county": "{county} megye",
         "position": "A vonat helyzete"
     },
     "Station": {
