@@ -1,15 +1,12 @@
 from datetime import datetime
 from typing import Any
 
-import pytz
-
 from api.services.train_service import TrainService
-
-BUDAPEST = pytz.timezone("Europe/Budapest")
+from api.util.time import BUDAPEST_TZ
 
 
 def _unix(local: str) -> int:
-    return int(BUDAPEST.localize(datetime.fromisoformat(local)).timestamp())
+    return int(datetime.fromisoformat(local).replace(tzinfo=BUDAPEST_TZ).timestamp())
 
 
 def _loc(trip_id: str, first_dep: int, last_arr: int, updated: int) -> dict[str, Any]:

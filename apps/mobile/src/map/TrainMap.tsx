@@ -12,8 +12,12 @@ import {
     type StyleSpecification,
     type TrackUserLocation,
     UserLocation,
+    type ViewStateChangeEvent,
 } from "@maplibre/maplibre-react-native";
-import type { TrainFeatureCollection } from "@megisholavonat/api-client";
+import type {
+    TrainFeatureCollection,
+    TrainFeatureProperties,
+} from "@megisholavonat/api-client";
 import { getTrainDetailsOptions } from "@megisholavonat/api-client/react-query";
 import {
     basemapStyle,
@@ -23,15 +27,29 @@ import {
     STATIONS_SOURCE,
     stationLayers,
 } from "@megisholavonat/core/mapStyle";
-import { TOUCH_TARGET } from "@megisholavonat/core/tokens";
-import { MAP_FOCUS, MAP_MARKS } from "@megisholavonat/core/tokens/map";
+import { MAP_FOCUS } from "@megisholavonat/core/tokens/map";
 import { useQuery } from "@tanstack/react-query";
-import { type Ref, useCallback, useMemo, useRef } from "react";
-import { StyleSheet } from "react-native";
+import {
+    type Ref,
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
+import {
+    type NativeSyntheticEvent,
+    StyleSheet,
+    useWindowDimensions,
+} from "react-native";
 import { useLocale } from "use-intl";
 import { API_URL, TILE_CACHE_URL } from "../config";
+import { useSettings } from "../settings/SettingsProvider";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { useReduceMotion } from "../ui/motion";
+import { STACK_MAX, sheetPadding, shouldListStack } from "./camera";
+import { getMapFocus, noteMapTap, useMapFocus } from "./focus";
+import { StationLabel } from "./MapLabels";
 import {
     basemapAnchors,
     clusterLayers,
@@ -44,36 +62,46 @@ import {
     railwayPaint,
     railwayTileUrl,
     routeLayers,
+    STATION_MARK_SOURCE,
     STOPS_SOURCE,
+    stationMarkLayers,
     trainLayers,
-    VEHICLES_SOURCE,
 } from "./mapStyle";
 import { markerCollection } from "./markers";
 import { routeLine, routeStops } from "./route";
 import { useSelectedTrain } from "./selection";
 import { SPRITE_IMAGES } from "./spriteImages";
+import type { MapView } from "./useVehicleMotion";
+import { VehicleSources } from "./VehicleSources";
 
-const HIT = TOUCH_TARGET / 2;
-/** Trains still piled up this close in are not clustered (as on the web) */
-const CLUSTER_MAX_ZOOM = 15;
 const DATA_URLS = mapDataUrls(API_URL);
+const MIN_ZOOM = 5;
+const MAX_ZOOM = 19;
+/** Flights and bubble zooms, as on the web (none with reduce motion) */
+const FLY_MS = 1600;
+const EASE_MS = 500;
+const EMPTY: GeoJSON.FeatureCollection = {
+    type: "FeatureCollection",
+    features: [],
+};
 
 // Core types its style with a newer style-spec than MapLibre RN bundles; the
 // JSON is the same
-/** From this zoom the railway overlay writes out station names */
-const RAILWAY_NAMES_MIN_ZOOM = 10.5;
 type CoreLayer = ReturnType<typeof networkLayer>;
 const nativeLayer = (layer: CoreLayer) => layer as unknown as LayerProps;
+const asLayer = (layer: unknown) => layer as LayerProps;
 
 /**
  * The live map: our basemap with the passenger network and stations, the
- * opt-in OpenRailwayMap overlay, the selected train's route and the trains.
+ * opt-in OpenRailwayMap overlay, the selected train's route, the chosen
+ * station and the trains, which glide along their routes (VehicleSources).
  *
  * Bottom to top: basemap fills and lines … border, network, railway
- * overlay, place names, station dots, station names, route, stops, "+N",
- * marks, ring, badge, chips. Every app layer names the layer it sits on
- * (afterId), so a theme switch, which reloads the native style, adds them
- * back in the same places (web BL-1).
+ * overlay, place names, station dots, station names, route, stops, station
+ * clearing, "+N", bubbles, station ring, marks, then the selected and
+ * followed trains' marks, ring, star, chips and arrow. Every app layer names
+ * the layer it sits on (afterId), so a theme switch, which reloads the
+ * native style, adds them back in the same places (web BL-1).
  */
 export function TrainMap({
     trains,
@@ -83,6 +111,7 @@ export function TrainMap({
     showRailways,
     followUser,
     onFollowUserChange,
+    onStack,
     mapRef,
 }: {
     trains: TrainFeatureCollection | undefined;
@@ -95,13 +124,21 @@ export function TrainMap({
     /** Show the user's position and keep the camera on it */
     followUser: boolean;
     onFollowUserChange: (following: boolean) => void;
+    /**
+     * Trains that still overlap at full zoom, to list (null closes the
+     * list): a tap on their bubble
+     */
+    onStack: (trains: TrainFeatureProperties[] | null) => void;
     mapRef?: Ref<MapRef>;
 }) {
     const theme = useAppTheme();
     const scheme = theme.dark ? "dark" : "light";
     const locale = useLocale();
     const selectedId = useSelectedTrain();
+    const focus = useMapFocus();
     const reduceMotion = useReduceMotion();
+    const { settings } = useSettings();
+    const { height } = useWindowDimensions();
 
     const style = useMemo(
         () => basemapStyle(scheme, locale) as unknown as StyleSpecification,
@@ -116,38 +153,79 @@ export function TrainMap({
         () => networkLayer({ scheme, dim, fadeMs }),
         [scheme, dim, fadeMs],
     );
-    const stations = useMemo(
+    const names = settings.showStationNames;
+    const namesOpacity = settings.stationNamesOpacity;
+    const stations = useMemo(() => {
+        const layers = stationLayers({
+            scheme,
+            dim,
+            fadeMs,
+            labelOpacity: namesOpacity,
+        });
+        return {
+            dots: layers.dots,
+            // Hidden rather than removed, so the layers above keep their
+            // place
+            labels: layers.labels.map((layer) => ({
+                ...layer,
+                layout: {
+                    ...layer.layout,
+                    visibility: names ? "visible" : "none",
+                },
+            })) as typeof layers.labels,
+        };
+    }, [scheme, dim, fadeMs, names, namesOpacity]);
+    const route = useMemo(
         () =>
-            stationLayers({
-                scheme,
-                dim,
-                fadeMs,
-                // The overlay names stations itself from this zoom
-                labelMaxZoom: showRailways ? RAILWAY_NAMES_MIN_ZOOM : undefined,
+            routeLayers(scheme, {
+                names,
+                namesOpacity,
+                railwayOverlay: showRailways,
             }),
-        [scheme, dim, fadeMs, showRailways],
+        [scheme, names, namesOpacity, showRailways],
     );
-    const route = useMemo(() => routeLayers(scheme), [scheme]);
-    // Unselected trains cluster where they pile up; the selected and
-    // followed ones never do (as on the web)
-    const layers = useMemo(
-        () => trainLayers({ scheme, selectedId }),
-        [scheme, selectedId],
-    );
-    const pinnedLayers = useMemo(
-        () =>
-            trainLayers({
-                scheme,
-                selectedId,
-                source: PINNED_SOURCE,
-                suffix: "-pinned",
-            }),
-        [scheme, selectedId],
-    );
+    const stationMark = useMemo(() => stationMarkLayers(scheme), [scheme]);
+    // Unselected trains cluster where they pile up and step back while one
+    // is open; the selected and followed ones never do either (as on the
+    // web)
     const clusters = useMemo(
-        () => clusterLayers({ scheme, selectedId }),
-        [scheme, selectedId],
+        () => clusterLayers({ scheme, selectedId, fadeMs }),
+        [scheme, selectedId, fadeMs],
     );
+    const baseLayers = useMemo(() => {
+        const layers = trainLayers({
+            scheme,
+            selectedId,
+            dimmed: selectedId !== null,
+            fadeMs,
+        });
+        return [
+            asLayer({ ...layers.text, afterId: stationMark.clear.id }),
+            asLayer({ ...clusters.bubble, afterId: layers.text.id }),
+            asLayer({ ...clusters.count, afterId: clusters.bubble.id }),
+            asLayer({ ...layers.marks, afterId: stationMark.ring.id }),
+        ];
+    }, [scheme, selectedId, fadeMs, clusters, stationMark]);
+    const pinnedLayers = useMemo(() => {
+        const layers = trainLayers({
+            scheme,
+            selectedId,
+            source: PINNED_SOURCE,
+            suffix: "-pinned",
+            dimmed: false,
+            fadeMs,
+        });
+        const marks = baseLayers[baseLayers.length - 1]?.id;
+        return [
+            asLayer({ ...layers.text, afterId: marks }),
+            asLayer({ ...layers.marks, afterId: layers.text.id }),
+            asLayer({ ...layers.ring, afterId: layers.marks.id }),
+            asLayer({ ...layers.badge, afterId: layers.ring.id }),
+            asLayer({ ...layers.chip, afterId: layers.badge.id }),
+            // On top: it may point across the chip
+            asLayer({ ...layers.arrow, afterId: layers.chip.id }),
+        ];
+    }, [scheme, selectedId, fadeMs, baseLayers]);
 
     // The open train's details, shared with its sheet (same query)
     const { data: details } = useQuery({
@@ -159,8 +237,19 @@ export function TrainMap({
     const line = useMemo(() => routeLine(shown), [shown]);
     const stops = useMemo(() => routeStops(shown), [shown]);
 
+    const filter = useMemo(
+        () => ({
+            train: settings.showTrains,
+            hev: settings.showHev,
+            tramtrain: settings.showTramTrains,
+        }),
+        [settings.showTrains, settings.showHev, settings.showTramTrains],
+    );
     const markers = useMemo(() => {
-        const all = markerCollection(trains, scheme, now, new Set(followed));
+        const all = markerCollection(trains, scheme, now, new Set(followed), {
+            filter,
+            details: shown,
+        });
         const pinned = (p: { vehicleId: string; followed: boolean }) =>
             p.followed || p.vehicleId === selectedId;
         return {
@@ -173,38 +262,182 @@ export function TrainMap({
                 features: all.features.filter((f) => pinned(f.properties)),
             },
         };
-    }, [trains, scheme, now, followed, selectedId]);
+    }, [trains, scheme, now, followed, selectedId, filter, shown]);
 
-    // Tapping a bubble zooms in until its trains come apart
-    const vehiclesRef = useRef<GeoJSONSourceRef>(null);
+    const selectedTrain = useMemo(
+        () =>
+            selectedId
+                ? (trains?.features.find(
+                      (f) => f.properties.vehicleId === selectedId,
+                  )?.properties ?? null)
+                : null,
+        [trains, selectedId],
+    );
+
+    // What the map shows, for the animation and the camera
+    const view = useRef<MapView>({
+        zoom: INITIAL_VIEW.zoom,
+        bounds: null,
+        moving: false,
+    });
+    // The labels' offsets follow the zoom, in half steps
+    const [zoom, setZoom] = useState(INITIAL_VIEW.zoom);
+    const onRegionWillChange = useCallback(
+        (event: NativeSyntheticEvent<ViewStateChangeEvent>) => {
+            view.current.moving = true;
+            if (event.nativeEvent.userInteraction) onStack(null);
+        },
+        [onStack],
+    );
+    const onRegionDidChange = useCallback(
+        (event: NativeSyntheticEvent<ViewStateChangeEvent>) => {
+            const { zoom: z, bounds } = event.nativeEvent;
+            view.current = { zoom: z, bounds, moving: false };
+            setZoom(Math.round(z * 2) / 2);
+        },
+        [],
+    );
+
+    const animate = settings.animateVehicles && !reduceMotion;
     const cameraRef = useRef<CameraRef>(null);
+    const padding = useCallback(
+        () => ({ bottom: sheetPadding(getMapFocus().sheet, height) }),
+        [height],
+    );
+
+    // Fly where a sheet asks: a train opened from search, a list or a
+    // follow, or a station, kept clear of the sheet (as on the web)
+    const flown = useRef<number | null>(null);
+    useEffect(() => {
+        const target = focus.fly;
+        if (!target || flown.current === target.key) return;
+        let center: [number, number] | null = null;
+        if (target.kind === "place") center = [target.lon, target.lat];
+        else {
+            if (!trains) return; // Waits for the feed
+            const feature = trains.features.find(
+                (f) => f.properties.vehicleId === target.vehicleId,
+            );
+            if (feature) {
+                center = [feature.properties.lon, feature.properties.lat];
+            }
+        }
+        flown.current = target.key;
+        if (!center) return; // Not on the map (yet): the sheet still opens
+        cameraRef.current?.flyTo({
+            center,
+            zoom: Math.min(MAX_ZOOM, Math.max(view.current.zoom, target.zoom)),
+            duration: reduceMotion ? 0 : FLY_MS,
+            easing: "fly",
+            padding: padding(),
+        });
+    }, [focus.fly, trains, reduceMotion, padding]);
+
+    // Tapping a bubble zooms in until its trains come apart; trains that
+    // would still overlap (a station's platforms) are listed instead
+    const vehiclesRef = useRef<GeoJSONSourceRef>(null);
+    const lastPress = useRef(0);
+    const trainsRef = useRef(trains);
+    trainsRef.current = trains;
     const onVehiclePress = useCallback(
-        async (feature: GeoJSON.Feature | undefined) => {
+        (event: { nativeEvent: { features: GeoJSON.Feature[] } }) => {
+            lastPress.current = Date.now();
+            const feature = event.nativeEvent.features[0];
             const props = feature?.properties;
             if (props?.cluster && feature?.geometry.type === "Point") {
-                try {
-                    const zoom =
-                        await vehiclesRef.current?.getClusterExpansionZoom(
-                            props.cluster_id as number,
+                const center = feature.geometry.coordinates as [number, number];
+                const id = props.cluster_id as number;
+                const source = vehiclesRef.current;
+                if (!source) return;
+                Promise.all([
+                    source.getClusterExpansionZoom(id),
+                    source.getClusterLeaves(id, STACK_MAX, 0),
+                ])
+                    .then(([expansion, leaves]) => {
+                        const points = leaves.flatMap((leaf) =>
+                            leaf.geometry.type === "Point"
+                                ? [
+                                      leaf.geometry.coordinates as [
+                                          number,
+                                          number,
+                                      ],
+                                  ]
+                                : [],
                         );
-                    if (zoom === undefined) return;
-                    cameraRef.current?.easeTo({
-                        center: feature.geometry.coordinates as [
-                            number,
-                            number,
-                        ],
-                        zoom: zoom + 0.5,
-                        duration: reduceMotion ? 0 : 500,
+                        if (shouldListStack(points, expansion, MAX_ZOOM)) {
+                            const byId = new Map(
+                                (trainsRef.current?.features ?? []).map((f) => [
+                                    f.properties.vehicleId,
+                                    f,
+                                ]),
+                            );
+                            const listed = leaves
+                                .map(
+                                    (leaf) =>
+                                        leaf.properties as {
+                                            vehicleId: string;
+                                            sort: number;
+                                            delay: number;
+                                        },
+                                )
+                                // Bigger delays first, as on the web
+                                .sort(
+                                    (a, b) =>
+                                        b.sort - a.sort || b.delay - a.delay,
+                                )
+                                .flatMap((p) => {
+                                    const train = byId.get(p.vehicleId);
+                                    return train ? [train.properties] : [];
+                                });
+                            onStack(listed);
+                            return;
+                        }
+                        cameraRef.current?.easeTo({
+                            center,
+                            zoom: Math.min(expansion + 0.5, MAX_ZOOM),
+                            duration: reduceMotion ? 0 : EASE_MS,
+                            padding: padding(),
+                        });
+                    })
+                    .catch(() => {
+                        // The bubble is gone after a feed update; ignore
                     });
-                } catch {
-                    // The cluster is gone after a feed update; ignore the tap
-                }
                 return;
             }
             const vehicleId = props?.vehicleId;
-            if (typeof vehicleId === "string") onTrainPress(vehicleId);
+            if (typeof vehicleId === "string") {
+                onStack(null);
+                // Already in view: its sheet doesn't fly the map
+                noteMapTap(vehicleId);
+                onTrainPress(vehicleId);
+            }
         },
-        [onTrainPress, reduceMotion],
+        [onTrainPress, onStack, reduceMotion, padding],
+    );
+    const onMapPress = useCallback(() => {
+        // A tap on a train reaches the map too; only other taps close
+        if (Date.now() - lastPress.current > 400) onStack(null);
+    }, [onStack]);
+
+    const station = focus.station;
+    const stationData = useMemo(
+        (): GeoJSON.FeatureCollection =>
+            station
+                ? {
+                      type: "FeatureCollection",
+                      features: [
+                          {
+                              type: "Feature",
+                              properties: { name: station.name },
+                              geometry: {
+                                  type: "Point",
+                                  coordinates: [station.lon, station.lat],
+                              },
+                          },
+                      ],
+                  }
+                : EMPTY,
+        [station],
     );
 
     const trackUserLocation: TrackUserLocation | undefined = followUser
@@ -226,12 +459,15 @@ export function TrainMap({
             compass={false}
             touchPitch={false}
             touchRotate={false}
+            onPress={onMapPress}
+            onRegionWillChange={onRegionWillChange}
+            onRegionDidChange={onRegionDidChange}
         >
             <Camera
                 ref={cameraRef}
                 initialViewState={INITIAL_VIEW}
-                minZoom={5}
-                maxZoom={19}
+                minZoom={MIN_ZOOM}
+                maxZoom={MAX_ZOOM}
                 maxBounds={MAX_BOUNDS}
                 trackUserLocation={trackUserLocation}
                 onTrackUserLocationChange={(event) =>
@@ -283,41 +519,28 @@ export function TrainMap({
                 <Layer {...route.stops} afterId={route.line.id} />
                 <Layer {...route.stopLabels} afterId={route.stops.id} />
             </GeoJSONSource>
+            {/* Always mounted, so its layers keep their place in the order */}
+            <GeoJSONSource id={STATION_MARK_SOURCE} data={stationData}>
+                <Layer {...stationMark.clear} afterId={route.stopLabels.id} />
+                {/* Above the bubbles, under the marks */}
+                <Layer {...stationMark.ring} afterId={clusters.count.id} />
+            </GeoJSONSource>
             {followUser ? <UserLocation /> : null}
-            <GeoJSONSource
-                ref={vehiclesRef}
-                id={VEHICLES_SOURCE}
-                data={markers.base}
-                cluster
-                clusterRadius={MAP_MARKS.clusterRadius}
-                clusterMinPoints={MAP_MARKS.clusterMinPoints}
-                clusterMaxZoom={CLUSTER_MAX_ZOOM}
-                hitbox={{ top: HIT, right: HIT, bottom: HIT, left: HIT }}
-                onPress={(event) =>
-                    void onVehiclePress(event.nativeEvent.features[0])
-                }
-            >
-                {/* Under the station names, which are placed first */}
-                <Layer {...layers.text} afterId={lastDot} />
-                <Layer {...layers.room} afterId={layers.text.id} />
-                <Layer {...clusters.bubble} afterId={route.stopLabels.id} />
-                <Layer {...clusters.count} afterId={clusters.bubble.id} />
-                <Layer {...layers.marks} afterId={clusters.count.id} />
-            </GeoJSONSource>
-            <GeoJSONSource
-                id={PINNED_SOURCE}
-                data={markers.pinned}
-                hitbox={{ top: HIT, right: HIT, bottom: HIT, left: HIT }}
-                onPress={(event) =>
-                    void onVehiclePress(event.nativeEvent.features[0])
-                }
-            >
-                <Layer {...pinnedLayers.text} afterId={layers.marks.id} />
-                <Layer {...pinnedLayers.marks} afterId={pinnedLayers.text.id} />
-                <Layer {...pinnedLayers.ring} afterId={pinnedLayers.marks.id} />
-                <Layer {...pinnedLayers.badge} afterId={pinnedLayers.ring.id} />
-                <Layer {...pinnedLayers.chip} afterId={pinnedLayers.badge.id} />
-            </GeoJSONSource>
+            <VehicleSources
+                trains={trains}
+                base={markers.base}
+                pinned={markers.pinned}
+                baseLayers={baseLayers}
+                pinnedLayers={pinnedLayers}
+                selected={selectedTrain}
+                animate={animate}
+                reduceMotion={reduceMotion}
+                view={view}
+                zoom={zoom}
+                vehiclesRef={vehiclesRef}
+                onPress={onVehiclePress}
+            />
+            {station ? <StationLabel station={station} /> : null}
         </MapLibreMap>
     );
 }

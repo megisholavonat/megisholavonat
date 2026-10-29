@@ -15,6 +15,7 @@ from api.schemas.insights import (
     TimeOfDayPunctuality,
 )
 from api.services import insights
+from api.util.history_constants import DEFAULT_HISTORY_DAYS
 
 router = APIRouter(prefix="/rankings", tags=["rankings"])
 
@@ -25,7 +26,7 @@ async def get_rankings(
     redis: RedisDep,
     kind: RankingKind = "stations",
     order: RankingOrder = "best",
-    days: DaysQuery = 28,
+    days: DaysQuery = DEFAULT_HISTORY_DAYS,
     limit: Annotated[int, Query(ge=1, le=200)] = 20,
     min_samples: Annotated[
         int | None,
@@ -62,7 +63,7 @@ async def get_time_of_day_punctuality(
     session: SessionDep,
     redis: RedisDep,
     station_id: Annotated[str | None, Query(alias="stationId")] = None,
-    days: DaysQuery = 28,
+    days: DaysQuery = DEFAULT_HISTORY_DAYS,
 ) -> TimeOfDayPunctuality:
     """On-time share by scheduled hour, network-wide or at one station"""
     return await cached_model(

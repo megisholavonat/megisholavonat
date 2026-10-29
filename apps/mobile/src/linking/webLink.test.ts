@@ -35,6 +35,18 @@ describe("webLinkPath", () => {
         expect(webLinkPath(`${WEB_URL}/hu?vehicleId=`)).toBe("/");
     });
 
+    it("opens a shared journey in the planner", () => {
+        expect(
+            webLinkPath(
+                `${WEB_URL}/hu?from=budapest&to=005501289&time=2026-10-30T07:00&utm_source=x`,
+            ),
+        ).toBe("/journey?from=budapest&to=005501289&time=2026-10-30T07%3A00");
+        expect(webLinkPath(`${WEB_URL}/en?to=005517228&arriveBy=1`)).toBe(
+            "/journey?to=005517228&arriveBy=1",
+        );
+        expect(webLinkPath(`${WEB_URL}/hu?time=2026-10-30T07:00`)).toBe("/");
+    });
+
     it("prefers the train when a link has both", () => {
         expect(webLinkPath(`${WEB_URL}/hu?station=7&vehicleId=42`)).toBe(
             "/train/42",

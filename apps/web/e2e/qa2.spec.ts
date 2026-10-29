@@ -46,7 +46,7 @@ test("n-8: stop names are no tab stops and open no popover", async ({
     const list = region.getByRole("list").first();
     await expect(list).toBeVisible();
     // The county is read with the name
-    await expect(list).toContainText(/vármegye/);
+    await expect(list).toContainText(/ megye/);
     const stopButtons = list.locator("button[aria-hidden='true']");
     expect(await stopButtons.count()).toBeGreaterThan(2);
     for (const tabIndex of await stopButtons.evaluateAll((els) =>
@@ -63,7 +63,7 @@ test("n-8: stop names are no tab stops and open no popover", async ({
     // A tap shows the county under the name; Esc then still closes the train
     await stopButtons.nth(1).click();
     await expect(
-        list.locator("span[aria-hidden='true']", { hasText: /vármegye/ }),
+        list.locator("span[aria-hidden='true']", { hasText: / megye/ }),
     ).toHaveCount(1);
     await page.keyboard.press("Escape");
     await expect(trainRegion(page)).toBeHidden();

@@ -2,6 +2,7 @@ import type { Locale } from "@megisholavonat/core/i18n";
 import {
     shareUrl,
     stationShareText,
+    stationShareTitle,
     trainShareText,
 } from "@megisholavonat/core/share";
 import type { Metadata } from "next";
@@ -82,15 +83,20 @@ export function buildMetadata({
     preview,
     now = new Date(),
 }: MetadataInput): Metadata {
+    // Shares send the link alone: these tags are all a chat shows of it
     let title = appTitle;
+    /** The preview card's title; the tab keeps the shorter `title` */
+    let cardTitle = appTitle;
     let description = appDescription;
     let url = `${origin}/${locale}`;
     if (preview.kind === "train") {
         title = trainTitle(preview.card);
+        cardTitle = title;
         description = trainShareText(locale, trainShareInfo(preview.card));
         url = shareUrl(origin, locale, { vehicleId: preview.vehicleId });
     } else if (preview.kind === "station") {
         title = preview.card.name;
+        cardTitle = stationShareTitle(locale, preview.card.name);
         description = stationShareText(locale, preview.card.departures);
         url = shareUrl(origin, locale, { station: preview.stationId });
     }
@@ -98,7 +104,10 @@ export function buildMetadata({
         url: previewImagePath(locale, preview, now),
         ...OG_SIZE,
         type: "image/png",
-        alt: preview.kind === "none" ? appTitle : `${title} – ${description}`,
+        alt:
+            preview.kind === "none"
+                ? appTitle
+                : `${cardTitle} – ${description}`,
     };
     return {
         metadataBase: new URL(origin),
@@ -111,13 +120,13 @@ export function buildMetadata({
             siteName: appTitle,
             locale: locale === "hu" ? "hu_HU" : "en_GB",
             url,
-            title,
+            title: cardTitle,
             description,
             images: [image],
         },
         twitter: {
             card: "summary_large_image",
-            title,
+            title: cardTitle,
             description,
             images: [image],
         },

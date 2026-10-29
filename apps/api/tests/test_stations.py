@@ -534,3 +534,43 @@ def test_board_marks_a_skipped_stop_only_there() -> None:
     assert at == here.scheduledTime
     assert here.disruption is None
     assert there.disruption == "no_service"
+
+
+async def test_budapest_finds_the_stations_named_without_it(
+    client: httpx.AsyncClient, otp: respx.MockRouter
+) -> None:
+    graphql_route(otp).mock(side_effect=otp_responder())
+
+    async def names(q: str, limit: int = 20) -> list[str]:
+        response = await client.get("/v1/stations", params={"q": q, "limit": limit})
+        return [s["name"] for s in response.json()]
+
+    # The termini first, then the busiest of the others, then suburban stops
+    expected = [
+        "Budapest-Déli",
+        "Budapest-Keleti",
+        "Budapest-Nyugati",
+        "Budapest-Kelenföld",
+        "Kőbánya-Kispest",
+        "Zugló",
+        "Ferencváros",
+        "Kispest",
+        "Budafok",
+        "Kőbánya alsó",
+    ]
+    assert await names("Budapest") == expected
+    assert await names("bp") == expected
+    assert await names("budapest kob") == ["Kőbánya-Kispest", "Kőbánya alsó"]
+    assert await names("bp zug") == ["Zugló"]
+    # Shorter queries match the station names first ("Bud" -> Budafok)
+    assert (await names("bud"))[:6] == [
+        "Budafok",
+        "Budaörs",
+        "Budapest-Déli",
+        "Budapest-Keleti",
+        "Budapest-Nyugati",
+        "Budapest-Kelenföld",
+    ]
+    # The stations' own names still work, and the alias is no substring
+    assert await names("kispest") == ["Kispest", "Kőbánya-Kispest"]
+    assert "Zugló" not in await names("pest")

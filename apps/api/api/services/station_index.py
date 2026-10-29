@@ -17,6 +17,7 @@ from api.core.logging_config import get_logger
 from api.core.queries import STATIONS_QUERY
 from api.core.redis import add_key
 from api.schemas.stations import Station
+from api.services import budapest
 from api.util.search import normalize_search_text
 
 logger = get_logger(__name__)
@@ -29,6 +30,8 @@ RAIL_STATION_MODES = {"RAIL", "SUBURBAN_RAILWAY", "TRAMTRAIN", None}
 HU_BBOX = (45.7, 16.1, 48.6, 22.95)
 
 INDEX_TTL = 3 * 24 * 60 * 60  # rebuilt daily; survives a missed run
+# Word-prefix matches; substrings of an alias are no match
+ALIAS_WORST_RANK = 2
 
 
 def index_key() -> str:
@@ -48,6 +51,12 @@ class IndexedStation:
     normalized: str
     words: tuple[str, ...]
     in_hungary: bool
+    # "budapest zuglo" for a Budapest station named without the city
+    alias: str | None = None
+
+    @property
+    def alias_words(self) -> tuple[str, ...]:
+        return tuple(self.alias.split()) if self.alias else ()
 
     def to_schema(self) -> Station:
         return Station(id=self.id, name=self.name, lat=self.lat, lon=self.lon)
@@ -64,6 +73,7 @@ def _indexed(id_: str, name: str, lat: float, lon: float) -> IndexedStation:
         normalized=normalized,
         words=tuple(normalized.split()),
         in_hungary=min_lat <= lat <= max_lat and min_lon <= lon <= max_lon,
+        alias=f"budapest {normalized}" if id_ in budapest.OTHER_RANK else None,
     )
 
 
@@ -132,17 +142,25 @@ async def load_station_index(redis: Redis) -> list[IndexedStation]:
     return stations
 
 
-def _match_rank(station: IndexedStation, query: str) -> int | None:
+def _match_rank(normalized: str, words: tuple[str, ...], query: str) -> int | None:
     """Lower is better; None means no match."""
-    if station.normalized == query:
+    if normalized == query:
         return 0
-    if station.normalized.startswith(query):
+    if normalized.startswith(query):
         return 1
-    if any(word.startswith(query) for word in station.words):
+    if any(word.startswith(query) for word in words):
         return 2
-    if query in station.normalized:
+    if query in normalized:
         return 3
     return None
+
+
+def _expand_query(normalized_query: str) -> str:
+    """ "bp" is short for Budapest ("bp keleti", "bp")."""
+    first, _, rest = normalized_query.partition(" ")
+    if first == "bp":
+        return f"budapest {rest}".strip()
+    return normalized_query
 
 
 def search_stations(
@@ -151,19 +169,35 @@ def search_stations(
     """
     Accent-insensitive search. Exact matches come first, then prefix matches,
     then word-prefix matches ("keleti" -> "Budapest-Keleti"), then substrings.
-    Ties prefer domestic stations and shorter names.
+    Ties prefer domestic stations and shorter names. Budapest stations named
+    without the city also match as "Budapest <name>", after the stations
+    named so ("Budapest" -> the four termini, then Kőbánya-Kispest, Zugló,
+    ...), busiest first.
     """
-    normalized_query = normalize_search_text(query)
+    normalized_query = _expand_query(normalize_search_text(query))
     if not normalized_query:
         return []
 
-    ranked: list[tuple[int, bool, int, str, IndexedStation]] = []
+    ranked: list[tuple[int, int, bool, int, str, IndexedStation]] = []
     for station in stations:
-        rank = _match_rank(station, normalized_query)
+        rank = _match_rank(station.normalized, station.words, normalized_query)
+        # Only through the city's name: after every match of the name itself,
+        # and by prefix only ("pest" does not find Zugló)
+        by_alias = 0
+        if station.alias is not None:
+            alias_rank = _match_rank(
+                station.alias, station.alias_words, normalized_query
+            )
+            if alias_rank is not None and alias_rank > ALIAS_WORST_RANK:
+                alias_rank = None
+            if alias_rank is not None and (rank is None or alias_rank < rank):
+                rank = alias_rank
+                by_alias = 1 + budapest.OTHER_RANK[station.id]
         if rank is not None:
             ranked.append(
                 (
                     rank,
+                    by_alias,
                     not station.in_hungary,
                     len(station.normalized),
                     station.normalized,
@@ -171,5 +205,5 @@ def search_stations(
                 )
             )
 
-    ranked.sort(key=lambda r: r[:4])
-    return [r[4].to_schema() for r in ranked[:limit]]
+    ranked.sort(key=lambda r: r[:5])
+    return [r[5].to_schema() for r in ranked[:limit]]

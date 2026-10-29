@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import { captureShare } from "./support/share";
 import {
     expect,
     openHome,
@@ -10,24 +10,6 @@ import {
 } from "./support/test";
 
 const c = t.DelayCard;
-
-/** Captures what the page hands to the share sheet. */
-async function captureShare(page: Page) {
-    await page.addInitScript(() => {
-        const w = window as unknown as { shared: ShareData[] };
-        w.shared = [];
-        Object.defineProperty(navigator, "share", {
-            configurable: true,
-            value: async (data: ShareData) => {
-                w.shared.push(data);
-            },
-        });
-    });
-    return () =>
-        page.evaluate(
-            () => (window as unknown as { shared: ShareData[] }).shared,
-        );
-}
 
 test("the card page tells a finished run with its measurement note", async ({
     page,
@@ -147,9 +129,8 @@ test("the train sheet shares the delay so far", async ({ page }) => {
     await expect.poll(shared).toHaveLength(1);
     const [data] = await shared();
     expect(data?.url).toMatch(/\/hu\/kesesek\/9\/2026-10-28$/);
-    expect(data?.text).toBe(
-        "A 9:18-as Kyiv-Pas. → Budapest-Keleti eddig 8 percet késett, utolsó mérés: Debrecen (Mégis hol a vonat? GPS-mérés)",
-    );
+    // The link alone: its preview tells the delay, no prefilled message
+    expect(data).toEqual({ title: c.title, url: data?.url });
 });
 
 test("a commute row shares the delay after the run", async ({ page }) => {
@@ -184,5 +165,5 @@ test("a commute row shares the delay after the run", async ({ page }) => {
     expect(data?.url).toMatch(
         /\/hu\/kesesek\/2019\/2026-10-29\?from=005501511$/,
     );
-    expect(data?.text).toMatch(/^A 3:56-os Esztergom → Budapest-Nyugati /);
+    expect(data?.text).toBeUndefined();
 });

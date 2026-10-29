@@ -18,6 +18,7 @@ import { SettingsProvider } from "../settings/SettingsProvider";
 import { AppThemeProvider, useAppTheme } from "../theme/ThemeProvider";
 import { MNR2007_FONT } from "../train/RouteIcon";
 import { liquidGlass } from "../ui/platform";
+import { SEARCH_DETENTS, STATION_DETENTS, TRAIN_DETENTS } from "../ui/sheets";
 import { useAnalytics } from "../useAnalytics";
 import "../live/eraseHook";
 
@@ -28,16 +29,6 @@ SplashScreen.preventAutoHideAsync();
 export const unstable_settings = { anchor: "index" };
 
 const ios = Platform.OS === "ios";
-
-/**
- * Peek · half · full (design board 2). Android allows at most three
- * detents, iOS any number; both use the native sheet.
- */
-const TRAIN_DETENTS = [0.22, 0.5, 1];
-/** Station board: half and full. */
-const STATION_DETENTS = [0.6, 1];
-/** Search on iOS: medium (map in view) and large (typing). */
-const SEARCH_DETENTS = [0.55, 1];
 
 /** Notifications already routed, so a re-render doesn't open them again */
 const routedNotifications = new Set<string>();

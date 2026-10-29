@@ -10,6 +10,8 @@ from typing import Any
 
 from api.util.time import get_seconds_since_day
 
+# The SQL twin of `train_number` is api.services.history_sql.TRAIN_NUMBER
+
 # A vehicle may show up a little before its first scheduled departure
 IN_SERVICE_BEFORE_S = 10 * 60
 # ... and is still running its trip for a while after the last arrival if late
@@ -17,6 +19,14 @@ IN_SERVICE_AFTER_S = 30 * 60
 # A neighbouring service date replaces the trip's own only if it puts the
 # position time at least this much closer to the trip's schedule
 SERVICE_DATE_MISMATCH_S = 12 * 3600
+
+
+def train_number(trip_short_name: str | None) -> str:
+    """
+    The number of a train, the first word of its trip short name: "201" of
+    "201 AGRAM - TÓPART InterCity" (OTP prefixes the number to the name).
+    """
+    return (trip_short_name or "").split(" ", 1)[0]
 
 
 def seconds_into_service_day(trip: dict[str, Any], unix_time: float) -> int:

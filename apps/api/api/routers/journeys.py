@@ -31,9 +31,20 @@ async def plan_journeys(
     redis: RedisDep,
     session: SessionDep,
     from_: Annotated[
-        str, Query(alias="from", description="UIC code of the departure station")
+        str,
+        Query(
+            alias="from",
+            description="UIC code of the departure station, or `budapest` for "
+            "any Budapest station",
+        ),
     ],
-    to: Annotated[str, Query(description="UIC code of the destination station")],
+    to: Annotated[
+        str,
+        Query(
+            description="UIC code of the destination station, or `budapest` for "
+            "any Budapest station"
+        ),
+    ],
     time: Annotated[
         datetime | None,
         Query(description="ISO time; local (Budapest) if no offset. Default: now"),
@@ -42,13 +53,23 @@ async def plan_journeys(
         bool, Query(description="Arrive by `time` instead of departing at it")
     ] = False,
     limit: Annotated[int, Query(ge=1, le=10)] = 5,
+    cityTransit: Annotated[
+        bool,
+        Query(
+            description="Also ride urban transit (metro, tram, trolleybus, city "
+            "bus; never interurban coaches) to the first train, from the last "
+            "one, or between two stations; always on for `budapest`"
+        ),
+    ] = False,
 ) -> JourneyPlan:
     """
     Itineraries between two rail stations, with live delays, the risk of
     missing each transfer and ticket links
     """
     try:
-        return await get_journeys(redis, session, from_, to, time, arriveBy, limit)
+        return await get_journeys(
+            redis, session, from_, to, time, arriveBy, limit, cityTransit
+        )
     except SameStationError as e:
         raise HTTPException(
             status_code=422, detail="Departure and destination are the same"

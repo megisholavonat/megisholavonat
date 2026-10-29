@@ -27,11 +27,35 @@ describe("parseSettings", () => {
             theme: "dark",
             dynamicColor: true,
             detailedRailwayMap: true,
+            showStationNames: false,
+            stationNamesOpacity: 0.45,
+            animateVehicles: false,
+            showTrains: false,
+            showHev: true,
+            showTramTrains: false,
             analytics: "granted",
             launchCount: 3,
             openedTrain: true,
         };
         expect(parseSettings(JSON.stringify(stored))).toEqual(stored);
+    });
+
+    it("shows every vehicle, station names and animation by default", () => {
+        const d = parseSettings(null);
+        expect(d.showTrains && d.showHev && d.showTramTrains).toBe(true);
+        expect(d.showStationNames).toBe(true);
+        expect(d.stationNamesOpacity).toBe(1);
+        expect(d.animateVehicles).toBe(true);
+    });
+
+    it("keeps the names' opacity on the slider", () => {
+        const opacity = (value: unknown) =>
+            parseSettings(JSON.stringify({ stationNamesOpacity: value }))
+                .stationNamesOpacity;
+        expect(opacity(0.42)).toBe(0.4);
+        expect(opacity(0)).toBe(0.05);
+        expect(opacity(3)).toBe(1);
+        expect(opacity("0.5")).toBe(1);
     });
 
     it("falls back field by field", () => {

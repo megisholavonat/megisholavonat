@@ -11,7 +11,7 @@ API serves the exported JSON with api.forecast.trees.
 import asyncio
 import time
 from dataclasses import asdict, dataclass, field
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from typing import Any
 
 import numpy as np
@@ -38,7 +38,7 @@ from api.forecast.features import (
 from api.forecast.model import FORMAT_VERSION, ForecastModel
 from api.forecast.trees import TreeEnsemble
 from api.models.forecast import DelayForecastModel
-from api.util.time import BUDAPEST_TZ
+from api.util.time import today
 
 logger = get_logger(__name__)
 
@@ -238,7 +238,7 @@ async def train(
     cfg = cfg or TrainConfig()
     started = time.monotonic()
     if end is None:
-        end = datetime.now(BUDAPEST_TZ).date() - timedelta(days=1)
+        end = today() - timedelta(days=1)
     dates = await available_dates(conn, end - timedelta(days=cfg.days - 1), end)
     if holdout_from is not None:
         train_dates = [d for d in dates if d < holdout_from]

@@ -21,11 +21,9 @@ from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession
 from api.core.config import settings
 from api.core.logging_config import get_logger
 from api.core.redis import add_key
-from api.models.history import (
-    ON_TIME_THRESHOLD_S,
-    Stop,
-    StopDelayObservation,
-)
+from api.models.history import Stop, StopDelayObservation
+from api.services.history_sql import ON_TIME, ON_TIME_PARAMS
+from api.util.history_constants import MAX_ABS_DELAY_S, MAX_OFF_ROUTE_M
 from api.util.preprocess import haversine_m
 from api.util.stop import station_id
 from api.util.trip import (
@@ -47,15 +45,10 @@ PASSED_MARGIN_DEG = 0.003
 TERMINUS_RADIUS_M = 150
 # ... and so does standing (speed 0 or unknown) this close to it
 TERMINUS_STANDING_RADIUS_M = 500
-# Positions further than this from the trip geometry belong to another trip
-# (vehicles are pre-assigned to their next trip) or are GPS noise.
-MAX_OFF_ROUTE_M = 500
 # Only record a stop if, by the schedule, the train passed it at most this long
 # ago; otherwise (GPS gap, or first sighting mid-route) the current delay says
 # little about the delay at that stop.
 MAX_RECORD_LAG_S = 10 * 60
-# Delays beyond this are data errors
-MAX_ABS_DELAY_S = 6 * 3600
 # When placing a terminus arrival between two reports (see `_arrival_delay`),
 # a longer gap between them counts as this long
 MAX_ARRIVAL_GAP_S = 10 * 60
@@ -520,7 +513,7 @@ async def rollup_day(session: AsyncSession, day: date) -> int:
     )
     result = await session.execute(
         text(
-            """
+            f"""
             INSERT INTO delay_daily_agg (
                 service_date, station_id, route_short_name,
                 n, n_on_time, sum_delay_s, p90_delay_s, max_delay_s
@@ -528,7 +521,7 @@ async def rollup_day(session: AsyncSession, day: date) -> int:
             SELECT
                 service_date, station_id, route_short_name,
                 count(*),
-                count(*) FILTER (WHERE delay_s <= :on_time),
+                count(*) FILTER (WHERE {ON_TIME}),
                 sum(delay_s),
                 round(percentile_cont(0.9) WITHIN GROUP (ORDER BY delay_s)),
                 max(delay_s)
@@ -537,7 +530,7 @@ async def rollup_day(session: AsyncSession, day: date) -> int:
             GROUP BY service_date, station_id, route_short_name
             """
         ),
-        {"d": day, "on_time": ON_TIME_THRESHOLD_S},
+        {"d": day, **ON_TIME_PARAMS},
     )
     await session.commit()
     return int(result.rowcount or 0)  # type: ignore[attr-defined]

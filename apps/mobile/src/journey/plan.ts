@@ -49,6 +49,7 @@ export function worstRisk(transfers: readonly Transfer[]): RiskKind | null {
 type Leg = Itinerary["legs"][number];
 export type Ride = Extract<Leg, { type: "transit" }>;
 export type Walk = Extract<Leg, { type: "walk" }>;
+export type City = Extract<Leg, { type: "city" }>;
 
 export function isRide(leg: Leg): leg is Ride {
     return leg.type === "transit";
@@ -75,6 +76,7 @@ export function durationParts(minutes: number): {
 export type Step =
     | { kind: "ride"; key: string; leg: Ride }
     | { kind: "walk"; key: string; leg: Walk }
+    | { kind: "city"; key: string; leg: City }
     | { kind: "transfer"; key: string; transfer: Transfer };
 
 /** Legs in order, with each transfer right after the train it leaves. */
@@ -92,6 +94,8 @@ export function steps(itinerary: Itinerary): Step[] {
                     transfer,
                 });
             }
+        } else if (leg.type === "city") {
+            out.push({ kind: "city", key: `city-${index}`, leg });
         } else {
             out.push({ kind: "walk", key: `walk-${index}`, leg });
         }

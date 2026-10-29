@@ -4,7 +4,6 @@ import { getRunSummaryOptions } from "@megisholavonat/api-client/react-query";
 import {
     type DelaySummary,
     delaySummary,
-    delaySummaryShareText,
     delaySummaryUrl,
     type RunStops,
     recentRun,
@@ -17,6 +16,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import type { Follow } from "@/hooks/useFollows";
 import { useNow } from "@/hooks/useNow";
+import { shareLink } from "@/lib/share";
 import { beforeDeparture, trainNumber } from "@/lib/train";
 import { cn } from "@/lib/utils";
 import type { TrainView } from "./useTrainView";
@@ -56,9 +56,12 @@ export function useDelaySummary(
     return card.outcome === "unknown" ? null : card;
 }
 
-/** Opens the share sheet with the card link, or copies the link. */
-async function shareCard(
-    card: DelaySummary,
+/**
+ * Opens the share sheet with the card link alone, or copies it: no
+ * prefilled message, the card's preview (og:image, title and the sentence
+ * as description) tells the delay.
+ */
+function shareCard(
     target: DelayShareTarget,
     locale: Locale,
     title: string,
@@ -70,22 +73,11 @@ async function shareCard(
         target.date,
         target.stops,
     );
-    const text = delaySummaryShareText(locale, card);
-    try {
-        if (navigator.share) {
-            await navigator.share({ title, text, url });
-            return "shared";
-        }
-        await navigator.clipboard.writeText(`${text}\n${url}`);
-        return "copied";
-    } catch {
-        // Share sheet dismissed
-        return null;
-    }
+    return shareLink({ title, url });
 }
 
 /**
- * "Megosztom a késést": the run's delay card as a link with its sentence.
+ * "Megosztom a késést": the run's delay card as a link.
  * `row` is the full-width row of the train sheet, `icon` the compact
  * button beside a commute row.
  */
@@ -112,7 +104,7 @@ export function DelayShareButton({
           ? t("share_so_far")
           : t("share");
     const onClick = async () => {
-        if ((await shareCard(card, target, locale, t("title"))) === "copied") {
+        if ((await shareCard(target, locale, t("title"))) === "copied") {
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
         }

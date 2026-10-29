@@ -6,10 +6,7 @@ import type {
     StopTimeWithCounty,
     VehiclePositionWithDelay,
 } from "@megisholavonat/api-client";
-import {
-    formatSecondsAsTime,
-    secondsIntoServiceDay,
-} from "@megisholavonat/core/time";
+import { secondsIntoServiceDay } from "@megisholavonat/core/time";
 import { DISPLAY_RULES } from "@megisholavonat/core/tokens";
 import { splitTripName } from "./labels";
 
@@ -166,18 +163,6 @@ export function stopRows(
             secondary,
         };
     });
-}
-
-/** The stop a shared train text names, with its time as in the sheet */
-export function shareStop(
-    row: StopRow | null,
-): { name: string; time: string; estimated: boolean } | null {
-    if (!row) return null;
-    return {
-        name: row.name,
-        time: formatSecondsAsTime(row.expected),
-        estimated: row.estimated,
-    };
 }
 
 /**

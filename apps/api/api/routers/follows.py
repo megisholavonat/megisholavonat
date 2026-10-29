@@ -1,7 +1,7 @@
 """Trains a device follows: single trips and recurring commutes"""
 
 import uuid
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Response, status
@@ -27,7 +27,7 @@ from api.schemas.follows import (
 )
 from api.schemas.follows import Follow as FollowSchema
 from api.services.devices import TRIP_FOLLOW_KEEP_DAYS
-from api.util.time import BUDAPEST_TZ
+from api.util.time import today
 
 router = APIRouter(
     prefix="/follows",
@@ -45,8 +45,7 @@ COMMUTE_ONLY_FIELDS = ("weekdays", "fromStationId", "toStationId", "label")
 
 def _oldest_followable_date() -> date:
     # Anything older would be removed by the next housekeeping run
-    today = datetime.now(BUDAPEST_TZ).date()
-    return today - timedelta(days=TRIP_FOLLOW_KEEP_DAYS - 1)
+    return today() - timedelta(days=TRIP_FOLLOW_KEEP_DAYS - 1)
 
 
 def to_schema(follow: Follow) -> TripFollow | CommuteFollow:

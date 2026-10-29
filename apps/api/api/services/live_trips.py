@@ -11,6 +11,8 @@ from typing import Any
 from redis.asyncio import Redis
 
 from api.core.redis import add_key
+from api.schemas.stations import DelaySource
+from api.util.delay import to_minutes
 
 LIVE_INDEX_TTL = 30  # seconds; live positions refresh every minute
 
@@ -34,6 +36,40 @@ class LiveTrip:
     def has_delay(self) -> bool:
         """Its GPS delay is meaningful (see NO_LIVE_DELAY)."""
         return self.activity not in NO_LIVE_DELAY
+
+
+@dataclass(frozen=True, slots=True)
+class StopDelay:
+    """A train's delay at one stop, as boards and journeys show it."""
+
+    minutes: int
+    expected: int  # unix seconds
+    source: DelaySource
+    realtime: bool
+
+
+def apply_live_delay(
+    live: LiveTrip | None,
+    scheduled: int,
+    expected: int,
+    *,
+    realtime: bool,
+    departing: bool,
+) -> StopDelay:
+    """
+    The delay at a stop: the live train's GPS delay when it has one (see
+    NO_LIVE_DELAY), else the timetable's realtime estimate (`expected`).
+
+    A departure is never early, whatever the source: a negative GPS delay
+    before departure only means the train is waiting, and the timetable's
+    early estimates do not hold either. Arrivals may be early.
+    """
+    if live is not None and live.has_delay:
+        minutes = max(live.delay, 0) if departing else live.delay
+        return StopDelay(minutes, scheduled + minutes * 60, "gps", True)
+    if departing:
+        expected = max(expected, scheduled)
+    return StopDelay(to_minutes(expected - scheduled), expected, "otp", realtime)
 
 
 def _id_key(trip_id: str) -> str:
