@@ -129,6 +129,28 @@
         "title": "Késés",
         "minutes": "perc"
     },
+    "Disruptions": {
+        "title": "Forgalmi zavarok",
+        "chip": "{count} forgalmi zavar",
+        "chip_mine": "{count} a vonataidon",
+        "mine": "A te vonatod",
+        "empty": "Most nincs forgalmi zavar",
+        "between": "{effect} {from} és {to} között",
+        "effect_no_service": "Nincs vonatforgalom",
+        "effect_replacement_bus": "Pótlóbusz",
+        "effect_modified_service": "Módosult menetrend",
+        "effect_delays": "Késések",
+        "effect_other": "Forgalmi változás",
+        "cause_engineering": "Pályamunka",
+        "cause_accident": "Baleset",
+        "cause_strike": "Sztrájk",
+        "cause_weather": "Időjárás",
+        "cause_technical": "Műszaki hiba",
+        "since": "{date} óta",
+        "until": "Vége: {date}",
+        "source": "További információ",
+        "source_mavinform": "Részletek: MÁVINFORM"
+    },
     "Settings": {
         "title": "Beállítások",
         "close": "Bezárás",

@@ -34,6 +34,13 @@ import {
     useCommute,
 } from "@/components/commute/useCommute";
 import {
+    DisruptionChip,
+    DisruptionsPanel,
+    DisruptionsSheetBody,
+    DisruptionsSheetHeader,
+    useDisruptions,
+} from "@/components/disruptions/Disruptions";
+import {
     FeedMessage,
     feedState,
     LayersButton,
@@ -213,6 +220,7 @@ function MapScreen() {
     const tTrain = useTranslations("Train");
     const tStation = useTranslations("Station");
     const tJourney = useTranslations("Journey");
+    const tDisruptions = useTranslations("Disruptions");
     const isDesktop = useIsDesktop();
     const isWide = useIsWide();
     const sheetViewport = useSheetViewport();
@@ -234,6 +242,9 @@ function MapScreen() {
     const [settingsOpen, setSettingsOpen] = useState(false);
     const [plannerOpen, setPlannerOpen] = useState(false);
     const [planner, setPlanner] = usePlannerState();
+    const [disruptionsOpen, setDisruptionsOpen] = useState(false);
+    const [disruptionsDetent, setDisruptionsDetent] = useState<Detent>("half");
+    const disruptions = useDisruptions();
     const [flyTarget, setFlyTarget] = useState<FlyTarget | null>(null);
     const [followTarget, setFollowTarget] = useState<FollowTarget | null>(null);
     const [peekHeight, setPeekHeight] = useState(140);
@@ -420,6 +431,11 @@ function MapScreen() {
         setSearchOpen(false);
         setPlannerOpen(true);
     }, []);
+    const closeDisruptions = useCallback(() => setDisruptionsOpen(false), []);
+    const openDisruptions = useCallback(() => {
+        setDisruptionsDetent("half");
+        setDisruptionsOpen(true);
+    }, []);
 
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
@@ -430,6 +446,7 @@ function MapScreen() {
             } else if (selectedId) closeTrain();
             else if (stationId) closeStation();
             else if (plannerOpen) closePlanner();
+            else if (disruptionsOpen) closeDisruptions();
         };
         window.addEventListener("keydown", onKey);
         return () => window.removeEventListener("keydown", onKey);
@@ -445,18 +462,24 @@ function MapScreen() {
         closePlanner,
         closeSearch,
         sheetSearch.setQuery,
+        disruptionsOpen,
+        closeDisruptions,
     ]);
 
     const showTrain = !!selectedId;
     const showStation = !showTrain && !!stationId && !!station;
     const showPlanner = !showTrain && !showStation && plannerOpen;
+    const showDisruptions =
+        !showTrain && !showStation && !showPlanner && disruptionsOpen;
     const desktopPanel = showTrain
         ? "train"
         : showStation
           ? "station"
           : showPlanner
             ? "planner"
-            : "home";
+            : showDisruptions
+              ? "disruptions"
+              : "home";
     const panelWidth =
         desktopPanel === "train"
             ? TRAIN_PANEL
@@ -466,12 +489,14 @@ function MapScreen() {
                   : STATION_PANEL_NARROW
               : desktopPanel === "planner"
                 ? PLANNER_PANEL
-                : 0;
+                : desktopPanel === "disruptions"
+                  ? TRAIN_PANEL
+                  : 0;
     /** Map left of this is under the side panel */
     const panelLeft = panelWidth ? panelWidth + 2 * GUTTER : 0;
 
     const sheetMode = desktopPanel;
-    const sheetDetent: Detent =
+    const baseDetent: Detent =
         sheetMode === "train"
             ? trainDetent
             : sheetMode === "station"
@@ -479,6 +504,8 @@ function MapScreen() {
               : sheetMode === "planner" || searchOpen
                 ? "full"
                 : "peek";
+    const sheetDetent =
+        sheetMode === "disruptions" ? disruptionsDetent : baseDetent;
     const sheetFull = sheetDetent === "full";
     const searchGap = Math.max(
         FULL_TOP_GAP,
@@ -510,6 +537,14 @@ function MapScreen() {
                 inputRef={searchInputRef}
                 trailing={<PlannerButton onClick={openPlanner} />}
             />
+            {!searchOpen && (
+                <DisruptionChip
+                    disruptions={disruptions}
+                    follows={follows}
+                    onClick={openDisruptions}
+                    className="-mt-1"
+                />
+            )}
             {!searchOpen &&
                 (follows.length > 0 ? (
                     <CommuteList
@@ -528,7 +563,7 @@ function MapScreen() {
         </div>
     );
 
-    const sheet =
+    const baseSheet =
         sheetMode === "train"
             ? {
                   label: tTrain("sheet_label"),
@@ -606,6 +641,27 @@ function MapScreen() {
                           />
                       ) : null,
                   };
+    const sheet =
+        sheetMode === "disruptions"
+            ? {
+                  label: tDisruptions("title"),
+                  detents: ["half", "full"] as Detent[],
+                  onDetentChange: setDisruptionsDetent,
+                  onDismiss: closeDisruptions,
+                  header: (
+                      <DisruptionsSheetHeader
+                          count={disruptions.length}
+                          onClose={closeDisruptions}
+                      />
+                  ),
+                  body: (
+                      <DisruptionsSheetBody
+                          disruptions={disruptions}
+                          follows={follows}
+                      />
+                  ),
+              }
+            : baseSheet;
 
     return (
         <main className="relative h-dvh w-screen overflow-hidden bg-map">
@@ -663,6 +719,12 @@ function MapScreen() {
                                         handlers={searchHandlers}
                                         home={
                                             <div className="px-2 pb-2 empty:hidden">
+                                                <DisruptionChip
+                                                    disruptions={disruptions}
+                                                    follows={follows}
+                                                    onClick={openDisruptions}
+                                                    className="px-2 pb-2"
+                                                />
                                                 <CommuteList
                                                     rows={commute}
                                                     onOpenTrain={
@@ -725,6 +787,18 @@ function MapScreen() {
                                     onChange={setPlanner}
                                     onClose={closePlanner}
                                     onSelectTrain={openTrainFromList}
+                                />
+                            </DockedPanel>
+                        )}
+                        {desktopPanel === "disruptions" && (
+                            <DockedPanel
+                                key="disruptions"
+                                className="top-4 bottom-4 left-4"
+                            >
+                                <DisruptionsPanel
+                                    disruptions={disruptions}
+                                    follows={follows}
+                                    onClose={closeDisruptions}
                                 />
                             </DockedPanel>
                         )}
