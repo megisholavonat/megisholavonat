@@ -114,6 +114,27 @@ test("P2: the position marker moves along the rail", async ({ page }) => {
     expect(minor).toBeGreaterThan(ontime);
 });
 
+test("M-6: a train followed after it left stays on today's run", async ({
+    page,
+}) => {
+    const region = await openTrain(page, "delayed", "half");
+    await region.getByRole("button", { name: t.Follow.follow }).click();
+    const editor = page.getByRole("dialog");
+    const boarding = editor.getByRole("combobox", { name: t.Follow.boarding });
+    // The default is the next stop, never the origin it left at 23:49
+    await expect(boarding.locator("option:checked")).toHaveText(/^Záhony/);
+    // Boarding where it already left: still today's run, live at +45
+    await boarding.selectOption({ label: "Szolnok · 23:49" });
+    await editor.getByRole("button", { name: t.Follow.save }).click();
+    await expect(editor).toBeHidden();
+
+    await openHome(page);
+    const commute = page.getByRole("region", { name: t.Follow.my_commute });
+    await expect(commute).toContainText("8 → Chop");
+    await expect(commute).toContainText(/\+\s?45/);
+    await expect(commute).not.toContainText(t.Follow.tomorrow);
+});
+
 test("follow and unfollow survive a reload", async ({ page, isPhone }) => {
     const region = await openTrain(page, "delayed", "half");
     await region.getByRole("button", { name: t.Follow.follow }).click();

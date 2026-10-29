@@ -51,7 +51,7 @@ type StoptimeTimes = {
     realtimeDeparture?: number | null;
 };
 
-type TripTimes = {
+export type TripTimes = {
     serviceDate?: string | null;
     stoptimes?: readonly StoptimeTimes[] | null;
 };
@@ -97,37 +97,52 @@ export function isoWeekday(isoDate: string): number {
 }
 
 /**
- * Seconds since the start of the trip's service day, the same clock the
- * stoptimes use. Exceeds 86400 for trips past midnight.
+ * The service date (YYYY-MM-DD) the trip's stoptimes really count from at
+ * `date`: OTP's `serviceDate`, or the neighbouring date when that puts
+ * `date` far closer to the trip's schedule.
  *
  * OTP's `serviceDate` does not always match the day the stoptimes count
  * from: HÉV trips after midnight carry the previous day's date with
- * stoptimes under 86400, and an overnight train can carry the next day's
- * date while still running the previous day's departure. When the previous
- * or next date puts `date` far closer to the trip's schedule, that date is
- * used instead.
+ * stoptimes under 86400, and an overnight train (10) can carry the next
+ * day's date while still running the previous day's departure. A
+ * neighbouring date wins only if it is at least 12 h closer (the API's
+ * SERVICE_DATE_MISMATCH_S), so `date` only has to be within about half a
+ * day of the run. Unknown dates or schedules keep `serviceDate`.
  */
-export function secondsIntoServiceDay(
+export function effectiveServiceDate(
     trip: TripTimes,
     date: Date = new Date(),
-): number {
+): string {
     const serviceDate = trip.serviceDate ?? "";
-    const now = getSecondsSinceDay(serviceDate, date);
     const window = expectedWindow(trip);
-    if (window === null || !isServiceDate(serviceDate)) return now;
+    if (window === null || !isServiceDate(serviceDate)) return serviceDate;
 
     // Another date has to beat this to be used
-    let best = now;
-    let toBeat = outside(window, now) - SERVICE_DATE_MISMATCH_S;
+    let best = serviceDate;
+    let toBeat =
+        outside(window, getSecondsSinceDay(serviceDate, date)) -
+        SERVICE_DATE_MISMATCH_S;
     for (const offset of [-1, 1]) {
-        const other = getSecondsSinceDay(shiftDate(serviceDate, offset), date);
-        const otherOutside = outside(window, other);
+        const other = shiftDate(serviceDate, offset);
+        const otherOutside = outside(window, getSecondsSinceDay(other, date));
         if (otherOutside <= toBeat) {
             best = other;
             toBeat = otherOutside - 1;
         }
     }
     return best;
+}
+
+/**
+ * Seconds since the start of the trip's service day, the same clock the
+ * stoptimes use. Exceeds 86400 for trips past midnight. Counts from
+ * `effectiveServiceDate`, so OTP's off-by-a-day dates read right.
+ */
+export function secondsIntoServiceDay(
+    trip: TripTimes,
+    date: Date = new Date(),
+): number {
+    return getSecondsSinceDay(effectiveServiceDate(trip, date), date);
 }
 
 export function formatSecondsAsTime(seconds: number): string {
@@ -138,4 +153,34 @@ export function formatSecondsAsTime(seconds: number): string {
     const m = minutes < 10 ? `0${minutes}` : String(minutes);
 
     return `${h}:${m}`;
+}
+
+/** A wall-clock time in Budapest. */
+export interface BudapestTime {
+    year: number;
+    /** 1–12 */
+    month: number;
+    day: number;
+    hour: number;
+    minute: number;
+}
+
+/** The Budapest wall-clock time of an instant (ms since epoch). */
+export function budapestTime(ms: number): BudapestTime {
+    const t = DateTime.fromMillis(ms, { zone: BUDAPEST_TZ });
+    return {
+        year: t.year,
+        month: t.month,
+        day: t.day,
+        hour: t.hour,
+        minute: t.minute,
+    };
+}
+
+/**
+ * The instant (ms since epoch) of a Budapest wall-clock time, whatever the
+ * device's own time zone (a visitor's phone may still be on home time).
+ */
+export function fromBudapestTime(time: BudapestTime): number {
+    return DateTime.fromObject(time, { zone: BUDAPEST_TZ }).toMillis();
 }

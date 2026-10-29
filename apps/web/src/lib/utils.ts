@@ -14,3 +14,15 @@ const twMerge = extendTailwindMerge({
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
+
+/**
+ * A route param percent-decoded, or as it is when it is not encoded: Next
+ * may hand it over decoded already, and decoding "100%" again throws.
+ */
+export function decodeParam(value: string): string {
+    try {
+        return decodeURIComponent(value);
+    } catch {
+        return value;
+    }
+}

@@ -3,7 +3,6 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { ArrowUpRight, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 import {
     type ReactNode,
@@ -14,12 +13,14 @@ import {
 } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { AppIcon } from "@/components/ui/AppIcon";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { useTheme } from "@/components/ui/ThemeProvider";
 import { useAnalyticsConsent } from "@/hooks/useAnalyticsConsent";
 import { type Settings, setSetting, useSettings } from "@/hooks/useSettings";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
+import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 const GITHUB_URL = "https://github.com/megisholavonat/megisholavonat";
@@ -101,14 +102,15 @@ function SelectRow({
     const id = `select-${name}`;
     return (
         <div className={rowClass}>
-            <label htmlFor={id} className="flex-1">
+            <label htmlFor={id} className="shrink-0">
                 {label}
             </label>
+            {/* The select spans the rest of the row: all of it is the target */}
             <select
                 id={id}
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
-                className="max-w-[55%] cursor-pointer appearance-none bg-transparent text-right text-ink-2 outline-none"
+                className="-my-2 min-h-12 min-w-0 flex-1 cursor-pointer appearance-none truncate rounded-md bg-transparent pr-2 text-right text-ink-2 outline-none [--focus-offset:-2px]"
             >
                 {options.map((o) => (
                     <option key={o.value} value={o.value}>
@@ -199,7 +201,7 @@ function ConsentRow() {
                 checked={consent === "granted"}
                 disabled={consent === null}
                 onCheckedChange={(checked) =>
-                    setConsent(checked ? "granted" : "denied")
+                    setConsent(checked ? "granted" : "denied", "settings")
                 }
             />
         </div>
@@ -213,8 +215,8 @@ function StationNameOpacity() {
     useEffect(() => setValue(stationNamesOpacity), [stationNamesOpacity]);
     if (!showStationNames) return null;
     return (
-        <div className={cn(rowClass, "gap-4")}>
-            <span id="opacity-label" className="text-ink-2">
+        <div className={cn(rowClass, "gap-4 pl-8")}>
+            <span id="opacity-label" className="text-ink">
                 {t("station_names_opacity")}
             </span>
             <Slider
@@ -285,6 +287,10 @@ function SettingsList({
                         { value: "en", label: "English" },
                     ]}
                     onChange={(value) => {
+                        track("settings_changed", {
+                            key: "language",
+                            value: value as "hu" | "en",
+                        });
                         onNavigate();
                         router.replace(`${pathname}${window.location.search}`, {
                             locale: value,
@@ -300,7 +306,13 @@ function SettingsList({
                         { value: "light", label: t("theme_light") },
                         { value: "dark", label: t("theme_dark") },
                     ]}
-                    onChange={setTheme}
+                    onChange={(value) => {
+                        track("settings_changed", {
+                            key: "theme",
+                            value: value as "light" | "dark" | "system",
+                        });
+                        setTheme(value);
+                    }}
                 />
             </Group>
             <Group title={t("map")}>
@@ -364,13 +376,7 @@ function About() {
     const t = useTranslations("Home");
     return (
         <div className="flex flex-col items-center gap-2 pt-2 pb-4 text-ink-2">
-            <Image
-                src="/icon1.png"
-                alt=""
-                width={40}
-                height={40}
-                className="rounded-[10px]"
-            />
+            <AppIcon size={40} />
             <p className="text-caption">{t("app_title")}</p>
         </div>
     );
@@ -520,7 +526,7 @@ export function SettingsDialog({
                         </DialogPrimitive.Title>
                         <DialogPrimitive.Close
                             aria-label={t("close")}
-                            className="pressable flex size-10 cursor-pointer items-center justify-center rounded-full bg-surface text-ink hover:bg-surface-2"
+                            className="pressable relative flex size-10 cursor-pointer items-center justify-center rounded-full bg-surface text-ink hover:bg-surface-2 before:absolute before:-inset-0.5"
                         >
                             <X className="size-5" aria-hidden />
                         </DialogPrimitive.Close>

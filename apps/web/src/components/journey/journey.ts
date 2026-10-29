@@ -63,6 +63,27 @@ export function legDelays(leg: TransitLeg): {
     };
 }
 
+/**
+ * Minutes to change between two rides, from the very times the legs show:
+ * the arrival and departure times printed (scheduled), and the same two
+ * moved by their live delays (expected). Null when either leg is not a ride.
+ */
+export function transferGap(
+    from: Itinerary["legs"][number] | undefined,
+    to: Itinerary["legs"][number] | undefined,
+): { scheduled: number; expected: number } | null {
+    if (from?.type !== "transit" || to?.type !== "transit") return null;
+    const arrive = legDelays(from).arrival;
+    const leave = legDelays(to).departure;
+    const scheduled = Math.round(
+        (to.scheduledDeparture - from.scheduledArrival) / 60,
+    );
+    return {
+        scheduled: Math.max(0, scheduled),
+        expected: Math.max(0, scheduled + leave - arrive),
+    };
+}
+
 const timeFormat = new Intl.DateTimeFormat("hu-HU", {
     hour: "2-digit",
     minute: "2-digit",

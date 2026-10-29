@@ -1,9 +1,9 @@
 import type { TrainFeatureCollection } from "@megisholavonat/api-client";
 import type { DelayLevel } from "@megisholavonat/core/delay";
-import { trainDisplay } from "@megisholavonat/core/display";
 import { staleness } from "@megisholavonat/core/stale";
 import { MARKER } from "@megisholavonat/core/tokens";
 import type { NativeTheme } from "@megisholavonat/core/tokens/native";
+import { shownDisplay } from "../train/delayDisplay";
 
 // Map markers per "DS · Térképjelölő": colour + size + minutes. Each feature
 // carries its resolved paint values, so the layers only read properties.
@@ -62,7 +62,8 @@ export function markerCollection(
     for (const feature of trains?.features ?? []) {
         const p = feature.properties;
         if (staleness(p.lastUpdated, now) === "hidden") continue;
-        const display = trainDisplay(p, now);
+        // Same rule as the sheet (the open train's feature carries its dwell)
+        const display = shownDisplay(p, now);
 
         let props: Omit<MarkerProperties, "followed">;
         if (display.level === "stale" || display.delay === null) {

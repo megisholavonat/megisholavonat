@@ -13,6 +13,14 @@ from api.core.queries import STATION_BOARD_QUERY
 from api.core.redis import add_key
 from api.schemas.alerts import DelayReason
 from api.schemas.stations import BoardEntry, BoardKind, Station, StationBoard
+from api.services.disruptions import (
+    TrainDisruptions,
+    TripStops,
+    applies_at,
+    get_train_disruptions,
+    train_disruption,
+    worst_train_disruption,
+)
 from api.services.live_trips import load_live_trip_index, match_live_trip
 from api.services.station_index import RAIL_FEED
 
@@ -44,10 +52,28 @@ def _is_listed(stoptime: dict[str, Any], kind: BoardKind) -> bool:
     return stoptime.get("dropoffType") != "NONE"
 
 
+def trip_stops(
+    trip: dict[str, Any], station_id: str | None, kind: BoardKind
+) -> TripStops | None:
+    """The trip's stops and the board's station among them, if listed."""
+    stops = trip.get("stops") or []
+    # Stops are platforms of a station: "1:<UIC>_<platform>"
+    uics = [(s.get("gtfsId") or "").partition(":")[2].split("_")[0] for s in stops]
+    if station_id is None or station_id not in uics:
+        return None
+    return TripStops(
+        names=[s.get("name") or "" for s in stops],
+        here=uics.index(station_id),
+        departing=kind == "departures",
+    )
+
+
 def _board_entry(
     stoptime: dict[str, Any],
     kind: BoardKind,
     live_index: dict[str, Any],
+    disruptions: TrainDisruptions | None = None,
+    station_id: str | None = None,
 ) -> BoardEntry:
     trip = stoptime["trip"]
     route = trip.get("route") or {}
@@ -78,6 +104,10 @@ def _board_entry(
     )
     if live is not None:
         vehicle_id = live.vehicleId
+    # Off its route, arrived or cancelled, the train shows no live delay on
+    # the map (QA n-C: 604 off route read "+5" on the Szolnok board while the
+    # map showed none); the row is then like one without a live train
+    if live is not None and live.has_delay:
         delay = live.delay
         # Trains do not leave early; a negative GPS delay before departure
         # only means the train is waiting.
@@ -86,6 +116,29 @@ def _board_entry(
         expected = scheduled + delay * 60
         delay_source = "gps"
         realtime = True
+
+    alerts = trip.get("alerts") or []
+    stops = trip_stops(trip, station_id, kind)
+    # The train's own notices in effect at its time here, then line
+    # disruptions naming it; a notice about part of its run only counts on
+    # that part
+    in_effect = [
+        a.get("alertDescriptionText") or ""
+        for a in alerts
+        if (a.get("effectiveStartDate") or 0) <= scheduled
+        and (not a.get("effectiveEndDate") or scheduled <= a["effectiveEndDate"])
+    ]
+    own = [train_disruption(t) for t in in_effect if applies_at(t, stops)]
+    named = (
+        disruptions.of(
+            trip["gtfsId"],
+            train_number(trip.get("tripShortName") or ""),
+            scheduled,
+            stops,
+        )
+        if disruptions
+        else None
+    )
 
     return BoardEntry(
         tripId=trip["gtfsId"],
@@ -102,9 +155,8 @@ def _board_entry(
         realtime=realtime,
         canceled=stoptime.get("realtimeState") == "CANCELED",
         vehicleId=vehicle_id,
-        reason=DelayReason.from_texts(
-            *(a.get("alertDescriptionText") for a in trip.get("alerts") or [])
-        ),
+        reason=DelayReason.from_texts(*(a.get("alertDescriptionText") for a in alerts)),
+        disruption=worst_train_disruption([*own, named]),
     )
 
 
@@ -130,13 +182,18 @@ def merge_duplicate_trips(entries: list[BoardEntry]) -> list[BoardEntry]:
     """
     OTP sometimes lists one physical train as two trips (e.g. "201 ... InterCity"
     and "201 ... gyorsvonat"). Keep one row per train number and scheduled time,
-    preferring the one matched to a live vehicle, then a running one, then
-    realtime data.
+    preferring the one matched to a live vehicle (with a live delay, then
+    without), then a running one, then realtime data.
     """
     return keep_best(
         entries,
         key=lambda e: (e.serviceDate, train_number(e.tripShortName), e.scheduledTime),
-        rank=lambda e: (e.delaySource == "gps", not e.canceled, e.realtime),
+        rank=lambda e: (
+            e.delaySource == "gps",
+            e.vehicleId is not None,
+            not e.canceled,
+            e.realtime,
+        ),
     )
 
 
@@ -177,8 +234,12 @@ async def fetch_board(
         ]
 
     live_index = await load_live_trip_index(redis)
+    disruptions = await get_train_disruptions(redis)
     entries = merge_duplicate_trips(
-        [_board_entry(st, kind, live_index) for st in stoptimes]
+        [
+            _board_entry(st, kind, live_index, disruptions, station_id)
+            for st in stoptimes
+        ]
     )
     entries.sort(key=lambda e: (e.expectedTime, e.scheduledTime, e.tripId))
 

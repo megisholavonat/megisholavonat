@@ -1,4 +1,5 @@
 import type { VehiclePositionWithDelay } from "@megisholavonat/api-client";
+import { trainShareText } from "@megisholavonat/core/share";
 import { describe, expect, it } from "vitest";
 import {
     beforeDeparture,
@@ -7,8 +8,10 @@ import {
     predictedPlatform,
     serviceGlyph,
     serviceGroups,
+    shareStop,
     sortedAlerts,
     stopRows,
+    trainStop,
     trainTitle,
 } from "./trainData";
 
@@ -105,6 +108,116 @@ describe("stopRows", () => {
     it("never forecasts an early train", () => {
         const [, b] = stopRows(vehicle(1, -3));
         expect(b?.delay).toBe(0);
+    });
+
+    it("passes every stop of an arrived train, with its actual arrival", () => {
+        // The position still points at the final stop
+        const rows = stopRows({ ...vehicle(3, 0), activity: "arrived" }, false);
+        expect(rows.map((r) => r.state)).toEqual([
+            "passed",
+            "passed",
+            "passed",
+            "passed",
+        ]);
+        expect(rows[3]).toMatchObject({
+            expected: 19 * H,
+            approximate: false,
+        });
+    });
+
+    it("waits at the first stop before departure", () => {
+        const rows = stopRows(
+            { ...vehicle(1, 0), activity: "beforeDeparture" },
+            false,
+        );
+        expect(rows.map((r) => r.state)).toEqual([
+            "next",
+            "upcoming",
+            "upcoming",
+            "upcoming",
+        ]);
+        expect(rows[0]?.standing).toBe(true);
+    });
+
+    it("shows when a train standing out a stop leaves it", () => {
+        // Past B's point on the route, but still standing there
+        const rows = stopRows({ ...vehicle(2, 4), dwellStopIndex: 1 });
+        expect(rows.map((r) => r.state)).toEqual([
+            "passed",
+            "next",
+            "upcoming",
+            "upcoming",
+        ]);
+        expect(rows[1]).toMatchObject({
+            standing: true,
+            scheduled: 17 * H + 60,
+            expected: 17 * H + 60 + 4 * 60,
+            secondary: { kind: "arrival", expected: 17 * H + 23 * 60 },
+        });
+    });
+});
+
+describe("shareStop", () => {
+    it("marks a forecast time ahead as estimated", () => {
+        const rows = stopRows(vehicle(2, 23));
+        // Passed stops have actual times; the live delay carried ahead is ours
+        expect(rows.map((r) => r.estimated)).toEqual([
+            false,
+            false,
+            true,
+            true,
+        ]);
+        expect(shareStop(rows[2] ?? null)).toEqual({
+            name: "C",
+            time: "18:23",
+            estimated: true,
+        });
+        expect(shareStop(null)).toBeNull();
+    });
+
+    it("tells the timetable's time plainly when there is no delay", () => {
+        const waiting = stopRows(
+            { ...vehicle(1, 0), activity: "beforeDeparture" },
+            false,
+        );
+        expect(shareStop(waiting[0] ?? null)?.estimated).toBe(false);
+        const onTime = stopRows(vehicle(2, 0));
+        expect(onTime[2]?.estimated).toBe(false);
+        // A per-stop forecast is one even at zero
+        const predicted = stopRows(
+            vehicle(1, 0, [
+                st("A", 16 * H, 16 * H),
+                st("B", 17 * H, 17 * H, { predictedDelay: 0 }),
+            ]),
+        );
+        expect(predicted[1]?.estimated).toBe(true);
+    });
+
+    it("puts the ≈ into the shared text, as the web does", () => {
+        const [, , c] = stopRows(vehicle(2, 23));
+        expect(
+            trainShareText("hu", {
+                number: "10",
+                delay: 23,
+                waiting: false,
+                status: "running",
+                next: shareStop(c ?? null),
+            }),
+        ).toBe("A 10-es vonat 23 percet késik, C ≈18:23");
+    });
+});
+
+describe("trainStop", () => {
+    it("follows the position while running", () => {
+        expect(trainStop(vehicle(2, 0))).toEqual({
+            next: 2,
+            standing: null,
+            arrived: false,
+        });
+    });
+
+    it("ignores a dwell index off the trip", () => {
+        expect(trainStop({ ...vehicle(2, 0), dwellStopIndex: 9 }).next).toBe(2);
     });
 });
 
@@ -285,6 +398,11 @@ describe("serviceGroups", () => {
             ["buffet"],
             [],
         ]);
+    });
+
+    it("drops services the font has no glyph for", () => {
+        const national = { ...service("Országos vonat", 0, 3), fontCode: 339 };
+        expect(serviceGroups([national], 4).whole).toEqual([]);
     });
 
     it("draws the font glyph from the code", () => {

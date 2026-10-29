@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- 16 px favicon: solid M, no dot -->
+  <rect width="100" height="100" rx="20" fill="#16181C"/>
+  <path d="M24 78V30L50 60L76 30V78" fill="none" stroke="#F2F3F5" stroke-width="17" stroke-linejoin="round" stroke-linecap="round"/>
+</svg>

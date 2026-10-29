@@ -31,21 +31,27 @@ export type FollowTrain = Pick<
     "tripShortName" | "routeShortName" | "stops" | "tripId" | "vehicleId"
 > & { serviceDate: string | null };
 
-let registeredPushToken: string | null = null;
+/** `<device credentials>|<push token>` last registered */
+let registeredPush: string | null = null;
 
-/** Registers this device's Expo push token, once per token. Best effort. */
+/**
+ * Registers this device's Expo push token, once per token and API device:
+ * a device replaced after a 401 gets it again. Best effort.
+ */
 export async function registerPush(locale: string): Promise<void> {
     try {
         const token = await expoPushToken();
-        if (!token || token === registeredPushToken) return;
-        await withDevice(locale, (auth) =>
-            registerPushToken({
+        if (!token) return;
+        await withDevice(locale, async (auth) => {
+            const key = `${auth}|${token}`;
+            if (key === registeredPush) return;
+            await registerPushToken({
                 auth,
                 body: { type: "expo", token },
                 throwOnError: true,
-            }),
-        );
-        registeredPushToken = token;
+            });
+            registeredPush = key;
+        });
     } catch {
         // Retried on the next follow or launch
     }
@@ -194,16 +200,16 @@ let syncing: Promise<void> | null = null;
 
 /**
  * On launch: drops finished trips, re-creates follows the API lost (a new
- * device after the old one expired) and refreshes the push token.
+ * device after the old one expired), deletes the API's follows this app
+ * no longer has (the Keychain keeps the device across an iOS reinstall,
+ * but not the follows file), and refreshes the push token.
  */
 export function syncFollows(locale: string): Promise<void> {
     syncing ??= (async () => {
         const local = getFollows().filter((f) => !isExpired(f));
         if (local.length !== getFollows().length) replaceFollows(local);
-        if (local.length === 0) {
-            if (await hasDevice()) await registerPush(locale);
-            return;
-        }
+        // Nothing to reconcile on a device never registered
+        if (local.length === 0 && !(await hasDevice())) return;
         const { result: remote } = await withDevice(locale, async (auth) => {
             const { data } = await listFollows({ auth, throwOnError: true });
             return data;
@@ -222,6 +228,11 @@ export function syncFollows(locale: string): Promise<void> {
                 // Too old to follow again: let it go
                 if (isStatus(error, 422) || !body) removeLocalFollow(follow.id);
             }
+        }
+        // Alerts the app can't show or stop: the user no longer follows them
+        for (const { id } of remote) {
+            if (getFollows().some((f) => f.id === id)) continue;
+            await remove(locale, id).catch(() => {});
         }
         await registerPush(locale);
     })()

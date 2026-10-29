@@ -19,7 +19,7 @@ import {
 import { DelayChip, PlatformBadge } from "../ui/ds";
 import { Icon } from "../ui/Icon";
 import type { LiveFollow } from "./live";
-import { type LocalFollow, type Run, trainNumber } from "./model";
+import { followTitle, type LocalFollow, type Run, trainNumber } from "./model";
 
 const STATION_DATA_STALE_MS = 6 * 3600_000;
 /** Rows on home; more follows wait until these have left */
@@ -79,8 +79,9 @@ function CommuteRow({
         ? null
         : predictedPlatform(platforms?.predictions, number);
 
+    const title = followTitle(follow);
     const day =
-        run.dayOffset === 0
+        run.dayOffset <= 0
             ? null
             : run.dayOffset === 1
               ? t("tomorrow")
@@ -157,6 +158,18 @@ function CommuteRow({
                     />
                 ) : null}
             </View>
+            <Text
+                style={[
+                    styles.note,
+                    theme.tabularNums,
+                    { color: theme.colors.ink2 },
+                ]}
+                numberOfLines={1}
+            >
+                {title.destination
+                    ? `${title.number} → ${title.destination}`
+                    : title.number}
+            </Text>
             {reason && tone ? (
                 <View style={styles.reason}>
                     <ReasonLine reason={reason.code} tone={tone} compact />
@@ -247,7 +260,7 @@ const styles = StyleSheet.create({
     note: { fontSize: 14, marginLeft: 32 },
     reason: { marginLeft: 32 },
     prompt: {
-        height: 52,
+        minHeight: 52,
         borderRadius: 26,
         flexDirection: "row",
         alignItems: "center",

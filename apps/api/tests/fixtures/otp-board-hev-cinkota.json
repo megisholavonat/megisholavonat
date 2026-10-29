@@ -1,0 +1,306 @@
+{
+ "kerepes": {
+  "data": {
+   "station": {
+    "gtfsId": "1:003619848",
+    "name": "Kerepes H",
+    "lat": 47.553433,
+    "lon": 19.271377,
+    "stoptimesWithoutPatterns": [
+     {
+      "scheduledArrival": 21300,
+      "realtimeArrival": 21300,
+      "scheduledDeparture": 21300,
+      "realtimeDeparture": 21300,
+      "realtime": true,
+      "realtimeState": "MODIFIED",
+      "pickupType": "SCHEDULED",
+      "dropoffType": "SCHEDULED",
+      "headsign": "Gödöllő H",
+      "serviceDay": 1793228400,
+      "stop": {
+       "platformCode": "3"
+      },
+      "trip": {
+       "gtfsId": "1:36353258",
+       "tripShortName": "H1030 HÉV",
+       "tripHeadsign": "Gödöllő H",
+       "route": {
+        "shortName": "<span class=\"MNR2007\">&#443;</span>",
+        "longName": "H8",
+        "textColor": "F27689"
+       },
+       "alerts": [
+        {
+         "alertDescriptionText": "Karbantartás miatt október 17. és november 6. között a H8-as és a H9-es HÉV helyett az Örs vezér tere és Cinkota között pótlóbuszok közlekednek.",
+         "effectiveStartDate": 1792360800,
+         "effectiveEndDate": 1794016740
+        }
+       ],
+       "stops": [
+        {
+         "gtfsId": "1:003619828_1",
+         "name": "Cinkota H"
+        },
+        {
+         "gtfsId": "1:003619841_A",
+         "name": "Ilonatelep H"
+        },
+        {
+         "gtfsId": "1:003619843_A",
+         "name": "Kistarcsa, kórház H"
+        },
+        {
+         "gtfsId": "1:003619845_A",
+         "name": "Kistarcsa H"
+        },
+        {
+         "gtfsId": "1:003619847_A",
+         "name": "Zsófialiget H"
+        },
+        {
+         "gtfsId": "1:003619848_3",
+         "name": "Kerepes H"
+        },
+        {
+         "gtfsId": "1:003619849_A",
+         "name": "Szilasliget H"
+        },
+        {
+         "gtfsId": "1:003619851_1",
+         "name": "Mogyoród H"
+        },
+        {
+         "gtfsId": "1:003619865_A",
+         "name": "Szentjakab H"
+        },
+        {
+         "gtfsId": "1:003619867_A",
+         "name": "Gödöllő, Erzsébet park H"
+        },
+        {
+         "gtfsId": "1:003619868_A",
+         "name": "Gödöllő, Szabadság tér H"
+        },
+        {
+         "gtfsId": "1:003619869_A",
+         "name": "Gödöllő, Palotakert H"
+        },
+        {
+         "gtfsId": "1:003619870_11",
+         "name": "Gödöllő H"
+        }
+       ],
+       "departureStoptime": {
+        "scheduledDeparture": 20700,
+        "stop": {
+         "name": "Cinkota H"
+        }
+       }
+      }
+     },
+     {
+      "scheduledArrival": 21960,
+      "realtimeArrival": 21960,
+      "scheduledDeparture": 21960,
+      "realtimeDeparture": 21960,
+      "realtime": false,
+      "realtimeState": "SCHEDULED",
+      "pickupType": "SCHEDULED",
+      "dropoffType": "NONE",
+      "headsign": "Cinkota H",
+      "serviceDay": 1793228400,
+      "stop": {
+       "platformCode": "4"
+      },
+      "trip": {
+       "gtfsId": "1:36098025",
+       "tripShortName": "H1907 HÉV",
+       "tripHeadsign": "Cinkota H",
+       "route": {
+        "shortName": "<span class=\"MNR2007\">&#443;</span>",
+        "longName": "H8",
+        "textColor": "F27689"
+       },
+       "alerts": [
+        {
+         "alertDescriptionText": "Karbantartás miatt október 17. és november 6. között a H8-as és a H9-es HÉV helyett az Örs vezér tere és Cinkota között pótlóbuszok közlekednek.",
+         "effectiveStartDate": 1792360800,
+         "effectiveEndDate": 1794016740
+        }
+       ],
+       "stops": [
+        {
+         "gtfsId": "1:003619848_4",
+         "name": "Kerepes H"
+        },
+        {
+         "gtfsId": "1:003619847_B",
+         "name": "Zsófialiget H"
+        },
+        {
+         "gtfsId": "1:003619845_B",
+         "name": "Kistarcsa H"
+        },
+        {
+         "gtfsId": "1:003619843_B",
+         "name": "Kistarcsa, kórház H"
+        },
+        {
+         "gtfsId": "1:003619841_B",
+         "name": "Ilonatelep H"
+        },
+        {
+         "gtfsId": "1:003619828_3",
+         "name": "Cinkota H"
+        }
+       ],
+       "departureStoptime": {
+        "scheduledDeparture": 21960,
+        "stop": {
+         "name": "Kerepes H"
+        }
+       }
+      }
+     }
+    ]
+   }
+  }
+ },
+ "cinkota": {
+  "data": {
+   "station": {
+    "gtfsId": "1:003619828",
+    "name": "Cinkota H",
+    "lat": 47.519435,
+    "lon": 19.217338,
+    "stoptimesWithoutPatterns": [
+     {
+      "scheduledArrival": 20880,
+      "realtimeArrival": 20880,
+      "scheduledDeparture": 20880,
+      "realtimeDeparture": 20880,
+      "realtime": true,
+      "realtimeState": "MODIFIED",
+      "pickupType": "NONE",
+      "dropoffType": "SCHEDULED",
+      "headsign": "Cinkota H",
+      "serviceDay": 1793228400,
+      "stop": {
+       "platformCode": "1"
+      },
+      "trip": {
+       "gtfsId": "1:36098773",
+       "tripShortName": "H1529 HÉV",
+       "tripHeadsign": "Cinkota H",
+       "route": {
+        "shortName": "<span class=\"MNR2007\">&#444;</span>",
+        "longName": "H9",
+        "textColor": "F27689"
+       },
+       "alerts": [
+        {
+         "alertDescriptionText": "Karbantartás miatt október 17. és november 6. között a H8-as és a H9-es HÉV helyett az Örs vezér tere és Cinkota között pótlóbuszok közlekednek.",
+         "effectiveStartDate": 1792360800,
+         "effectiveEndDate": 1794016740
+        }
+       ],
+       "stops": [
+        {
+         "gtfsId": "1:003619836_2",
+         "name": "Csömör H"
+        },
+        {
+         "gtfsId": "1:003619831_A",
+         "name": "Szabadságtelep H"
+        },
+        {
+         "gtfsId": "1:003619830_A",
+         "name": "Árpádföld H"
+        },
+        {
+         "gtfsId": "1:003619829_A",
+         "name": "Cinkota alsó H"
+        },
+        {
+         "gtfsId": "1:003619828_1",
+         "name": "Cinkota H"
+        }
+       ],
+       "departureStoptime": {
+        "scheduledDeparture": 20280,
+        "stop": {
+         "name": "Csömör H"
+        }
+       }
+      }
+     },
+     {
+      "scheduledArrival": 21060,
+      "realtimeArrival": 21060,
+      "scheduledDeparture": 21060,
+      "realtimeDeparture": 21060,
+      "realtime": true,
+      "realtimeState": "MODIFIED",
+      "pickupType": "SCHEDULED",
+      "dropoffType": "NONE",
+      "headsign": "Kerepes H",
+      "serviceDay": 1793228400,
+      "stop": {
+       "platformCode": "3"
+      },
+      "trip": {
+       "gtfsId": "1:36098017",
+       "tripShortName": "H1900 HÉV",
+       "tripHeadsign": "Kerepes H",
+       "route": {
+        "shortName": "<span class=\"MNR2007\">&#443;</span>",
+        "longName": "H8",
+        "textColor": "F27689"
+       },
+       "alerts": [
+        {
+         "alertDescriptionText": "Karbantartás miatt október 17. és november 6. között a H8-as és a H9-es HÉV helyett az Örs vezér tere és Cinkota között pótlóbuszok közlekednek.",
+         "effectiveStartDate": 1792360800,
+         "effectiveEndDate": 1794016740
+        }
+       ],
+       "stops": [
+        {
+         "gtfsId": "1:003619828_3",
+         "name": "Cinkota H"
+        },
+        {
+         "gtfsId": "1:003619841_A",
+         "name": "Ilonatelep H"
+        },
+        {
+         "gtfsId": "1:003619843_A",
+         "name": "Kistarcsa, kórház H"
+        },
+        {
+         "gtfsId": "1:003619845_A",
+         "name": "Kistarcsa H"
+        },
+        {
+         "gtfsId": "1:003619847_A",
+         "name": "Zsófialiget H"
+        },
+        {
+         "gtfsId": "1:003619848_4",
+         "name": "Kerepes H"
+        }
+       ],
+       "departureStoptime": {
+        "scheduledDeparture": 21060,
+        "stop": {
+         "name": "Cinkota H"
+        }
+       }
+      }
+     }
+    ]
+   }
+  }
+ }
+}

@@ -12,6 +12,7 @@ import { useTranslations } from "next-intl";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
 import { Link } from "@/i18n/navigation";
+import { useTrackView } from "@/lib/analyticsEvents";
 import { trainName } from "@/lib/train";
 import { cn } from "@/lib/utils";
 import { HourChart, overallShare } from "./HourChart";
@@ -123,6 +124,7 @@ function Rankings({ days }: { days: number }) {
         "order",
         parseAsStringLiteral(ORDERS).withDefault("best"),
     );
+    useTrackView("stats_viewed", { kind: "rankings", ranking: kind, days });
     const rankings = useQuery({
         ...getRankingsOptions({
             query: { kind, order, days, limit: LIMIT },
@@ -178,11 +180,21 @@ function NetworkByHour({ days }: { days: number }) {
         ...getTimeOfDayPunctualityOptions({ query: { days } }),
         staleTime: HOUR,
     });
-    const overall = query.data ? overallShare(query.data.hours) : null;
+    // The network figure needs as much data as the lists: it shows once the
+    // default ranking (the same request as the list's) has an entry
+    const lines = useQuery({
+        ...getRankingsOptions({
+            query: { kind: "lines", order: "best", days, limit: LIMIT },
+        }),
+        staleTime: HOUR,
+    });
+    const enough = (lines.data?.entries.length ?? 0) > 0;
+    const overall =
+        query.data && enough ? overallShare(query.data.hours) : null;
     return (
         <Card title={t("all_trains")} className="lg:col-start-2 lg:row-start-1">
-            {query.isPending ? (
-                <div className="h-48 animate-pulse rounded-md bg-surface-2" />
+            {query.isPending || lines.isPending ? (
+                <div className="h-48 rounded-md bg-surface-2 motion-safe:animate-pulse" />
             ) : query.isError ? (
                 <LoadError onRetry={() => void query.refetch()} />
             ) : overall ? (

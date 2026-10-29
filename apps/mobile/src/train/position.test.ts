@@ -1,6 +1,11 @@
 import type { VehiclePositionWithDelay } from "@megisholavonat/api-client";
 import { describe, expect, it } from "vitest";
-import { haversineMeters, placeLabel, railPosition } from "./position";
+import {
+    haversineMeters,
+    placeLabel,
+    railPosition,
+    speedKmh,
+} from "./position";
 
 const now = new Date("2026-08-14T08:00:00Z");
 const nowS = now.getTime() / 1000;
@@ -59,9 +64,9 @@ describe("railPosition", () => {
         expect(railPosition(details(1, 5, 0.5), now)).toBeNull();
     });
 
-    it("glides on at the last speed since the update", () => {
-        // 108 km/h = 30 m/s for 20 s = 600 m of track
-        const d = details(0, 1, 0.1, { speed: 108, lastUpdated: nowS - 20 });
+    it("glides on at the last speed (m/s, as the API sends it)", () => {
+        // 30 m/s (108 km/h) for 20 s = 600 m of track
+        const d = details(0, 1, 0.1, { speed: 30, lastUpdated: nowS - 20 });
         expect(railPosition(d, now, true)?.fraction).toBeCloseTo(
             0.1 + 600 / (segment * 1.2),
             5,
@@ -71,22 +76,44 @@ describe("railPosition", () => {
     });
 
     it("never glides into the next stop or for too long", () => {
-        const fast = details(0, 1, 0.9, { speed: 160, lastUpdated: nowS - 60 });
+        const fast = details(0, 1, 0.9, { speed: 44, lastUpdated: nowS - 60 });
         expect(railPosition(fast, now, true)?.fraction).toBe(0.95);
         // Already reported past 0.95: kept, not pulled back
-        const close = details(0, 1, 0.98, { speed: 50 });
+        const close = details(0, 1, 0.98, { speed: 14 });
         expect(railPosition(close, now, true)?.fraction).toBe(0.98);
-        // 36 km/h = 10 m/s, for at most 90 s
-        const old = details(0, 1, 0, { speed: 36, lastUpdated: nowS - 3600 });
+        // 10 m/s, for at most 90 s
+        const old = details(0, 1, 0, { speed: 10, lastUpdated: nowS - 3600 });
         expect(railPosition(old, now, true)?.fraction).toBeCloseTo(
             900 / (segment * 1.2),
             5,
         );
     });
 
+    it("puts a train waiting out a stop, at its origin or arrived on its dot", () => {
+        const at = (extra: object) =>
+            railPosition({ ...details(1, 2, 0.1), ...extra }, now, true);
+        expect(at({ dwellStopIndex: 1 })).toEqual({
+            from: 1,
+            to: 1,
+            fraction: 0,
+        });
+        expect(at({ activity: "beforeDeparture" })).toMatchObject({
+            from: 0,
+            to: 0,
+        });
+        expect(at({ activity: "arrived" })).toMatchObject({ from: 2, to: 2 });
+    });
+
     it("doesn't glide a standing train", () => {
         const d = details(0, 1, 0.3, { speed: 0, lastUpdated: nowS - 30 });
         expect(railPosition(d, now, true)?.fraction).toBe(0.3);
+    });
+});
+
+describe("speedKmh", () => {
+    it("labels the API's m/s in km/h", () => {
+        expect(speedKmh(33.3)).toBe(120);
+        expect(speedKmh(0)).toBe(0);
     });
 });
 

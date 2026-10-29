@@ -18,6 +18,8 @@ export interface Follow {
     fromLon: number;
     /** Scheduled local departure from the boarding station, s after midnight */
     departureS: number;
+    /** Scheduled time from boarding to the end of the trip, s */
+    runS?: number | null;
     /** ISO weekdays (1 = Monday); empty for this run only */
     weekdays: number[];
     /** This run only: its local date of departure */
@@ -119,15 +121,35 @@ export function removeFollow(id: string) {
     write(getSnapshot().filter((f) => f.id !== id));
 }
 
-/** The follow of a train number, preferring one boarding at `stationIds`. */
+/** A stop of one run of a train: its station and local departure date. */
+export interface RunStop {
+    stationId: string | null;
+    date: string | null;
+}
+
+/**
+ * The follow of a train number, preferring one boarding at a stop of the
+ * run. Given the run's stops, a single-run follow counts only for the run
+ * leaving its boarding station on its date, not another day's run.
+ */
 export function findFollow(
     follows: Follow[],
     trainNumber: string,
-    stationIds?: readonly (string | null)[],
+    stops?: readonly RunStop[],
 ): Follow | null {
-    const same = follows.filter((f) => f.trainNumber === trainNumber);
-    if (stationIds) {
-        const onRoute = same.find((f) => stationIds.includes(f.fromStationId));
+    const same = follows.filter(
+        (f) =>
+            f.trainNumber === trainNumber &&
+            (!stops ||
+                f.weekdays.length > 0 ||
+                stops.some(
+                    (s) => s.stationId === f.fromStationId && s.date === f.date,
+                )),
+    );
+    if (stops) {
+        const onRoute = same.find((f) =>
+            stops.some((s) => s.stationId === f.fromStationId),
+        );
         if (onRoute) return onRoute;
     }
     return same[0] ?? null;

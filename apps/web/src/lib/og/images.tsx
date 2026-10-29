@@ -8,6 +8,7 @@ import type { Locale } from "@megisholavonat/core/i18n";
 import { COLORS, DELAY_SCALE } from "@megisholavonat/core/tokens";
 import { ImageResponse } from "next/og";
 import type { ReactElement, ReactNode } from "react";
+import { cachedLoad } from "@/lib/og/cache";
 import { OG_SIZE } from "@/lib/og/metadata";
 import type { RouteSketch, StationCard, TrainCard } from "@/lib/og/model";
 import { PREVIEW_MAX_AGE } from "@/lib/og/server";
@@ -24,11 +25,13 @@ const TEXT = {
         onTime: "pontos",
         waiting: "indulásra vár",
         noData: "nincs friss adat",
+        offRoute: "nincs élő késés",
         next: "Következő megálló",
         departs: "Indul",
         departures: "Indulások",
         noDepartures: "Most nincs induló vonat",
         canceled: "törölve",
+        arrived: "megérkezett",
         platform: (p: string) => `${p}. vágány`,
     },
     en: {
@@ -38,11 +41,13 @@ const TEXT = {
         onTime: "on time",
         waiting: "waiting to depart",
         noData: "no fresh data",
+        offRoute: "no live delay",
         next: "Next stop",
         departs: "Departs",
         departures: "Departures",
         noDepartures: "No departures right now",
         canceled: "cancelled",
+        arrived: "arrived",
         platform: (p: string) => `Platform ${p}`,
     },
 } as const;
@@ -76,12 +81,9 @@ const FONT_FILES = {
     800: () => readFile(join(process.cwd(), "src/lib/og/fonts/Inter-800.woff")),
 } as const;
 
-let fontsPromise: Promise<
-    { name: string; data: Buffer; weight: 400 | 600 | 700 | 800 }[]
-> | null = null;
-
-function loadFonts() {
-    fontsPromise ??= Promise.all([
+// A failed read is retried on the next request, not cached until restart
+const loadFonts = cachedLoad(() =>
+    Promise.all([
         ...([400, 600, 700, 800] as const).map(async (weight) => ({
             name: "Inter",
             data: await FONT_FILES[weight](),
@@ -92,18 +94,14 @@ function loadFonts() {
             data,
             weight: 400 as const,
         })),
-    ]);
-    return fontsPromise;
-}
+    ]),
+);
 
-let iconPromise: Promise<string> | null = null;
-
-function loadIcon(): Promise<string> {
-    iconPromise ??= readFile(
-        join(process.cwd(), "public/web-app-manifest-192x192.png"),
-    ).then((data) => `data:image/png;base64,${data.toString("base64")}`);
-    return iconPromise;
-}
+const loadIcon = cachedLoad(() =>
+    readFile(join(process.cwd(), "public/icon-192.png")).then(
+        (data) => `data:image/png;base64,${data.toString("base64")}`,
+    ),
+);
 
 async function render(node: (icon: string) => ReactElement): Promise<Response> {
     const [fonts, icon] = await Promise.all([loadFonts(), loadIcon()]);
@@ -151,13 +149,7 @@ function Frame({
                 }}
             >
                 {/* biome-ignore lint/performance/noImgElement: satori */}
-                <img
-                    src={icon}
-                    width={44}
-                    height={44}
-                    style={{ borderRadius: 10 }}
-                    alt=""
-                />
+                <img src={icon} width={44} height={44} alt="" />
                 <div
                     style={{
                         marginLeft: 16,
@@ -366,18 +358,26 @@ const SKETCH = { width: 440, height: 410 };
 
 export function trainImage(card: TrainCard, locale: Locale) {
     const t = TEXT[locale];
-    const level = card.stale ? "stale" : card.level;
-    const color = card.stale ? C.ink2 : SCALE[card.level].text;
-    const background = card.stale ? C.surface2 : tint(card.level);
-    const onTime = card.level === "onTime";
-    const caption = card.stale
-        ? t.noData
-        : card.waiting
-          ? t.waiting
-          : onTime
-            ? t.onTime
-            : t.minutesLate;
-    const big = `${card.delay > 0 ? `+${card.delay}` : "0"}${card.stale ? "?" : ""}`;
+    // A delay only while running, as on the map and in the sheet
+    const running = card.status === "running";
+    const level = running ? card.level : "stale";
+    const color = running ? SCALE[card.level].text : C.ink2;
+    const background = running ? tint(card.level) : C.surface2;
+    const caption = {
+        running: card.level === "onTime" ? t.onTime : t.minutesLate,
+        waiting: t.waiting,
+        cancelled: t.canceled,
+        arrived: t.arrived,
+        offRoute: t.offRoute,
+        noData: t.noData,
+    }[card.status];
+    const big = running
+        ? card.delay > 0
+            ? `+${card.delay}`
+            : "0"
+        : card.status === "noData"
+          ? "?"
+          : "–";
     return render((icon) => (
         <Frame icon={icon} locale={locale}>
             <div
@@ -390,11 +390,7 @@ export function trainImage(card: TrainCard, locale: Locale) {
                 }}
             >
                 <div style={{ display: "flex", alignItems: "center" }}>
-                    <Glyph
-                        glyph={card.glyph}
-                        color={card.glyphColor}
-                        size={60}
-                    />
+                    <Glyph glyph={card.glyph} color={C.ink} size={60} />
                     <div
                         style={{
                             fontSize: 64,
@@ -513,7 +509,7 @@ export function trainImage(card: TrainCard, locale: Locale) {
                                     color: C.ink2,
                                 }}
                             >
-                                {card.next.time}
+                                {`${card.next.estimated ? "≈" : ""}${card.next.time}`}
                             </div>
                         </div>
                     )}
@@ -626,7 +622,7 @@ export function stationImage(card: StationCard, locale: Locale) {
                             >
                                 <Glyph
                                     glyph={d.glyph}
-                                    color={d.glyphColor}
+                                    color={C.ink2}
                                     size={36}
                                 />
                                 <div
@@ -662,30 +658,37 @@ export function stationImage(card: StationCard, locale: Locale) {
                                     {t.platform(d.platform)}
                                 </div>
                             )}
-                            <div
-                                style={{
-                                    display: "flex",
-                                    justifyContent: "center",
-                                    marginLeft: 24,
-                                    minWidth: 120,
-                                    padding: "6px 18px",
-                                    borderRadius: 999,
-                                    background: d.canceled
-                                        ? C.surface2
-                                        : tint(d.level),
-                                    color: d.canceled
-                                        ? C.ink2
-                                        : SCALE[d.level].text,
-                                    fontSize: 30,
-                                    fontWeight: 800,
-                                }}
-                            >
-                                {d.canceled
-                                    ? t.canceled
-                                    : d.level === "onTime"
-                                      ? t.onTime
-                                      : `+${d.delay}`}
-                            </div>
+                            {d.canceled || d.level ? (
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        justifyContent: "center",
+                                        marginLeft: 24,
+                                        minWidth: 120,
+                                        padding: "6px 18px",
+                                        borderRadius: 999,
+                                        background: d.level
+                                            ? tint(d.level)
+                                            : C.surface2,
+                                        color: d.level
+                                            ? SCALE[d.level].text
+                                            : C.ink2,
+                                        fontSize: 30,
+                                        fontWeight: 800,
+                                    }}
+                                >
+                                    {d.canceled || !d.level
+                                        ? t.canceled
+                                        : d.level === "onTime"
+                                          ? t.onTime
+                                          : `+${d.delay}`}
+                                </div>
+                            ) : (
+                                // Not live yet: the plain time, as on the board
+                                <div
+                                    style={{ marginLeft: 24, minWidth: 120 }}
+                                />
+                            )}
                         </div>
                     ))}
                 </div>
@@ -712,13 +715,7 @@ export function genericImage(locale: Locale) {
             }}
         >
             {/* biome-ignore lint/performance/noImgElement: satori */}
-            <img
-                src={icon}
-                width={128}
-                height={128}
-                style={{ borderRadius: 28 }}
-                alt=""
-            />
+            <img src={icon} width={128} height={128} alt="" />
             <div
                 style={{
                     marginTop: 40,

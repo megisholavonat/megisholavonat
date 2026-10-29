@@ -27,6 +27,8 @@ import { ReasonLabel } from "@/components/ui/Reason";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
 import { useNow } from "@/hooks/useNow";
 import { usePredictedPlatforms } from "@/hooks/usePredictedPlatforms";
+import { boardRowOpened } from "@/lib/analyticsEvents";
+import { rowTime } from "@/lib/board";
 import { trainNumber, usuallyLate } from "@/lib/train";
 import { cn } from "@/lib/utils";
 
@@ -92,10 +94,12 @@ function useUsuallyLate(stationId: string): Map<string, "late" | "veryLate"> {
 /**
  * What a row shows for its delay. A train on the map shows what its marker
  * shows (grey "+7?" for old data, nothing while it waits to depart); one
- * that is not on the map shows the board's realtime delay, if any.
+ * that is not on the map shows the board's realtime delay, if any, and only
+ * a late one before it is due to leave.
  */
 function rowDelay(
     entry: BoardEntry,
+    kind: BoardKind,
     train: TrainFeatureProperties | undefined,
     now: Date,
 ): { delay: number; stale: boolean } | null {
@@ -111,7 +115,13 @@ function rowDelay(
         return null;
     }
     const live = entry.realtime || entry.delaySource === "gps";
-    return live ? { delay: entry.delayMinutes, stale: false } : null;
+    if (!live) return null;
+    // A departure still ahead with no delay may well be waiting to leave
+    // ("pontos" would claim it is running): plain time unless it is late
+    const ahead =
+        kind === "departures" && entry.scheduledTime * 1000 > now.getTime();
+    if (ahead && entry.delayMinutes <= 0) return null;
+    return { delay: entry.delayMinutes, stale: false };
 }
 
 export function KindSwitch({
@@ -136,7 +146,7 @@ export function KindSwitch({
                     aria-selected={kind === k}
                     onClick={() => onChange(k)}
                     className={cn(
-                        "h-9 cursor-pointer rounded-[8px] px-4 text-sm transition-colors",
+                        "relative h-9 cursor-pointer rounded-[8px] px-4 text-sm transition-colors before:absolute before:inset-x-0 before:-inset-y-1",
                         kind === k
                             ? "bg-surface font-semibold text-ink shadow-sm"
                             : "text-ink-2",
@@ -153,7 +163,7 @@ function BoardRow({
     entry,
     kind,
     predictedPlatform,
-    train,
+    shown,
     usually,
     now,
     onSelectTrain,
@@ -162,14 +172,15 @@ function BoardRow({
     entry: BoardEntry;
     kind: BoardKind;
     predictedPlatform: string | null;
-    /** The train on the map, when it is there */
-    train: TrainFeatureProperties | undefined;
+    /** The row's delay, from the map's train when it is there */
+    shown: { delay: number; stale: boolean } | null;
     usually: "late" | "veryLate" | undefined;
     now: Date;
     onSelectTrain: (vehicleId: string) => void;
     wide: boolean;
 }) {
     const t = useTranslations("Station");
+    const tDisruptions = useTranslations("Disruptions");
     const number = trainNumber(entry.tripShortName);
     const place = entry.headsign
         ? kind === "arrivals"
@@ -177,7 +188,7 @@ function BoardRow({
             : entry.headsign
         : "";
     const platform = entry.platform ?? predictedPlatform;
-    const shown = rowDelay(entry, train, now);
+    const { time, late } = rowTime(entry, shown);
     const level = shown && !shown.stale ? getDelayLevel(shown.delay) : null;
     // The cause only next to a live delay that is actually late
     const reason =
@@ -199,18 +210,21 @@ function BoardRow({
     ) : shown ? (
         <DelayChip delay={shown.delay} stale={shown.stale} />
     ) : null;
-    const note =
-        reason && level ? (
-            <ReasonLabel code={reason} level={level} />
-        ) : usuallyText ? (
-            <span className="truncate text-delay-slight">{usuallyText}</span>
-        ) : null;
+    const note = entry.disruption ? (
+        <span className="truncate font-semibold text-delay-severe">
+            {tDisruptions(`effect_${entry.disruption}`)}
+        </span>
+    ) : reason && level ? (
+        <ReasonLabel code={reason} level={level} />
+    ) : usuallyText ? (
+        <span className="truncate text-delay-slight">{usuallyText}</span>
+    ) : null;
     const content = (
         <>
             <div
                 className={cn(
                     "flex shrink-0 flex-col items-start gap-0.5",
-                    wide ? "w-36 flex-row items-center gap-3" : "w-14",
+                    wide ? "w-44 flex-row items-center gap-2" : "w-[4.25rem]",
                 )}
             >
                 <span
@@ -219,9 +233,19 @@ function BoardRow({
                         entry.canceled && "text-ink-2 line-through",
                     )}
                 >
-                    {formatTime(entry.scheduledTime)}
+                    {formatTime(time)}
                 </span>
-                {chip}
+                <span className="flex items-center gap-1">
+                    {chip}
+                    {late && (
+                        <s className="tnum text-caption text-ink-2">
+                            <span className="sr-only">
+                                {t("scheduled_time")}{" "}
+                            </span>
+                            {formatTime(entry.scheduledTime)}
+                        </s>
+                    )}
+                </span>
             </div>
             <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span
@@ -270,6 +294,7 @@ function BoardRow({
             {entry.vehicleId ? (
                 <button
                     type="button"
+                    data-focus-key={`train:${entry.vehicleId}`}
                     className={cn(
                         className,
                         "cursor-pointer hover:bg-surface-2/60",
@@ -332,13 +357,29 @@ function BoardList({
             </div>
         );
     }
-    const entries = board.data.entries;
-    if (entries.length === 0) {
+    // Sorted by the time each row shows: the API's expected time, but with
+    // the delay the map shows
+    const rows = board.data.entries
+        .map((entry) => {
+            const shown = rowDelay(
+                entry,
+                kind,
+                entry.vehicleId ? live.get(entry.vehicleId) : undefined,
+                now,
+            );
+            return { entry, shown, time: rowTime(entry, shown).time };
+        })
+        .sort(
+            (a, b) =>
+                a.time - b.time ||
+                a.entry.scheduledTime - b.entry.scheduledTime,
+        );
+    if (rows.length === 0) {
         return <p className="py-8 text-center text-ink-2">{t("empty")}</p>;
     }
     return (
         <ul className="flex flex-col">
-            {entries.map((entry) => (
+            {rows.map(({ entry, shown }, i) => (
                 <BoardRow
                     key={`${entry.tripId}-${entry.serviceDate}`}
                     entry={entry}
@@ -346,12 +387,13 @@ function BoardList({
                     predictedPlatform={
                         predicted.get(trainNumber(entry.tripShortName)) ?? null
                     }
-                    train={
-                        entry.vehicleId ? live.get(entry.vehicleId) : undefined
-                    }
+                    shown={shown}
                     usually={usually.get(trainNumber(entry.tripShortName))}
                     now={now}
-                    onSelectTrain={onSelectTrain}
+                    onSelectTrain={(id) => {
+                        boardRowOpened(kind, i);
+                        onSelectTrain(id);
+                    }}
                     wide={wide}
                 />
             ))}

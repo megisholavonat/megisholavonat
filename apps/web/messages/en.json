@@ -10,7 +10,10 @@
         "zoom_out": "Zoom out",
         "inactive": "not running",
         "cluster": "{count} trains here",
-        "map_data": "Map data"
+        "map_data": "Map data",
+        "map_title": "Map",
+        "marker": "Map marker",
+        "close_popup": "Close"
     },
     "Sheet": {
         "resize": "Resize panel",
@@ -38,8 +41,12 @@
         "usually_late": "Usually late",
         "usually_very_late": "Usually very late",
         "disruption": "Disruption",
-        "punctuality": "{station}: <b>on time {count} in 10</b>",
+        "punctuality": "{station}: <b>{count} in 10 on time</b>",
         "standing": "stopped",
+        "standing_here": "Standing here",
+        "arrived_at": "arrived",
+        "departs_at": "departs",
+        "arrives_at": "arrives",
         "vehicle": "Vehicle",
         "vehicle_type_label": "Type",
         "uic": "UIC",
@@ -90,6 +97,7 @@
         "position": "Train position"
     },
     "Station": {
+        "scheduled_time": "scheduled",
         "board": "Timetable board",
         "board_of": "Departures and arrivals at {station}",
         "departures": "Departures",
@@ -117,6 +125,9 @@
         "back": "Back",
         "results": "Results",
         "no_results": "No results",
+        "recent_stations": "Recent stations",
+        "popular_stations": "Busy stations",
+        "not_running": "{subject} is not running now",
         "station_label": "{station} station",
         "cancel": "Cancel",
         "stations": "Stations",
@@ -138,7 +149,8 @@
         "slight": "5+",
         "moderate": "15+",
         "severe": "60+",
-        "stale": "no data · standing",
+        "stale": "min since fresh data",
+        "inactive": "no live delay",
         "title": "Delay",
         "minutes": "min"
     },
@@ -205,6 +217,7 @@
         "description": "Detailed statistics with a random ID (PostHog, EU servers). When off, we only count daily visitors, without cookies or a stored ID, and PostHog's data is removed from your browser."
     },
     "PrivacyPage": {
+        "description": "What data the app handles, and what for.",
         "title": "Privacy notice",
         "back_to_map": "Back to the map",
         "last_updated": "Last updated: {date}"
@@ -243,8 +256,8 @@
         "best": "Most punctual",
         "worst": "Most delayed",
         "column": "On time of 10",
-        "of10": "<b>on time {count} in 10</b>",
-        "of10_at": "{station}: <b>on time {count} in 10</b>",
+        "of10": "<b>{count} in 10</b> on time",
+        "of10_at": "{station}: <b>{count} in 10</b> on time",
         "usually_late": "Usually late by",
         "late": {
             "slight": "5+ min",
@@ -254,10 +267,17 @@
         "all_trains": "All trains",
         "by_hour": "By time of day",
         "hour": "Hour",
+        "hour_axis": "on time, out of 10",
         "by_stop": "By stop",
         "few_data": "little data",
+        "no_data": "Not enough data yet",
         "no_data_hint": "We are still collecting runs. Check back in a few days.",
-        "show_on_map": "Show on map"
+        "show_on_map": "Show on map",
+        "description": "How punctual trains are: lines, trains and stations over the last 28 days.",
+        "train_description": "How punctual {subject} is at each stop, from the last 28 days of runs.",
+        "station_description": "{station}: how punctual trains are by time of day, over the last 28 days.",
+        "not_found": "No such train or station",
+        "not_found_hint": "The address may have a typo. The rankings list the lines, trains and stations."
     },
     "Journey": {
         "title": "Journey planner",
@@ -279,9 +299,15 @@
         "risk_likely_missed": "Likely missed",
         "canceled": "Cancelled",
         "transfer_minutes": "{m} min to change",
+        "transfer_minutes_expected": "{m} min to change, {e} expected",
         "walk": "{m} min walk",
         "on_map": "Show on the map",
         "empty": "No journeys found",
         "same_station": "Pick two different stations"
+    },
+    "Shell": {
+        "train_gone": "This train is no longer running",
+        "station_unknown": "No such station",
+        "skip_to_search": "Skip to search"
     }
 }

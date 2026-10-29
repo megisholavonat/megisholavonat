@@ -2,6 +2,7 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.routing import APIRoute, APIRouter
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
@@ -78,6 +79,10 @@ def create_app() -> FastAPI:
     v1_router.include_router(rankings.router)
 
     register_error_handlers(app)
+
+    # /v1/trains is hundreds of KB of JSON every poll; compress anything over
+    # a kilobyte (smaller bodies gain little)
+    app.add_middleware(GZipMiddleware, minimum_size=1024)
 
     # Behind reverse proxies the client address comes from X-Forwarded-For,
     # but only for requests arriving from a proxy listed in TRUSTED_PROXIES.

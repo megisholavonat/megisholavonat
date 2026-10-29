@@ -25,6 +25,8 @@ export interface BoardRow {
     predicted: boolean;
     /** Live on the map: opens the train sheet */
     vehicleId: string | null;
+    /** A line disruption hits this train: no service or a replacement bus */
+    disruption: NonNullable<BoardEntry["disruption"]> | null;
 }
 
 export function boardRows(
@@ -49,6 +51,7 @@ export function boardRows(
             platform: e.platform ?? predicted,
             predicted: !e.platform && predicted !== null,
             vehicleId: e.vehicleId ?? null,
+            disruption: e.disruption ?? null,
         };
     });
 }

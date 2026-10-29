@@ -22,6 +22,7 @@ import type { TrainView } from "@/components/train/useTrainView";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
 import type { Follow } from "@/hooks/useFollows";
 import { useNow } from "@/hooks/useNow";
+import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 /** The feed changes slowly; the API caches it for two minutes */
@@ -135,6 +136,31 @@ function LineGlyphs({ disruption }: { disruption: Disruption }) {
     );
 }
 
+/** A web address in MÁV's text ("Részletek: mavinform.hu") */
+const WEB_ADDRESS =
+    /\b((?:https?:\/\/)?(?:www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:hu|eu|com|org|at)(?:\/[^\s),;]*[^\s),;.])?)/gi;
+
+/** MÁV's text with its web addresses as links. */
+export function Linked({ text }: { text: string }) {
+    const parts = text.split(WEB_ADDRESS);
+    return parts.map((part, i) =>
+        i % 2 === 1 ? (
+            <a
+                // biome-ignore lint/suspicious/noArrayIndexKey: parts of one fixed text
+                key={i}
+                href={/^https?:/i.test(part) ? part : `https://${part}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-ink underline underline-offset-2"
+            >
+                {part}
+            </a>
+        ) : (
+            part
+        ),
+    );
+}
+
 /** MÁV's text, the other notices of the event and the source link. */
 function FullText({ disruption }: { disruption: Disruption }) {
     const t = useTranslations("Disruptions");
@@ -143,7 +169,7 @@ function FullText({ disruption }: { disruption: Disruption }) {
         <div className="flex flex-col gap-2 text-sm">
             {[disruption.description, ...disruption.details].map((text) => (
                 <p key={text} className="whitespace-pre-line text-ink-2">
-                    {text.replace(/\n{2,}/g, "\n").trim()}
+                    <Linked text={text.replace(/\n{2,}/g, "\n").trim()} />
                 </p>
             ))}
             <a
@@ -196,7 +222,15 @@ export function DisruptionItem({
         >
             <button
                 type="button"
-                onClick={() => setOpen(!open)}
+                onClick={() => {
+                    if (!open) {
+                        track("disruption_expanded", {
+                            context: framed ? "detail" : "list",
+                            affects_follow: mine,
+                        });
+                    }
+                    setOpen(!open);
+                }}
                 aria-expanded={open}
                 aria-controls={bodyId}
                 className={cn(
@@ -211,8 +245,16 @@ export function DisruptionItem({
                     )}
                     aria-hidden
                 />
+                {/* The title always sits beside the icon; the lines, the
+                    "yours" badge and the validity follow on one row under
+                    it, so every item has the same left edge */}
                 <span className="flex min-w-0 flex-1 flex-col gap-1">
-                    {(disruption.lines.length > 0 || mine) && (
+                    <span className="text-[15px] leading-5 font-semibold text-ink">
+                        {title(disruption)}
+                    </span>
+                    {(disruption.lines.length > 0 ||
+                        mine ||
+                        meta.length > 0) && (
                         <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
                             <LineGlyphs disruption={disruption} />
                             {mine && (
@@ -220,14 +262,11 @@ export function DisruptionItem({
                                     {t("mine")}
                                 </span>
                             )}
-                        </span>
-                    )}
-                    <span className="text-[15px] leading-5 font-semibold text-ink">
-                        {title(disruption)}
-                    </span>
-                    {meta.length > 0 && (
-                        <span className="tnum text-caption text-ink-2">
-                            {meta.join(" · ")}
+                            {meta.length > 0 && (
+                                <span className="tnum text-caption text-ink-2">
+                                    {meta.join(" · ")}
+                                </span>
+                            )}
                         </span>
                     )}
                 </span>
@@ -337,7 +376,7 @@ export function DisruptionChip({
                         type="button"
                         onClick={onClick}
                         aria-haspopup="dialog"
-                        className="pressable flex h-8 cursor-pointer items-center gap-1.5 rounded-full bg-delay-moderate-tint pr-3 pl-2.5 text-sm font-semibold text-ink"
+                        className="pressable relative flex h-8 cursor-pointer before:absolute before:-inset-y-1.5 before:inset-x-0 items-center gap-1.5 rounded-full bg-delay-moderate-tint pr-3 pl-2.5 text-sm font-semibold text-ink"
                     >
                         <TriangleAlert
                             className="size-4 text-delay-moderate"

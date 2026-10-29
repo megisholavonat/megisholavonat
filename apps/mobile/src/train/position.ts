@@ -21,6 +21,11 @@ const MAX_EXTRAPOLATED_FRACTION = 0.95;
 
 const EARTH_RADIUS_M = 6_371_000;
 
+/** The API's speed (m/s) in whole km/h, for the position label. */
+export function speedKmh(metresPerSecond: number): number {
+    return Math.round(metresPerSecond * 3.6);
+}
+
 export function haversineMeters(
     a: { lat: number; lon: number },
     b: { lat: number; lon: number },
@@ -47,12 +52,24 @@ export function railPosition(
     details: Pick<
         VehiclePositionWithDelay,
         "vehicleProgress" | "speed" | "lastUpdated" | "trip"
-    >,
+    > &
+        Partial<Pick<VehiclePositionWithDelay, "activity" | "dwellStopIndex">>,
     now: Date = new Date(),
     extrapolate = false,
 ): RailPosition | null {
     const { lastStopIndex, nextStopIndex, progress } = details.vehicleProgress;
     const stops = details.trip.stoptimes;
+    // Standing at a stop (waiting to depart, out a dwell or arrived): on
+    // its dot, not a little way past it
+    const at =
+        details.activity === "arrived"
+            ? stops.length - 1
+            : details.activity === "beforeDeparture"
+              ? 0
+              : details.dwellStopIndex;
+    if (at != null && at >= 0 && at < stops.length) {
+        return { from: at, to: at, fraction: 0 };
+    }
     if (lastStopIndex == null || nextStopIndex == null) return null;
     if (
         lastStopIndex < 0 ||
@@ -77,7 +94,8 @@ export function railPosition(
             MAX_EXTRAPOLATE_S,
         );
         if (segment > 0) {
-            const ahead = fraction + ((speed / 3.6) * elapsed) / segment;
+            // The API's speed is in m/s
+            const ahead = fraction + (speed * elapsed) / segment;
             fraction = Math.min(
                 ahead,
                 Math.max(fraction, MAX_EXTRAPOLATED_FRACTION),

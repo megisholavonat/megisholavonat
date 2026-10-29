@@ -14,9 +14,12 @@ import { cn } from "@/lib/utils";
 export function MapControls({
     isDesktop,
     skipInitialFly,
+    showLocate = true,
 }: {
     isDesktop: boolean;
     skipInitialFly: boolean;
+    /** Off on desktop while a side panel is open: zoom only (D46) */
+    showLocate?: boolean;
 }) {
     const t = useTranslations("Map");
     const { current: map } = useMap();
@@ -37,31 +40,34 @@ export function MapControls({
             )}
             onWheel={(e) => e.stopPropagation()}
         >
-            <button
-                type="button"
-                className={cn(
-                    "map-button",
-                    isDesktop && "rounded-md",
-                    location.hasLocation && "text-delay-on-time",
-                    location.hasError && "text-ink-2",
-                )}
-                onClick={location.activate}
-                disabled={location.isLoading}
-                aria-label={locateLabel}
-                title={locateLabel}
-            >
-                {location.hasError ? (
-                    <LocateOff className="size-5" aria-hidden />
-                ) : (
-                    <LocateFixed
-                        className={cn(
-                            "size-5",
-                            location.isLoading && "animate-pulse",
-                        )}
-                        aria-hidden
-                    />
-                )}
-            </button>
+            {showLocate && (
+                <button
+                    type="button"
+                    className={cn(
+                        "map-button",
+                        isDesktop && "rounded-md",
+                        location.hasLocation && "text-delay-on-time",
+                        location.hasError && "text-ink-2",
+                    )}
+                    onClick={location.activate}
+                    disabled={location.isLoading}
+                    aria-label={locateLabel}
+                    title={locateLabel}
+                >
+                    {location.hasError ? (
+                        <LocateOff className="size-5" aria-hidden />
+                    ) : (
+                        <LocateFixed
+                            className={cn(
+                                "size-5",
+                                location.isLoading &&
+                                    "motion-safe:animate-pulse",
+                            )}
+                            aria-hidden
+                        />
+                    )}
+                </button>
+            )}
             {isDesktop && (
                 <div className="flex flex-col gap-2">
                     <button

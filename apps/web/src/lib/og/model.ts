@@ -6,13 +6,15 @@ import type {
     VehiclePositionWithDelay,
 } from "@megisholavonat/api-client";
 import { type DelayLevel, getDelayLevel } from "@megisholavonat/core/delay";
+import { type TrainDisplay, trainDisplay } from "@megisholavonat/core/display";
 import { decodePolyline } from "@megisholavonat/core/polyline";
-import type {
-    DepartureShareInfo,
-    TrainShareInfo,
+import {
+    type DepartureShareInfo,
+    type TrainShareInfo,
+    type TrainShareStatus,
+    trainShareStatus,
 } from "@megisholavonat/core/share";
 import { formatSecondsAsTime } from "@megisholavonat/core/time";
-import { isStale } from "@megisholavonat/core/vehicle";
 import {
     beforeDeparture,
     destinationOf,
@@ -39,15 +41,20 @@ export interface TrainCard {
     name: string | null;
     /** MNR2007 glyph character(s) of the route */
     glyph: string | null;
-    /** Glyph colour, "#C82227" */
-    glyphColor: string;
     destination: string;
+    /** Minutes late; 0 unless running */
     delay: number;
     level: DelayLevel;
+    /** As the map and sheet show it (core trainDisplay) */
+    status: TrainShareStatus;
+    /** No fresh data: the last delay is not told */
     stale: boolean;
     waiting: boolean;
-    /** Next stop (the first stop while waiting) and its expected time */
-    next: { name: string; time: string } | null;
+    /**
+     * Next stop (the first stop while waiting) and its expected time; a
+     * forecast is `estimated` ("≈"), as in the sheet
+     */
+    next: { name: string; time: string; estimated: boolean } | null;
     /** Share of the route already run, 0..1 */
     progress: number;
     sketch: RouteSketch | null;
@@ -58,8 +65,8 @@ export interface StationCard {
     departures: (DepartureShareInfo & {
         number: string;
         glyph: string | null;
-        glyphColor: string;
-        level: DelayLevel;
+        /** Null without a live delay: no chip, as on the board */
+        level: DelayLevel | null;
         platform: string | null;
     })[];
 }
@@ -79,10 +86,6 @@ export function glyphText(
         )
         .trim();
     return text || null;
-}
-
-function hexColor(color: string | null | undefined, fallback: string): string {
-    return color && /^[0-9a-f]{6}$/i.test(color) ? `#${color}` : fallback;
 }
 
 const clock = new Intl.DateTimeFormat("hu-HU", {
@@ -174,28 +177,60 @@ export function routeSketch(
     };
 }
 
+/**
+ * What a shared train is doing, by the display the map and sheet use. Data
+ * without `activity` (older APIs) tells a waiting train by its schedule.
+ */
+export function shareStatus(
+    vehicle: VehiclePositionWithDelay,
+    display: TrainDisplay,
+    now: Date = new Date(),
+): TrainShareStatus {
+    const status = trainShareStatus(display);
+    return status === "running" &&
+        display.activity == null &&
+        beforeDeparture(vehicle, now)
+        ? "waiting"
+        : status;
+}
+
 export function trainCard(
     vehicle: VehiclePositionWithDelay,
     now: Date = new Date(),
     sketchAspect = 1,
 ): TrainCard {
     const stoptimes = vehicle.trip.stoptimes;
-    const waiting = beforeDeparture(vehicle, now);
+    // The same state and delay as the train's marker and sheet
+    const display = trainDisplay(vehicle, now);
+    const status = shareStatus(vehicle, display, now);
+    const waiting = status === "waiting";
+    const running = status === "running";
     const nextIdx = waiting ? 0 : nextStopIndex(vehicle);
     const predicted = vehicle.processedStops?.find(
         (s, i) => (s.index ?? i) === nextIdx,
     )?.predictedDelay;
     const stoptime = stoptimes[nextIdx];
-    const next = stoptime
-        ? {
-              name: stoptime.stop.name,
-              time: formatSecondsAsTime(
-                  stopTiming(stoptime, nextIdx, false, vehicle.delay, predicted)
-                      .expected,
-              ),
-          }
-        : null;
-    const delay = Math.max(0, Math.round(vehicle.delay));
+    // The sheet's own timing: the expected time that goes with the delay
+    const timing =
+        stoptime && (running || waiting)
+            ? stopTiming(
+                  stoptime,
+                  nextIdx,
+                  false,
+                  running ? (display.delay ?? 0) : 0,
+                  running ? predicted : undefined,
+                  nextIdx === stoptimes.length - 1,
+              )
+            : null;
+    const next =
+        stoptime && timing
+            ? {
+                  name: stoptime.stop.name,
+                  time: formatSecondsAsTime(timing.expected),
+                  estimated: timing.estimated,
+              }
+            : null;
+    const delay = running ? Math.max(0, Math.round(display.delay ?? 0)) : 0;
     const total = vehicle.totalRouteDistance;
     const progress = waiting
         ? 0
@@ -205,11 +240,11 @@ export function trainCard(
         number: trainNumber(vehicle.trip.tripShortName),
         name: trainName(vehicle.trip.tripShortName),
         glyph: glyphText(vehicle.trip.route.shortName),
-        glyphColor: hexColor(vehicle.trip.route.textColor, "#14161A"),
         destination: destinationOf(vehicle),
         delay,
         level: getDelayLevel(delay),
-        stale: isStale(vehicle, now),
+        status,
+        stale: status === "noData",
         waiting,
         next,
         progress: Math.min(1, Math.max(0, progress)),
@@ -222,15 +257,37 @@ export function trainShareInfo(card: TrainCard): TrainShareInfo {
         number: card.number,
         delay: card.delay,
         waiting: card.waiting,
+        status: card.status,
         next: card.next,
     };
 }
 
-export function stationCard(board: StationBoard, limit = 4): StationCard {
+/**
+ * The delay a departure row tells, by the board's rule: only a live one,
+ * and for a train still due to leave only when it is late ("pontos" would
+ * claim it is already running).
+ */
+export function departureDelay(
+    entry: StationBoard["entries"][number],
+    now: Date,
+): number | null {
+    if (entry.canceled) return null;
+    if (!entry.realtime && entry.delaySource !== "gps") return null;
+    const delay = Math.max(0, Math.round(entry.delayMinutes ?? 0));
+    const ahead = entry.scheduledTime * 1000 > now.getTime();
+    if (ahead && delay <= 0) return null;
+    return delay;
+}
+
+export function stationCard(
+    board: StationBoard,
+    now: Date = new Date(),
+    limit = 4,
+): StationCard {
     return {
         name: board.station.name,
         departures: board.entries.slice(0, limit).map((entry) => {
-            const delay = Math.max(0, Math.round(entry.delayMinutes ?? 0));
+            const delay = departureDelay(entry, now);
             return {
                 time: formatClock(entry.scheduledTime),
                 headsign: entry.headsign ?? "",
@@ -238,8 +295,7 @@ export function stationCard(board: StationBoard, limit = 4): StationCard {
                 canceled: !!entry.canceled,
                 number: trainNumber(entry.tripShortName ?? ""),
                 glyph: glyphText(entry.routeShortName),
-                glyphColor: hexColor(entry.routeTextColor, "#14161A"),
-                level: getDelayLevel(delay),
+                level: delay === null ? null : getDelayLevel(delay),
                 platform: entry.platform ?? null,
             };
         }),

@@ -8,13 +8,14 @@ import {
     getTrainStationHistoryOptions,
     getTrainsOptions,
 } from "@megisholavonat/api-client/react-query";
-import { trainDisplay } from "@megisholavonat/core/display";
-import { shareUrl, trainShareText } from "@megisholavonat/core/share";
-import { ticketUrl } from "@megisholavonat/core/ticket";
+import { tripRun } from "@megisholavonat/core/commute";
 import {
-    formatSecondsAsTime,
-    serviceDayStart,
-} from "@megisholavonat/core/time";
+    shareUrl,
+    trainShareStatus,
+    trainShareText,
+} from "@megisholavonat/core/share";
+import { ticketUrl } from "@megisholavonat/core/ticket";
+import { formatSecondsAsTime } from "@megisholavonat/core/time";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
@@ -28,6 +29,7 @@ import {
     View,
 } from "react-native";
 import { useLocale, useTranslations } from "use-intl";
+import { track } from "../analytics";
 import { WEB_URL } from "../config";
 import { TrainDisruptions } from "../disruptions/DisruptionViews";
 import { findFollowFor } from "../follow/model";
@@ -39,7 +41,12 @@ import { Icon } from "../ui/Icon";
 import { RollingText } from "../ui/motion";
 import { SheetHandle } from "../ui/SheetHandle";
 import { useNow } from "../ui/useNow";
-import { type DelayTileModel, delayTile, reasonTone } from "./delayDisplay";
+import {
+    type DelayTileModel,
+    delayTile,
+    reasonTone,
+    shownDisplay,
+} from "./delayDisplay";
 import { RouteIcon } from "./RouteIcon";
 import { StopList } from "./StopList";
 import { TrainActions } from "./TrainActions";
@@ -50,8 +57,10 @@ import {
     predictedPlatform,
     type StopRow,
     serviceGroups,
+    shareStop,
     sortedAlerts,
     stopRows,
+    trainStop,
     trainTitle,
 } from "./trainData";
 import { patchFeed } from "./trainState";
@@ -111,7 +120,8 @@ export function TrainSheet({
     // One state for the tile, the times and the rail, by the same rules as
     // the map marker
     const input = details ?? feature;
-    const display = input ? trainDisplay(input, now) : null;
+    const where = details ? trainStop(details) : null;
+    const display = input ? shownDisplay(input, now) : null;
     const running = display?.state === "running";
     const stale = display?.state === "stale";
 
@@ -132,6 +142,9 @@ export function TrainSheet({
     const next = rows.find((r) => r.state === "next") ?? null;
     const last = rows.at(-1) ?? null;
     const first = rows[0] ?? null;
+    const arrived = where?.arrived ?? false;
+    // The summary's stop: the next one, or the final one once arrived
+    const shown = next ?? (arrived ? last : null);
 
     const tripShortName = details?.trip.tripShortName ?? feature?.tripShortName;
     const title = tripShortName
@@ -188,17 +201,17 @@ export function TrainSheet({
         // Same link and text as the web share button
         const url = shareUrl(WEB_URL, locale, { vehicleId });
         const stop = notYetDeparted ? first : next;
+        // A delay only while running, as the sheet shows it
+        const shown = display ? trainShareStatus(display) : null;
+        const status =
+            shown === "running" && notYetDeparted ? "waiting" : shown;
         const name = title
             ? trainShareText(locale, {
                   number: title.number,
                   delay: Math.max(0, display?.delay ?? 0),
                   waiting: notYetDeparted,
-                  next: stop
-                      ? {
-                            name: stop.name,
-                            time: formatSecondsAsTime(stop.expected),
-                        }
-                      : null,
+                  status: status ?? undefined,
+                  next: shareStop(stop),
               })
             : "";
         // iOS shares the URL as a link; Android only takes text
@@ -206,7 +219,15 @@ export function TrainSheet({
             Platform.OS === "ios"
                 ? { message: name, url }
                 : { message: t("share_text", { train: name, url }) },
-        );
+        )
+            .then(({ action }) =>
+                track("share_clicked", {
+                    target: "train",
+                    method: "native",
+                    completed: action === Share.sharedAction,
+                }),
+            )
+            .catch(() => undefined);
     };
     const following = details
         ? findFollowFor(follows, details) !== null
@@ -216,10 +237,7 @@ export function TrainSheet({
     const onTicket = () => {
         const from = next ?? first;
         const departure =
-            details && from
-                ? serviceDayStart(details.trip.serviceDate) / 1000 +
-                  from.scheduled
-                : null;
+            details && from ? tripRun(details.trip, from.scheduled).at : null;
         WebBrowser.openBrowserAsync(ticketUrl(from?.uic, last?.uic, departure));
     };
 
@@ -252,7 +270,7 @@ export function TrainSheet({
                         { borderLeftColor: theme.colors.line },
                     ]}
                 >
-                    {next ? (
+                    {shown ? (
                         <>
                             <Text
                                 style={[
@@ -261,14 +279,13 @@ export function TrainSheet({
                                 ]}
                                 numberOfLines={1}
                             >
-                                {next.name}
+                                {shown.name}
                             </Text>
                             <Text style={[styles.nextTime, theme.tabularNums]}>
                                 <Text style={{ color: theme.colors.ink }}>
-                                    {stale ? "≈" : ""}
-                                    {formatSecondsAsTime(next.expected)}
+                                    {summaryTime(t, shown, arrived, stale)}
                                 </Text>
-                                {next.expected !== next.scheduled ? (
+                                {shown.expected !== shown.scheduled ? (
                                     <Text
                                         style={[
                                             styles.scheduled,
@@ -276,12 +293,12 @@ export function TrainSheet({
                                         ]}
                                         accessibilityLabel={t("scheduled", {
                                             time: formatSecondsAsTime(
-                                                next.scheduled,
+                                                shown.scheduled,
                                             ),
                                         })}
                                     >
                                         {"  "}
-                                        {formatSecondsAsTime(next.scheduled)}
+                                        {formatSecondsAsTime(shown.scheduled)}
                                     </Text>
                                 ) : null}
                             </Text>
@@ -376,6 +393,23 @@ export function TrainSheet({
             )}
         </ScrollView>
     );
+}
+
+/**
+ * The summary's time: "megérkezett 01:20" at the destination, "ind. 04:19"
+ * where the train stands, "≈17:44" for an estimate on old data (never for
+ * the first stop's departure, which is the timetable's).
+ */
+function summaryTime(
+    t: ReturnType<typeof useTranslations<"Train">>,
+    row: StopRow,
+    arrived: boolean,
+    stale: boolean,
+): string {
+    const time = formatSecondsAsTime(row.expected);
+    if (arrived) return `${t("arrived")} ${time}`;
+    if (row.standing) return t("departure_short", { time });
+    return stale && !row.isFirst ? `≈${time}` : time;
 }
 
 /**

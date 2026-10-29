@@ -10,7 +10,10 @@
         "zoom_out": "Kicsinyítés",
         "inactive": "nem halad",
         "cluster": "{count} vonat itt",
-        "map_data": "Térképadatok"
+        "map_data": "Térképadatok",
+        "map_title": "Térkép",
+        "marker": "Térképjelölő",
+        "close_popup": "Bezárás"
     },
     "Sheet": {
         "resize": "Panel átméretezése",
@@ -40,6 +43,10 @@
         "disruption": "Zavar",
         "punctuality": "{station}: <b>10-ből {count, select, 0 {0-szor} 1 {1-szer} 2 {2-szer} 3 {3-szor} 4 {4-szer} 5 {5-ször} 6 {6-szor} 7 {7-szer} 8 {8-szor} 9 {9-szer} other {10-szer}}</b> pontos",
         "standing": "áll",
+        "standing_here": "Itt áll",
+        "arrived_at": "érkezett",
+        "departs_at": "indul",
+        "arrives_at": "érkezik",
         "vehicle": "Jármű",
         "vehicle_type_label": "Típus",
         "uic": "UIC",
@@ -90,6 +97,7 @@
         "position": "A vonat helyzete"
     },
     "Station": {
+        "scheduled_time": "menetrend szerint",
         "board": "Menetrendi tábla",
         "board_of": "{station} indulási és érkezési táblája",
         "departures": "Indulás",
@@ -117,6 +125,9 @@
         "back": "Vissza",
         "results": "Találatok",
         "no_results": "Nincs találat",
+        "recent_stations": "Legutóbbi állomások",
+        "popular_stations": "Gyakori állomások",
+        "not_running": "{subject} most nem közlekedik",
         "station_label": "{station} állomás",
         "cancel": "Mégse",
         "stations": "Állomások",
@@ -138,7 +149,8 @@
         "slight": "5+",
         "moderate": "15+",
         "severe": "60+",
-        "stale": "nincs adat · áll",
+        "stale": "perce nincs friss adat",
+        "inactive": "nincs élő késés",
         "title": "Késés",
         "minutes": "perc"
     },
@@ -205,6 +217,7 @@
         "description": "Részletes statisztika egy véletlenszerű azonosítóval (PostHog, EU-s szerver). Kikapcsolva csak a napi látogatószámot mérjük, sütik és tárolt azonosító nélkül, és töröljük a böngésződből a PostHog adatait."
     },
     "PrivacyPage": {
+        "description": "Milyen adatot kezel az alkalmazás, és mire.",
         "title": "Adatvédelmi tájékoztató",
         "back_to_map": "Vissza a térképhez",
         "last_updated": "Utolsó frissítés: {date}"
@@ -254,11 +267,17 @@
         "all_trains": "Összes vonat",
         "by_hour": "Napszak szerint",
         "hour": "Óra",
+        "hour_axis": "pontos 10-ből",
         "by_stop": "Megállónként",
         "few_data": "kevés adat",
         "no_data": "Még kevés az adat",
         "no_data_hint": "Gyűjtjük a menetadatokat, pár nap múlva nézz vissza.",
-        "show_on_map": "Megnyitás a térképen"
+        "show_on_map": "Megnyitás a térképen",
+        "description": "Mennyire pontosak a vonatok: vonalak, vonatok és állomások az elmúlt 28 napban.",
+        "train_description": "{subject} pontossága megállónként, az elmúlt 28 nap menetei alapján.",
+        "station_description": "{station}: mennyire pontosak a vonatok napszak szerint, az elmúlt 28 napban.",
+        "not_found": "Nincs ilyen vonat vagy állomás",
+        "not_found_hint": "Lehet, hogy elírás van a címben. A rangsorban megtalálod a vonalakat, vonatokat és állomásokat."
     },
     "Journey": {
         "title": "Útvonaltervezés",
@@ -280,9 +299,15 @@
         "risk_likely_missed": "Valószínűleg lekésed",
         "canceled": "Törölve",
         "transfer_minutes": "{m} perc átszállásra",
+        "transfer_minutes_expected": "{m} perc átszállásra, várhatóan {e}",
         "walk": "{m} perc séta",
         "on_map": "Mutasd a térképen",
         "empty": "Nincs találat",
         "same_station": "Válassz két különböző állomást"
+    },
+    "Shell": {
+        "train_gone": "Ez a vonat már nem közlekedik",
+        "station_unknown": "Nincs ilyen állomás",
+        "skip_to_search": "Ugrás a keresésre"
     }
 }

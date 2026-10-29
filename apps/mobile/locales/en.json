@@ -1,0 +1,6 @@
+{
+    "ios": {
+        "CFBundleDisplayName": "MHaV",
+        "NSLocationWhenInUseUsageDescription": "Your location is only shown on the map and never sent anywhere."
+    }
+}

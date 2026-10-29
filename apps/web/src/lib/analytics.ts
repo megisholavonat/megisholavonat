@@ -1,5 +1,7 @@
 import { getPosthogKey } from "@megisholavonat/api-client";
-import posthog, { type PostHogConfig } from "posthog-js";
+import { createAnalytics } from "@megisholavonat/core/analytics";
+import type { PostHog, PostHogConfig } from "posthog-js";
+import { version } from "../../package.json";
 
 /**
  * Analytics consent.
@@ -12,9 +14,26 @@ import posthog, { type PostHogConfig } from "posthog-js";
  *
  * The user's choice itself is stored under {@link CONSENT_STORAGE_KEY}, which
  * is strictly necessary to remember it.
+ *
+ * Product events go through {@link analytics} (the typed event list in
+ * `@megisholavonat/core/analytics`) in both modes. Its super properties are
+ * kept in memory and added to each event, never registered in PostHog, so
+ * nothing more is stored. Events queued before a decision are dropped when it
+ * is made, and PostHog starts a fresh identity on opt-in, so nothing from
+ * before the consent is linked to the person after it.
  */
 
 export const CONSENT_STORAGE_KEY = "mhav.consent.analytics";
+
+/**
+ * Typed product events (see `@megisholavonat/core/analytics`). Calls made
+ * before PostHog has loaded wait in a short queue.
+ */
+export const analytics = createAnalytics("web");
+analytics.setSuperProps({ app_version: version });
+
+export const track: typeof analytics.track = (event, props, options) =>
+    analytics.track(event, props, options);
 
 /**
  * Bump this when the analytics processing changes in a way that needs the user
@@ -85,7 +104,17 @@ export function subscribeToConsent(listener: () => void): () => void {
     };
 }
 
-export function setConsent(value: ConsentChoice) {
+export function setConsent(
+    value: ConsentChoice,
+    source: "prompt" | "settings" = "prompt",
+) {
+    // Sent before the switch, in the mode it was made in (cookieless unless
+    // it is a withdrawal), so the acceptance rate can be measured
+    analytics.track(
+        "consent_decided",
+        { decision: value, source },
+        { instant: true },
+    );
     const stored: StoredConsent = {
         value,
         version: CONSENT_VERSION,
@@ -150,8 +179,34 @@ const modeFor = (consent: ConsentStatus): Mode =>
 
 let currentMode: Mode | null = null;
 let initPromise: Promise<void> | null = null;
+/**
+ * posthog-js, set by startPosthog before anything else touches it. It is a
+ * third of the page's script, so it is fetched once the page has loaded and
+ * the main thread is idle, not ahead of the map.
+ */
+let posthog: PostHog | undefined;
+let loadPromise: Promise<PostHog> | null = null;
 
-function init(key: string) {
+function loadPosthog(): Promise<PostHog> {
+    loadPromise ??= new Promise<void>((resolve) => {
+        const idle = () => {
+            if (typeof requestIdleCallback === "function") {
+                requestIdleCallback(() => resolve(), { timeout: 3000 });
+            } else setTimeout(resolve, 1000);
+        };
+        if (document.readyState === "complete") idle();
+        else window.addEventListener("load", idle, { once: true });
+    })
+        .then(() => import("posthog-js"))
+        .then((module) => module.default)
+        .catch((error: unknown) => {
+            loadPromise = null;
+            throw error;
+        });
+    return loadPromise;
+}
+
+function init(posthog: PostHog, key: string) {
     const mode = modeFor(getConsent());
     posthog.init(key, {
         ...BASE_CONFIG,
@@ -163,10 +218,19 @@ function init(key: string) {
         posthog.opt_in_capturing({ captureEventName: false });
     }
     currentMode = mode;
+    analytics.attach({
+        capture: (event, properties, { instant }) => {
+            posthog.capture(
+                event,
+                properties,
+                instant ? { send_instantly: true } : undefined,
+            );
+        },
+    });
 }
 
 /** Switch a running PostHog instance between cookieless and persistent. */
-function switchMode(mode: Mode) {
+function switchMode(posthog: PostHog, mode: Mode) {
     if (mode === "persistent") {
         // "always" cannot be opted into, so move to "on_reject" and go through
         // an explicit opt-out: opting in from there resets PostHog and starts
@@ -188,14 +252,21 @@ async function startPosthog() {
     // Analytics are never sent from local development.
     if (process.env.NODE_ENV === "development") return;
 
-    if (!posthog.__loaded) {
+    let ph: PostHog;
+    try {
+        ph = await loadPosthog();
+    } catch {
+        return;
+    }
+    posthog = ph;
+    if (!ph.__loaded) {
         initPromise ??= (async () => {
             const { data } = await getPosthogKey();
             if (!data?.key) {
                 initPromise = null;
                 return;
             }
-            init(data.key);
+            init(ph, data.key);
         })().catch(() => {
             initPromise = null;
         });
@@ -204,13 +275,16 @@ async function startPosthog() {
 
     // The choice may have changed since PostHog was started.
     const mode = modeFor(getConsent());
-    if (posthog.__loaded && currentMode !== mode) switchMode(mode);
+    if (ph.__loaded && currentMode !== mode) switchMode(ph, mode);
 }
 
 /** Start PostHog, or switch its mode, according to the stored choice. */
 export function applyConsent(value: ConsentStatus = getConsent()) {
     if (typeof window === "undefined") return;
-    if (modeFor(value) === "cookieless" && !posthog.__loaded) {
+    analytics.setMode(
+        modeFor(value) === "persistent" ? "persistent" : "anonymous",
+    );
+    if (modeFor(value) === "cookieless" && !posthog?.__loaded) {
         // Also removes data left behind by earlier versions of the site,
         // which ran PostHog with persistence without asking.
         clearPosthogStorage();

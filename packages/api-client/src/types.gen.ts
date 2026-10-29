@@ -148,6 +148,10 @@ export type BoardEntry = {
      */
     vehicleId?: string | null;
     reason?: DelayReason | null;
+    /**
+     * Disruption
+     */
+    disruption?: 'no_service' | 'replacement_bus' | null;
 };
 
 /**
@@ -1745,6 +1749,10 @@ export type VehiclePositionWithDelay = {
      * Activity
      */
     activity?: 'running' | 'beforeDeparture' | 'arrived' | 'offRoute' | 'cancelled' | null;
+    /**
+     * Dwellstopindex
+     */
+    dwellStopIndex?: number | null;
 };
 
 /**

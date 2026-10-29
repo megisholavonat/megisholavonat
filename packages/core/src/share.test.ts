@@ -3,6 +3,7 @@ import {
     huTrainSubject,
     shareUrl,
     stationShareText,
+    trainShareStatus,
     trainShareText,
 } from "./share";
 
@@ -52,7 +53,7 @@ describe("trainShareText", () => {
                 waiting: false,
                 next,
             }),
-        ).toBe("A 10-es vonat +9 perc késésben, Debrecen 02:06");
+        ).toBe("A 10-es vonat 9 percet késik, Debrecen 02:06");
         expect(
             trainShareText("en", {
                 number: "10",
@@ -60,7 +61,26 @@ describe("trainShareText", () => {
                 waiting: false,
                 next,
             }),
-        ).toBe("Train 10 is running 9 min late, Debrecen 02:06");
+        ).toBe("Train 10 is 9 min late, Debrecen 02:06");
+    });
+
+    it("marks a forecast time with ≈", () => {
+        expect(
+            trainShareText("hu", {
+                number: "650",
+                delay: 15,
+                waiting: false,
+                next: { name: "Szolnok", time: "06:07", estimated: true },
+            }),
+        ).toBe("A 650-es vonat 15 percet késik, Szolnok ≈06:07");
+        expect(
+            trainShareText("en", {
+                number: "650",
+                delay: 15,
+                waiting: false,
+                next: { name: "Szolnok", time: "06:07", estimated: true },
+            }),
+        ).toBe("Train 650 is 15 min late, Szolnok ≈06:07");
     });
 
     it("calls small delays on time", () => {
@@ -93,7 +113,89 @@ describe("trainShareText", () => {
                 waiting: false,
                 next: null,
             }),
-        ).toBe("A 10-es vonat +30 perc késésben");
+        ).toBe("A 10-es vonat 30 percet késik");
+    });
+
+    it("tells no delay for a train that is not running", () => {
+        const info = { number: "10", delay: 12, waiting: false, next };
+        expect(trainShareText("hu", { ...info, status: "cancelled" })).toBe(
+            "A 10-es vonat törölve",
+        );
+        expect(trainShareText("hu", { ...info, status: "arrived" })).toBe(
+            "A 10-es vonat megérkezett",
+        );
+        expect(trainShareText("hu", { ...info, status: "noData" })).toBe(
+            "A 10-es vonatról nincs friss adat",
+        );
+        expect(trainShareText("en", { ...info, status: "arrived" })).toBe(
+            "Train 10 has arrived",
+        );
+        expect(
+            trainShareText("hu", { ...info, status: "offRoute" }),
+        ).not.toMatch(/friss adat/);
+        expect(trainShareText("en", { ...info, status: "noData" })).toBe(
+            "No fresh data on train 10",
+        );
+    });
+});
+
+describe("trainShareStatus", () => {
+    const base = {
+        level: "stale" as const,
+        outdated: false,
+        minutesSinceUpdate: 0,
+        label: "",
+        delay: null,
+    };
+
+    it("follows the train's display state", () => {
+        expect(
+            trainShareStatus({
+                ...base,
+                state: "running",
+                activity: "running",
+                level: "slight",
+                delay: 7,
+            }),
+        ).toBe("running");
+        expect(
+            trainShareStatus({
+                ...base,
+                state: "cancelled",
+                activity: "cancelled",
+            }),
+        ).toBe("cancelled");
+        expect(
+            trainShareStatus({ ...base, state: "idle", activity: "arrived" }),
+        ).toBe("arrived");
+        expect(
+            trainShareStatus({
+                ...base,
+                state: "idle",
+                activity: "beforeDeparture",
+            }),
+        ).toBe("waiting");
+        // Fresh, but off its route: no delay, yet not "no fresh data"
+        expect(
+            trainShareStatus({ ...base, state: "idle", activity: "offRoute" }),
+        ).toBe("offRoute");
+        expect(
+            trainShareStatus({
+                ...base,
+                state: "idle",
+                activity: "offRoute",
+                outdated: true,
+            }),
+        ).toBe("noData");
+        expect(
+            trainShareStatus({
+                ...base,
+                state: "stale",
+                activity: "running",
+                outdated: true,
+                delay: 7,
+            }),
+        ).toBe("noData");
     });
 });
 
@@ -114,9 +216,15 @@ describe("stationShareText", () => {
                     canceled: false,
                 },
                 { time: "04:20", headsign: "Cegléd", delay: 0, canceled: true },
+                {
+                    time: "04:30",
+                    headsign: "Vác",
+                    delay: null,
+                    canceled: false,
+                },
             ]),
         ).toBe(
-            "Indulások: 04:00 Miskolc-Tiszai pontos · 04:10 Szolnok +7 · 04:20 Cegléd törölve",
+            "Indulások: 04:00 Miskolc-Tiszai pontos · 04:10 Szolnok +7 · 04:20 Cegléd törölve · 04:30 Vác",
         );
     });
 

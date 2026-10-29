@@ -8,7 +8,7 @@ export async function generateMetadata({
     params: Promise<{ locale: string }>;
 }) {
     const { locale } = await params;
-    return statsMetadata(locale);
+    return statsMetadata({ locale, path: "/stats" });
 }
 
 export default function Page() {

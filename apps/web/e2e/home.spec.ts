@@ -11,7 +11,9 @@ import {
 
 test("home renders the map, search and controls", async ({ page }) => {
     await openHome(page);
-    await expect(page.getByRole("region", { name: "Map" })).toBeVisible();
+    await expect(
+        page.getByRole("region", { name: t.Map.map_title }),
+    ).toBeVisible();
     await expect(
         page.getByRole("button", { name: t.Map.locate }),
     ).toBeVisible();
@@ -64,7 +66,7 @@ test("P5: phone search keeps the map in view", async ({ page, isPhone }) => {
     await expect(page.getByRole("option").first()).toBeVisible();
     // The map still shows above the search
     const mapShows = await page
-        .getByRole("region", { name: "Map" })
+        .getByRole("region", { name: t.Map.map_title })
         .evaluate((map) => {
             const hit = document.elementFromPoint(window.innerWidth / 2, 60);
             return !!hit && map.contains(hit);

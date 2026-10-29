@@ -27,6 +27,7 @@ import {
 import {
     createVehicleState,
     onPositionUpdate,
+    routeFromPolyline,
     setRoute,
     tick,
     type VehicleState,
@@ -35,7 +36,6 @@ import type {
     Feature,
     FeatureCollection,
     GeoJSON as GeoJsonType,
-    LineString,
     Point,
 } from "geojson";
 import {
@@ -47,7 +47,7 @@ import {
     setWorkerUrl,
 } from "maplibre-gl";
 import { useReducedMotion } from "motion/react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import {
     memo,
     type Ref,
@@ -58,6 +58,11 @@ import {
     useRef,
     useState,
 } from "react";
+import {
+    basemapTransform,
+    SLOTS,
+    STYLE_URLS,
+} from "@/components/map/basemapStyle";
 import { MapAttribution } from "@/components/map/MapAttribution";
 import { MapControls } from "@/components/map/MapControls";
 import {
@@ -69,10 +74,12 @@ import {
     markerImage,
     PILL_PADDING_X,
     pillHeight,
+    prewarmMarkerImages,
     stationImageId,
 } from "@/components/map/markerImages";
 import { markerDisplay } from "@/components/map/markerState";
 import { TrainTooltip } from "@/components/map/TrainTooltip";
+import { warmUpShaders } from "@/components/map/warmUpShaders";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
 import { useTheme } from "@/components/ui/ThemeProvider";
 import { useSettings } from "@/hooks/useSettings";
@@ -103,6 +110,8 @@ function createTransparentBasemapIcon(): ImageData {
 
 // Interpolated train positions are pushed to the map at most this often.
 const VEHICLE_FRAME_INTERVAL_MS = 1000 / 12;
+/** Budget of one slice of route decoding, well inside a frame */
+const ROUTE_SLICE_MS = 8;
 // Skip setData unless some train moved more than this (degrees, ~0.1 m)…
 const VEHICLE_COORD_EPSILON = 1e-6;
 // …or turned more than this many degrees.
@@ -122,6 +131,16 @@ const HIT_RADIUS = MARKER.hitArea / 2;
 /** How often stale minutes and states are re-judged against the clock. */
 const CLOCK_TICK_MS = 30_000;
 
+/**
+ * From this zoom the railway overlay (a raster, its z11 tiles picked from
+ * zoom 10.5 on) writes out station names;
+ * below it only codes ("SL"). A drawn route's stop names show below it
+ * only, so a station is never named twice in the same spot.
+ */
+const RAILWAY_NAMES_MIN_ZOOM = 10.5;
+/** No limit: without the overlay the route's stop names always show */
+const NO_MAX_ZOOM = 24;
+
 // Overlapping trains merge into a count bubble up to this zoom
 const CLUSTER_RADIUS = 22;
 const CLUSTER_MAX_ZOOM = 15;
@@ -129,28 +148,12 @@ const CLUSTER_MAX_ZOOM = 15;
 const CLUSTER_LIST_SPREAD_PX = 36;
 const CLUSTER_LIST_MAX = 30;
 
-const STYLE_URLS: Record<ColorScheme, string> = {
-    light: "https://tiles.openfreemap.org/styles/positron",
-    dark: "https://tiles.openfreemap.org/styles/dark",
-};
-
 const SOURCES = {
     base: "vehicles-source",
     pinned: "vehicles-pinned-source",
     selected: "vehicles-selected-source",
 } as const;
 type Group = keyof typeof SOURCES;
-
-/**
- * Empty, hidden layers that hold the draw order: overlays added later go
- * below their slot, so the route, stops and station never cover the trains.
- */
-const SLOTS = {
-    route: "slot-route",
-    stops: "slot-stops",
-    station: "slot-station",
-    trains: "slot-trains",
-} as const;
 
 const PINNED = (id: string) => `${id}-pinned`;
 const SEL = {
@@ -546,6 +549,7 @@ export default function MapComponent({
     flyTarget,
     insets,
     isDesktop,
+    panelOpen = false,
 }: {
     trains: TrainFeatureCollection | undefined;
     selectedId: string | null;
@@ -557,15 +561,34 @@ export default function MapComponent({
     flyTarget: FlyTarget | null;
     insets: MapInsets;
     isDesktop: boolean;
+    /** Desktop: a side panel is open, so only the zoom buttons stay */
+    panelOpen?: boolean;
 }) {
     const settings = useSettings();
     const { resolvedTheme } = useTheme();
     const scheme: ColorScheme = resolvedTheme === "dark" ? "dark" : "light";
+    const locale = useLocale();
+    const t = useTranslations("Map");
+    // The style the map is created with; later themes go through setStyle
+    const [initialStyle] = useState(() => ({
+        url: STYLE_URLS[scheme],
+        transform: basemapTransform(scheme, locale),
+    }));
+    const mapLocale = useMemo(
+        () => ({
+            "Map.Title": t("map_title"),
+            "Marker.Title": t("marker"),
+            "Popup.Close": t("close_popup"),
+        }),
+        [t],
+    );
     const prefersReducedMotion = useReducedMotion() ?? false;
     const animating = settings.animateVehicles && !prefersReducedMotion;
     const nowMs = useClock();
     const mapRef = useRef<MapRef>(null);
     const trackersRef = useRef<Map<string, VehicleState>>(new Map());
+    /** The route polyline each tracker was given */
+    const routesRef = useRef<Map<string, string>>(new Map());
     /** Where the animation last drew each train: [lon, lat, bearing] */
     const shownRef = useRef<Map<string, [number, number, number]>>(new Map());
     const filteredTrainsRef = useRef<FeatureCollection | null>(null);
@@ -673,6 +696,9 @@ export default function MapComponent({
         if (!trains) return;
 
         const activeIds = new Set<string>();
+        // New routes, decoded and measured in slices after this pass: a
+        // feed holds hundreds of long routes, too much for one task
+        const pending: (() => void)[] = [];
 
         for (const feature of trains.features) {
             const props = feature.properties as TrainFeatureProperties;
@@ -693,27 +719,53 @@ export default function MapComponent({
                 trackersRef.current.set(vehicleId, state);
             }
 
-            if (routePolyline) {
-                setRoute(state, {
-                    type: "Feature",
-                    properties: {},
-                    geometry: polyline.toGeoJSON(routePolyline) as LineString,
-                });
-            }
             // API returns speed in m/s (GTFS-RT); convert to km/h for dead reckoning.
             // distanceToNextStop is already in km (computed on backend).
-            onPositionUpdate(
-                state,
-                [lon, lat],
-                (speed ?? 0) * 3.6,
-                heading ?? 0,
-                distanceToNextStop ?? null,
-            );
+            const update = (s: VehicleState) =>
+                onPositionUpdate(
+                    s,
+                    [lon, lat],
+                    (speed ?? 0) * 3.6,
+                    heading ?? 0,
+                    distanceToNextStop ?? null,
+                );
+            update(state);
+            if (
+                routePolyline &&
+                routesRef.current.get(vehicleId) !== routePolyline
+            ) {
+                const target = state;
+                pending.push(() => {
+                    routesRef.current.set(vehicleId, routePolyline);
+                    setRoute(target, routeFromPolyline(routePolyline));
+                    // Snaps to the route and places the next stop on it
+                    update(target);
+                });
+            }
         }
         // Remove trackers for vehicles that are no longer in the feed
         for (const id of trackersRef.current.keys()) {
-            if (!activeIds.has(id)) trackersRef.current.delete(id);
+            if (!activeIds.has(id)) {
+                trackersRef.current.delete(id);
+                routesRef.current.delete(id);
+            }
         }
+
+        // Until its route is in, a train stays where the feed puts it
+        let timer: ReturnType<typeof setTimeout> | null = null;
+        let next = 0;
+        const slice = () => {
+            timer = null;
+            const until = performance.now() + ROUTE_SLICE_MS;
+            while (next < pending.length && performance.now() < until) {
+                pending[next++]();
+            }
+            if (next < pending.length) timer = setTimeout(slice, 0);
+        };
+        if (pending.length) timer = setTimeout(slice, 0);
+        return () => {
+            if (timer !== null) clearTimeout(timer);
+        };
     }, [trains]);
 
     // Keep the hovered tooltip's content in sync with fresh feed data. Its
@@ -750,7 +802,9 @@ export default function MapComponent({
 
         const update = (timestamp: number, advance: boolean) => {
             const data = filteredTrainsRef.current;
-            if (!data || !map.isStyleLoaded()) return;
+            // Not map.isStyleLoaded(): that stays false while any tile is
+            // loading, so a slow overlay tile server froze every train
+            if (!data || !map.style) return;
             const source = map.getSource(SOURCES.base) as
                 | GeoJSONSource
                 | undefined;
@@ -959,6 +1013,25 @@ export default function MapComponent({
             },
         };
     }, [station]);
+
+    // The selected station's name, in a box under its ring
+    const stationLabelLayout = useMemo(
+        () => ({
+            "text-field": ["get", "name"] as ExpressionSpecification,
+            "text-font": ["Noto Sans Bold"],
+            "text-size": 13,
+            "text-anchor": "top" as const,
+            "text-offset": [0, 1.35] as [number, number],
+            "text-max-width": 12,
+            "text-allow-overlap": true,
+            "text-ignore-placement": true,
+            "icon-image": stationImageId(scheme, "label"),
+            "icon-text-fit": "both" as const,
+            "icon-allow-overlap": true,
+            "icon-ignore-placement": true,
+        }),
+        [scheme],
+    );
 
     // Every other marker fades to 60 % while a train is selected. A constant
     // (not per-feature) opacity, so MapLibre can transition it.
@@ -1200,6 +1273,16 @@ export default function MapComponent({
         };
     }, [selectedId, mapLoaded, prefersReducedMotion, ringRadius]);
 
+    // Draw the scheme's marker sprites in idle time once trains are on the
+    // map, so selecting one doesn't stall on canvas work
+    const hasTrains = !!trains;
+    useEffect(() => {
+        if (!mapLoaded || !hasTrains) return;
+        const map = mapRef.current?.getMap();
+        if (!map) return;
+        return prewarmMarkerImages(map, scheme);
+    }, [mapLoaded, hasTrains, scheme]);
+
     // Marker sprites are drawn on first use. The resolver goes in as soon as
     // the map exists, before any layer asks for an image.
     const attachMap = useCallback((ref: MapRef | null) => {
@@ -1215,49 +1298,43 @@ export default function MapComponent({
                 map.addImage(id, createTransparentBasemapIcon());
             }
         });
+        // Ready once the style is parsed. Not the "load" event: that waits
+        // for every tile, so one slow overlay tile kept all trains off the map
+        if (map.style?._loaded) setMapLoaded(true);
+        else map.once("style.load", () => setMapLoaded(true));
     }, []);
 
-    // Match the basemap's land colour to the one the marker colours were
-    // checked against
+    // A theme switch swaps the basemap in place: the transform carries the
+    // app's sources and layers (and their draw order) over to the new style,
+    // so the camera, the selection and the layer order all stay
+    const appliedSchemeRef = useRef(scheme);
     useEffect(() => {
-        if (!mapLoaded) return;
         const map = mapRef.current?.getMap();
-        if (!map) return;
-        const paintBackground = () => {
-            for (const id of ["background", "Background"]) {
-                if (map.getLayer(id)) {
-                    map.setPaintProperty(
-                        id,
-                        "background-color",
-                        COLORS[scheme].map,
-                    );
-                }
-            }
-        };
-        paintBackground();
-        map.on("style.load", paintBackground);
-        return () => {
-            try {
-                map.off("style.load", paintBackground);
-            } catch {
-                /* Map may already be removed. */
-            }
-        };
-    }, [mapLoaded, scheme]);
+        if (!map || appliedSchemeRef.current === scheme) return;
+        appliedSchemeRef.current = scheme;
+        map.setStyle(STYLE_URLS[scheme], {
+            diff: true,
+            transformStyle: basemapTransform(scheme, locale),
+        });
+    }, [scheme, locale]);
 
     // On the dark map the overlay's tiles are inverted (and hue-rotated back),
-    // so its dark-blue station names turn light and stay readable
+    // so its dark-blue station names turn light and stay readable; mostly
+    // desaturated, so tram and metro lines read as grey, not magenta
     const railwayPaint = useMemo(
         () =>
             scheme === "dark"
                 ? {
-                      "raster-opacity": 0.7,
-                      "raster-brightness-min": 0.92,
+                      // Not too bright: a dense station yard would turn
+                      // into a pale slab
+                      "raster-opacity": 0.55,
+                      "raster-brightness-min": 0.48,
                       "raster-brightness-max": 0.2,
                       "raster-hue-rotate": 180,
-                      "raster-saturation": -0.1,
+                      "raster-saturation": -0.75,
                   }
-                : { "raster-opacity": 0.75 },
+                : // Softer pink and lilac in light too: no loud purple lines
+                  { "raster-opacity": 0.75, "raster-saturation": -0.4 },
         [scheme],
     );
 
@@ -1421,6 +1498,127 @@ export default function MapComponent({
 
     const colors = COLORS[scheme];
 
+    // The selected train's route and stops, shared with the shader warm-up
+    const routeLine = useMemo(
+        () => ({
+            paint: {
+                "line-color": colors.ink,
+                "line-opacity": 0.72,
+                "line-width": 4,
+            },
+            layout: {
+                "line-cap": "round",
+                "line-join": "round",
+            } as const,
+        }),
+        [colors],
+    );
+    const stopCircle = useMemo(
+        () => ({
+            "circle-radius": 4.5,
+            "circle-color": [
+                "case",
+                ["boolean", ["get", "hasPassed"], false],
+                colors.ink2,
+                colors.surface,
+            ] as ExpressionSpecification,
+            "circle-stroke-width": 2,
+            "circle-stroke-color": colors.ink,
+        }),
+        [colors],
+    );
+    const stopLabel = useMemo(
+        () => ({
+            layout: {
+                "text-field": ["get", "name"] as ExpressionSpecification,
+                "text-size": 13,
+                "text-offset": [0, 1] as [number, number],
+                "text-anchor": "top" as const,
+                "text-font": ["Noto Sans Bold"],
+            },
+            paint: {
+                "text-color": colors.ink,
+                "text-halo-color": colors.map,
+                "text-halo-width": 2,
+            },
+        }),
+        [colors],
+    );
+
+    // Compile those shaders in idle time, before any train is opened
+    // biome-ignore lint/correctness/useExhaustiveDependencies: once per map, the programs stay compiled
+    useEffect(() => {
+        if (!mapLoaded || !hasTrains) return;
+        const map = mapRef.current?.getMap();
+        if (!map) return;
+        const id = (name: string) => `mhav-warmup-${name}`;
+        const hint = 0.01;
+        return warmUpShaders(map, [
+            {
+                id: id("route"),
+                type: "line",
+                source: "mhav-warmup",
+                layout: routeLine.layout,
+                paint: { ...routeLine.paint, "line-opacity": hint },
+            },
+            {
+                id: id("stops"),
+                type: "circle",
+                source: "mhav-warmup",
+                filter: ["==", ["geometry-type"], "Point"],
+                paint: {
+                    ...stopCircle,
+                    "circle-opacity": hint,
+                    "circle-stroke-opacity": hint,
+                },
+            },
+            {
+                id: id("labels"),
+                type: "symbol",
+                source: "mhav-warmup",
+                filter: ["==", ["geometry-type"], "Point"],
+                layout: stopLabel.layout,
+                paint: { ...stopLabel.paint, "text-opacity": hint },
+            },
+            // Zoomed out, a phone shows only dots; the "+N" pills of a
+            // zoomed-in train and the selected dot draw for the first time
+            // when a train opens
+            {
+                id: id("dot"),
+                type: "circle",
+                source: "mhav-warmup",
+                filter: ["==", ["geometry-type"], "Point"],
+                paint: {
+                    ...dotPaint,
+                    "circle-opacity": hint,
+                    "circle-stroke-opacity": hint,
+                },
+            },
+            {
+                id: id("pill"),
+                type: "symbol",
+                source: "mhav-warmup",
+                filter: ["==", ["geometry-type"], "Point"],
+                layout: {
+                    "icon-image": imageId("pill"),
+                    "icon-text-fit": "both",
+                    "icon-allow-overlap": true,
+                    "icon-ignore-placement": true,
+                    "text-field": ["get", "label"],
+                    "text-font": ["Noto Sans Bold"],
+                    "text-size": pillTextSize,
+                    "text-allow-overlap": true,
+                    "text-ignore-placement": true,
+                },
+                paint: {
+                    "text-color": pillTextColor,
+                    "icon-opacity": hint,
+                    "text-opacity": hint,
+                },
+            },
+        ]);
+    }, [mapLoaded, hasTrains]);
+
     // The label and tooltip start where the animation drew their train (the
     // feed's raw position would make them jump ahead of a gliding marker)
     const placedSelected = useMemo(
@@ -1448,7 +1646,9 @@ export default function MapComponent({
                 touchPitch={false}
                 attributionControl={false}
                 style={{ width: "100%", height: "100%" }}
-                mapStyle={STYLE_URLS[scheme]}
+                mapStyle={initialStyle.url}
+                transformStyle={initialStyle.transform}
+                locale={mapLocale}
                 interactiveLayerIds={markerLayerIds}
                 cursor={cursor ?? undefined}
                 onClick={onClick}
@@ -1464,16 +1664,8 @@ export default function MapComponent({
                 <MapControls
                     isDesktop={isDesktop}
                     skipInitialFly={!!selectedId || !!station}
+                    showLocate={!isDesktop || !panelOpen}
                 />
-                {/* Draw-order slots, bottom to top; must come first */}
-                {Object.values(SLOTS).map((id) => (
-                    <Layer
-                        key={id}
-                        id={id}
-                        type="background"
-                        layout={{ visibility: "none" }}
-                    />
-                ))}
                 {settings.showRailwayOverlay && (
                     <Source
                         id="railway-source"
@@ -1484,7 +1676,7 @@ export default function MapComponent({
                         <Layer
                             id={LAYER_IDS.RAILWAY}
                             type="raster"
-                            beforeId={SLOTS.route}
+                            beforeId={SLOTS.railway}
                             paint={railwayPaint}
                         />
                     </Source>
@@ -1499,15 +1691,8 @@ export default function MapComponent({
                             id={LAYER_IDS.ROUTE_LINE}
                             type="line"
                             beforeId={SLOTS.stops}
-                            paint={{
-                                "line-color": colors.ink,
-                                "line-opacity": 0.72,
-                                "line-width": 4,
-                            }}
-                            layout={{
-                                "line-cap": "round",
-                                "line-join": "round",
-                            }}
+                            paint={routeLine.paint}
+                            layout={routeLine.layout}
                         />
                     </Source>
                 )}
@@ -1521,57 +1706,26 @@ export default function MapComponent({
                             id={LAYER_IDS.STOP_CIRCLES}
                             type="circle"
                             beforeId={SLOTS.station}
-                            paint={{
-                                "circle-radius": 4.5,
-                                "circle-color": [
-                                    "case",
-                                    ["boolean", ["get", "hasPassed"], false],
-                                    colors.ink2,
-                                    colors.surface,
-                                ],
-                                "circle-stroke-width": 2,
-                                "circle-stroke-color": colors.ink,
-                            }}
+                            paint={stopCircle}
                         />
                         {settings.showStationNames && (
                             <Layer
                                 id={LAYER_IDS.STOP_LABELS}
                                 type="symbol"
                                 beforeId={SLOTS.station}
-                                layout={{
-                                    "text-field": ["get", "name"],
-                                    "text-size": 13,
-                                    "text-offset": [0, 1],
-                                    "text-anchor": "top",
-                                    "text-font": ["Noto Sans Bold"],
-                                }}
+                                maxzoom={
+                                    settings.showRailwayOverlay
+                                        ? RAILWAY_NAMES_MIN_ZOOM
+                                        : NO_MAX_ZOOM
+                                }
+                                layout={stopLabel.layout}
                                 paint={{
-                                    "text-color": colors.ink,
-                                    "text-halo-color": colors.map,
-                                    "text-halo-width": 2,
+                                    ...stopLabel.paint,
                                     "text-opacity":
                                         settings.stationNamesOpacity,
                                 }}
                             />
                         )}
-                    </Source>
-                )}
-                {stationGeojson && (
-                    <Source
-                        id="station-source"
-                        type="geojson"
-                        data={stationGeojson}
-                    >
-                        <Layer
-                            id={LAYER_IDS.STATION}
-                            type="symbol"
-                            beforeId={SLOTS.trains}
-                            layout={{
-                                "icon-image": stationImageId(scheme),
-                                "icon-allow-overlap": true,
-                                "icon-ignore-placement": true,
-                            }}
-                        />
                     </Source>
                 )}
                 <Source
@@ -1587,6 +1741,7 @@ export default function MapComponent({
                     {/* Overlapping trains: a count bubble… */}
                     <Layer
                         id={CLUSTER.bubble}
+                        beforeId={LAYER_IDS.TRAIN_PILL}
                         type="circle"
                         filter={["has", "point_count"]}
                         paint={{
@@ -1610,6 +1765,7 @@ export default function MapComponent({
                     />
                     <Layer
                         id={CLUSTER.count}
+                        beforeId={LAYER_IDS.TRAIN_PILL}
                         type="symbol"
                         filter={["has", "point_count"]}
                         layout={{
@@ -1628,6 +1784,7 @@ export default function MapComponent({
                     {/* …with a dot in the colour of its most delayed train */}
                     <Layer
                         id={CLUSTER.badge}
+                        beforeId={LAYER_IDS.TRAIN_PILL}
                         type="symbol"
                         filter={[
                             "all",
@@ -1666,6 +1823,45 @@ export default function MapComponent({
                             "icon-opacity": othersOpacity,
                             "icon-opacity-transition": fade,
                         }}
+                    />
+                </Source>
+                {/*
+                 * The selected station: its edge under the trains, its ring
+                 * above the clusters and plain dots (late pills still draw
+                 * over it) and its name above every unpinned train, so a busy
+                 * station stays readable.
+                 */}
+                {/* Always mounted, so its layers keep their place in the order */}
+                <Source
+                    id="station-source"
+                    type="geojson"
+                    data={stationGeojson ?? EMPTY}
+                >
+                    <Layer
+                        id={LAYER_IDS.STATION}
+                        type="symbol"
+                        beforeId={SLOTS.trains}
+                        layout={{
+                            "icon-image": stationImageId(scheme, "clear"),
+                            "icon-allow-overlap": true,
+                            "icon-ignore-placement": true,
+                        }}
+                    />
+                    <Layer
+                        id={LAYER_IDS.STATION_RING}
+                        type="symbol"
+                        beforeId={LAYER_IDS.TRAIN_PILL}
+                        layout={{
+                            "icon-image": stationImageId(scheme, "ring"),
+                            "icon-allow-overlap": true,
+                            "icon-ignore-placement": true,
+                        }}
+                    />
+                    <Layer
+                        id={LAYER_IDS.STATION_LABEL}
+                        type="symbol"
+                        layout={stationLabelLayout}
+                        paint={{ "text-color": colors.ink }}
                     />
                 </Source>
                 {/* Followed trains: never clustered */}

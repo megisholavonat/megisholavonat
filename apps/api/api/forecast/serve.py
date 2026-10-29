@@ -40,12 +40,36 @@ MAX_OFF_ROUTE_M = 500
 MAX_ABS_DELAY_S = 6 * 3600
 # How often a worker checks for a newer model
 MODEL_CHECK_INTERVAL_S = 10 * 60
+# How far ahead of its timetable a train leaving a stop on time can get on the
+# way to a later one: timetable padding, mostly before the terminus. In the
+# history of 2026-10-15..29, after an on-time departure 95% of trains were at
+# most 1 min early at any later stop, the terminus included (where 2-5% were
+# a minute or more early). A long run may gain a little more.
+MAX_EARLY_S = 60
+MAX_EARLY_SHARE = 0.05
 
 
 @dataclass
 class _Row:
     loc: int  # index into the locations list
     stop_index: int
+    # Lowest delay (seconds) the train can have there: it cannot pass the stop
+    # before now, nor, while standing at a stop, leave it early and then gain
+    # more than the padding of its timetable
+    floor_s: float
+
+
+def _floor(now_s: int, sched: int, dwell_dep: int | None, at_dwell_stop: bool) -> float:
+    """The lowest delay at a stop due at `sched`: `dwell_dep` is the departure
+    of the stop the train stands at, if any."""
+    floor = float(now_s - sched)
+    if dwell_dep is None:
+        return floor
+    left = max(now_s - dwell_dep, 0)
+    if at_dwell_stop:
+        return max(floor, float(left))
+    early = max(MAX_EARLY_S, MAX_EARLY_SHARE * (sched - dwell_dep))
+    return max(floor, left - early)
 
 
 @lru_cache(maxsize=8192)
@@ -116,6 +140,14 @@ def build_examples(
         product = float(product_code(short))
         hour = float((now_s // 3600) % 24)
         day = _daytype(trip["serviceDate"])
+        # Standing at a stop it leaves on time at the earliest, and the run
+        # from there takes about its scheduled time
+        dwell_index = loc.get("dwellStopIndex")
+        dwell_dep = (
+            stoptimes[dwell_index].get("scheduledDeparture")
+            if dwell_index is not None and 0 <= dwell_index < len(stoptimes)
+            else None
+        )
         for j in range(last_idx + 1, final + 1):
             st = stoptimes[j]
             sched = st.get("scheduledArrival" if j == final else "scheduledDeparture")
@@ -139,7 +171,8 @@ def build_examples(
             cols["is_terminus"].append(float(j == final))
             short_keys.append(short_key)
             station_keys.append(_hash(station))
-            rows.append(_Row(n, j))
+            floor = _floor(now_s, sched, dwell_dep, j == dwell_index)
+            rows.append(_Row(n, j, floor))
     ex = Examples(
         cols={k: np.asarray(v, dtype=np.float64) for k, v in cols.items()},
         short_key=np.asarray(short_keys, dtype=np.uint64),
@@ -163,7 +196,7 @@ def annotate_locations(
         pred, _ = model.predict(ex)
     by_loc: dict[int, dict[int, int]] = {}
     for row, p in zip(rows, pred.tolist(), strict=True):
-        by_loc.setdefault(row.loc, {})[row.stop_index] = round(p / 60)
+        by_loc.setdefault(row.loc, {})[row.stop_index] = round(max(p, row.floor_s) / 60)
     annotated = 0
     for n, predictions in by_loc.items():
         for stop in locations[n].get("processedStops") or []:

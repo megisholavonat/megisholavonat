@@ -9,11 +9,13 @@ import { useQuery } from "@tanstack/react-query";
 import { Map as MapIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { useTrackView } from "@/lib/analyticsEvents";
 import { HourChart, overallShare } from "./HourChart";
 import {
     Card,
     EmptyState,
     LoadError,
+    MIN_SAMPLES,
     Of10Text,
     StatsHeader,
     TenBar,
@@ -22,8 +24,6 @@ import {
 } from "./StatsParts";
 
 const HOUR = 60 * 60 * 1000;
-/** Below this many passages the station's share is not shown */
-const MIN_STATION_SAMPLES = 50;
 
 /** The station's name: from its platform history, else from its board. */
 function useStationName(stationId: string, days: number): string | null {
@@ -53,6 +53,11 @@ export function StationHistoryPage({ stationId }: { stationId: string }) {
     const t = useTranslations("Stats");
     const days = useDays();
     const name = useStationName(stationId, days);
+    useTrackView("stats_viewed", {
+        kind: "station",
+        station_id: stationId,
+        days,
+    });
     const query = useQuery({
         ...getTimeOfDayPunctualityOptions({ query: { stationId, days } }),
         staleTime: HOUR,
@@ -65,7 +70,7 @@ export function StationHistoryPage({ stationId }: { stationId: string }) {
             <StatsHeader
                 title={
                     name ?? (
-                        <span className="inline-block h-7 w-48 animate-pulse rounded-sm bg-surface-2 align-middle" />
+                        <span className="inline-block h-7 w-48 motion-safe:animate-pulse rounded-sm bg-surface-2 align-middle" />
                     )
                 }
                 caption={t("window", { days })}
@@ -83,13 +88,13 @@ export function StationHistoryPage({ stationId }: { stationId: string }) {
             />
             {query.isPending ? (
                 <Card>
-                    <div className="h-56 animate-pulse rounded-md bg-surface-2" />
+                    <div className="h-56 motion-safe:animate-pulse rounded-md bg-surface-2" />
                 </Card>
             ) : query.isError ? (
                 <Card>
                     <LoadError onRetry={() => void query.refetch()} />
                 </Card>
-            ) : overall && overall.n >= MIN_STATION_SAMPLES ? (
+            ) : overall && overall.n >= MIN_SAMPLES.stations ? (
                 <Card>
                     <div className="flex items-center gap-3 text-[15px]">
                         <TenBar share={overall.share} size="lg" />

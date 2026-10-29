@@ -1,9 +1,9 @@
 "use client";
 
 import {
-    departureDate,
+    defaultBoardingIndex,
     localWeekday,
-    timeOfDay,
+    tripRun,
 } from "@megisholavonat/core/commute";
 import { formatSecondsAsTime } from "@megisholavonat/core/time";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
@@ -20,6 +20,7 @@ import {
     saveFollow,
     useFollows,
 } from "@/hooks/useFollows";
+import { track } from "@/lib/analytics";
 import { destinationOf, stationIdOf, trainNumber } from "@/lib/train";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +39,10 @@ interface BoardingOption {
     departureS: number;
     /** Local date of this run's departure */
     date: string | null;
+    /** Scheduled time from here to the end of the trip, s */
+    runS: number | null;
+    /** Index of the stop in the train's stoptimes; -1 for a saved one */
+    index: number;
 }
 
 const WEEKDAYS = [1, 2, 3, 4, 5, 6, 7] as const;
@@ -53,27 +58,34 @@ function optionOf(follow: Follow): BoardingOption {
         lon: follow.fromLon,
         departureS: follow.departureS,
         date: follow.date,
+        runS: follow.runS ?? null,
+        index: -1,
     };
 }
 
-function trainOptions(view: TrainView): BoardingOption[] {
+function trainOptions(view: TrainView, now: Date): BoardingOption[] {
     const { trip } = view.vehicle;
     const stoptimes = trip.stoptimes;
     const options: BoardingOption[] = [];
+    const end = stoptimes.at(-1)?.scheduledArrival ?? null;
     stoptimes.forEach((stoptime, i) => {
         // Nobody boards at the last stop
         if (i === stoptimes.length - 1) return;
         const stationId = stationIdOf(stoptime.stop);
         if (!stationId) return;
         const departure = stoptime.scheduledDeparture;
+        // The real day: OTP dates HÉVs after midnight and train 10 off by one
+        const run = tripRun(trip, departure, now);
         options.push({
             key: `${i}-${stationId}`,
             stationId,
             name: stoptime.stop.name,
             lat: stoptime.stop.lat,
             lon: stoptime.stop.lon,
-            departureS: timeOfDay(departure),
-            date: departureDate(trip.serviceDate, departure),
+            departureS: run.timeOfDay,
+            date: run.date,
+            runS: end === null ? null : Math.max(0, end - departure),
+            index: i,
         });
     });
     return options;
@@ -98,7 +110,9 @@ function DayPicker({
     }, [locale]);
     return (
         <fieldset className="flex flex-col gap-2">
-            <legend className="sr-only">{t("days")}</legend>
+            <legend className="mb-2 text-caption font-semibold text-ink-2">
+                {t("days")}
+            </legend>
             <div className="flex justify-between gap-1">
                 {WEEKDAYS.map((day, i) => {
                     const on = days.includes(day);
@@ -120,7 +134,8 @@ function DayPicker({
                                 "flex size-11 cursor-pointer items-center justify-center rounded-full text-sm font-semibold transition-colors",
                                 on
                                     ? "bg-action text-on-action"
-                                    : "bg-surface-2 text-ink hover:bg-line",
+                                    : // Outlined, not greyed: off, not unavailable
+                                      "border-2 border-line bg-surface text-ink hover:border-ink-2",
                             )}
                         >
                             {t(`day_${day}`)}
@@ -173,12 +188,8 @@ export function FollowEditor({
         }
         const { vehicle } = current.view;
         const number = trainNumber(vehicle.trip.tripShortName);
-        const options = trainOptions(current.view);
-        const existing = findFollow(
-            follows,
-            number,
-            options.map((o) => o.stationId),
-        );
+        const options = trainOptions(current.view, new Date());
+        const existing = findFollow(follows, number, options);
         if (
             existing &&
             !options.some((o) => o.stationId === existing.fromStationId)
@@ -191,7 +202,6 @@ export function FollowEditor({
             routeShortName: vehicle.trip.route.shortName,
             destination: destinationOf(vehicle),
             options,
-            next: current.view.next,
         };
     }, [shown, follows]);
 
@@ -202,6 +212,9 @@ export function FollowEditor({
     // biome-ignore lint/correctness/useExhaustiveDependencies: only on open
     useEffect(() => {
         if (!target || !setup) return;
+        track("follow_started", {
+            target: target.kind === "train" ? "train" : "edit",
+        });
         const { existing, options } = setup;
         if (existing) {
             setDays(existing.weekdays);
@@ -212,14 +225,20 @@ export function FollowEditor({
             return;
         }
         setDays(localWeekday() <= 5 ? WORKDAYS : WEEKEND);
-        // A station the user looked at recently, else where the train is next
-        const recentIds = recent.map((s) => s.id);
-        const fromRecent = options.find((o) => recentIds.includes(o.stationId));
-        const next =
-            "next" in setup && setup.next
-                ? options.find((o) => o.stationId === setup.next?.stationId)
-                : undefined;
-        setBoardingKey((fromRecent ?? next ?? options[0])?.key ?? "");
+        // A station the user looked at recently still ahead of the train,
+        // else its next stop; never one it has already passed
+        const view = target.kind === "train" ? target.view : null;
+        const routeOptions = options.filter((o) => o.index >= 0);
+        const index = defaultBoardingIndex(
+            view?.vehicle.trip.stoptimes.map((st) => stationIdOf(st.stop)) ??
+                [],
+            view?.next?.index ?? null,
+            recent.map((s) => s.id),
+        );
+        setBoardingKey(
+            (routeOptions.find((o) => o.index >= index) ?? options[0])?.key ??
+                "",
+        );
     }, [target]);
 
     const boarding = setup?.options.find((o) => o.key === boardingKey);
@@ -236,14 +255,25 @@ export function FollowEditor({
             fromLat: boarding.lat,
             fromLon: boarding.lon,
             departureS: boarding.departureS,
+            runS: boarding.runS,
             weekdays: days,
             date: days.length === 0 ? boarding.date : null,
+        });
+        track("follow_saved", {
+            kind: days.length > 0 ? "commute" : "single",
+            days: days.length,
+            is_new: !setup.existing,
         });
         onClose();
     };
 
     const unfollow = () => {
-        if (setup?.existing) removeFollow(setup.existing.id);
+        if (setup?.existing) {
+            removeFollow(setup.existing.id);
+            track("follow_removed", {
+                kind: setup.existing.weekdays.length > 0 ? "commute" : "single",
+            });
+        }
         onClose();
     };
 
@@ -299,7 +329,7 @@ export function FollowEditor({
                                             setBoardingKey(e.target.value)
                                         }
                                         disabled={setup.options.length < 2}
-                                        className="tnum h-12 w-full cursor-pointer appearance-none rounded-md border border-line bg-surface pr-10 pl-4 text-body text-ink outline-none focus-visible:ring-2 focus-visible:ring-ink disabled:cursor-default"
+                                        className="tnum h-12 w-full cursor-pointer appearance-none rounded-md border border-line bg-surface pr-10 pl-4 text-body text-ink disabled:cursor-default"
                                     >
                                         {setup.options.map((o) => (
                                             <option key={o.key} value={o.key}>

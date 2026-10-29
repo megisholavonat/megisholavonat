@@ -122,6 +122,13 @@ STATION_BOARD_QUERY = """
           }
           alerts {
             alertDescriptionText
+            effectiveStartDate
+            effectiveEndDate
+          }
+          # Where a notice about part of the run applies
+          stops {
+            gtfsId
+            name
           }
           departureStoptime {
             scheduledDeparture

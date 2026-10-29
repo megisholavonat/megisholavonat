@@ -8,7 +8,7 @@
         "start": "expo start",
         "android": "expo run:android",
         "ios": "expo run:ios",
-        "check": "biome check && tsc --noEmit",
+        "check": "biome check && tsc --noEmit && node scripts/check-messages.mjs",
         "test": "vitest run",
         "doctor": "expo-doctor"
     },
@@ -33,6 +33,7 @@
         "expo-symbols": "~58.0.4",
         "expo-system-ui": "~58.0.7",
         "expo-web-browser": "~58.0.7",
+        "posthog-react-native": "^4.85.0",
         "react": "19.3.0",
         "react-native": "0.88.1",
         "react-native-safe-area-context": "~5.10.1",

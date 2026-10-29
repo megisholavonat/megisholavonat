@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { useAnalyticsConsent } from "@/hooks/useAnalyticsConsent";
 import { Link, usePathname } from "@/i18n/navigation";
+import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 /** Session-only flag, so the banner keeps showing after a reload. */
@@ -16,7 +17,7 @@ const PROMPT_AFTER_MS = 60_000;
 
 // Equal weight for both answers: no nudging towards "accept"
 const buttonClassName =
-    "pressable h-11 cursor-pointer rounded-md border-[1.5px] border-ink bg-surface text-[15px] font-semibold text-ink hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50";
+    "pressable h-11 cursor-pointer rounded-md border-[1.5px] border-ink bg-surface text-[15px] font-semibold text-ink hover:bg-surface-2";
 
 function readPromptReady(): boolean {
     try {
@@ -82,24 +83,30 @@ function useSelectionOpen(): boolean {
 /**
  * Whether the user is busy with something that sits above the map: a modal
  * (full-screen search, planner) or a focused search field. The card waits.
+ * Watches the page only while `enabled` (the prompt is still unanswered).
  */
-function useBusy(): boolean {
+function useBusy(enabled: boolean): boolean {
     const [busy, setBusy] = useState(false);
     useEffect(() => {
+        if (!enabled) {
+            setBusy(false);
+            return;
+        }
         let frame = 0;
+        const measure = () => {
+            const active = document.activeElement;
+            setBusy(
+                !!document.querySelector('[aria-modal="true"]') ||
+                    !!active?.matches(
+                        'input[type="search"], [role="combobox"], [role="searchbox"]',
+                    ),
+            );
+        };
         const check = () => {
             cancelAnimationFrame(frame);
-            frame = requestAnimationFrame(() => {
-                const active = document.activeElement;
-                setBusy(
-                    !!document.querySelector('[aria-modal="true"]') ||
-                        !!active?.matches(
-                            'input[type="search"], [role="combobox"], [role="searchbox"]',
-                        ),
-                );
-            });
+            frame = requestAnimationFrame(measure);
         };
-        check();
+        measure();
         const observer = new MutationObserver(check);
         observer.observe(document.body, {
             childList: true,
@@ -115,7 +122,7 @@ function useBusy(): boolean {
             document.removeEventListener("focusin", check);
             document.removeEventListener("focusout", check);
         };
-    }, []);
+    }, [enabled]);
     return busy;
 }
 
@@ -134,7 +141,7 @@ export default function ConsentBanner() {
     const pathname = usePathname();
     const promptReady = usePromptReady(consent === "pending");
     const selectionOpen = useSelectionOpen();
-    const busy = useBusy();
+    const busy = useBusy(consent === "pending" && promptReady);
     const reduceMotion = useReducedMotion() ?? false;
     const onMap = pathname === "/";
 
@@ -143,6 +150,12 @@ export default function ConsentBanner() {
         promptReady &&
         !busy &&
         !(onMap && selectionOpen);
+    const shown = useRef(false);
+    useEffect(() => {
+        if (!show || shown.current) return;
+        shown.current = true;
+        track("consent_shown", { surface: "banner" });
+    }, [show]);
 
     return (
         <AnimatePresence>

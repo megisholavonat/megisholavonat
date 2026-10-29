@@ -1,14 +1,38 @@
+export { stationName, trainTitle } from "@/lib/stats/lookup";
+
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
+import { subpageMetadata } from "@/lib/og/metadata";
+import { siteUrl } from "@/lib/og/server";
 
-/** "Pontosság | Mégis hol a vonat?" for the stats pages. */
-export async function statsMetadata(
-    locale: string,
-    title?: string,
-): Promise<Metadata> {
+/**
+ * Title, description and link preview of a stats page, with its own og:url
+ * ("Pontosság · Mégis hol a vonat?").
+ */
+export async function statsMetadata({
+    locale,
+    path,
+    title,
+    description,
+    missing = false,
+}: {
+    locale: string;
+    /** The page's path under the locale, "/stats/train/650" */
+    path: string;
+    title?: string;
+    description?: string;
+    /** No such train or station: kept out of search engines */
+    missing?: boolean;
+}): Promise<Metadata> {
     const t = await getTranslations({ locale, namespace: "Stats" });
     const tHome = await getTranslations({ locale, namespace: "Home" });
-    return {
-        title: `${title ?? t("title")} | ${tHome("app_title")}`,
-    };
+    return subpageMetadata({
+        locale,
+        origin: siteUrl(),
+        appTitle: tHome("app_title"),
+        path,
+        title: title ?? t("title"),
+        description: description ?? t("description"),
+        missing,
+    });
 }

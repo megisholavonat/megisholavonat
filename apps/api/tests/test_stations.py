@@ -1,13 +1,15 @@
 import json
+from typing import Any
 
 import fakeredis
 import httpx
+import pytest
 import respx
 
 from api.core.redis import add_key
-from api.schemas.stations import BoardEntry
+from api.schemas.stations import BoardEntry, BoardKind
 from api.services.live_trips import build_live_trip_index, match_live_trip
-from api.services.station_board import merge_duplicate_trips
+from api.services.station_board import _board_entry, merge_duplicate_trips
 from api.services.station_index import index_key, rail_stations_from_otp
 from tests.upstream import graphql_route, load_fixture, otp_responder
 
@@ -120,6 +122,11 @@ async def test_search_upstream_error_is_502(
 # Boards
 
 
+def _board_calls(route: respx.Route) -> list[Any]:
+    """Board queries only (a board also reads the alert feed, cached)."""
+    return [c for c in route.calls if b"query StationBoard" in c.request.content]
+
+
 async def test_departures_merge_platforms_sorted_by_expected_time(
     client: httpx.AsyncClient, otp: respx.MockRouter
 ) -> None:
@@ -204,6 +211,58 @@ async def test_gps_delay_replaces_otp_delay_for_live_trains(
     trips = [e["tripShortName"].split()[0] for e in response.json()["entries"]]
     assert trips[:2] == ["341", "201"]
     assert trips.count("201") == 1
+
+
+@pytest.mark.parametrize("activity", ["offRoute", "arrived", "cancelled"])
+async def test_no_gps_delay_for_trains_the_map_shows_none_for(
+    client: httpx.AsyncClient,
+    otp: respx.MockRouter,
+    redis: fakeredis.FakeAsyncRedis,
+    activity: str,
+) -> None:
+    # QA n-C: 604 off its route read "+5" on the Szolnok board while the map
+    # and the train sheet showed no delay
+    graphql_route(otp).mock(side_effect=otp_responder(BOARDS))
+    live = load_fixture("live-trains-kelenfold.json")
+    for train in live:
+        train["activity"] = activity
+    await _store_live_trains(redis, live)
+
+    response = await client.get(
+        f"/v1/stations/{KELENFOLD}/departures", params={"limit": 10}
+    )
+
+    entries = response.json()["entries"]
+    by_trip = {e["tripId"]: e for e in entries}
+    intercity = by_trip["1:36231459"]  # 201 InterCity
+    # As a row without a live train: OTP's realtime delay
+    assert intercity["delaySource"] == "otp"
+    assert intercity["delayMinutes"] == 11
+    assert intercity["expectedTime"] == intercity["scheduledTime"] + 11 * 60
+    # Still the train on the map, and still one row
+    assert intercity["vehicleId"] == "1:915506300507"
+    assert [e["tripShortName"].split()[0] for e in entries].count("201") == 1
+
+
+async def test_running_and_waiting_trains_keep_their_gps_delay(
+    client: httpx.AsyncClient,
+    otp: respx.MockRouter,
+    redis: fakeredis.FakeAsyncRedis,
+) -> None:
+    graphql_route(otp).mock(side_effect=otp_responder(BOARDS))
+    live = load_fixture("live-trains-kelenfold.json")
+    live[0]["activity"] = "running"
+    live[1]["activity"] = "beforeDeparture"
+    await _store_live_trains(redis, live)
+
+    response = await client.get(
+        f"/v1/stations/{KELENFOLD}/departures", params={"limit": 10}
+    )
+
+    by_number = {e["tripShortName"].split()[0]: e for e in response.json()["entries"]}
+    assert by_number["201"]["delaySource"] == "gps"
+    assert by_number["201"]["delayMinutes"] == 9
+    assert by_number["341"]["delaySource"] == "gps"
 
 
 async def test_gps_delay_never_moves_departures_earlier(
@@ -293,7 +352,7 @@ async def test_board_is_cached(
     first = await client.get(url, params={"limit": 5})
     second = await client.get(url, params={"limit": 5})
 
-    assert route.call_count == 1
+    assert len(_board_calls(route)) == 1
     assert first.json() == second.json()
     key = add_key(f"station-board:{KELENFOLD}:departures:5")
     assert 0 < await redis.ttl(key) <= 30
@@ -306,7 +365,9 @@ async def test_quiet_station_widens_time_range(
 
     await client.get(f"/v1/stations/{KELENFOLD}/departures", params={"limit": 20})
 
-    ranges = [json.loads(c.request.content)["variables"]["range"] for c in route.calls]
+    ranges = [
+        json.loads(c.request.content)["variables"]["range"] for c in _board_calls(route)
+    ]
     assert ranges == [4 * 3600, 24 * 3600]
 
 
@@ -320,7 +381,7 @@ async def test_unknown_station_is_404(
 
     assert unknown.status_code == 404
     assert malformed.status_code == 404
-    assert route.call_count == 1  # malformed ids never reach upstream
+    assert len(_board_calls(route)) == 1  # malformed ids never reach upstream
 
 
 async def test_board_graphql_error_is_502(
@@ -377,3 +438,99 @@ def test_duplicate_merge_prefers_running_over_canceled() -> None:
     running = _entry("1:b", "201 gyorsvonat", 1000, realtime=False)
 
     assert [e.tripId for e in merge_duplicate_trips([canceled, running])] == ["1:b"]
+
+
+def _stoptime(alerts: list[dict[str, Any]]) -> dict[str, Any]:
+    board = load_fixture("otp-board-kelenfold-departures.json")
+    stoptime: dict[str, Any] = board["data"]["station"]["stoptimesWithoutPatterns"][0]
+    stoptime["trip"]["alerts"] = alerts
+    return stoptime
+
+
+def test_board_entry_marks_a_train_its_own_notice_replaces() -> None:
+    # 4770 leaves Kelenföld at serviceDay + 1620
+    at = 1793228400 + 1620
+    bus = {
+        "alertDescriptionText": "Pótlóbusz közlekedik, megállói: Kelenföld.",
+        "effectiveStartDate": at - 3600,
+        "effectiveEndDate": at + 3600,
+    }
+    over = {**bus, "effectiveEndDate": at - 60}
+    coaches = {"alertDescriptionText": "Utolsó kettő kocsija lezárva közlekedik."}
+
+    replaced = _board_entry(_stoptime([coaches, bus]), "departures", {})
+    expired = _board_entry(_stoptime([over]), "departures", {})
+    normal = _board_entry(_stoptime([coaches]), "departures", {})
+
+    assert replaced.disruption == "replacement_bus"
+    assert expired.disruption is None
+    assert normal.disruption is None
+
+
+# HÉV boards of 2026-10-29: H8/H9 trains turn back at Cinkota, and each
+# carries "... az Örs vezér tere és Cinkota között pótlóbuszok közlekednek."
+KEREPES_HEV = "003619848"
+CINKOTA_HEV = "003619828"
+
+
+def _hev_board(name: str) -> list[dict[str, Any]]:
+    board = load_fixture("otp-board-hev-cinkota.json")[name]
+    stoptimes: list[dict[str, Any]] = board["data"]["station"][
+        "stoptimesWithoutPatterns"
+    ]
+    return stoptimes
+
+
+def test_board_does_not_mark_trains_running_beyond_the_replaced_stretch() -> None:
+    departures = [
+        _board_entry(st, "departures", {}, None, KEREPES_HEV)
+        for st in _hev_board("kerepes")
+    ]
+    arrivals = [
+        _board_entry(st, "arrivals", {}, None, CINKOTA_HEV)
+        for st in _hev_board("cinkota")
+    ]
+
+    # Cinkota - Gödöllő and Kerepes - Cinkota run as shown
+    assert [e.disruption for e in departures] == [None, None]
+    assert [e.disruption for e in arrivals] == [None, None]
+
+
+def test_board_marks_trains_on_the_replaced_stretch() -> None:
+    # The same notice on a train still running from Örs vezér tere
+    [stoptime, _] = _hev_board("kerepes")
+    trip = stoptime["trip"]
+    trip["stops"] = [
+        {"gtfsId": "1:003619801_0", "name": "Örs vezér tere H"},
+        {"gtfsId": "1:003619802_0", "name": "Rákosfalva H"},
+        *trip["stops"],
+    ]
+
+    def entry(station: str, kind: BoardKind) -> BoardEntry:
+        return _board_entry(stoptime, kind, {}, None, station)
+
+    assert entry("003619802", "departures").disruption == "replacement_bus"
+    assert entry(CINKOTA_HEV, "arrivals").disruption == "replacement_bus"
+    assert entry(CINKOTA_HEV, "departures").disruption is None
+    assert entry(KEREPES_HEV, "departures").disruption is None
+
+
+def test_board_marks_a_skipped_stop_only_there() -> None:
+    # 4770 Budapest-Déli - Székesfehérvár via Kelenföld
+    at = 1793228400 + 1620
+    stoptime = _stoptime(
+        [{"alertDescriptionText": "A vonat Budafok megállóhelyen nem áll meg."}]
+    )
+    stoptime["trip"]["stops"] = [
+        {"gtfsId": "1:005501016_0", "name": "Budapest-Déli"},
+        {"gtfsId": f"1:{KELENFOLD}_0", "name": "Budapest-Kelenföld"},
+        {"gtfsId": "1:005503129_0", "name": "Budafok"},
+        {"gtfsId": "1:005503269_0", "name": "Székesfehérvár"},
+    ]
+
+    here = _board_entry(stoptime, "departures", {}, None, KELENFOLD)
+    there = _board_entry(stoptime, "departures", {}, None, "005503129")
+
+    assert at == here.scheduledTime
+    assert here.disruption is None
+    assert there.disruption == "no_service"

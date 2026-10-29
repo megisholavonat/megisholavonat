@@ -9,8 +9,12 @@ import {
     getStationPlatformsOptions,
     getTrainStationHistoryOptions,
 } from "@megisholavonat/api-client/react-query";
-import { nextOccurrence, type Occurrence } from "@megisholavonat/core/commute";
+import {
+    currentOccurrence,
+    type Occurrence,
+} from "@megisholavonat/core/commute";
 import type { DelayReasonCode } from "@megisholavonat/core/delayReasons";
+import { trainDisplay } from "@megisholavonat/core/display";
 import { useQueries } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import type { Follow } from "@/hooks/useFollows";
@@ -75,17 +79,34 @@ function boardEntry(
     return null;
 }
 
-function liveState(
+/** Whether a train with the followed number is on the rails right now. */
+function isRunning(
+    follow: Follow,
+    trains: TrainFeatureCollection | undefined,
+): boolean {
+    return !!trains?.features.some(
+        ({ properties: p }) =>
+            trainNumber(p.tripShortName) === follow.trainNumber &&
+            p.activity !== "arrived" &&
+            p.activity !== "cancelled" &&
+            p.activity !== "beforeDeparture",
+    );
+}
+
+export function liveState(
     follow: Follow,
     occurrence: Occurrence,
     board: StationBoard | undefined,
     trains: TrainFeatureCollection | undefined,
     nowS: number,
+    running: boolean,
 ): { live: CommuteLive | null; platform: string | null } {
     const entry = boardEntry(board, follow, occurrence.departure);
+    // A run that left the boarding stop and is still out is the live one
     const near =
-        nowS > occurrence.departure - LIVE_BEFORE_S &&
-        nowS < occurrence.departure + LIVE_AFTER_S;
+        (running && occurrence.departure <= nowS) ||
+        (nowS > occurrence.departure - LIVE_BEFORE_S &&
+            nowS < occurrence.departure + LIVE_AFTER_S);
     const vehicle =
         trains?.features.find((f) =>
             entry?.vehicleId
@@ -97,16 +118,19 @@ function liveState(
     if (!entry && !vehicle) return { live: null, platform: null };
     const realtime = !!entry && (entry.realtime || entry.delaySource === "gps");
     const reason = entry?.reason?.code ?? vehicle?.reason?.code ?? null;
+    // The same delay and state as the train's marker and sheet: none before
+    // departure, after arrival, off its route or cancelled
+    const shown = vehicle ? trainDisplay(vehicle, new Date(nowS * 1000)) : null;
     return {
         live: {
             vehicleId: vehicle?.vehicleId ?? entry?.vehicleId ?? null,
-            delay: vehicle
-                ? vehicle.delay
+            delay: shown
+                ? shown.delay
                 : realtime && entry
                   ? entry.delayMinutes
                   : null,
-            stale: !!vehicle?.isStale,
-            canceled: !!entry?.canceled,
+            stale: shown?.state === "stale",
+            canceled: !!entry?.canceled || shown?.state === "cancelled",
             reason: reason as DelayReasonCode | null,
             departed: !entry && nowS > occurrence.departure,
         },
@@ -126,9 +150,16 @@ export function useCommute(
     const now = useNow();
     const nowS = now.getTime() / 1000;
 
+    const running = useMemo(
+        () => follows.map((follow) => isRunning(follow, trains)),
+        [follows, trains],
+    );
     const occurrences = useMemo(
-        () => follows.map((follow) => nextOccurrence(follow, now)),
-        [follows, now],
+        () =>
+            follows.map((follow, i) =>
+                currentOccurrence(follow, now, running[i]),
+            ),
+        [follows, now, running],
     );
 
     const stations = useMemo(
@@ -197,13 +228,14 @@ export function useCommute(
                 follow.trainNumber,
             ) ?? null;
         const today =
-            occurrence?.daysAhead === 0
+            occurrence && occurrence.daysAhead <= 0
                 ? liveState(
                       follow,
                       occurrence,
                       boardOf.get(follow.fromStationId),
                       trains,
                       nowS,
+                      running[i] ?? false,
                   )
                 : { live: null, platform: null };
         const { live } = today;

@@ -3,11 +3,12 @@
 import { formatSecondsAsTime } from "@megisholavonat/core/time";
 import { Star } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { DelayText, levelOf } from "@/components/ui/Delay";
+import { DelayChip, levelOf } from "@/components/ui/Delay";
 import { PlatformBadge } from "@/components/ui/Platform";
 import { ReasonLabel } from "@/components/ui/Reason";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
 import type { Follow } from "@/hooks/useFollows";
+import { commuteRowOpened } from "@/lib/analyticsEvents";
 import { cn } from "@/lib/utils";
 import type { CommuteRow } from "./useCommute";
 
@@ -18,7 +19,7 @@ function dayLabel(
     tomorrow: string,
 ): string | null {
     const occ = row.occurrence;
-    if (!occ || occ.daysAhead === 0) return null;
+    if (!occ || occ.daysAhead <= 0) return null;
     if (occ.daysAhead === 1) return tomorrow;
     return new Intl.DateTimeFormat(locale, {
         weekday: "long",
@@ -40,13 +41,8 @@ function Status({ row }: { row: CommuteRow }) {
         );
     }
     if (live && live.delay !== null) {
-        return (
-            <DelayText
-                delay={live.delay}
-                stale={live.stale}
-                className="text-[15px]"
-            />
-        );
+        // The same chip as the search, board and late rows
+        return <DelayChip delay={live.delay} stale={live.stale} />;
     }
     const day = dayLabel(row, locale, t("tomorrow"));
     const usually = row.usuallyLate
@@ -75,6 +71,7 @@ function Row({
     onOpen: (row: CommuteRow) => void;
     compact: boolean;
 }) {
+    const tTrain = useTranslations("Train");
     const { follow, live, platform } = row;
     // The cause only next to a live delay that is actually late
     const level = levelOf(live?.delay ?? 0, live?.stale);
@@ -85,9 +82,20 @@ function Row({
         levelOf(live.delay) !== "onTime"
             ? live.reason
             : null;
+    // A live delay that is late moves the departure; within the on-time
+    // band, stale or cancelled, the timetable's time stands
+    const late =
+        live &&
+        !live.canceled &&
+        !live.stale &&
+        live.delay != null &&
+        levelOf(live.delay) !== "onTime"
+            ? live.delay
+            : null;
     return (
         <button
             type="button"
+            data-focus-key={`follow:${row.follow.id}`}
             onClick={() => onOpen(row)}
             className={cn(
                 "flex w-full cursor-pointer items-center gap-3 text-left",
@@ -103,9 +111,33 @@ function Row({
             <span className="flex min-w-0 flex-1 flex-col">
                 <span className="truncate text-[15px] font-semibold text-ink">
                     {follow.fromName}{" "}
-                    <span className="tnum">
-                        {formatSecondsAsTime(follow.departureS)}
-                    </span>
+                    {/* The departure from the boarding stop, which the
+                        sheet tells by its arrival: say which it is */}
+                    <span className="text-caption font-normal text-ink-2">
+                        {tTrain("departs_at")}
+                    </span>{" "}
+                    {late ? (
+                        // Late: when it now leaves, as the board shows it
+                        <>
+                            <span className="tnum">
+                                {formatSecondsAsTime(
+                                    follow.departureS + late * 60,
+                                )}
+                            </span>{" "}
+                            <s className="tnum text-caption font-normal text-ink-2">
+                                {formatSecondsAsTime(follow.departureS)}
+                            </s>
+                        </>
+                    ) : (
+                        <span className="tnum">
+                            {formatSecondsAsTime(follow.departureS)}
+                        </span>
+                    )}
+                </span>
+                <span className="tnum truncate text-caption text-ink-2">
+                    {follow.destination
+                        ? `${follow.trainNumber} → ${follow.destination}`
+                        : follow.trainNumber}
                 </span>
                 {reason && (
                     <ReasonLabel
@@ -147,16 +179,17 @@ export function CommuteList({
     if (visible.length === 0) return null;
     return (
         <section aria-label={t("my_commute")} className="flex flex-col">
-            {visible.map((row) => (
+            {visible.map((row, i) => (
                 <Row
                     key={row.follow.id}
                     row={row}
                     compact={compact}
-                    onOpen={(r) =>
-                        r.live?.vehicleId
+                    onOpen={(r) => {
+                        if (r.live?.vehicleId) commuteRowOpened(i, r.live);
+                        return r.live?.vehicleId
                             ? onOpenTrain(r.live.vehicleId)
-                            : onEdit(r.follow)
-                    }
+                            : onEdit(r.follow);
+                    }}
                 />
             ))}
         </section>

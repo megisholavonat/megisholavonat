@@ -11,10 +11,20 @@ export default defineConfig({
     forbidOnly: !!process.env.CI,
     retries: process.env.CI ? 1 : 0,
     workers: process.env.CI ? 2 : undefined,
+    // On CI each test is listed as it ends, so a slow or stuck one shows in
+    // the log while the run is still going
     reporter: process.env.CI
-        ? [["github"], ["html", { open: "never", outputFolder: "report" }]]
+        ? [
+              ["list"],
+              ["github"],
+              ["html", { open: "never", outputFolder: "report" }],
+          ]
         : [["list"]],
-    timeout: 30_000,
+    // A test that loads the page several times needs more on a busy runner
+    timeout: process.env.CI ? 45_000 : 30_000,
+    // Stops a stuck run with a report of what was still running, before the
+    // CI step's own timeout cancels it silently
+    globalTimeout: process.env.CI ? 8 * 60_000 : undefined,
     expect: { timeout: 7_500 },
     use: {
         baseURL,
@@ -23,6 +33,12 @@ export default defineConfig({
         // SwiftShader provides without a GPU
         channel: "chromium",
         locale: "hu-HU",
+        // SwiftShader draws WebGL on the CPU. On a CI runner's few slow
+        // cores the map's camera eases starve the compositor: panel fades
+        // stall mid-way and a closed panel stays on screen. Reduced motion
+        // skips those there; local runs keep full motion, and motion.spec
+        // sets its own
+        contextOptions: process.env.CI ? { reducedMotion: "reduce" } : {},
         timezoneId: "Europe/Budapest",
         trace: "retain-on-failure",
         screenshot: "only-on-failure",

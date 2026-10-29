@@ -48,8 +48,18 @@ export function arrowImageId(scheme: ColorScheme): string {
     return `${PREFIX}${scheme}-arrow`;
 }
 
-export function stationImageId(scheme: ColorScheme): string {
-    return `${PREFIX}${scheme}-station`;
+/**
+ * The selected station's sprites: `clear` (under the trains, keeps the ring
+ * legible over the railway overlay), `ring` (above clusters and plain dots)
+ * and `label` (the box behind its name).
+ */
+export type StationPart = "clear" | "ring" | "label";
+
+export function stationImageId(
+    scheme: ColorScheme,
+    part: StationPart = "ring",
+): string {
+    return `${PREFIX}${scheme}-station-${part}`;
 }
 
 export function followImageId(scheme: ColorScheme): string {
@@ -158,7 +168,7 @@ function drawBody(
     const canvas = document.createElement("canvas");
     canvas.width = Math.ceil((w + margin * 2) * PIXEL_RATIO);
     canvas.height = Math.ceil((h + margin * 2) * PIXEL_RATIO);
-    const ctx = canvas.getContext("2d");
+    const ctx = context(canvas);
     if (!ctx) return { canvas, margin };
     ctx.scale(PIXEL_RATIO, PIXEL_RATIO);
     const x = margin;
@@ -212,8 +222,16 @@ function drawBody(
     return { canvas, margin };
 }
 
+/**
+ * A 2D context kept on the CPU: each sprite is read back once with
+ * getImageData, which on a GPU canvas stalls for a readback.
+ */
+function context(canvas: HTMLCanvasElement): CanvasRenderingContext2D | null {
+    return canvas.getContext("2d", { willReadFrequently: true });
+}
+
 function toImage(canvas: HTMLCanvasElement): ImageData | null {
-    const ctx = canvas.getContext("2d");
+    const ctx = context(canvas);
     return ctx ? ctx.getImageData(0, 0, canvas.width, canvas.height) : null;
 }
 
@@ -314,7 +332,7 @@ function arrow(scheme: ColorScheme) {
     const canvas = document.createElement("canvas");
     canvas.width = (width + 2) * PIXEL_RATIO;
     canvas.height = (height + 2) * PIXEL_RATIO;
-    const ctx = canvas.getContext("2d");
+    const ctx = context(canvas);
     if (!ctx) return null;
     ctx.scale(PIXEL_RATIO, PIXEL_RATIO);
     ctx.beginPath();
@@ -332,31 +350,113 @@ function arrow(scheme: ColorScheme) {
     return data ? { data, meta: { pixelRatio: PIXEL_RATIO } } : null;
 }
 
-/** Selected station: a hollow ink ring. */
-function station(scheme: ColorScheme) {
-    const size = 28;
+/** A thin edge in the map colour just around the ring: opaque to here… */
+const STATION_CLEAR = 15;
+/** …then fading out to here (css px) */
+const STATION_FADE = 18;
+/** The ring's radius, to the middle of its stroke */
+const STATION_RING_R = 9;
+const STATION_RING_W = 3;
+
+/**
+ * Selected station, drawn in two layers. Under the trains, a thin edge in the
+ * map colour: it keeps the ring legible over the railway overlay; wider, it
+ * would erase the track itself (the overlay is a raster, so its own station
+ * name cannot be hidden on its own). Above the clusters and plain dots, the
+ * ring itself: a soft ink halo, a surface disc and an ink stroke.
+ */
+function station(scheme: ColorScheme, part: "clear" | "ring") {
+    const size = STATION_FADE * 2;
     const canvas = document.createElement("canvas");
     canvas.width = size * PIXEL_RATIO;
     canvas.height = size * PIXEL_RATIO;
-    const ctx = canvas.getContext("2d");
+    const ctx = context(canvas);
     if (!ctx) return null;
     ctx.scale(PIXEL_RATIO, PIXEL_RATIO);
     const c = size / 2;
-    ctx.beginPath();
-    ctx.arc(c, c, 13, 0, Math.PI * 2);
-    ctx.globalAlpha = 0.2;
-    ctx.fillStyle = COLORS[scheme].ink;
-    ctx.fill();
-    ctx.globalAlpha = 1;
-    ctx.beginPath();
-    ctx.arc(c, c, 9, 0, Math.PI * 2);
-    ctx.fillStyle = COLORS[scheme].surface;
-    ctx.fill();
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = COLORS[scheme].ink;
-    ctx.stroke();
+    if (part === "clear") {
+        const clearing = ctx.createRadialGradient(c, c, 0, c, c, STATION_FADE);
+        const map = COLORS[scheme].map;
+        clearing.addColorStop(0, map);
+        clearing.addColorStop(STATION_CLEAR / STATION_FADE, map);
+        clearing.addColorStop(1, `${map}00`);
+        ctx.fillStyle = clearing;
+        ctx.fillRect(0, 0, size, size);
+    } else {
+        ctx.beginPath();
+        ctx.arc(c, c, 13, 0, Math.PI * 2);
+        ctx.globalAlpha = 0.2;
+        ctx.fillStyle = COLORS[scheme].ink;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.beginPath();
+        ctx.arc(c, c, STATION_RING_R, 0, Math.PI * 2);
+        ctx.fillStyle = COLORS[scheme].surface;
+        ctx.fill();
+        ctx.lineWidth = STATION_RING_W;
+        ctx.strokeStyle = COLORS[scheme].ink;
+        ctx.stroke();
+    }
     const data = toImage(canvas);
     return data ? { data, meta: { pixelRatio: PIXEL_RATIO } } : null;
+}
+
+/** The station name's box: its corner radius and padding (css px) */
+const LABEL_RADIUS = 6;
+const LABEL_PAD_X = 7;
+const LABEL_PAD_Y = 3;
+/** Line height of the 13 px name, as MapLibre lays it out */
+const LABEL_TEXT_H = 13 * TEXT_LINE_HEIGHT;
+
+/**
+ * The box behind the selected station's name: a surface card with a hairline
+ * edge, stretched to the name (icon-text-fit). Opaque, so the railway
+ * overlay's own, partly erased name never shows through it.
+ */
+function stationLabel(scheme: ColorScheme) {
+    const margin = 1;
+    // The text's box sits between the paddings; only the middle stretches
+    const w = LABEL_PAD_X * 2 + STRETCH * 2;
+    const h = Math.ceil(LABEL_TEXT_H + LABEL_PAD_Y * 2);
+    const canvas = document.createElement("canvas");
+    canvas.width = (w + margin * 2) * PIXEL_RATIO;
+    canvas.height = (h + margin * 2) * PIXEL_RATIO;
+    const ctx = context(canvas);
+    if (!ctx) return null;
+    ctx.scale(PIXEL_RATIO, PIXEL_RATIO);
+    ctx.beginPath();
+    ctx.roundRect(margin, margin, w, h, LABEL_RADIUS);
+    ctx.fillStyle = COLORS[scheme].surface;
+    ctx.fill();
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = COLORS[scheme].line;
+    ctx.stroke();
+    const data = toImage(canvas);
+    if (!data) return null;
+    const midX = margin + w / 2;
+    const midY = margin + h / 2;
+    const meta: Partial<StyleImageMetadata> = {
+        pixelRatio: PIXEL_RATIO,
+        stretchX: [
+            [
+                (midX - STRETCH / 2) * PIXEL_RATIO,
+                (midX + STRETCH / 2) * PIXEL_RATIO,
+            ],
+        ],
+        stretchY: [
+            [
+                (midY - STRETCH / 4) * PIXEL_RATIO,
+                (midY + STRETCH / 4) * PIXEL_RATIO,
+            ],
+        ],
+        content: [
+            (margin + LABEL_PAD_X) * PIXEL_RATIO,
+            (midY - LABEL_TEXT_H / 2) * PIXEL_RATIO,
+            (margin + w - LABEL_PAD_X) * PIXEL_RATIO,
+            (midY + LABEL_TEXT_H / 2) * PIXEL_RATIO,
+        ],
+    };
+    return { data, meta };
 }
 
 /** Followed train: a small ink disc with a star, pinned to the marker. */
@@ -366,7 +466,7 @@ function follow(scheme: ColorScheme) {
     const canvas = document.createElement("canvas");
     canvas.width = size * PIXEL_RATIO;
     canvas.height = size * PIXEL_RATIO;
-    const ctx = canvas.getContext("2d");
+    const ctx = context(canvas);
     if (!ctx) return null;
     ctx.scale(PIXEL_RATIO, PIXEL_RATIO);
     const c = size / 2;
@@ -398,17 +498,115 @@ function follow(scheme: ColorScheme) {
 }
 
 const ID_PATTERN =
-    /^mhav-(light|dark)-(?:(dot|pill)-(onTime|slight|moderate|severe|stale|inactive)-(train|hev|tramtrain)(-sel)?|(arrow)|(station)|(follow))$/;
+    /^mhav-(light|dark)-(?:(dot|pill)-(onTime|slight|moderate|severe|stale|inactive)-(train|hev|tramtrain)(-sel)?|(arrow)|station-(clear|ring|label)|(follow))$/;
 
-/** Builds the sprite for one of our ids, or null for other ids. */
-export function markerImage(
-    id: string,
-): { data: ImageData; meta: Partial<StyleImageMetadata> } | null {
+type Sprite = { data: ImageData; meta: Partial<StyleImageMetadata> };
+
+/** Sprites drawn so far, by id: each is drawn once per page */
+const sprites = new Map<string, Sprite | null>();
+
+/** The sprite for one of our ids (drawn once, then cached), or null. */
+export function markerImage(id: string): Sprite | null {
+    let sprite = sprites.get(id);
+    if (sprite === undefined) {
+        sprite = drawSprite(id);
+        sprites.set(id, sprite);
+    }
+    return sprite;
+}
+
+const LEVELS: MarkerLevel[] = [
+    "onTime",
+    "slight",
+    "moderate",
+    "severe",
+    "stale",
+    "inactive",
+];
+const SHAPES: MarkerShape[] = ["train", "hev", "tramtrain"];
+
+/**
+ * Every sprite id of a scheme, the likeliest first: what a selected train
+ * needs, then plain trains, then the HÉV and tram-train shapes.
+ */
+export function markerImageIds(scheme: ColorScheme): string[] {
+    const ids = [arrowImageId(scheme), followImageId(scheme)];
+    for (const shape of SHAPES) {
+        for (const selected of [true, false]) {
+            for (const level of LEVELS) {
+                for (const kind of ["pill", "dot"] as const) {
+                    ids.push(
+                        markerImageId(scheme, kind, level, shape, selected),
+                    );
+                }
+            }
+        }
+    }
+    ids.push(
+        stationImageId(scheme, "clear"),
+        stationImageId(scheme, "ring"),
+        stationImageId(scheme, "label"),
+    );
+    return ids;
+}
+
+interface ImageTarget {
+    hasImage(id: string): boolean;
+    addImage(
+        id: string,
+        data: ImageData,
+        meta: Partial<StyleImageMetadata>,
+    ): unknown;
+}
+
+/**
+ * Draws and adds a scheme's sprites while the main thread is idle, a few at
+ * a time, so selecting a train never waits on canvas work. Returns a cancel.
+ */
+export function prewarmMarkerImages(
+    map: ImageTarget,
+    scheme: ColorScheme,
+): () => void {
+    const queue = markerImageIds(scheme);
+    const hasIdle = typeof requestIdleCallback === "function";
+    let handle: ReturnType<typeof setTimeout> | number | null = null;
+    const schedule = () => {
+        handle = hasIdle
+            ? requestIdleCallback(work, { timeout: 2000 })
+            : setTimeout(
+                  () => work({ didTimeout: false, timeRemaining: () => 8 }),
+                  50,
+              );
+    };
+    const work = (deadline: IdleDeadline) => {
+        handle = null;
+        while (queue.length && deadline.timeRemaining() > 3) {
+            const id = queue.shift() as string;
+            try {
+                if (map.hasImage(id)) continue;
+                const sprite = markerImage(id);
+                if (sprite) map.addImage(id, sprite.data, sprite.meta);
+            } catch {
+                /* The style is being swapped; the resolver covers it */
+            }
+        }
+        if (queue.length) schedule();
+    };
+    schedule();
+    return () => {
+        if (handle === null) return;
+        if (hasIdle) cancelIdleCallback(handle as number);
+        else clearTimeout(handle as ReturnType<typeof setTimeout>);
+    };
+}
+
+function drawSprite(id: string): Sprite | null {
     const match = ID_PATTERN.exec(id);
     if (!match) return null;
     const scheme = match[1] as ColorScheme;
     if (match[6]) return arrow(scheme);
-    if (match[7]) return station(scheme);
+    if (match[7] === "label") return stationLabel(scheme);
+    if (match[7]) return station(scheme, match[7] as "clear" | "ring");
     if (match[8]) return follow(scheme);
     const kind = match[2];
     const level = match[3] as MarkerLevel;

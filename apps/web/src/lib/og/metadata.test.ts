@@ -2,6 +2,7 @@ import type {
     StationBoard,
     VehiclePositionWithDelay,
 } from "@megisholavonat/api-client";
+import { trainShareText } from "@megisholavonat/core/share";
 import { describe, expect, it } from "vitest";
 import board from "../../../e2e/fixtures/board-departures.json";
 import delayed from "../../../e2e/fixtures/train-delayed.json";
@@ -12,8 +13,9 @@ import {
     type Preview,
     previewImagePath,
     previewTarget,
+    subpageMetadata,
 } from "./metadata";
-import { glyphText, stationCard, trainCard } from "./model";
+import { glyphText, stationCard, trainCard, trainShareInfo } from "./model";
 
 const ORIGIN = "https://megisholavonat.info";
 const APP = {
@@ -70,6 +72,28 @@ describe("trainCard", () => {
         expect(card.progress).toBe(0);
     });
 
+    it("tells no delay for a cancelled, arrived or stale train", () => {
+        const late = asVehicle(delayed);
+        const now = at(delayed);
+        for (const [activity, status] of [
+            ["cancelled", "cancelled"],
+            ["arrived", "arrived"],
+            // Fresh, but off its route: delay unknown, not "no fresh data"
+            ["offRoute", "offRoute"],
+        ] as const) {
+            const card = trainCard({ ...late, activity }, now);
+            expect(card).toMatchObject({ status, delay: 0, next: null });
+            const text = trainShareText("hu", trainShareInfo(card));
+            expect(text).not.toMatch(/percet késik|pontos|friss adat/);
+        }
+        // No position for 20 minutes
+        const old = new Date((late.lastUpdated + 20 * 60) * 1000);
+        const stale = trainCard({ ...late, activity: "running" }, old);
+        expect(stale).toMatchObject({ status: "noData", delay: 0 });
+        const running = trainCard({ ...late, activity: "running" }, now);
+        expect(running).toMatchObject({ status: "running", delay: 45 });
+    });
+
     it("fits the route sketch into the unit box", () => {
         const card = trainCard(asVehicle(ontime), at(ontime), 1.2);
         const sketch = card.sketch;
@@ -97,6 +121,10 @@ describe("glyphText", () => {
 
 describe("buildMetadata", () => {
     const now = at(delayed);
+    /** After every departure of the board fixture */
+    const after = new Date(
+        (board.entries.at(-1)?.scheduledTime ?? 0) * 1000 + 60_000,
+    );
 
     it("describes a train with a large preview image", () => {
         const preview: Preview = {
@@ -113,12 +141,13 @@ describe("buildMetadata", () => {
         });
         const og = meta.openGraph as Record<string, unknown>;
         const twitter = meta.twitter as Record<string, unknown>;
-        expect(meta.title).toBe(APP.appTitle);
-        expect(og.title).toBe(
-            `8 RUTHENIA → ${asVehicle(delayed).trip.stoptimes.at(-1)?.stop.name}`,
-        );
+        const title = `8 RUTHENIA → ${asVehicle(delayed).trip.stoptimes.at(-1)?.stop.name}`;
+        // The tab names the train too, not only the preview
+        expect(meta.title).toBe(`${title} · ${APP.appTitle}`);
+        expect(og.title).toBe(title);
+        // The delay goes with the expected time at the next stop
         expect(meta.description).toMatch(
-            /^A 8-as vonat \+45 perc késésben, Záhony \d\d:\d\d$/,
+            /^A 8-as vonat 45 percet késik, Záhony ≈\d\d:\d\d$/,
         );
         expect(og.url).toBe(`${ORIGIN}/hu?vehicleId=1%3A915504313395`);
         expect(og.siteName).toBe(APP.appTitle);
@@ -158,17 +187,42 @@ describe("buildMetadata", () => {
             preview: {
                 kind: "station",
                 stationId: "005513748",
-                card: stationCard(board as StationBoard),
+                card: stationCard(board as StationBoard, after),
             },
             now,
         });
         const og = meta.openGraph as Record<string, unknown>;
         expect(og.title).toBe("Szolnok");
+        expect(meta.title).toBe(`Szolnok · ${APP.appTitle}`);
         expect(og.locale).toBe("en_GB");
         expect(meta.description).toMatch(
             /^Departures: \d\d:\d\d Budapest-Nyugati on time · \d\d:\d\d Hatvan cancelled · /,
         );
         expect(og.url).toBe(`${ORIGIN}/en?station=005513748`);
+    });
+
+    it("tells no status for an on-time train still due to leave", () => {
+        // Before the first departure: the board shows a plain time
+        const card = stationCard(board as StationBoard, now, 8);
+        expect(card.departures[0]).toMatchObject({
+            headsign: "Budapest-Nyugati",
+            delay: null,
+            level: null,
+        });
+        // A late one ahead still says so
+        expect(
+            card.departures.find((d) => d.delay !== null && d.delay > 0),
+        ).toMatchObject({ delay: 4, level: "onTime" });
+        const meta = buildMetadata({
+            locale: "hu",
+            origin: ORIGIN,
+            ...APP,
+            preview: { kind: "station", stationId: "005513748", card },
+            now,
+        });
+        expect(meta.description).toMatch(
+            /^Indulások: \d\d:\d\d Budapest-Nyugati · \d\d:\d\d Hatvan törölve · \d\d:\d\d Budapest-Nyugati · .* Budapest-Nyugati pontos · /,
+        );
     });
 
     it("falls back to the app card for a train that is gone", () => {
@@ -181,9 +235,27 @@ describe("buildMetadata", () => {
         });
         const og = meta.openGraph as Record<string, unknown>;
         expect(og.title).toBe(APP.appTitle);
+        expect(meta.title).toBe(APP.appTitle);
         expect(meta.description).toBe(APP.appDescription);
         expect(og.images).toEqual([
             expect.objectContaining({ url: "/hu/og", alt: APP.appTitle }),
         ]);
+    });
+});
+
+describe("subpageMetadata", () => {
+    it("gives the privacy page its own title, url and separator", () => {
+        const meta = subpageMetadata({
+            locale: "hu",
+            origin: ORIGIN,
+            appTitle: APP.appTitle,
+            path: "/privacy",
+            title: "Adatvédelem",
+            description: "Milyen adatot kezel az alkalmazás, és mire.",
+        });
+        expect(meta.title).toBe("Adatvédelem · Mégis hol a vonat?");
+        expect(meta.openGraph?.title).toBe("Adatvédelem");
+        expect(meta.openGraph?.url).toBe(`${ORIGIN}/hu/privacy`);
+        expect(meta.robots).toBeUndefined();
     });
 });

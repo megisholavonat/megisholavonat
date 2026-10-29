@@ -28,6 +28,10 @@ export function HourChart({ hours }: { hours: HourPunctuality[] }) {
 
     return (
         <figure className="flex flex-col gap-2" aria-label={t("by_hour")}>
+            {/* What the y axis counts: runs on time out of ten */}
+            <p className="text-caption font-normal text-ink-2" aria-hidden>
+                {t("hour_axis")}
+            </p>
             <div className="flex gap-2">
                 {/* y axis: runs out of ten */}
                 <div
@@ -63,7 +67,7 @@ export function HourChart({ hours }: { hours: HourPunctuality[] }) {
                                           })
                                         : t("few_data")
                                 }`}
-                                className="flex h-full min-w-0 flex-1 cursor-default items-end justify-center rounded-t-[4px] p-0 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                className="flex h-full min-w-0 flex-1 cursor-default items-end justify-center rounded-t-[4px] p-0 [--focus-offset:0px]"
                                 onPointerEnter={() => setActive(i)}
                                 onPointerLeave={() => setActive(null)}
                                 onFocus={() => setActive(i)}

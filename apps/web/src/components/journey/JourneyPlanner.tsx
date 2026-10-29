@@ -9,13 +9,13 @@ import type {
     WalkLeg,
 } from "@megisholavonat/api-client";
 import { planJourneysOptions } from "@megisholavonat/api-client/react-query";
+import { getDelayLevel } from "@megisholavonat/core/delay";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
     ArrowUpDown,
     ArrowUpRight,
     Footprints,
     RefreshCw,
-    Route as RouteIcon,
     Signpost,
     X,
 } from "lucide-react";
@@ -32,6 +32,10 @@ import { BackButton, IconButton } from "@/components/train/TrainParts";
 import { DelayChip } from "@/components/ui/Delay";
 import { PlatformBadge } from "@/components/ui/Platform";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
+import {
+    plannerResultExpanded,
+    usePlannerSearched,
+} from "@/lib/analyticsEvents";
 import { cn } from "@/lib/utils";
 import {
     formatTime,
@@ -42,53 +46,13 @@ import {
     type RiskLevel,
     rides,
     toLocalInput,
+    transferGap,
     worstTransfer,
 } from "./journey";
+import type { PlannerState } from "./PlannerButton";
 
 type Field = "from" | "to";
 
-export interface PlannerState {
-    from: Station | null;
-    to: Station | null;
-    /** Local Budapest time "YYYY-MM-DDTHH:mm", or null for now */
-    time: string | null;
-    arriveBy: boolean;
-}
-
-export function usePlannerState() {
-    const [state, setState] = useState<PlannerState>({
-        from: null,
-        to: null,
-        time: null,
-        arriveBy: false,
-    });
-    return [state, setState] as const;
-}
-
-/** Opens the planner: a round button next to the search. */
-export function PlannerButton({
-    onClick,
-    className,
-}: {
-    onClick: () => void;
-    className?: string;
-}) {
-    const t = useTranslations("Journey");
-    return (
-        <button
-            type="button"
-            onClick={onClick}
-            aria-label={t("open")}
-            title={t("open")}
-            className={cn(
-                "flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-full bg-surface-2 text-ink pressable transition-colors hover:bg-line",
-                className,
-            )}
-        >
-            <RouteIcon className="size-5" aria-hidden />
-        </button>
-    );
-}
 /** Desktop: a floating panel in place of the home card. */
 export function JourneyPanel(props: PlannerProps) {
     const t = useTranslations("Journey");
@@ -293,7 +257,7 @@ function EndpointField({
     }, [editing]);
     const label = t(field);
     return (
-        <div className="flex h-11 items-center gap-3 pr-2 pl-3.5">
+        <div className="focus-field flex h-11 items-center gap-3 rounded-md pr-2 pl-3.5">
             <span
                 aria-hidden
                 className={cn(
@@ -329,7 +293,8 @@ function EndpointField({
                     {station?.name ?? label}
                 </button>
             )}
-            {editing && (
+            {/* Only a field with something in it has something to clear */}
+            {editing && (query || station) && (
                 <button
                     type="button"
                     onClick={onDone}
@@ -445,7 +410,7 @@ function TimeRow({
             </label>
             <div
                 className={cn(
-                    "relative flex h-10 min-w-0 flex-1 items-center rounded-md px-3",
+                    "focus-field relative flex h-10 min-w-0 flex-1 items-center rounded-md px-3",
                     surface,
                 )}
             >
@@ -513,6 +478,12 @@ function Results({
     const key = `${state.from?.id}-${state.to?.id}-${state.time}-${state.arriveBy}`;
     // biome-ignore lint/correctness/useExhaustiveDependencies: collapse on a new search
     useEffect(() => setOpen(null), [key]);
+    usePlannerSearched(
+        key,
+        plan,
+        state.time !== null,
+        !!state.from && !!state.to,
+    );
 
     if (plan.isPending) {
         return (
@@ -567,7 +538,10 @@ function Results({
                     <ItineraryRow
                         itinerary={itinerary}
                         open={open === i}
-                        onToggle={() => setOpen(open === i ? null : i)}
+                        onToggle={() => {
+                            if (open !== i) plannerResultExpanded(i, itinerary);
+                            setOpen(open === i ? null : i);
+                        }}
                     />
                     {open === i && (
                         <ItineraryDetail
@@ -601,6 +575,7 @@ function ItineraryRow({
     open: boolean;
     onToggle: () => void;
 }) {
+    const tTrain = useTranslations("Train");
     const t = useTranslations("Journey");
     const legs = rides(itinerary);
     const first = legs[0];
@@ -627,9 +602,19 @@ function ItineraryRow({
                     {formatTime(itinerary.scheduledDeparture)} –{" "}
                     {formatTime(itinerary.scheduledArrival)}
                 </span>
-                {firstDelay?.live && !first?.canceled && (
-                    <DelayChip delay={firstDelay.departure} />
-                )}
+                {/* Beside the departure time, only a late start: a bare
+                    "pontos" there would not say which train it means */}
+                {firstDelay?.live &&
+                    !first?.canceled &&
+                    getDelayLevel(firstDelay.departure) !== "onTime" && (
+                        // Says whose delay it is: the first train's start
+                        <span className="flex items-center gap-1">
+                            <span className="text-caption text-ink-2">
+                                {tTrain("departs_at")}
+                            </span>
+                            <DelayChip delay={firstDelay.departure} />
+                        </span>
+                    )}
                 <span className="ml-auto shrink-0 text-sm text-ink-2">
                     <Duration minutes={itinerary.durationMinutes} />
                 </span>
@@ -706,7 +691,15 @@ function ItineraryDetail({
                 return (
                     // biome-ignore lint/suspicious/noArrayIndexKey: legs keep their order
                     <div key={i} className="flex flex-col">
-                        {transfer && <TransferRow transfer={transfer} />}
+                        {transfer && (
+                            <TransferRow
+                                transfer={transfer}
+                                gap={transferGap(
+                                    itinerary.legs[transfer.fromLeg],
+                                    itinerary.legs[transfer.toLeg],
+                                )}
+                            />
+                        )}
                         {leg.type === "transit" ? (
                             <RideBlock
                                 leg={leg}
@@ -731,16 +724,24 @@ function ItineraryDetail({
     );
 }
 
-function TransferRow({ transfer }: { transfer: Transfer }) {
+function TransferRow({
+    transfer,
+    gap,
+}: {
+    transfer: Transfer;
+    /** From the times shown on the two legs */
+    gap: { scheduled: number; expected: number } | null;
+}) {
     const t = useTranslations("Journey");
     const level: RiskLevel | null =
         transfer.riskSource === "canceled"
             ? "likely_missed"
             : (transfer.risk ?? null);
-    const minutes =
-        transfer.expectedTransferMinutes !== transfer.transferMinutes
-            ? transfer.expectedTransferMinutes
-            : transfer.transferMinutes;
+    // The minutes add up with the times printed above and below; a live
+    // forecast that differs is told beside them
+    const scheduled = gap?.scheduled ?? Math.max(transfer.transferMinutes, 0);
+    const expected =
+        gap?.expected ?? Math.max(transfer.expectedTransferMinutes, 0);
     return (
         <div className="my-1 flex items-center gap-2 rounded-md bg-surface-2/70 px-3 py-2">
             {level ? (
@@ -754,7 +755,12 @@ function TransferRow({ transfer }: { transfer: Transfer }) {
                 />
             ) : null}
             <span className="tnum min-w-0 flex-1 truncate text-sm text-ink-2">
-                {t("transfer_minutes", { m: Math.max(minutes, 0) })}
+                {expected !== scheduled
+                    ? t("transfer_minutes_expected", {
+                          m: scheduled,
+                          e: expected,
+                      })
+                    : t("transfer_minutes", { m: scheduled })}
             </span>
         </div>
     );
@@ -866,7 +872,7 @@ function RideBlock({
                         className="-mx-1.5 flex min-w-0 cursor-pointer items-center gap-1.5 rounded-sm px-1.5 py-0.5 hover:bg-surface-2"
                     >
                         {train}
-                        <span className="size-1.5 shrink-0 animate-pulse rounded-full bg-delay-on-time-fill" />
+                        <span className="size-1.5 shrink-0 motion-safe:animate-pulse rounded-full bg-delay-on-time-fill" />
                     </button>
                 ) : (
                     <span className="flex min-w-0 items-center gap-1.5">

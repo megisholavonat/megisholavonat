@@ -170,6 +170,14 @@ test("an open train leaves the map controls usable", async ({
         legend: _legend,
         ...rest
     } = controls(page, isPhone);
+    if (!isPhone) {
+        // D46: beside a panel the desktop keeps only the zoom buttons
+        const { locate, layers, ...zoom } = rest;
+        await expect(locate).toBeHidden();
+        await expect(layers).toBeHidden();
+        await expectNoOverlap(page, { ...zoom, train: trainRegion(page) });
+        return;
+    }
     await expectNoOverlap(page, { ...rest, train: trainRegion(page) });
 });
 
@@ -244,4 +252,27 @@ test("L10: search and settings stay reachable beside an open panel", async ({
         search: page.getByRole("combobox", { name: t.Search.placeholder }),
         settings: page.getByRole("button", { name: t.Settings.title }),
     });
+});
+
+/** The outline the element (or its text field's pill) draws */
+async function ring(locator: Locator) {
+    return locator.evaluate((el) => {
+        const target = el.closest(".focus-field") ?? el;
+        const style = getComputedStyle(target);
+        return `${style.outlineStyle} ${style.outlineWidth}`;
+    });
+}
+
+test("M-7: keyboard focus shows a 2 px ring, the search field on its pill", async ({
+    page,
+}) => {
+    await openHome(page);
+    const field = await openSearch(page);
+    await field.focus();
+    expect(await ring(field)).toBe("solid 2px");
+    // A control focused from the keyboard
+    await page.keyboard.press("Shift+Tab");
+    const focused = page.locator(":focus-visible").first();
+    await expect(focused).toBeAttached();
+    expect(await ring(focused)).toBe("solid 2px");
 });

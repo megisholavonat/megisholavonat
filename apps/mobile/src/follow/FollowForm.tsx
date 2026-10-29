@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
         marginLeft: -8,
     },
     save: {
-        height: 40,
+        minHeight: 40,
         paddingHorizontal: 18,
         borderRadius: 20,
         justifyContent: "center",
