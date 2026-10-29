@@ -79,7 +79,7 @@ export default function ConsentBanner() {
     return (
         <section
             aria-labelledby="consent-title"
-            className="floating-card fixed inset-x-4 bottom-[calc(var(--mhav-sheet-inset,0px)+12px)] z-40 flex flex-col gap-3 rounded-lg p-4 md:right-auto md:bottom-16 md:w-80"
+            className="floating-card fixed inset-x-4 bottom-[calc(var(--mhav-sheet-inset,0px)+12px)] z-40 flex flex-col gap-3 rounded-lg p-4 md:right-auto md:bottom-16 md:w-80 [html[data-sheet=full]_&]:hidden"
         >
             <div className="flex items-baseline justify-between gap-3">
                 <h2 id="consent-title" className="text-headline">

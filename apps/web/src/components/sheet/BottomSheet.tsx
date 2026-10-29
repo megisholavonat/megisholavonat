@@ -227,9 +227,14 @@ export function BottomSheet({
             `${Math.round(inset)}px`,
         );
     }, [height, heights.half]);
+    // Floating cards (the consent prompt) step aside for a full sheet
+    useEffect(() => {
+        document.documentElement.dataset.sheet = detent;
+    }, [detent]);
     useEffect(
         () => () => {
             document.documentElement.style.removeProperty("--mhav-sheet-inset");
+            delete document.documentElement.dataset.sheet;
         },
         [],
     );

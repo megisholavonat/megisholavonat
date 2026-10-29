@@ -91,9 +91,7 @@ async function motionSince(page: Page) {
 
 test("L19: reduced motion: the sheet and the train open without animation", async ({
     page,
-    isPhone,
 }) => {
-    knownGap("L19: the legend slides with the sheet inset", isPhone);
     await openHome(page);
     expect(await motionSince(page)).toEqual([]);
 

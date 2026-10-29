@@ -1,10 +1,12 @@
 import type { Locator, Page } from "@playwright/test";
 import {
+    boardRegion,
     expect,
     knownGap,
     openHome,
     openSearch,
     openTrain,
+    STATIONS,
     t,
     test,
     trainRegion,
@@ -157,17 +159,14 @@ test("L2: the consent card does not cover an open train", async ({
     page,
     isPhone,
 }) => {
-    knownGap(
-        isPhone
-            ? "L2: the consent card floats over the full sheet"
-            : "L2: the consent card sits on the train panel",
-    );
+    knownGap("L2: the consent card sits on the train panel", !isPhone);
     await promptConsent(page);
     await openTrain(page, "delayed", "full");
-    const items: Record<string, Locator> = {
-        train: trainRegion(page),
-        consent: consentCard(page),
-    };
+    const items: Record<string, Locator> = { train: trainRegion(page) };
+    // The phone hides the card while a sheet is full
+    if (await consentCard(page).isVisible()) {
+        items.consent = consentCard(page);
+    }
     await expectNoOverlap(page, items);
 });
 
@@ -197,4 +196,65 @@ test("L3: the consent card stays out of the search", async ({ page }) => {
         items.consent = consentCard(page);
     }
     await expectNoOverlap(page, items);
+});
+
+test("L5: the peek title keeps the destination on a 360 px phone", async ({
+    page,
+    isPhone,
+}) => {
+    test.skip(!isPhone, "phones only");
+    await page.setViewportSize({ width: 360, height: 740 });
+    const region = await openTrain(page, "late", "peek");
+    const destination = region
+        .getByText("Budapest-Keleti", { exact: true })
+        .first();
+    await expect(destination).toBeVisible();
+    const clipped = await destination.evaluate(
+        (el) => el.scrollWidth > el.clientWidth + 1,
+    );
+    expect(clipped).toBe(false);
+});
+
+test("L6: the full sheet keeps follow, share and ticket in view", async ({
+    page,
+}) => {
+    const region = await openTrain(page, "delayed", "full");
+    const height = page.viewportSize()?.height ?? 0;
+    for (const action of [
+        region.getByRole("button", { name: t.Follow.follow }),
+        region.getByRole("button", { name: t.Train.share }),
+        region.getByRole("link", { name: t.Train.ticket }),
+    ]) {
+        await expect(action).toBeVisible();
+        const box = await action.boundingBox();
+        expect((box?.y ?? height) + (box?.height ?? 0)).toBeLessThanOrEqual(
+            height,
+        );
+    }
+});
+
+test("L9: the board panel leaves room for the map at 768 px", async ({
+    page,
+    isPhone,
+}) => {
+    test.skip(isPhone, "the phone board is a sheet");
+    await page.setViewportSize({ width: 768, height: 1024 });
+    await openHome(page, `?station=${STATIONS.szolnok.id}`);
+    const panel = boardRegion(page, STATIONS.szolnok.name);
+    await expect(panel).toBeVisible();
+    const box = await panel.boundingBox();
+    expect(768 - ((box?.x ?? 0) + (box?.width ?? 0))).toBeGreaterThan(300);
+});
+
+test("L10: search and settings stay reachable beside an open panel", async ({
+    page,
+    isPhone,
+}) => {
+    test.skip(isPhone, "the phone shows a sheet");
+    await openTrain(page, "delayed");
+    await expectNoOverlap(page, {
+        train: trainRegion(page),
+        search: page.getByRole("combobox", { name: t.Search.placeholder }),
+        settings: page.getByRole("button", { name: t.Settings.title }),
+    });
 });

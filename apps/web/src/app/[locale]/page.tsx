@@ -763,7 +763,7 @@ function MapScreen() {
                     </AnimatePresence>
                     <div
                         className={cn(
-                            "absolute bottom-4 z-20 transition-[left] duration-(--mhav-duration-sheet) ease-sheet",
+                            "absolute bottom-4 z-20 transition-[left] duration-(--mhav-duration-sheet) ease-sheet motion-reduce:transition-none",
                             desktopPanel !== "home" && "hidden lg:block",
                         )}
                         style={{ left: panelLeft || GUTTER }}
@@ -784,7 +784,7 @@ function MapScreen() {
                     </div>
                     <div
                         className={cn(
-                            "absolute bottom-[calc(var(--mhav-sheet-inset,0px)+2.25rem)] left-4 z-20 transition-[bottom,opacity] duration-(--mhav-duration-sheet) ease-sheet",
+                            "absolute bottom-[calc(var(--mhav-sheet-inset,0px)+2.25rem)] left-4 z-20 transition-[bottom,opacity] duration-(--mhav-duration-sheet) ease-sheet motion-reduce:transition-none",
                             (sheetMode !== "home" || searchOpen) &&
                                 "pointer-events-none opacity-0",
                         )}
