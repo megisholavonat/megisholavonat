@@ -15,6 +15,7 @@ import {
     locateOnRoute,
     onPositionUpdate,
     pointAlong,
+    routeFromPolyline,
     routeGeometry,
     setRoute,
     tick,
@@ -37,7 +38,7 @@ describe("route geometry", () => {
     const line = lineString(COORDS);
 
     it("measures like turf", () => {
-        expect(route.cumKm[COORDS.length - 1]).toBeCloseTo(length(line), 6);
+        expect(route.cumKm[COORDS.length - 1]).toBeCloseTo(length(line), 3);
         expect(distanceKm(COORDS[0], COORDS[3])).toBeCloseTo(
             distance(COORDS[0], COORDS[3]),
             9,
@@ -45,6 +46,21 @@ describe("route geometry", () => {
         expect(bearingDeg(COORDS[2], COORDS[5])).toBeCloseTo(
             bearing(COORDS[2], COORDS[5]),
             9,
+        );
+    });
+
+    it("decodes a polyline into the same route", () => {
+        // [[38.5, -120.2], [40.7, -120.95], [43.252, -126.453]] as lat, lng
+        const decoded = routeFromPolyline("_p~iF~ps|U_ulLnnqC_mqNvxq`@");
+        expect(decoded.coords).toEqual([
+            [-120.2, 38.5],
+            [-120.95, 40.7],
+            [-126.453, 43.252],
+        ]);
+        expect(decoded.cumKm[0]).toBe(0);
+        expect(decoded.cumKm[2]).toBeCloseTo(
+            length(lineString(decoded.coords)),
+            0,
         );
     });
 

@@ -74,12 +74,52 @@ export function bearingDeg(
     return Math.atan2(y, x) / RAD;
 }
 
+/**
+ * Segment length in km. Route segments are short, so a flat projection at
+ * their mid-latitude matches the haversine to well under a metre at a
+ * fraction of the trigonometry, which matters across a whole feed of routes.
+ */
+function segmentKm(a: readonly number[], b: readonly number[]): number {
+    const dx = (b[0] - a[0]) * Math.cos(((a[1] + b[1]) / 2) * RAD);
+    const dy = b[1] - a[1];
+    return Math.sqrt(dx * dx + dy * dy) * RAD * EARTH_KM;
+}
+
 export function routeGeometry(coords: [number, number][]): RouteGeometry {
     const cumKm = new Float64Array(coords.length);
     for (let i = 1; i < coords.length; i++) {
-        cumKm[i] = cumKm[i - 1] + distanceKm(coords[i - 1], coords[i]);
+        cumKm[i] = cumKm[i - 1] + segmentKm(coords[i - 1], coords[i]);
     }
     return { coords, cumKm };
+}
+
+/** Decodes an encoded polyline (precision 5) straight into a route */
+export function routeFromPolyline(encoded: string): RouteGeometry {
+    const coords: [number, number][] = [];
+    let index = 0;
+    let lat = 0;
+    let lng = 0;
+    while (index < encoded.length) {
+        let b: number;
+        let shift = 0;
+        let result = 0;
+        do {
+            b = encoded.charCodeAt(index++) - 63;
+            result |= (b & 0x1f) << shift;
+            shift += 5;
+        } while (b >= 0x20);
+        lat += result & 1 ? ~(result >> 1) : result >> 1;
+        shift = 0;
+        result = 0;
+        do {
+            b = encoded.charCodeAt(index++) - 63;
+            result |= (b & 0x1f) << shift;
+            shift += 5;
+        } while (b >= 0x20);
+        lng += result & 1 ? ~(result >> 1) : result >> 1;
+        coords.push([lng / 1e5, lat / 1e5]);
+    }
+    return routeGeometry(coords);
 }
 
 /** The point `km` along the route, clamped to its ends */
