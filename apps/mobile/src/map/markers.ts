@@ -1,60 +1,72 @@
 import type { TrainFeatureCollection } from "@megisholavonat/api-client";
-import type { DelayLevel } from "@megisholavonat/core/delay";
 import { staleness } from "@megisholavonat/core/stale";
-import { MARKER } from "@megisholavonat/core/tokens";
-import type { NativeTheme } from "@megisholavonat/core/tokens/native";
+import {
+    type ColorScheme,
+    DELAY_SCALE,
+    MARKER,
+    STALE_COLORS,
+} from "@megisholavonat/core/tokens";
 import { shownDisplay } from "../train/delayDisplay";
+import {
+    chipId,
+    chipPaint,
+    type MarkLevel,
+    type MarkShape,
+    markId,
+    ringId,
+} from "./sprites";
 
-// Map markers per "DS · Térképjelölő": colour + size + minutes. Each feature
-// carries its resolved paint values, so the layers only read properties.
-//
-// MapLibre circle layers cannot draw stretchable pills, dashed outlines or
-// the direction triangle, so at zoom ≥ 9 a marker is a circle sized to fit
-// its "+N" label.
+// Train marks: one size per zoom for every vehicle, colour is the delay band
+// only, shape is the vehicle type. Each feature carries its sprite ids and
+// texts, so the layers in mapStyle.ts only read properties.
+
+/**
+ * Shape by vehicle type (round train, square HÉV, pointed tram-train). Off:
+ * every vehicle is round.
+ */
+export const VEHICLE_SHAPES = true;
+
+export function markShape(type: string | undefined): MarkShape {
+    if (!VEHICLE_SHAPES) return "train";
+    return type === "hev" || type === "tramtrain" ? type : "train";
+}
 
 export interface MarkerProperties {
     vehicleId: string;
-    fill: string;
-    stroke: string;
-    strokeWidth: number;
-    /** Outer halo ring colour; "" for none */
-    halo: string;
-    /** Dot radius below the label zoom */
-    dotRadius: number;
-    /** Radius from the label zoom on, fitted to the label */
-    pillRadius: number;
+    /** For offsets that clear the mark */
+    shape: MarkShape;
+    /** Sprite of the mark */
+    icon: string;
+    /** Sprite of the selection ring around it */
+    ring: string;
+    /** Sprite of the "+N" chip ("" for none), selected and followed only */
+    chip: string;
+    /** The chip's text: "+N", or the minutes since an old update ("6′") */
     label: string;
     labelColor: string;
-    fontSize: number;
+    /** "+N" beside an unselected late train ("6′" for old data), from city zoom; "" for none */
+    text: string;
+    textColor: string;
+    /** Minutes late, so the biggest delays get their number first */
+    delay: number;
     /** Larger delays draw on top, followed trains above all */
     sort: number;
-    /** A followed train: never faded, with an ink badge */
+    /** A followed train: never faded, with an ink badge and its chip */
     followed: boolean;
 }
 
-const SORT: Record<DelayLevel, number> = {
+const SORT: Record<MarkLevel, number> = {
+    inactive: 0,
+    stale: 0,
     onTime: 1,
     slight: 2,
     moderate: 3,
     severe: 4,
 };
 
-/** Circle radius that fits `label` at `fontSize`, at least half the pill height. */
-export function fittedRadius(
-    label: string,
-    fontSize: number,
-    height: number,
-): number {
-    if (!label) return height / 2;
-    const textWidth = label.length * fontSize * 0.6;
-    return Math.max(height / 2, Math.round((textWidth / 2 + 3) * 2) / 2);
-}
-
-type MarkerTheme = Pick<NativeTheme, "delay" | "stale">;
-
 export function markerCollection(
     trains: TrainFeatureCollection | undefined,
-    theme: MarkerTheme,
+    scheme: ColorScheme,
     now: Date = new Date(),
     followed: ReadonlySet<string> = new Set(),
 ): GeoJSON.FeatureCollection<GeoJSON.Point, MarkerProperties> {
@@ -64,60 +76,50 @@ export function markerCollection(
         if (staleness(p.lastUpdated, now) === "hidden") continue;
         // Same rule as the sheet (the open train's feature carries its dwell)
         const display = shownDisplay(p, now);
+        const shape = markShape(p.type);
 
-        let props: Omit<MarkerProperties, "followed">;
+        let level: MarkLevel;
+        let label = "";
+        let text = "";
+        let textColor = "";
+        let delay = 0;
         if (display.level === "stale" || display.delay === null) {
-            // Old data: hollow grey with its age ("6′"). A train waiting at
-            // a terminus or arrived has fresh data: a solid grey dot without
-            // a label, so it doesn't read as "no data for 0 minutes"
-            const spec = MARKER.stale;
-            const label = display.outdated
-                ? MARKER.label.stale(display.minutesSinceUpdate)
-                : "";
-            props = {
-                vehicleId: p.vehicleId,
-                fill: display.outdated
-                    ? theme.stale.background
-                    : theme.stale.fill,
-                stroke: theme.stale.outline.color,
-                strokeWidth: theme.stale.outline.width,
-                halo: "",
-                dotRadius: spec.dot / 2,
-                pillRadius: fittedRadius(label, spec.fontSize, spec.height),
-                label,
-                labelColor: theme.stale.text,
-                fontSize: spec.fontSize,
-                sort: 0,
-            };
+            // Old data: hollow grey, its age on the chip ("6′"). A train
+            // waiting at a terminus or arrived has fresh data: a solid grey
+            // mark without a number, so it doesn't read as "no data for 0′"
+            level = display.outdated ? "stale" : "inactive";
+            if (display.outdated) {
+                label = MARKER.label.stale(display.minutesSinceUpdate);
+                text = label;
+                textColor = STALE_COLORS[scheme].text;
+            }
         } else {
-            const level = display.level;
-            const spec = MARKER.levels[level];
-            const colors = theme.delay[level];
-            const label =
-                level === "onTime" ? "" : MARKER.label.delayed(display.delay);
-            props = {
-                vehicleId: p.vehicleId,
-                fill: colors.fill,
-                stroke: colors.outline.color,
-                strokeWidth: colors.outline.width,
-                halo: colors.outline.halo?.color ?? "",
-                dotRadius: spec.dot / 2,
-                pillRadius: fittedRadius(label, spec.fontSize, spec.height),
-                label,
-                labelColor: colors.label,
-                fontSize: spec.fontSize,
-                sort: SORT[level],
-            };
+            level = display.level;
+            if (level !== "onTime") {
+                delay = Math.round(display.delay);
+                label = MARKER.label.delayed(display.delay);
+                text = label;
+                textColor = DELAY_SCALE[scheme][level].text;
+            }
         }
+        const isFollowed = followed.has(p.vehicleId);
         features.push({
             type: "Feature",
-            geometry: {
-                type: "Point",
-                coordinates: [p.lon, p.lat],
+            geometry: { type: "Point", coordinates: [p.lon, p.lat] },
+            properties: {
+                vehicleId: p.vehicleId,
+                shape,
+                icon: markId(scheme, level, shape),
+                ring: ringId(scheme, shape),
+                chip: label ? chipId(scheme, level) : "",
+                label,
+                labelColor: label ? chipPaint(scheme, level).text : "",
+                text,
+                textColor,
+                delay,
+                sort: SORT[level] + (isFollowed ? 10 : 0),
+                followed: isFollowed,
             },
-            properties: followed.has(p.vehicleId)
-                ? { ...props, followed: true, sort: props.sort + 10 }
-                : { ...props, followed: false },
         });
     }
     return { type: "FeatureCollection", features };

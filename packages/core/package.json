@@ -14,6 +14,7 @@
         "./delayReasons": "./src/delayReasons.ts",
         "./delaySummary": "./src/delaySummary.ts",
         "./i18n": "./src/i18n.ts",
+        "./mapStyle": "./src/mapStyle.ts",
         "./mavRoutes": "./src/mavRoutes.ts",
         "./polyline": "./src/polyline.ts",
         "./search": "./src/search.ts",
@@ -22,6 +23,7 @@
         "./ticket": "./src/ticket.ts",
         "./time": "./src/time.ts",
         "./tokens": "./src/tokens/tokens.ts",
+        "./tokens/map": "./src/tokens/map.ts",
         "./tokens/native": "./src/tokens/native.ts",
         "./tokens/web": "./src/tokens/web.ts",
         "./trainSearch": "./src/trainSearch.ts",
@@ -39,6 +41,7 @@
         "luxon": "^3.7.2"
     },
     "devDependencies": {
+        "@maplibre/maplibre-gl-style-spec": "^26.5.0",
         "@types/geojson": "^7946.0.16",
         "@types/luxon": "^3.7.1",
         "typescript": "^5.9.3",

@@ -20,7 +20,7 @@ export const DEFAULT_SETTINGS: Settings = {
     showTrains: true,
     showTramTrains: true,
     showHev: true,
-    showRailwayOverlay: true,
+    showRailwayOverlay: false,
     animateVehicles: true,
 };
 

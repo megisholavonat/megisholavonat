@@ -1,6 +1,7 @@
 // Map marker sprites drawn from the design tokens ("DS · Térképjelölő"):
-// colour + size + minutes, round for trains, square-ish for HÉV and with
-// pointed ends for tram-trains.
+// colour = delay band, round for trains, square-ish for HÉV and with pointed
+// ends for tram-trains. Unselected trains are one-size "marks" (MAP_MARKS);
+// the selected and followed trains keep their "+N" pills.
 //
 // Images are generated on demand: layers reference ids like
 // `mhav-dark-pill-severe-hev-sel`, and the map's missing-image resolver calls
@@ -15,6 +16,7 @@ import {
     type Outline,
     STALE_COLORS,
 } from "@megisholavonat/core/tokens";
+import { MAP_MARKS } from "@megisholavonat/core/tokens/map";
 import type { StyleImageMetadata } from "maplibre-gl";
 
 /**
@@ -43,6 +45,23 @@ export function markerImageId(
 ): string {
     return `${PREFIX}${scheme}-${kind}-${level}-${shape}${selected ? "-sel" : ""}`;
 }
+
+/** An unselected train's mark: one size, coloured by its level */
+export function markImageId(
+    scheme: ColorScheme,
+    level: MarkerLevel,
+    shape: MarkerShape,
+): string {
+    return `${PREFIX}${scheme}-mark-${level}-${shape}`;
+}
+
+/** A neutral count bubble of overlapping trains */
+export function clusterImageId(scheme: ColorScheme): string {
+    return `${PREFIX}${scheme}-cluster`;
+}
+
+/** Diameter of the cluster sprite; bigger counts scale it up */
+export const CLUSTER_SIZE = 20;
 
 export function arrowImageId(scheme: ColorScheme): string {
     return `${PREFIX}${scheme}-arrow`;
@@ -326,6 +345,55 @@ function dot(
     return data ? { data, meta: { pixelRatio: PIXEL_RATIO } } : null;
 }
 
+/**
+ * Body of a mark `d` px across, the three shapes at the same area: a circle,
+ * a rounded square and a pointed pill.
+ */
+export function markBody(
+    shape: MarkerShape,
+    d: number,
+): { w: number; h: number; r: number } {
+    if (shape === "hev") {
+        const side = d * MAP_MARKS.hevSide;
+        return { w: side, h: side, r: MARKER.radius.hevDot };
+    }
+    if (shape === "tramtrain") {
+        const { width, height } = MAP_MARKS.tramtrain;
+        return { w: d * width, h: d * height, r: (d * height) / 2 };
+    }
+    return { w: d, h: d, r: d / 2 };
+}
+
+/** Drawn at MAP_MARKS.spriteSize; the layer scales it per zoom */
+function mark(scheme: ColorScheme, level: MarkerLevel, shape: MarkerShape) {
+    const { w, h, r } = markBody(shape, MAP_MARKS.spriteSize);
+    const { canvas } = drawBody(scheme, level, shape, w, h, r, false);
+    const data = toImage(canvas);
+    return data ? { data, meta: { pixelRatio: PIXEL_RATIO } } : null;
+}
+
+/** Overlapping trains: a neutral surface disc with a hairline ink edge */
+function cluster(scheme: ColorScheme) {
+    const edge = MARKER.outlineWidth;
+    const size = CLUSTER_SIZE + edge * 2 + 2;
+    const canvas = document.createElement("canvas");
+    canvas.width = size * PIXEL_RATIO;
+    canvas.height = size * PIXEL_RATIO;
+    const ctx = context(canvas);
+    if (!ctx) return null;
+    ctx.scale(PIXEL_RATIO, PIXEL_RATIO);
+    const c = size / 2;
+    ctx.beginPath();
+    ctx.arc(c, c, CLUSTER_SIZE / 2 + edge / 2, 0, Math.PI * 2);
+    ctx.fillStyle = COLORS[scheme].surface;
+    ctx.fill();
+    ctx.lineWidth = edge;
+    ctx.strokeStyle = COLORS[scheme].ink2;
+    ctx.stroke();
+    const data = toImage(canvas);
+    return data ? { data, meta: { pixelRatio: PIXEL_RATIO } } : null;
+}
+
 /** Direction of travel: a small ink triangle pointing up (rotated by heading). */
 function arrow(scheme: ColorScheme) {
     const { width, height } = MARKER.directionArrow;
@@ -498,7 +566,7 @@ function follow(scheme: ColorScheme) {
 }
 
 const ID_PATTERN =
-    /^mhav-(light|dark)-(?:(dot|pill)-(onTime|slight|moderate|severe|stale|inactive)-(train|hev|tramtrain)(-sel)?|(arrow)|station-(clear|ring|label)|(follow))$/;
+    /^mhav-(light|dark)-(?:(dot|pill|mark)-(onTime|slight|moderate|severe|stale|inactive)-(train|hev|tramtrain)(-sel)?|(arrow)|station-(clear|ring|label)|(follow)|(cluster))$/;
 
 type Sprite = { data: ImageData; meta: Partial<StyleImageMetadata> };
 
@@ -530,7 +598,12 @@ const SHAPES: MarkerShape[] = ["train", "hev", "tramtrain"];
  * needs, then plain trains, then the HÉV and tram-train shapes.
  */
 export function markerImageIds(scheme: ColorScheme): string[] {
-    const ids = [arrowImageId(scheme), followImageId(scheme)];
+    const ids = [clusterImageId(scheme)];
+    // The marks every map shows first, then what a selected train needs
+    for (const shape of SHAPES) {
+        for (const level of LEVELS) ids.push(markImageId(scheme, level, shape));
+    }
+    ids.push(arrowImageId(scheme), followImageId(scheme));
     for (const shape of SHAPES) {
         for (const selected of [true, false]) {
             for (const level of LEVELS) {
@@ -608,10 +681,12 @@ function drawSprite(id: string): Sprite | null {
     if (match[7] === "label") return stationLabel(scheme);
     if (match[7]) return station(scheme, match[7] as "clear" | "ring");
     if (match[8]) return follow(scheme);
+    if (match[9]) return cluster(scheme);
     const kind = match[2];
     const level = match[3] as MarkerLevel;
     const shape = match[4] as MarkerShape;
     const selected = !!match[5];
+    if (kind === "mark") return mark(scheme, level, shape);
     return kind === "pill"
         ? pill(scheme, level, shape, selected)
         : dot(scheme, level, shape, selected);

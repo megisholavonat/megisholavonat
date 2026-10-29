@@ -25,6 +25,7 @@ from api.routers import (
     trains,
 )
 from api.routers.errors import register_error_handlers
+from api.routers.map import router as map_router
 
 # Initialize logging
 setup_logging()
@@ -77,6 +78,7 @@ def create_app() -> FastAPI:
     v1_router.include_router(follows.router)
     v1_router.include_router(history.router)
     v1_router.include_router(rankings.router)
+    v1_router.include_router(map_router)
 
     register_error_handlers(app)
 

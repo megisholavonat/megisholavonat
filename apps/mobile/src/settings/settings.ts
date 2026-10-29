@@ -14,8 +14,12 @@ export interface Settings {
     theme: ThemePreference;
     /** Android Material You colours; off by default (design system rule) */
     dynamicColor: boolean;
-    /** OpenRailwayMap overlay */
-    railwayLayer: boolean;
+    /**
+     * OpenRailwayMap raster overlay ("Detailed railway map"), opt-in. A new
+     * key: the old `railwayLayer` was stored on for everyone, so a stored
+     * value of it is ignored
+     */
+    detailedRailwayMap: boolean;
     analytics: AnalyticsConsent;
     /** App launches so far, this one included */
     launchCount: number;
@@ -27,7 +31,7 @@ export const DEFAULT_SETTINGS: Settings = {
     language: null,
     theme: "system",
     dynamicColor: DISPLAY_RULES.androidDynamicColorDefault,
-    railwayLayer: true,
+    detailedRailwayMap: false,
     analytics: "unknown",
     launchCount: 0,
     openedTrain: false,
@@ -65,7 +69,7 @@ export function parseSettings(json: string | null | undefined): Settings {
         ),
         theme: oneOf(THEMES, raw.theme, d.theme),
         dynamicColor: bool(raw.dynamicColor, d.dynamicColor),
-        railwayLayer: bool(raw.railwayLayer, d.railwayLayer),
+        detailedRailwayMap: bool(raw.detailedRailwayMap, d.detailedRailwayMap),
         analytics: oneOf(CONSENTS, raw.analytics, d.analytics),
         launchCount:
             typeof launchCount === "number" &&
