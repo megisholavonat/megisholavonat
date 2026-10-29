@@ -249,8 +249,8 @@
         "best": "Most punctual",
         "worst": "Most delayed",
         "column": "On time of 10",
-        "of10": "<b>on time {count} in 10</b>",
-        "of10_at": "{station}: <b>on time {count} in 10</b>",
+        "of10": "<b>{count} in 10</b> on time",
+        "of10_at": "{station}: <b>{count} in 10</b> on time",
         "usually_late": "Usually late by",
         "late": {
             "slight": "5+ min",
@@ -265,7 +265,12 @@
         "few_data": "little data",
         "no_data": "Not enough data yet",
         "no_data_hint": "We are still collecting runs. Check back in a few days.",
-        "show_on_map": "Show on map"
+        "show_on_map": "Show on map",
+        "description": "How punctual trains are: lines, trains and stations over the last 28 days.",
+        "train_description": "How punctual {subject} is at each stop, from the last 28 days of runs.",
+        "station_description": "{station}: how punctual trains are by time of day, over the last 28 days.",
+        "not_found": "No such train or station",
+        "not_found_hint": "The address may have a typo. The rankings list the lines, trains and stations."
     },
     "Journey": {
         "title": "Journey planner",

@@ -14,6 +14,7 @@ import {
     LateChip,
     LoadError,
     lateLevel,
+    MIN_SAMPLES,
     Of10Text,
     of10,
     RowsSkeleton,
@@ -25,6 +26,11 @@ import {
 
 const HOUR = 60 * 60 * 1000;
 
+/** A stop's share is told from as many runs as the trains list needs */
+function enoughRuns(station: TrainRouteStation): boolean {
+    return !station.insufficientData && station.n >= MIN_SAMPLES.trains;
+}
+
 function StationRow({
     station,
     days,
@@ -33,7 +39,7 @@ function StationRow({
     days: number;
 }) {
     const t = useTranslations("Stats");
-    const share = station.insufficientData ? null : station.onTimeShare;
+    const share = enoughRuns(station) ? (station.onTimeShare ?? null) : null;
     const late = share != null ? lateLevel(station.medianDelayMin) : null;
     return (
         <li className="flex min-h-11 items-center gap-3 border-b border-line py-1.5 text-[15px] last:border-b-0">
@@ -83,7 +89,7 @@ export function TrainHistoryPage({ number }: { number: string }) {
     const data = history.data;
     const name = data?.tripShortName ? trainName(data.tripShortName) : null;
     const known = data?.stations.filter(
-        (s) => !s.insufficientData && s.onTimeShare != null,
+        (s) => enoughRuns(s) && s.onTimeShare != null,
     );
     const final = known?.[known.length - 1];
     const finalLate = final ? lateLevel(final.medianDelayMin) : null;

@@ -29,6 +29,14 @@ export function withDays(href: string, days: number): string {
     return days === DEFAULT_DAYS ? href : `${href}?days=${days}`;
 }
 
+/**
+ * Fewest samples for a figure, the same as the API's rankings use
+ * (`DEFAULT_MIN_SAMPLES`): a station counts passages, a train its runs. A
+ * headline, a chart and a list row all follow it, so a page never shows a
+ * "10-ből 9" next to "kevés adat" for the same data.
+ */
+export const MIN_SAMPLES = { stations: 100, lines: 30, trains: 15 } as const;
+
 /** On-time share as whole runs out of ten. */
 export function of10(share: number): number {
     return Math.round(share * 10);
@@ -203,7 +211,10 @@ export function LoadError({ onRetry }: { onRetry: () => void }) {
 
 export function RowsSkeleton({ rows = 6 }: { rows?: number }) {
     return (
-        <div className="flex animate-pulse flex-col gap-5 py-2" aria-hidden>
+        <div
+            className="flex motion-safe:animate-pulse flex-col gap-5 py-2"
+            aria-hidden
+        >
             {Array.from({ length: rows }, (_, i) => (
                 <div
                     // biome-ignore lint/suspicious/noArrayIndexKey: placeholders
