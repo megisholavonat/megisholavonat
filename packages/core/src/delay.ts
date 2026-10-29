@@ -1,4 +1,5 @@
 import { ORANGE_THRESHOLD, RED_THRESHOLD, YELLOW_THRESHOLD } from "./constants";
+import { DELAY_SCALE, STALE_COLORS } from "./tokens/tokens";
 
 export type DelayLevel = "onTime" | "slight" | "moderate" | "severe";
 
@@ -15,13 +16,13 @@ export function getDelayLevel(delayMinutes: number): DelayLevel {
     return "onTime";
 }
 
-/** Map marker / legend colour for each delay level. */
+/** Map marker / legend colour for each delay level (light fills of `DELAY_SCALE`). */
 export const DELAY_COLORS = {
-    onTime: "#4AD94A", // green
-    slight: "#E4DE3A", // yellow
-    moderate: "#DF9227", // orange
-    severe: "#D9564A", // red
+    onTime: DELAY_SCALE.light.onTime.fill,
+    slight: DELAY_SCALE.light.slight.fill,
+    moderate: DELAY_SCALE.light.moderate.fill,
+    severe: DELAY_SCALE.light.severe.fill,
 } as const satisfies Record<DelayLevel, string>;
 
 /** Map marker / legend colour for stale or inactive trains ("no data"). */
-export const NO_DATA_COLOR = "#9CA3AF"; // grey
+export const NO_DATA_COLOR = STALE_COLORS.light.fill;

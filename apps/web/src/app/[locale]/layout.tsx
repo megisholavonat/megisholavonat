@@ -1,3 +1,4 @@
+import { themeCss } from "@megisholavonat/core/tokens/web";
 import { Geist, Geist_Mono } from "next/font/google";
 import "@/app/globals.css";
 import type { Metadata, Viewport } from "next";
@@ -45,6 +46,7 @@ export default async function LocaleLayout({
     return (
         <html lang={locale} suppressHydrationWarning>
             <head>
+                <style>{themeCss()}</style>
                 <meta name="apple-mobile-web-app-title" content="MHaV" />
                 <link
                     rel="alternate"

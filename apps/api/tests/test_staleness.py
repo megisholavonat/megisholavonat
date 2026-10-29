@@ -11,10 +11,13 @@ import pytest
 from api.services.train_service import TrainService
 from api.util.time import BUDAPEST_TZ
 from api.util.vehicle import (
+    STALE_GREY_AFTER_S,
+    STALE_HIDE_AFTER_S,
     is_active,
     is_far_from_route,
     is_stale,
     is_stale_or_inactive,
+    should_remove,
 )
 
 # 08:00 Budapest time on the service date
@@ -68,11 +71,26 @@ def test_fresh_running_train_is_not_flagged() -> None:
     assert not is_stale_or_inactive(v, NOW)
 
 
-def test_no_update_for_over_30_minutes_is_stale() -> None:
-    assert not is_stale(vehicle(last_updated=NOW - 30 * 60), NOW)
-    v = vehicle(last_updated=NOW - 31 * 60)
+def test_thresholds_match_core() -> None:
+    # packages/core/src/constants.ts: STALE_GREY_AFTER_S / STALE_HIDE_AFTER_S
+    assert STALE_GREY_AFTER_S == 5 * 60
+    assert STALE_HIDE_AFTER_S == 30 * 60
+
+
+def test_no_update_for_over_5_minutes_is_stale() -> None:
+    assert not is_stale(vehicle(last_updated=NOW - 5 * 60), NOW)
+    v = vehicle(last_updated=NOW - 5 * 60 - 1)
     assert is_stale(v, NOW)
     assert is_stale_or_inactive(v, NOW)
+
+
+def test_no_update_for_over_30_minutes_is_removed() -> None:
+    assert not should_remove(vehicle(last_updated=NOW - 30 * 60), NOW)
+    assert should_remove(vehicle(last_updated=NOW - 30 * 60 - 1), NOW)
+    # Grey but still shown in between
+    v = vehicle(last_updated=NOW - 10 * 60)
+    assert is_stale(v, NOW)
+    assert not should_remove(v, NOW)
 
 
 def test_waiting_at_origin_before_departure_is_inactive() -> None:

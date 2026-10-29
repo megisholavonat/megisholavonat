@@ -42,6 +42,16 @@
     --radius-md: calc(var(--radius) - 2px);
     --radius-lg: var(--radius);
     --radius-xl: calc(var(--radius) + 4px);
+    /* Delay text from the design tokens (@megisholavonat/core/tokens), set on
+       :root / .dark by themeCss() in the locale layout */
+    --color-delay-on-time: var(--mhav-delay-on-time-text);
+    --color-delay-slight: var(--mhav-delay-slight-text);
+    --color-delay-moderate: var(--mhav-delay-moderate-text);
+    --color-delay-severe: var(--mhav-delay-severe-text);
+    --color-delay-on-time-on-dark: var(--mhav-delay-on-time-text-on-dark);
+    --color-delay-slight-on-dark: var(--mhav-delay-slight-text-on-dark);
+    --color-delay-moderate-on-dark: var(--mhav-delay-moderate-text-on-dark);
+    --color-delay-severe-on-dark: var(--mhav-delay-severe-text-on-dark);
 }
 
 .stop-marker div {

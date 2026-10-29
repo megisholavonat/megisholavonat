@@ -1,13 +1,24 @@
 import { type DelayLevel, getDelayLevel } from "@megisholavonat/core/delay";
 
+// Text colours of the design-system delay scale; `darkBg` is for text on an
+// always-dark header. See the `--color-delay-*` theme tokens in globals.css.
 const DELAY_CLASSES: Record<DelayLevel, { default: string; darkBg: string }> = {
-    severe: { default: "text-red-600", darkBg: "text-red-400" },
-    moderate: { default: "text-orange-500", darkBg: "text-orange-300" },
-    slight: {
-        default: "text-yellow-700 dark:text-yellow-400",
-        darkBg: "text-yellow-200",
+    severe: {
+        default: "text-delay-severe",
+        darkBg: "text-delay-severe-on-dark",
     },
-    onTime: { default: "text-green-600", darkBg: "text-green-400" },
+    moderate: {
+        default: "text-delay-moderate",
+        darkBg: "text-delay-moderate-on-dark",
+    },
+    slight: {
+        default: "text-delay-slight",
+        darkBg: "text-delay-slight-on-dark",
+    },
+    onTime: {
+        default: "text-delay-on-time",
+        darkBg: "text-delay-on-time-on-dark",
+    },
 };
 
 export function getDelayColor(delay: number, darkBg: boolean = false): string {

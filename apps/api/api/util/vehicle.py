@@ -7,16 +7,17 @@ from shapely.geometry import LineString, Point
 
 from api.util.trip import seconds_into_service_day
 
-REMOVAL_THRESHOLD_MINUTES = 120
-
 # The rules below are a port of packages/core/src/vehicle.ts (isStale,
 # isActive, isFarFromRoute). Keep both in sync: the map colours trains by the
 # server-computed flag, the train panel by the client-side functions. Both read
 # the clock through the service-date resolution in api/util/trip.py, ported
 # to packages/core/src/time.ts as `secondsIntoServiceDay`.
 
-# Show as stale after 30 minutes without an update
-STALENESS_THRESHOLD_MINUTES = 30
+# Stale trains, mirroring STALE_GREY_AFTER_S / STALE_HIDE_AFTER_S in
+# packages/core/src/constants.ts: grey after 5 minutes without an update,
+# removed from the train list after 30 minutes.
+STALE_GREY_AFTER_S = 300
+STALE_HIDE_AFTER_S = 1800
 # A train this far from its designated route is inactive
 FAR_FROM_ROUTE_KM = 2
 # "Near" a terminus, in meters
@@ -30,16 +31,15 @@ _EARTH_RADIUS_M = 6_371_008.8
 
 def should_remove(vehicle_position: dict[str, Any], now: float | None = None) -> bool:
     """
-    Determines if a vehicle position is too stale to display.
+    Determines if a vehicle position is too stale to display (hidden after
+    30 minutes without an update). Mirrors core's STALE_HIDE_AFTER_S.
     `now` defaults to the wall clock; replay passes the snapshot time.
     """
     if now is None:
         now = time.time()
     last_updated: int = vehicle_position.get("lastUpdated", 0)
 
-    minutes_since_update = (now - last_updated) / 60
-
-    return minutes_since_update > REMOVAL_THRESHOLD_MINUTES
+    return now - last_updated > STALE_HIDE_AFTER_S
 
 
 def _distance_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
@@ -56,13 +56,13 @@ def _distance_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
 
 def is_stale(vehicle_position: dict[str, Any], now: float | None = None) -> bool:
     """
-    No position update for over 30 minutes. Mirrors core's `isStale`.
+    No position update for over 5 minutes. Mirrors core's `isStale`.
     `now` defaults to the wall clock; replay passes the snapshot time.
     """
     if now is None:
         now = time.time()
     last_updated = vehicle_position.get("lastUpdated") or 0
-    return (now - last_updated) / 60 > STALENESS_THRESHOLD_MINUTES
+    return now - last_updated > STALE_GREY_AFTER_S
 
 
 def is_far_from_route(vehicle_position: dict[str, Any]) -> bool:
