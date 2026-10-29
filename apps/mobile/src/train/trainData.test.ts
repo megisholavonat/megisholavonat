@@ -269,8 +269,20 @@ describe("isUsuallyLate", () => {
 
 describe("predictedPlatform", () => {
     const predictions = [
-        { trainNumber: "10", platform: "6", confidence: 0.85, n: 20 },
-        { trainNumber: "12", platform: "2", confidence: 0.6, n: 20 },
+        {
+            trainNumber: "10",
+            platform: "6",
+            confidence: 0.85,
+            n: 20,
+            confident: true,
+        },
+        {
+            trainNumber: "12",
+            platform: "2",
+            confidence: 0.6,
+            n: 20,
+            confident: false,
+        },
     ];
 
     it("shows a platform only from 80 % confidence", () => {

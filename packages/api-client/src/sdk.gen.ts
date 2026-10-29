@@ -290,7 +290,8 @@ export const getTrainHistory = <ThrowOnError extends boolean = false>(options: O
 /**
  * Get Station Platforms
  *
- * Predicted platform per train at a station: the most common one recently
+ * Predicted platform per train at a station: the most common one recently;
+ * `confident` tells whether it is sure enough to show
  */
 export const getStationPlatforms = <ThrowOnError extends boolean = false>(options: Options<GetStationPlatformsData, ThrowOnError>) => (options.client ?? client).get<GetStationPlatformsResponses, GetStationPlatformsErrors, ThrowOnError>({
     responseType: 'json',
