@@ -254,6 +254,10 @@ class TrainService:
                 continue
 
             trip = loc.get("trip", {})
+            stoptimes = trip.get("stoptimes") or []
+            headsign = (
+                (stoptimes[-1].get("stop") or {}).get("name") if stoptimes else None
+            )
 
             distance_to_next_stop_km: float | None = None
             next_stop_id = loc.get("vehicleProgress", {}).get("nextStop")
@@ -305,6 +309,7 @@ class TrainService:
                     "tripShortName": trip.get("tripShortName", ""),
                     "routeShortName": trip.get("route", {}).get("shortName", ""),
                     "routeTextColor": trip.get("route", {}).get("textColor", ""),
+                    "headsign": headsign,
                     "delay": loc.get("delay"),
                     "routePolyline": trip.get("tripGeometry", {}).get("points"),
                     "distanceToNextStop": distance_to_next_stop_km,

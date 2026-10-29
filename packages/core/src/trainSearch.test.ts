@@ -1,6 +1,12 @@
 import type { TrainFeatureProperties } from "@megisholavonat/api-client";
 import { describe, expect, it } from "vitest";
-import { compareTrains, matchesTrainQuery } from "./trainSearch";
+import {
+    browseTrains,
+    compareTrains,
+    lateTrains,
+    liveSpeedKmh,
+    matchesTrainQuery,
+} from "./trainSearch";
 
 function train(
     overrides: Partial<TrainFeatureProperties>,
@@ -89,5 +95,92 @@ describe("compareTrains", () => {
             "100",
             "9",
         ]);
+    });
+});
+
+describe("browseTrains", () => {
+    const now = new Date(1_000_000 * 1000);
+    const fresh = now.getTime() / 1000 - 30;
+    const live = { lastUpdated: fresh, activity: "running" as const };
+    const trains = [
+        train({
+            vehicleId: "a",
+            tripShortName: "20",
+            delay: 3,
+            speed: 30,
+            ...live,
+        }),
+        train({
+            vehicleId: "b",
+            tripShortName: "3",
+            delay: 45,
+            speed: 10,
+            ...live,
+        }),
+        train({
+            vehicleId: "c",
+            tripShortName: "100",
+            delay: 90,
+            speed: 0,
+            lastUpdated: fresh,
+            activity: "beforeDeparture",
+        }),
+        // Old data: grey, no live delay or speed
+        train({
+            vehicleId: "d",
+            tripShortName: "7",
+            delay: 12,
+            speed: 25,
+            ...live,
+            lastUpdated: fresh - 600,
+        }),
+        // Hidden
+        train({
+            vehicleId: "e",
+            tripShortName: "8",
+            ...live,
+            lastUpdated: fresh - 3600,
+        }),
+    ];
+    const ids = (list: TrainFeatureProperties[]) =>
+        list.map((t) => t.vehicleId);
+
+    it("sorts by the shown delay, trains without one last", () => {
+        expect(ids(browseTrains(trains, "delay", "desc", now))).toEqual([
+            "b",
+            "a",
+            "d",
+            "c",
+        ]);
+        expect(ids(browseTrains(trains, "delay", "asc", now))).toEqual([
+            "a",
+            "b",
+            "d",
+            "c",
+        ]);
+    });
+
+    it("sorts by number and by live speed", () => {
+        expect(ids(browseTrains(trains, "number", "asc", now))).toEqual([
+            "b",
+            "d",
+            "a",
+            "c",
+        ]);
+        expect(ids(browseTrains(trains, "speed", "desc", now))).toEqual([
+            "a",
+            "b",
+            "d",
+            "c",
+        ]);
+    });
+
+    it("lists the late trains, latest first", () => {
+        expect(ids(lateTrains(trains, 5, now))).toEqual(["b"]);
+    });
+
+    it("gives a running train's speed in km/h", () => {
+        expect(liveSpeedKmh(trains[0], now)).toBe(108);
+        expect(liveSpeedKmh(trains[3], now)).toBeNull();
     });
 });

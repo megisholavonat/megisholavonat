@@ -30,6 +30,7 @@ from api.schemas.insights import (
     TrainHistory,
     TrainRouteStation,
     TrainStationHistory,
+    TypicalDelay,
 )
 from api.util.route_names import LINE_PATTERN, MAV_ROUTE_MAP, is_line, route_name
 from api.util.time import BUDAPEST_TZ
@@ -462,6 +463,28 @@ async def station_platforms(
         {**_window_params(window), "station": station, "train": train_number},
     )
     rows = result.all()
+    delays = await session.execute(
+        text(
+            f"""
+            SELECT {TRAIN_NUMBER} AS grp, {DELAY_AGGREGATES}
+            FROM stop_delay_observations
+            WHERE {IN_WINDOW} AND station_id = :station {train_filter}
+            GROUP BY 1
+            HAVING percentile_cont(0.5) WITHIN GROUP (ORDER BY delay_s) >= 60
+            ORDER BY length({TRAIN_NUMBER}), 1
+            """
+        ),
+        {**_window_params(window), "station": station, "train": train_number},
+    )
+    typical = [
+        TypicalDelay(
+            trainNumber=r.grp,
+            n=int(r.n),
+            medianDelayMin=_minutes(r.median_s),
+            insufficientData=int(r.n) < MIN_SAMPLES,
+        )
+        for r in delays
+    ]
     names = await station_names(session, [station])
     return StationPlatforms(
         stationId=station,
@@ -479,4 +502,5 @@ async def station_platforms(
             )
             for r in rows
         ],
+        typicalDelays=typical,
     )

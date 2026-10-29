@@ -39,6 +39,8 @@ async def test_trains_after_replayed_refresh(
     assert props["tripShortName"]
     assert isinstance(props["delay"], int)
     assert "reason" in props
+    # The final stop, as in the trip's stoptimes
+    assert all(f["properties"]["headsign"] for f in body["features"])
 
 
 async def test_train_details(

@@ -528,6 +528,35 @@ async def test_platform_prediction_most_common(
     ]
 
 
+async def test_station_typical_delays(
+    client: httpx.AsyncClient, db_session: AsyncSession
+) -> None:
+    await _seed(
+        db_session,
+        _runs([300, 360, 420, 480, 600])
+        + _runs([0, 0, 30, 600, 0], train="20 X", seq=1)
+        + _runs([240, 240], train="30 Y", seq=2),
+    )
+
+    body = (await client.get(f"/v1/history/stations/{KELETI}/platforms")).json()
+
+    # Only trains with a median of a minute or more
+    assert body["typicalDelays"] == [
+        {
+            "trainNumber": "10",
+            "n": 5,
+            "medianDelayMin": 7.0,
+            "insufficientData": False,
+        },
+        {
+            "trainNumber": "30",
+            "n": 2,
+            "medianDelayMin": 4.0,
+            "insufficientData": True,
+        },
+    ]
+
+
 async def test_platform_tie_goes_to_most_recent(
     client: httpx.AsyncClient, db_session: AsyncSession
 ) -> None:
