@@ -161,6 +161,8 @@ class TrainFeatureProperties(BaseModel):
     tripShortName: str
     routeShortName: str
     routeTextColor: str
+    # Final stop of the trip, for "10 → Záhony"
+    headsign: str | None = None
     delay: int
     routePolyline: str | None = None
     distanceToNextStop: float | None = None
