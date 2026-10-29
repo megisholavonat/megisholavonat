@@ -41,7 +41,7 @@
         "usually_late": "Usually late",
         "usually_very_late": "Usually very late",
         "disruption": "Disruption",
-        "punctuality": "{station}: <b>on time {count} in 10</b>",
+        "punctuality": "{station}: <b>{count} in 10 on time</b>",
         "standing": "stopped",
         "standing_here": "Standing here",
         "arrived_at": "arrived",
