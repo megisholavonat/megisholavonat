@@ -82,7 +82,7 @@ describe("map style", () => {
         );
         expect(
             symbols.map((l) => ("source-layer" in l ? l["source-layer"] : "")),
-        ).toEqual(["place", "place", "place", "place", "water_name"]);
+        ).toEqual(["place", "place", "place", "place", "place", "water_name"]);
     });
 });
 

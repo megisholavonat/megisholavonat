@@ -81,7 +81,14 @@ describe("basemapTransform", () => {
                 symbols.map(
                     (l) => (l as { "source-layer"?: string })["source-layer"],
                 ),
-            ).toEqual(["place", "place", "place", "place", "water_name"]);
+            ).toEqual([
+                "place",
+                "place",
+                "place",
+                "place",
+                "place",
+                "water_name",
+            ]);
         }
     });
 

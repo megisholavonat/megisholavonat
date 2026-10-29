@@ -13,6 +13,7 @@ import type {
 } from "@maplibre/maplibre-gl-style-spec";
 import {
     MAP_FOCUS,
+    MAP_LABELS,
     MAP_NETWORK,
     MAP_PALETTE,
     MAP_STATIONS,
@@ -338,14 +339,37 @@ export function basemapStyle(
                 "line-dasharray": [4, 1.5],
             },
         },
-        // Names: places from small to large (larger wins), water last
+        // Names: places from small to large (larger wins), water last. No
+        // quarters, neighbourhoods or hamlets: our station names say more
         {
             id: "place-village",
             type: "symbol",
             source: src,
             "source-layer": "place",
-            minzoom: 11,
-            filter: classIn(["village", "suburb", "quarter"]),
+            minzoom: MAP_LABELS.village.minZoom,
+            filter: ["==", ["get", "class"], "village"],
+            layout: {
+                "text-field": name,
+                "text-font": [...MAP_FONTS.regular],
+                "text-size": zoom([
+                    [10, 11],
+                    [14, 13],
+                ]),
+                "text-max-width": 8,
+            },
+            paint: {
+                "text-color": p.village,
+                "text-halo-color": p.halo,
+                "text-halo-width": 1.5,
+            },
+        },
+        {
+            id: "place-suburb",
+            type: "symbol",
+            source: src,
+            "source-layer": "place",
+            minzoom: MAP_LABELS.suburb.minZoom,
+            filter: ["==", ["get", "class"], "suburb"],
             layout: {
                 "text-field": name,
                 "text-font": [...MAP_FONTS.regular],
@@ -366,7 +390,7 @@ export function basemapStyle(
             type: "symbol",
             source: src,
             "source-layer": "place",
-            minzoom: 9,
+            minzoom: MAP_LABELS.town.minZoom,
             filter: ["==", ["get", "class"], "town"],
             layout: {
                 "text-field": name,
@@ -388,8 +412,8 @@ export function basemapStyle(
             type: "symbol",
             source: src,
             "source-layer": "place",
-            minzoom: 5,
-            maxzoom: 14,
+            minzoom: MAP_LABELS.city.minZoom,
+            maxzoom: MAP_LABELS.city.maxZoom,
             filter: ["==", ["get", "class"], "city"],
             layout: {
                 "text-field": name,
@@ -413,7 +437,7 @@ export function basemapStyle(
             type: "symbol",
             source: src,
             "source-layer": "place",
-            maxzoom: 9,
+            maxzoom: MAP_LABELS.country.maxZoom,
             filter: ["==", ["get", "class"], "country"],
             layout: {
                 "text-field": name,
@@ -436,7 +460,7 @@ export function basemapStyle(
             type: "symbol",
             source: src,
             "source-layer": "water_name",
-            minzoom: 8,
+            minzoom: MAP_LABELS.water.minZoom,
             filter: ["==", ["geometry-type"], "Point"],
             layout: {
                 "text-field": name,
