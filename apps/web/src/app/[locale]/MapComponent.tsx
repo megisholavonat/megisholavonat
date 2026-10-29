@@ -1325,8 +1325,10 @@ export default function MapComponent({
         () =>
             scheme === "dark"
                 ? {
-                      "raster-opacity": 0.6,
-                      "raster-brightness-min": 0.92,
+                      // Not too bright: a dense station yard would turn
+                      // into a pale slab
+                      "raster-opacity": 0.55,
+                      "raster-brightness-min": 0.48,
                       "raster-brightness-max": 0.2,
                       "raster-hue-rotate": 180,
                       "raster-saturation": -0.75,

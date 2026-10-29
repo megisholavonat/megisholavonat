@@ -23,6 +23,17 @@ export const SLOTS = {
     trains: "slot-trains",
 } as const;
 
+/** Basemap layers the map hides */
+const QUIET_LAYERS = new Set(["road_oneway", "road_oneway_opposite"]);
+
+/** Dark basemap roads, recoloured just off the land colour */
+const DARK_ROADS: Record<string, string> = {
+    highway_motorway_casing: "#2C3037",
+    highway_motorway_inner: COLORS.dark.surface2,
+    highway_major_casing: "#2A2E35",
+    highway_major_inner: "#1F2227",
+};
+
 /** Marks the basemap's own layers, so the app's can be told apart. */
 const BASE_KEY = "mhav:base";
 
@@ -53,6 +64,16 @@ function patchLayer(
     if (out.type === "background") {
         // The land colour the marker colours were checked against
         out.paint = { ...out.paint, "background-color": COLORS[scheme].map };
+    }
+    if (QUIET_LAYERS.has(out.id)) {
+        // One-way arrows on motorways: road detail a train map does not need
+        out.layout = { ...out.layout, visibility: "none" };
+    }
+    const quiet = scheme === "dark" ? DARK_ROADS[out.id] : undefined;
+    if (quiet && out.type === "line") {
+        // The dark style draws motorways black on a near-black map, heavier
+        // than a selected route: one quiet step off the land colour instead
+        out.paint = { ...out.paint, "line-color": quiet };
     }
     if (out.type === "symbol" && out.layout?.["text-field"]) {
         // Place names in the page's language (OpenMapTiles carries name:xx);
