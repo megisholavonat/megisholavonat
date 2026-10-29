@@ -9,6 +9,7 @@ import {
     type LocalFollow,
     nextRun,
     parseFollows,
+    recentRunDate,
     stationIdOf,
     stopOptions,
     toggleWeekday,
@@ -349,5 +350,42 @@ describe("storage", () => {
             false,
         );
         expect(isExpired(follow(), THU_16)).toBe(false);
+    });
+});
+
+describe("recentRunDate", () => {
+    it("is today's commute run once it has left the boarding stop", () => {
+        // Újpest 17:24
+        expect(recentRunDate(follow(), THU_16)).toBeNull();
+        expect(recentRunDate(follow(), new Date("2026-10-29T17:00:00Z"))).toBe(
+            "2026-10-29",
+        );
+    });
+
+    it("is the trip's own run", () => {
+        const trip = follow({ kind: "trip", serviceDate: "2026-10-29" });
+        expect(recentRunDate(trip, new Date("2026-10-29T18:00:00Z"))).toBe(
+            "2026-10-29",
+        );
+        expect(
+            recentRunDate(trip, new Date("2026-10-30T12:00:00Z")),
+        ).toBeNull();
+    });
+
+    it("dates a HÉV after midnight by the day it runs", () => {
+        // OTP lists Thursday's 00:20 HÉV under Wednesday, stoptime 1200
+        const hev = follow({
+            kind: "trip",
+            serviceDate: "2026-10-28",
+            stops: [
+                { stopId: null, stationId: "a", name: "A", time: 1200 },
+                { stopId: null, stationId: "b", name: "B", time: 3000 },
+            ],
+            from: 0,
+            to: 1,
+        });
+        expect(recentRunDate(hev, new Date("2026-10-28T23:40:00Z"))).toBe(
+            "2026-10-29",
+        );
     });
 });

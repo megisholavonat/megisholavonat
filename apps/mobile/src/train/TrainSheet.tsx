@@ -9,6 +9,7 @@ import {
     getTrainsOptions,
 } from "@megisholavonat/api-client/react-query";
 import { tripRun } from "@megisholavonat/core/commute";
+import { runDate } from "@megisholavonat/core/delaySummary";
 import {
     shareUrl,
     trainShareStatus,
@@ -40,6 +41,7 @@ import { Icon } from "../ui/Icon";
 import { RollingText } from "../ui/motion";
 import { SheetHandle } from "../ui/SheetHandle";
 import { useNow } from "../ui/useNow";
+import { DelayShareRow } from "./DelayShare";
 import {
     type DelayTileModel,
     delayTile,
@@ -351,6 +353,17 @@ export function TrainSheet({
                     <Skeleton width={48} height={48} radius={24} />
                 </View>
             )}
+
+            <DelayShareRow
+                target={
+                    details && !notYetDeparted && trainNumber
+                        ? {
+                              number: trainNumber,
+                              date: runDate(details.trip, now),
+                          }
+                        : null
+                }
+            />
 
             <ServiceList services={services.whole} />
             <AlertList alerts={alerts} />
