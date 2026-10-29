@@ -173,6 +173,16 @@ function TimeText({
 }
 
 /**
+ * A stop's time is our estimate ("≈"): ahead and estimated, or ahead of a
+ * train without live data. A departure from the first stop is the
+ * timetable's (or MÁV's) time, and a passed stop's time is actual.
+ */
+function isEstimate(stop: StopView, stale: boolean): boolean {
+    if (stop.passed) return false;
+    return stop.timing.estimated || (stale && stop.index > 0);
+}
+
+/**
  * "Szolnok 17:28 ~~17:05~~": the next stop with its expected time. At the
  * first stop it is the departure ("ind. 22:40"); a passed stop is where the
  * train arrived ("érkezett 01:20", actual time, never an estimate).
@@ -202,7 +212,7 @@ export function NextStopLine({
             )}
             <TimeText
                 seconds={timing.expected}
-                estimated={!stop.passed && (stale || timing.estimated)}
+                estimated={isEstimate(stop, stale)}
                 level={null}
                 className="shrink-0"
             />
@@ -1011,7 +1021,7 @@ function StopRow({
     const t = useTranslations("Train");
     const { timing } = stop;
     const level = levelOf(timing.delay);
-    const estimated = !stop.passed && (stale || timing.estimated);
+    const estimated = isEstimate(stop, stale);
     const strong = stop.isNext || stop.isLast;
     const name = (
         <span
