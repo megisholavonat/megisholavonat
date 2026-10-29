@@ -4,7 +4,6 @@ from typing import Any
 import fakeredis
 import polyline  # type: ignore[import-untyped]
 import pytest
-import pytz
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -22,8 +21,8 @@ from api.services.history import (
 )
 from api.services.train_service import TrainService
 from api.util.stop import station_id, station_id_from_gtfs_id
+from api.util.time import BUDAPEST_TZ
 
-BUDAPEST = pytz.timezone("Europe/Budapest")
 SERVICE_DATE = "2026-08-14"
 LAT = 47.0
 # Four stops along a straight east-west line, 0.1 degrees (~7.6 km) apart,
@@ -33,7 +32,7 @@ STOP_TIMES = [10 * 3600 + i * 300 for i in range(4)]
 
 
 def _unix(hh: int, mm: int, ss: int = 0) -> int:
-    local = BUDAPEST.localize(datetime(2026, 8, 14, hh, mm, ss))
+    local = datetime(2026, 8, 14, hh, mm, ss).replace(tzinfo=BUDAPEST_TZ)
     return int(local.timestamp())
 
 
