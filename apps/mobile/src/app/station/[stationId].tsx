@@ -1,5 +1,7 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { noteEntry, takeEntry, track } from "../../analytics";
 import { StationBoard } from "../../station/StationBoard";
+import { useTrackOnOpen } from "../../useAnalytics";
 
 /** Station board route, a native sheet (see the root layout). */
 export default function StationScreen() {
@@ -8,17 +10,24 @@ export default function StationScreen() {
         name?: string;
     }>();
     const router = useRouter();
+    useTrackOnOpen("station_opened", {
+        entry: takeEntry() ?? "map",
+        surface: "sheet",
+        station_id: stationId,
+    });
     return (
         <StationBoard
             stationId={stationId}
             initialName={name}
             onClose={() => router.back()}
-            onTrain={(vehicleId) =>
+            onTrain={(vehicleId) => {
+                noteEntry("board");
+                track("board_row_opened", {});
                 router.push({
                     pathname: "/train/[vehicleId]",
                     params: { vehicleId },
-                })
-            }
+                });
+            }}
         />
     );
 }

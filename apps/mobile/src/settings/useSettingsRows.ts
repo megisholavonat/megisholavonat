@@ -1,6 +1,7 @@
 import type { Locale } from "@megisholavonat/core/i18n";
 import * as WebBrowser from "expo-web-browser";
 import { useTranslations } from "use-intl";
+import { track } from "../analytics";
 import { SOURCE_URL } from "../config";
 import { useSettings } from "./SettingsProvider";
 import type { LanguagePreference, ThemePreference } from "./settings";
@@ -37,17 +38,46 @@ export function useSettingsRows() {
         settings,
         languages,
         language: settings.language ?? "system",
-        setLanguage: (value: string) =>
+        setLanguage: (value: string) => {
+            track("settings_changed", {
+                key: "language",
+                value: value as "hu" | "en" | "system",
+            });
             update({
                 language:
                     value === "system" ? null : (value as LanguagePreference),
-            }),
+            });
+        },
         themes,
-        setTheme: (theme: ThemePreference) => update({ theme }),
-        setDynamicColor: (dynamicColor: boolean) => update({ dynamicColor }),
-        setRailwayLayer: (railwayLayer: boolean) => update({ railwayLayer }),
-        setAnalytics: (granted: boolean) =>
-            update({ analytics: granted ? "granted" : "denied" }),
+        setTheme: (theme: ThemePreference) => {
+            track("settings_changed", { key: "theme", value: theme });
+            update({ theme });
+        },
+        setDynamicColor: (dynamicColor: boolean) => {
+            track("settings_changed", {
+                key: "dynamic_color",
+                value: dynamicColor ? "on" : "off",
+            });
+            update({ dynamicColor });
+        },
+        setRailwayLayer: (railwayLayer: boolean) => {
+            track("settings_changed", {
+                key: "railway_layer",
+                value: railwayLayer ? "on" : "off",
+            });
+            update({ railwayLayer });
+        },
+        setAnalytics: (granted: boolean) => {
+            track(
+                "consent_decided",
+                {
+                    decision: granted ? "granted" : "denied",
+                    source: "settings",
+                },
+                { instant: true },
+            );
+            update({ analytics: granted ? "granted" : "denied" });
+        },
         openMapData: () => WebBrowser.openBrowserAsync(OSM_COPYRIGHT),
         openRailwayData: () => WebBrowser.openBrowserAsync(ORM_COPYRIGHT),
         openSource: () => WebBrowser.openBrowserAsync(SOURCE_URL),

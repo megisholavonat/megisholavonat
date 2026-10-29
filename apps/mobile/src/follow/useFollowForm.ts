@@ -8,6 +8,7 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, AppState, Linking } from "react-native";
 import { useFormatter, useLocale, useTranslations } from "use-intl";
+import { track, trackFollowSaved } from "../analytics";
 import {
     getNotificationPermission,
     requestNotificationPermission,
@@ -181,9 +182,12 @@ export function useFollowForm({
         setBusy(true);
         try {
             // Asked here, when it is clear what the notifications are for
-            await requestNotificationPermission(t("channel")).catch(() => null);
+            const permission = await requestNotificationPermission(
+                t("channel"),
+            ).catch(() => null);
             refreshPermission();
             await saveFollow({ train, draft, existing, locale });
+            trackFollowSaved(draft.weekdays.length, !existing, permission);
             close();
         } catch {
             Alert.alert(t("error"));
@@ -197,6 +201,9 @@ export function useFollowForm({
         setBusy(true);
         try {
             await unfollow(existing, locale);
+            track("follow_removed", {
+                kind: existing.weekdays.length > 0 ? "commute" : "single",
+            });
             close();
         } catch {
             Alert.alert(t("error"));

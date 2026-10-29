@@ -7,6 +7,7 @@ import { useRouter } from "expo-router";
 import { useMemo, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { noteEntry, track } from "../analytics";
 import { DisruptionChip } from "../disruptions/DisruptionViews";
 import { interestsOf } from "../disruptions/disruptions";
 import { useDisruptions } from "../disruptions/useDisruptions";
@@ -20,6 +21,7 @@ import { runningNumbers, upcoming } from "../follow/model";
 import { useFollows } from "../follow/store";
 import { feedState } from "../map/feedState";
 import { ConsentCard, FeedStateCard, StaleBanner } from "../map/HomeCards";
+import { useHomeAnalytics } from "../map/homeAnalytics";
 import { MapChrome } from "../map/MapChrome";
 import { markerCollection } from "../map/markers";
 import { TrainMap } from "../map/TrainMap";
@@ -61,6 +63,7 @@ export default function MapScreen() {
         [follows, now, running],
     );
     const live = useLiveFollows(runs, trains);
+    useHomeAnalytics(trains, state.kind, askConsent);
     const followed = useFollowedVehicleIds(live);
     const commute: CommuteItem[] = runs.map((r) => ({
         ...r,
@@ -80,8 +83,13 @@ export default function MapScreen() {
     const openTrain = (vehicleId: string) =>
         router.push({ pathname: "/train/[vehicleId]", params: { vehicleId } });
     const openCommute = (item: CommuteItem) => {
-        if (item.live) openTrain(item.live.vehicleId);
-        else
+        if (item.live) {
+            noteEntry("commute");
+            track("commute_row_opened", {
+                position: commute.indexOf(item),
+            });
+            openTrain(item.live.vehicleId);
+        } else
             router.push({
                 pathname: "/follow",
                 params: { id: item.follow.id },
@@ -118,11 +126,19 @@ export default function MapScreen() {
                 <FeedStateCard state={state} onRetry={() => refetch()} />
                 {askConsent ? (
                     <ConsentCard
-                        onAnswer={(granted) =>
+                        onAnswer={(granted) => {
+                            track(
+                                "consent_decided",
+                                {
+                                    decision: granted ? "granted" : "denied",
+                                    source: "prompt",
+                                },
+                                { instant: true },
+                            );
                             update({
                                 analytics: granted ? "granted" : "denied",
-                            })
-                        }
+                            });
+                        }}
                     />
                 ) : follows.length === 0 ? (
                     <FollowPrompt onPress={() => router.push("/search")} />
