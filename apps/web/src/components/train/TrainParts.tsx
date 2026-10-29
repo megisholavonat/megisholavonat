@@ -49,12 +49,14 @@ import { RouteGlyph } from "@/components/ui/RouteGlyph";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { TapTip } from "@/components/ui/TapTip";
 import { findFollow, useFollows } from "@/hooks/useFollows";
+import { useNow } from "@/hooks/useNow";
 import { trainShareData } from "@/lib/shareTrain";
 import {
     destinationOf,
     type TrainAlert,
     type TrainReason,
     trainName,
+    runStops,
     trainNumber,
 } from "@/lib/train";
 import { cn } from "@/lib/utils";
@@ -275,11 +277,12 @@ export function TrainSummary({
 /** Whether this train is followed (by number, preferring its own stops). */
 export function useIsFollowed(view: TrainView | null): boolean {
     const follows = useFollows();
+    const now = useNow();
     if (!view) return false;
     return !!findFollow(
         follows,
         trainNumber(view.vehicle.trip.tripShortName),
-        view.stops.map((s) => s.stationId),
+        runStops(view.vehicle, new Date(now)),
     );
 }
 

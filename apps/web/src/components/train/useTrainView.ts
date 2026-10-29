@@ -9,6 +9,7 @@ import {
     getTrainHistoryOptions,
 } from "@megisholavonat/api-client/react-query";
 import { type TrainDisplay, trainDisplay } from "@megisholavonat/core/display";
+import { tripRun } from "@megisholavonat/core/commute";
 import { decodePolyline } from "@megisholavonat/core/polyline";
 import { ticketUrl } from "@megisholavonat/core/ticket";
 import { useQuery } from "@tanstack/react-query";
@@ -23,7 +24,6 @@ import {
     stopTiming,
     type TrainPosition,
     type TrainReason,
-    toEpoch,
     trainNumber,
     trainPosition,
     trainReason,
@@ -181,10 +181,9 @@ export function useTrainView(
         const standingAt = arrived
             ? null
             : standingStop(vehicle, position, atOrigin);
-        const display = notEarlyWhileStanding(
-            shown,
-            standingAt != null || vehicle.speed === 0,
-        );
+        // Only at a stop, like the API's dwell clamp and so the marker: a
+        // train held at a signal can still be early
+        const display = notEarlyWhileStanding(shown, standingAt != null);
         // Idle and cancelled trains have no delay to carry forward or forecast
         const live = display.delay != null;
         const byStation = new Map<string, TrainRouteStation>();
@@ -270,7 +269,11 @@ export function useTrainView(
                 from ? stationIdOf(from.stop) : null,
                 last && from !== last ? stationIdOf(last.stop) : null,
                 from
-                    ? toEpoch(vehicle.trip.serviceDate, from.scheduledDeparture)
+                    ? tripRun(
+                          vehicle.trip,
+                          from.scheduledDeparture,
+                          new Date(now),
+                      ).at
                     : null,
             ),
             position,
@@ -292,14 +295,9 @@ export function useShownDelay(
     fallback: TrainFeatureProperties | null,
 ): { delay: number | null; stale: boolean } {
     const now = useNow();
+    // The list's delay is already clamped at a dwell by the API
     const display =
-        view?.display ??
-        (fallback
-            ? notEarlyWhileStanding(
-                  trainDisplay(fallback, new Date(now)),
-                  fallback.speed === 0,
-              )
-            : null);
+        view?.display ?? (fallback ? trainDisplay(fallback, new Date(now)) : null);
     if (!display) return { delay: null, stale: true };
     return { delay: display.delay, stale: display.state !== "running" };
 }
