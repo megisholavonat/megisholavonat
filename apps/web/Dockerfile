@@ -54,4 +54,8 @@ COPY --from=builder --chown=app:app /app/apps/web/.next/static /app/apps/web/.ne
 USER app
 EXPOSE 3000
 ENV HOSTNAME="0.0.0.0" PORT=3000
+# Runtime, set by the deployment: API_URL is the in-cluster API service the
+# link previews fetch from (never the request's Host); SITE_URL the public
+# origin for og:url
+ENV API_URL=http://localhost:8000 SITE_URL=https://megisholavonat.info
 CMD ["node", "apps/web/server.js"]
