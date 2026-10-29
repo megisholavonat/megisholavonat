@@ -11,6 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { BottomSheet, type Detent } from "@/components/sheet/BottomSheet";
+import { StationHistoryLink } from "@/components/stats/HistoryLinks";
 import { BackButton, CloseButton } from "@/components/train/TrainParts";
 import { DelayChip } from "@/components/ui/Delay";
 import { PlatformBadge } from "@/components/ui/Platform";
@@ -276,6 +277,7 @@ export function StationSheet({
                         <h2 className="min-w-0 flex-1 truncate text-title">
                             {station.name}
                         </h2>
+                        <StationHistoryLink stationId={station.id} />
                         <CloseButton onClick={onClose} />
                     </div>
                     <KindSwitch kind={kind} onChange={onKindChange} />
@@ -319,6 +321,7 @@ export function StationPanel({
                     {station.name}
                 </h2>
                 <KindSwitch kind={kind} onChange={onKindChange} />
+                <StationHistoryLink stationId={station.id} className="size-9" />
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto px-4">
                 <BoardList

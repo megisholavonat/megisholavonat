@@ -69,7 +69,8 @@
             "dsb_me": "DSB ME sorozat \"Viking\"",
             "suburban": "LEW Henningsdorf MX/MXA",
             "unknown": "Ismeretlen járműtípus"
-        }
+        },
+        "history": "Pontosság"
     },
     "Station": {
         "board": "Menetrendi tábla",
@@ -78,7 +79,8 @@
         "arrivals": "Érkezés",
         "from": "{station} felől",
         "canceled": "törölve",
-        "empty": "Most nincs vonat"
+        "empty": "Most nincs vonat",
+        "history": "Pontosság"
     },
     "States": {
         "stale": "{minutes} perce nincs friss adat",
@@ -130,7 +132,8 @@
         "map_data": "Térképadatok",
         "changelog": "Változások",
         "changelog_unavailable": "A változások most nem érhetők el.",
-        "contact": "Kapcsolat"
+        "contact": "Kapcsolat",
+        "punctuality": "Pontosság"
     },
     "Consent": {
         "title": "Használati statisztika?",
@@ -167,5 +170,34 @@
         "day_5": "P",
         "day_6": "Szo",
         "day_7": "V"
+    },
+    "Stats": {
+        "title": "Pontosság",
+        "back": "Vissza",
+        "window": "Elmúlt {days} nap",
+        "runs": "{runs} menet",
+        "rankings": "Rangsor",
+        "order": "Sorrend",
+        "lines": "Vonalak",
+        "trains": "Vonatok",
+        "stations": "Állomások",
+        "best": "Legpontosabb",
+        "worst": "Legtöbbet késő",
+        "column": "10-ből pontos",
+        "of10": "<b>10-ből {count, select, 0 {0-szor} 1 {1-szer} 2 {2-szer} 3 {3-szor} 4 {4-szer} 5 {5-ször} 6 {6-szor} 7 {7-szer} 8 {8-szor} 9 {9-szer} other {10-szer}}</b> pontos",
+        "of10_at": "{station}: <b>10-ből {count, select, 0 {0-szor} 1 {1-szer} 2 {2-szer} 3 {3-szor} 4 {4-szer} 5 {5-ször} 6 {6-szor} 7 {7-szer} 8 {8-szor} 9 {9-szer} other {10-szer}}</b> pontos",
+        "usually_late": "Általában késik:",
+        "late": {
+            "slight": "5+ perc",
+            "moderate": "15+ perc",
+            "severe": "60+ perc"
+        },
+        "all_trains": "Összes vonat",
+        "by_hour": "Napszak szerint",
+        "hour": "Óra",
+        "by_stop": "Megállónként",
+        "few_data": "kevés adat",
+        "no_data": "Még kevés az adat",
+        "show_on_map": "Megnyitás a térképen"
     }
 }
