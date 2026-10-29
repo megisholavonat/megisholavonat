@@ -32,6 +32,12 @@ import {
     Wordmark,
 } from "@/components/home/HomeChrome";
 import {
+    JourneyPanel,
+    JourneyScreen,
+    PlannerButton,
+    usePlannerState,
+} from "@/components/journey/JourneyPlanner";
+import {
     DesktopSearch,
     MobileSearch,
     SearchTrigger,
@@ -58,6 +64,7 @@ const DynamicMap = dynamic(() => import("./MapComponent"), {
 
 const TRAIN_PANEL_WIDTH = 400 + 32;
 const STATION_PANEL_WIDTH = 560 + 32;
+const PLANNER_PANEL_WIDTH = 440 + 32;
 const PEEK_INSET = 120;
 const HALF_SHARE = 0.55;
 
@@ -85,6 +92,8 @@ export default function MapPage() {
     const [stationDetent, setStationDetent] = useState<Detent>("half");
     const [searchOpen, setSearchOpen] = useState(false);
     const [settingsOpen, setSettingsOpen] = useState(false);
+    const [plannerOpen, setPlannerOpen] = useState(false);
+    const [planner, setPlanner] = usePlannerState();
     const [flyTarget, setFlyTarget] = useState<FlyTarget | null>(null);
     const [followTarget, setFollowTarget] = useState<FollowTarget | null>(null);
     const follows = useFollows();
@@ -261,6 +270,7 @@ export default function MapPage() {
             }
             if (selectedId) closeTrain();
             else if (stationId) closeStation();
+            else if (plannerOpen) setPlannerOpen(false);
         };
         window.addEventListener("keydown", onKey);
         return () => window.removeEventListener("keydown", onKey);
@@ -270,6 +280,7 @@ export default function MapPage() {
         settingsOpen,
         searchOpen,
         followTarget,
+        plannerOpen,
         closeTrain,
         closeStation,
     ]);
@@ -282,7 +293,9 @@ export default function MapPage() {
                     ? TRAIN_PANEL_WIDTH
                     : stationId
                       ? STATION_PANEL_WIDTH
-                      : 0,
+                      : plannerOpen
+                        ? PLANNER_PANEL_WIDTH
+                        : 0,
             };
         }
         const half =
@@ -295,7 +308,14 @@ export default function MapPage() {
               ? stationDetent
               : "peek";
         return { bottom: detent === "peek" ? PEEK_INSET : half, left: 0 };
-    }, [isDesktop, selectedId, stationId, trainDetent, stationDetent]);
+    }, [
+        isDesktop,
+        selectedId,
+        stationId,
+        plannerOpen,
+        trainDetent,
+        stationDetent,
+    ]);
 
     const retry = () => {
         void trainsQuery.refetch();
@@ -335,13 +355,25 @@ export default function MapPage() {
                     <div className="absolute top-4 right-4 z-20">
                         <LayersButton />
                     </div>
-                    {!panelOpen && (
+                    {!panelOpen && plannerOpen && (
+                        <JourneyPanel
+                            state={planner}
+                            onChange={setPlanner}
+                            onClose={() => setPlannerOpen(false)}
+                            onSelectTrain={openTrainFromList}
+                        />
+                    )}
+                    {!panelOpen && !plannerOpen && (
                         <>
                             <div className="floating-card absolute top-4 left-4 z-30 flex w-[380px] flex-col overflow-hidden rounded-sheet">
                                 <div className="flex items-center gap-2 px-4 pt-4 pb-3">
                                     <div className="min-w-0 flex-1">
                                         <Wordmark />
                                     </div>
+                                    <PlannerButton
+                                        onClick={() => setPlannerOpen(true)}
+                                        className="size-9 bg-transparent hover:bg-surface-2"
+                                    />
                                     <SettingsButton
                                         onClick={() => setSettingsOpen(true)}
                                         className="flex size-9 cursor-pointer items-center justify-center rounded-full text-ink hover:bg-surface-2"
@@ -436,9 +468,14 @@ export default function MapPage() {
                             onDetentChange={() => {}}
                             header={
                                 <div className="flex flex-col gap-4 px-4 pb-[max(env(safe-area-inset-bottom),16px)]">
-                                    <SearchTrigger
-                                        onClick={() => setSearchOpen(true)}
-                                    />
+                                    <div className="flex items-center gap-2">
+                                        <SearchTrigger
+                                            onClick={() => setSearchOpen(true)}
+                                        />
+                                        <PlannerButton
+                                            onClick={() => setPlannerOpen(true)}
+                                        />
+                                    </div>
                                     {follows.length > 0 ? (
                                         <CommuteList
                                             rows={commute}
@@ -457,6 +494,15 @@ export default function MapPage() {
                                     <FeedMessage state={feed} onRetry={retry} />
                                 </div>
                             }
+                        />
+                    )}
+                    {plannerOpen && (
+                        <JourneyScreen
+                            hidden={showTrain}
+                            state={planner}
+                            onChange={setPlanner}
+                            onClose={() => setPlannerOpen(false)}
+                            onSelectTrain={openTrainFromList}
                         />
                     )}
                     {searchOpen && (

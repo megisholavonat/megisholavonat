@@ -55,7 +55,8 @@
         "title": "Keresés",
         "stations": "Állomások",
         "trains": "Vonatok",
-        "no_results": "Nincs találat"
+        "no_results": "Nincs találat",
+        "plan": "Útvonaltervezés"
     },
     "Settings": {
         "title": "Beállítások",
@@ -99,5 +100,29 @@
         "error": "Nem sikerült menteni",
         "channel": "Vonatriasztások",
         "stop_time": "{name} {time}"
+    },
+    "Journey": {
+        "title": "Útvonal",
+        "from": "Honnan",
+        "to": "Hová",
+        "swap": "Csere",
+        "depart": "Indulás",
+        "arrive": "Érkezés",
+        "now": "Most",
+        "pick_from": "Honnan indulsz?",
+        "pick_to": "Hová mész?",
+        "duration": "{hours, plural, =0 {} other {# ó }}{minutes} p",
+        "direct": "közvetlen",
+        "transfers": "{count} átszállás",
+        "transfer_time": "{minutes} perc átszállás",
+        "walk": "{minutes} perc gyalog",
+        "risk_safe": "Elérhető",
+        "risk_tight": "Szoros",
+        "risk_likely_missed": "Valószínűleg lekésed",
+        "risk_canceled": "Járat törölve",
+        "canceled": "Törölve",
+        "ticket": "Jegy",
+        "empty": "Nincs találat erre az időre",
+        "error": "Most nem sikerült útvonalat tervezni"
     }
 }

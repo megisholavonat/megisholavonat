@@ -124,6 +124,11 @@ export default function SearchScreen() {
         router.push({ pathname: "/train/[vehicleId]", params: { vehicleId } });
     };
 
+    const openPlanner = () => {
+        router.back();
+        router.push("/journey");
+    };
+
     const nothing =
         debounced.length >= 2 &&
         !stations.isFetching &&
@@ -151,6 +156,37 @@ export default function SearchScreen() {
                 keyboardDismissMode="on-drag"
                 contentContainerStyle={styles.content}
             >
+                {query.trim() === "" ? (
+                    <Group>
+                        <Row
+                            first
+                            onPress={openPlanner}
+                            leading={
+                                <Icon
+                                    name="route"
+                                    size={22}
+                                    color={theme.colors.ink2}
+                                />
+                            }
+                            trailing={
+                                <Icon
+                                    name="chevron"
+                                    size={16}
+                                    color={theme.colors.ink2}
+                                />
+                            }
+                        >
+                            <Text
+                                style={[
+                                    theme.type.body,
+                                    { color: theme.colors.ink },
+                                ]}
+                            >
+                                {t("plan")}
+                            </Text>
+                        </Row>
+                    </Group>
+                ) : null}
                 {stationList.length > 0 ? (
                     <View>
                         <SectionLabel>{t("stations")}</SectionLabel>

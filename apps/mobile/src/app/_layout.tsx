@@ -131,6 +131,17 @@ function AppStack() {
                 }}
             />
             <Stack.Screen
+                name="journey/index"
+                options={{ ...header, title: t("Journey.title") }}
+            />
+            <Stack.Screen
+                name="journey/pick"
+                options={{
+                    ...header,
+                    presentation: ios ? "modal" : "card",
+                }}
+            />
+            <Stack.Screen
                 name="settings"
                 options={{
                     ...header,

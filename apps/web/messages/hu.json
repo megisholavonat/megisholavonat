@@ -199,5 +199,30 @@
         "few_data": "kevés adat",
         "no_data": "Még kevés az adat",
         "show_on_map": "Megnyitás a térképen"
+    },
+    "Journey": {
+        "title": "Útvonaltervezés",
+        "open": "Útvonaltervezés",
+        "from": "Honnan",
+        "to": "Hová",
+        "swap": "Csere",
+        "done": "Kész",
+        "time": "Időpont",
+        "depart": "Indulás",
+        "arrive": "Érkezés",
+        "now": "Most",
+        "direct": "Közvetlen",
+        "changes": "{count} átszállás",
+        "duration": "{m} perc",
+        "duration_hours": "{h} ó {m} p",
+        "risk_safe": "Elérhető",
+        "risk_tight": "Szoros",
+        "risk_likely_missed": "Valószínűleg lekésed",
+        "canceled": "Törölve",
+        "transfer_minutes": "{m} perc átszállásra",
+        "walk": "{m} perc séta",
+        "on_map": "Mutasd a térképen",
+        "empty": "Nincs találat",
+        "same_station": "Válassz két különböző állomást"
     }
 }
