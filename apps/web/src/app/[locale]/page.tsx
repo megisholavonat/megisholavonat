@@ -166,12 +166,15 @@ export default function MapPage() {
         });
     }, [station, pickedStation]);
 
-    const { view: trainView, isError: trainGone } = useTrainView(selectedId);
     const fallback = useMemo(
         (): TrainFeatureProperties | null =>
             trains?.features.find((f) => f.properties.vehicleId === selectedId)
                 ?.properties ?? null,
         [trains, selectedId],
+    );
+    const { view: trainView, isError: trainGone } = useTrainView(
+        selectedId,
+        fallback,
     );
 
     const flyToTrain = useCallback(
