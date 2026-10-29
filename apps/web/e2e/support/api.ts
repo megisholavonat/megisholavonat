@@ -29,6 +29,9 @@ export type TrainRole = keyof typeof TRAINS;
 export const STATIONS = {
     szolnok: { id: "005513748", name: "Szolnok" },
     eger: { id: "005512401", name: "Eger" },
+    keleti: { id: "005510017", name: "Budapest-Keleti" },
+    szeged: { id: "005517228", name: "Szeged" },
+    gyor: { id: "005501289", name: "Győr" },
 } as const;
 
 interface Station {
@@ -206,8 +209,21 @@ export async function mockApi(page: Page, baseURL: string) {
                 q.get("kind") === "arrivals" ? "arrivals" : "departures";
             return json(route, boards[kind]);
         }
-        if (path === "/v1/journeys")
-            return json(route, fixture("journey.json"));
+        if (path === "/v1/journeys") {
+            // Keleti -> Szeged by bus to Zugló; any Budapest station -> Győr;
+            // anything else Szolnok -> Eger
+            const from = q.get("from");
+            return json(
+                route,
+                fixture(
+                    from === "budapest"
+                        ? "journey-budapest.json"
+                        : from === STATIONS.keleti.id
+                          ? "journey-city.json"
+                          : "journey.json",
+                ),
+            );
+        }
         if (path === "/v1/rankings") {
             const key = `${q.get("kind") ?? "lines"}-${q.get("order") ?? "best"}`;
             return json(route, rankings[key] ?? rankings["lines-best"]);
