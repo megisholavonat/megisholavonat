@@ -5,7 +5,23 @@ import type {
     TrainFeatureCollection,
     TrainFeatureProperties,
 } from "@megisholavonat/api-client";
-import { ArrowRight, Search as SearchIcon, Signpost, X } from "lucide-react";
+import { trainDisplay } from "@megisholavonat/core/display";
+import type {
+    SortDirection,
+    TrainSortOption,
+} from "@megisholavonat/core/trainSearch";
+import { liveSpeedKmh } from "@megisholavonat/core/trainSearch";
+import {
+    ArrowDown,
+    ArrowRight,
+    ArrowUp,
+    ChevronLeft,
+    ChevronRight,
+    Search as SearchIcon,
+    Signpost,
+    TrainFront,
+    X,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import {
     forwardRef,
@@ -14,8 +30,9 @@ import {
     useRef,
     useState,
 } from "react";
-import { TrainDelay } from "@/components/ui/Delay";
+import { DelayChip } from "@/components/ui/Delay";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
+import { useNow } from "@/hooks/useNow";
 import { trainName, trainNumber } from "@/lib/train";
 import { cn } from "@/lib/utils";
 import {
@@ -23,6 +40,7 @@ import {
     splitMatch,
     useRecentStations,
     useSearch,
+    useTrainLists,
 } from "./useSearch";
 
 type Item =
@@ -158,7 +176,128 @@ export function useSearchState(
             select(items[active]);
         }
     };
-    return { query, setQuery, results, items, active, select, onKeyDown };
+    return {
+        query,
+        setQuery,
+        results,
+        items,
+        active,
+        select,
+        onKeyDown,
+        trains,
+    };
+}
+
+const rowClass =
+    "flex min-h-13 w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-left transition-colors";
+
+/**
+ * A live train: glyph, "10 → Záhony", its speed while running and the delay
+ * its map marker shows. The name joins the number only when the query
+ * matched it.
+ */
+function TrainLine({
+    train,
+    query = "",
+    now,
+}: {
+    train: TrainFeatureProperties;
+    query?: string;
+    now: Date;
+}) {
+    const t = useTranslations("Search");
+    const number = trainNumber(train.tripShortName);
+    const name = trainName(train.tripShortName);
+    const destination = train.headsign ?? null;
+    const showName =
+        !!name &&
+        (!destination ||
+            (!!splitMatch(name, query) && !splitMatch(number, query)));
+    const speed = liveSpeedKmh(train, now);
+    const display = trainDisplay(train, now);
+    return (
+        <>
+            <RouteGlyph
+                routeShortName={train.routeShortName}
+                className="min-w-5 text-center text-lg"
+            />
+            <span className="flex min-w-0 flex-1 items-center gap-1.5 text-body">
+                <span className="tnum shrink-0 font-semibold">
+                    <Highlighted text={number} query={query} />
+                </span>
+                {showName && (
+                    <span
+                        className={cn(
+                            "truncate",
+                            destination ? "shrink-[2]" : "text-ink-2",
+                        )}
+                    >
+                        <Highlighted text={name} query={query} />
+                    </span>
+                )}
+                {destination && (
+                    <>
+                        <ArrowRight
+                            className="size-4 shrink-0 text-ink-2"
+                            aria-hidden
+                        />
+                        <span className="truncate">
+                            <Highlighted text={destination} query={query} />
+                        </span>
+                    </>
+                )}
+            </span>
+            {speed !== null && speed > 0 && (
+                <span className="tnum shrink-0 text-caption text-ink-2">
+                    {t("speed", { speed })}
+                </span>
+            )}
+            {/* None while it waits or has arrived, as on its marker */}
+            {display.delay !== null && (
+                <DelayChip
+                    delay={display.delay}
+                    stale={display.state !== "running"}
+                    className="shrink-0"
+                />
+            )}
+        </>
+    );
+}
+
+/** Accessible name of a train row: "10, célállomás: Záhony". */
+function useTrainLabel() {
+    const t = useTranslations("Search");
+    return (train: TrainFeatureProperties) => {
+        const number = trainNumber(train.tripShortName);
+        return train.headsign
+            ? t("train_to", { train: number, destination: train.headsign })
+            : train.tripShortName;
+    };
+}
+
+function TrainButton({
+    train,
+    now,
+    onSelect,
+}: {
+    train: TrainFeatureProperties;
+    now: Date;
+    onSelect: (train: TrainFeatureProperties) => void;
+}) {
+    const label = useTrainLabel();
+    return (
+        <button
+            type="button"
+            onClick={() => onSelect(train)}
+            title={label(train)}
+            className={cn(
+                rowClass,
+                "hover:bg-surface-2/60 [content-visibility:auto] [contain-intrinsic-size:auto_52px]",
+            )}
+        >
+            <TrainLine train={train} now={now} />
+        </button>
+    );
 }
 
 function ResultRow({
@@ -166,15 +305,18 @@ function ResultRow({
     query,
     active,
     index,
+    now,
     onSelect,
 }: {
     item: Item;
     query: string;
     active: boolean;
     index: number;
+    now: Date;
     onSelect: (item: Item) => void;
 }) {
     const t = useTranslations("Search");
+    const trainLabel = useTrainLabel();
     const common = {
         id: `search-item-${index}`,
         role: "option",
@@ -182,7 +324,7 @@ function ResultRow({
         type: "button" as const,
         onClick: () => onSelect(item),
         className: cn(
-            "flex min-h-13 w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-left transition-colors",
+            rowClass,
             active ? "bg-surface-2" : "hover:bg-surface-2/60",
         ),
     };
@@ -199,34 +341,16 @@ function ResultRow({
             </button>
         );
     }
-    const { train } = item;
-    const name = trainName(train.tripShortName);
     return (
-        <button {...common}>
-            <RouteGlyph
-                routeShortName={train.routeShortName}
-                className="min-w-5 text-center text-lg"
-            />
-            <span className="flex min-w-0 flex-1 items-center gap-1.5 text-body">
-                <span className="tnum">
-                    <Highlighted
-                        text={trainNumber(train.tripShortName)}
-                        query={query}
-                    />
-                </span>
-                {name && (
-                    <span className="truncate text-ink-2">
-                        <Highlighted text={name} query={query} />
-                    </span>
-                )}
-            </span>
-            <TrainDelay train={train} chip />
+        <button {...common} title={trainLabel(item.train)}>
+            <TrainLine train={item.train} query={query} now={now} />
         </button>
     );
 }
 
 function Results({ state }: { state: ReturnType<typeof useSearchState> }) {
     const t = useTranslations("Search");
+    const now = new Date(useNow());
     const { query, items, active, select, results } = state;
     if (!query.trim()) return null;
     if (items.length === 0) {
@@ -262,11 +386,177 @@ function Results({ state }: { state: ReturnType<typeof useSearchState> }) {
                         query={query}
                         active={i === active}
                         index={i}
+                        now={now}
                         onSelect={select}
                     />
                 </div>
             ))}
         </div>
+    );
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+    return (
+        <h3 className="px-4 pt-3 pb-1 text-caption font-semibold tracking-wide text-ink-2 uppercase">
+            {children}
+        </h3>
+    );
+}
+
+const SORTS: { value: TrainSortOption; initial: SortDirection }[] = [
+    { value: "delay", initial: "desc" },
+    { value: "number", initial: "asc" },
+    { value: "speed", initial: "desc" },
+];
+
+/**
+ * Under an empty field: the trains running late now, and the way into the
+ * list of every train (as the app's search and train list).
+ */
+function LateTrains({
+    trains,
+    onSelect,
+    onBrowse,
+}: {
+    trains: TrainFeatureCollection | undefined;
+    onSelect: (train: TrainFeatureProperties) => void;
+    onBrowse: () => void;
+}) {
+    const t = useTranslations("Search");
+    const now = new Date(useNow());
+    const { late } = useTrainLists(trains, "delay", "desc");
+    if (!trains) return null;
+    return (
+        <section aria-label={t("late_now")} className="flex flex-col">
+            {late.length > 0 && <SectionLabel>{t("late_now")}</SectionLabel>}
+            {late.map((train) => (
+                <TrainButton
+                    key={train.vehicleId}
+                    train={train}
+                    now={now}
+                    onSelect={onSelect}
+                />
+            ))}
+            <button
+                type="button"
+                onClick={onBrowse}
+                className={cn(
+                    rowClass,
+                    "hover:bg-surface-2/60",
+                    late.length > 0 && "border-t border-line",
+                )}
+            >
+                <TrainFront
+                    className="size-5 shrink-0 text-ink-2"
+                    aria-hidden
+                />
+                <span className="min-w-0 flex-1 truncate text-body font-semibold">
+                    {t("all_trains")}
+                </span>
+                <span className="tnum text-caption text-ink-2">
+                    {trains.features.length}
+                </span>
+                <ChevronRight className="size-4 text-ink-2" aria-hidden />
+            </button>
+        </section>
+    );
+}
+
+/** Every train on the map, sortable by delay, number or speed. */
+function AllTrains({
+    trains,
+    onSelect,
+    onBack,
+    stickyClassName,
+}: {
+    trains: TrainFeatureCollection | undefined;
+    onSelect: (train: TrainFeatureProperties) => void;
+    onBack: () => void;
+    /** Where the header sticks inside its scroller */
+    stickyClassName?: string;
+}) {
+    const t = useTranslations("Search");
+    const now = new Date(useNow());
+    const [sort, setSort] = useState<TrainSortOption>("delay");
+    const [direction, setDirection] = useState<SortDirection>("desc");
+    const { all } = useTrainLists(trains, sort, direction);
+    const choose = (option: (typeof SORTS)[number]) => {
+        if (option.value === sort) {
+            setDirection((d) => (d === "asc" ? "desc" : "asc"));
+        } else {
+            setSort(option.value);
+            setDirection(option.initial);
+        }
+    };
+    const Arrow = direction === "asc" ? ArrowUp : ArrowDown;
+    return (
+        <section aria-label={t("all_trains")} className="flex flex-col">
+            <div
+                className={cn(
+                    "sticky top-0 z-10 flex flex-col gap-2 bg-surface px-4 pt-1 pb-2",
+                    stickyClassName,
+                )}
+            >
+                <div className="flex items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={onBack}
+                        aria-label={t("back")}
+                        title={t("back")}
+                        className="-ml-2 flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-ink hover:bg-surface-2"
+                    >
+                        <ChevronLeft className="size-5" aria-hidden />
+                    </button>
+                    <h3 className="min-w-0 flex-1 truncate text-headline font-semibold">
+                        {t("all_trains")}
+                    </h3>
+                    <span className="tnum text-caption text-ink-2">
+                        {t("trains_count", { count: all.length })}
+                    </span>
+                </div>
+                <fieldset className="grid grid-cols-3 rounded-md bg-surface-2 p-0.5">
+                    <legend className="sr-only">{t("sort")}</legend>
+                    {SORTS.map((option) => {
+                        const selected = option.value === sort;
+                        return (
+                            <button
+                                key={option.value}
+                                type="button"
+                                aria-pressed={selected}
+                                aria-label={
+                                    selected
+                                        ? `${t(`sort_${option.value}`)}, ${t(direction === "asc" ? "ascending" : "descending")}`
+                                        : t(`sort_${option.value}`)
+                                }
+                                onClick={() => choose(option)}
+                                className={cn(
+                                    "flex h-8 cursor-pointer items-center justify-center gap-1 rounded-[8px] px-2 text-sm transition-colors",
+                                    selected
+                                        ? "bg-surface font-semibold text-ink shadow-sm"
+                                        : "text-ink-2",
+                                )}
+                            >
+                                {t(`sort_${option.value}`)}
+                                {selected && (
+                                    <Arrow
+                                        className="size-3.5 shrink-0"
+                                        aria-hidden
+                                    />
+                                )}
+                            </button>
+                        );
+                    })}
+                </fieldset>
+            </div>
+            {all.map((train) => (
+                <TrainButton
+                    key={train.vehicleId}
+                    train={train}
+                    now={now}
+                    onSelect={onSelect}
+                />
+            ))}
+        </section>
     );
 }
 
@@ -302,7 +592,8 @@ function QuickChips({
 /**
  * Desktop search. In the home card it shows the followed trains and quick
  * stations under the field; `compact` is the floating field beside an open
- * panel, which only drops its list down while focused.
+ * panel, which only drops its list down while focused. While focused, the
+ * empty field also drops down the late trains and the list of every train.
  */
 export function DesktopSearch({
     trains,
@@ -323,8 +614,10 @@ export function DesktopSearch({
     const rootRef = useRef<HTMLDivElement>(null);
     const quick = useQuickStations();
     const [focused, setFocused] = useState(false);
+    const [browsing, setBrowsing] = useState(false);
     const done = () => {
         setFocused(false);
+        setBrowsing(false);
         inputRef.current?.blur();
     };
     const state = useSearchState(trains, {
@@ -357,18 +650,24 @@ export function DesktopSearch({
         return () => window.removeEventListener("keydown", onKey);
     }, []);
 
-    // The compact list closes when focus leaves the card
+    // The drop-down closes when focus leaves the card
     useEffect(() => {
-        if (!compact || !focused) return;
+        if (!focused && !browsing) return;
         const onDown = (e: PointerEvent) => {
-            if (!rootRef.current?.contains(e.target as Node)) setFocused(false);
+            if (!rootRef.current?.contains(e.target as Node)) {
+                setFocused(false);
+                setBrowsing(false);
+            }
         };
         window.addEventListener("pointerdown", onDown);
         return () => window.removeEventListener("pointerdown", onDown);
-    }, [compact, focused]);
+    }, [focused, browsing]);
 
     const hasQuery = !!state.query.trim();
-    const showList = !compact || focused || hasQuery;
+    const open = focused || browsing;
+    const showList = !compact || open || hasQuery;
+    const selectTrain = (train: TrainFeatureProperties) =>
+        state.select({ kind: "train", train });
 
     return (
         <div ref={rootRef} className="flex flex-col">
@@ -406,6 +705,18 @@ export function DesktopSearch({
                     <div className="max-h-[60vh] overflow-y-auto border-t border-line py-1">
                         <Results state={state} />
                     </div>
+                ) : browsing ? (
+                    <div className="max-h-[60vh] overflow-y-auto overscroll-contain border-t border-line pb-1">
+                        <AllTrains
+                            trains={trains}
+                            onSelect={selectTrain}
+                            onBack={() => {
+                                setBrowsing(false);
+                                inputRef.current?.focus();
+                            }}
+                            stickyClassName="pt-2"
+                        />
+                    </div>
                 ) : (
                     <>
                         {!compact && home}
@@ -415,6 +726,15 @@ export function DesktopSearch({
                                 state.select({ kind: "station", station: s })
                             }
                         />
+                        {open && (
+                            <div className="border-t border-line pb-1">
+                                <LateTrains
+                                    trains={trains}
+                                    onSelect={selectTrain}
+                                    onBrowse={() => setBrowsing(true)}
+                                />
+                            </div>
+                        )}
                     </>
                 ))}
         </div>
@@ -483,7 +803,10 @@ export function SheetSearchHeader({
     );
 }
 
-/** Phones: results, or recent and quick stations, in the open home sheet. */
+/**
+ * Phones: results, or quick stations, the late trains and the list of every
+ * train, in the open home sheet.
+ */
 export function SheetSearchBody({
     state,
     handlers,
@@ -491,28 +814,48 @@ export function SheetSearchBody({
     state: SearchBox;
     handlers: SearchHandlers;
 }) {
+    const { trains } = state;
     const t = useTranslations("Search");
     const quick = useQuickStations();
+    const [browsing, setBrowsing] = useState(false);
     if (state.query.trim()) return <Results state={state} />;
+    if (browsing) {
+        return (
+            <AllTrains
+                trains={trains}
+                onSelect={handlers.onSelectTrain}
+                onBack={() => setBrowsing(false)}
+            />
+        );
+    }
     return (
-        <section aria-label={t("stations")} className="flex flex-col">
-            {quick.map((station) => (
-                <button
-                    key={station.id}
-                    type="button"
-                    onClick={() => handlers.onSelectStation(station)}
-                    className="flex min-h-13 w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-surface-2/60"
-                >
-                    <Signpost
-                        className="size-5 shrink-0 text-ink-2"
-                        aria-hidden
-                    />
-                    <span className="min-w-0 flex-1 truncate text-body">
-                        {station.name}
-                    </span>
-                    <ArrowRight className="size-4 text-ink-2" aria-hidden />
-                </button>
-            ))}
-        </section>
+        <div className="flex flex-col pb-2">
+            <section aria-label={t("stations")} className="flex flex-col">
+                {quick.map((station) => (
+                    <button
+                        key={station.id}
+                        type="button"
+                        onClick={() => handlers.onSelectStation(station)}
+                        className={cn(rowClass, "hover:bg-surface-2/60")}
+                    >
+                        <Signpost
+                            className="size-5 shrink-0 text-ink-2"
+                            aria-hidden
+                        />
+                        <span className="min-w-0 flex-1 truncate text-body">
+                            {station.name}
+                        </span>
+                        <ArrowRight className="size-4 text-ink-2" aria-hidden />
+                    </button>
+                ))}
+            </section>
+            <div className="mt-1 border-t border-line">
+                <LateTrains
+                    trains={trains}
+                    onSelect={handlers.onSelectTrain}
+                    onBrowse={() => setBrowsing(true)}
+                />
+            </div>
+        </div>
     );
 }

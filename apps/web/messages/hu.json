@@ -97,7 +97,9 @@
         "from": "{station} felől",
         "canceled": "törölve",
         "empty": "Most nincs vonat",
-        "history": "Pontosság"
+        "history": "Pontosság",
+        "usually_late": "általában késik",
+        "usually_very_late": "általában sokat késik"
     },
     "States": {
         "stale": "{minutes} perce nincs friss adat",
@@ -117,7 +119,18 @@
         "no_results": "Nincs találat",
         "station_label": "{station} állomás",
         "cancel": "Mégse",
-        "stations": "Állomások"
+        "stations": "Állomások",
+        "late_now": "Most késnek",
+        "all_trains": "Összes vonat",
+        "trains_count": "{count} vonat",
+        "sort": "Rendezés",
+        "sort_delay": "Késés",
+        "sort_number": "Szám",
+        "sort_speed": "Sebesség",
+        "ascending": "növekvő",
+        "descending": "csökkenő",
+        "speed": "{speed} km/h",
+        "train_to": "{train}, célállomás: {destination}"
     },
     "Legend": {
         "label": "Késés jelmagyarázat",

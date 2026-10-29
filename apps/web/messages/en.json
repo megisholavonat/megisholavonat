@@ -97,7 +97,9 @@
         "from": "from {station}",
         "canceled": "cancelled",
         "empty": "No trains right now",
-        "history": "Punctuality"
+        "history": "Punctuality",
+        "usually_late": "usually late",
+        "usually_very_late": "usually very late"
     },
     "States": {
         "stale": "No fresh data for {minutes} min",
@@ -117,7 +119,18 @@
         "no_results": "No results",
         "station_label": "{station} station",
         "cancel": "Cancel",
-        "stations": "Stations"
+        "stations": "Stations",
+        "late_now": "Late now",
+        "all_trains": "All trains",
+        "trains_count": "{count} trains",
+        "sort": "Sort",
+        "sort_delay": "Delay",
+        "sort_number": "Number",
+        "sort_speed": "Speed",
+        "ascending": "ascending",
+        "descending": "descending",
+        "speed": "{speed} km/h",
+        "train_to": "{train} to {destination}"
     },
     "Legend": {
         "label": "Delay legend",
