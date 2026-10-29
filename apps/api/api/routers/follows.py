@@ -21,6 +21,7 @@ from api.schemas.follows import (
     CommuteFollowCreate,
     FollowCreate,
     FollowUpdate,
+    LiveActivitySetup,
     TripFollow,
     TripFollowCreate,
 )
@@ -55,6 +56,9 @@ def to_schema(follow: Follow) -> TripFollow | CommuteFollow:
         "alertsEnabled": follow.alerts_enabled,
         "delayThresholdMin": follow.delay_threshold_min,
         "notifyPlatformChange": follow.notify_platform_change,
+        "liveActivity": None
+        if follow.live_activity is None
+        else LiveActivitySetup.model_validate(follow.live_activity),
         "createdAt": follow.created_at,
         "updatedAt": follow.updated_at,
     }
@@ -75,6 +79,10 @@ def to_schema(follow: Follow) -> TripFollow | CommuteFollow:
         label=follow.label,
         **common,
     )
+
+
+def _setup(setup: LiveActivitySetup | None) -> dict[str, Any] | None:
+    return None if setup is None else setup.model_dump(exclude_none=True)
 
 
 async def _get_owned(
@@ -122,6 +130,7 @@ async def create_follow(
         alerts_enabled=body.alertsEnabled,
         delay_threshold_min=body.delayThresholdMin,
         notify_platform_change=body.notifyPlatformChange,
+        live_activity=_setup(body.liveActivity),
     )
     if isinstance(body, TripFollowCreate):
         if body.serviceDate < _oldest_followable_date():
@@ -169,7 +178,10 @@ async def create_follow(
 async def update_follow(
     follow_id: uuid.UUID, body: FollowUpdate, device: DeviceDep, session: SessionDep
 ) -> FollowSchema:
-    """Change alert preferences, or a commute's days, stations or label"""
+    """
+    Change alert preferences, the Live Activity, or a commute's days,
+    stations or label
+    """
     follow = await _get_owned(session, device, follow_id)
     fields = body.model_fields_set
 
@@ -200,6 +212,8 @@ async def update_follow(
         follow.to_station_id = body.toStationId
     if "label" in fields:
         follow.label = body.label
+    if "liveActivity" in fields:
+        follow.live_activity = _setup(body.liveActivity)
 
     await session.commit()
     await session.refresh(follow)

@@ -217,7 +217,7 @@ async def test_apns_silent_update_and_errors(
 
     route.mock(return_value=httpx.Response(429, json={"reason": "TooManyRequests"}))
     [busy] = await sender.send([la_message()])
-    assert busy.outcome == Outcome.FAILED
+    assert busy.outcome == Outcome.THROTTLED
     assert busy.error == "TooManyRequests"
 
     route.mock(side_effect=httpx.ConnectError("down"))
@@ -235,6 +235,47 @@ async def test_apns_without_credentials_is_skipped(mock: respx.MockRouter) -> No
         [result] = await sender.send([la_message()])
         assert result.outcome == Outcome.SKIPPED
     assert not route.called
+
+
+async def test_apns_push_to_start_request(
+    mock: respx.MockRouter, p8: tuple[str, ec.EllipticCurvePrivateKey]
+) -> None:
+    pem, _ = p8
+    route = mock.post(APNS_URL + "beef").mock(return_value=httpx.Response(200))
+    sender = ApnsLiveActivitySender(
+        "KEY123", "TEAM45", pem, "hu.mhav.app", use_sandbox=True
+    )
+    start = LiveActivityMessage(
+        uuid.uuid4(),
+        "beef",
+        "start",
+        {"delayMin": None, "nextStop": "Kelenföld"},
+        1_700_000_000,
+        alert=("S70 · Kelenföld 14:32", "32 perc múlva indul"),
+        stale_date=1_700_002_520,
+        attributes_type="TrainActivityAttributes",
+        attributes={"followId": "f1", "badge": "S70"},
+    )
+    [result] = await sender.send([start])
+    await sender.aclose()
+    assert result.outcome == Outcome.OK
+
+    request = route.calls.last.request
+    assert request.headers["apns-push-type"] == "liveactivity"
+    assert request.headers["apns-priority"] == "10"
+    assert json.loads(request.content) == {
+        "aps": {
+            "timestamp": 1_700_000_000,
+            "event": "start",
+            "content-state": {"delayMin": None, "nextStop": "Kelenföld"},
+            "stale-date": 1_700_002_520,
+            "attributes-type": "TrainActivityAttributes",
+            "attributes": {"followId": "f1", "badge": "S70"},
+            "input-push-token": 1,
+            # Required for a start; without a sound
+            "alert": {"title": "S70 · Kelenföld 14:32", "body": "32 perc múlva indul"},
+        }
+    }
 
 
 # --- The refresh does not depend on alerts ---

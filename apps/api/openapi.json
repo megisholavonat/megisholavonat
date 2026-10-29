@@ -573,6 +573,9 @@
                   },
                   {
                     "$ref": "#/components/schemas/LiveActivityPushTokenCreate"
+                  },
+                  {
+                    "$ref": "#/components/schemas/LiveActivityStartTokenCreate"
                   }
                 ],
                 "title": "Body",
@@ -580,7 +583,8 @@
                   "propertyName": "type",
                   "mapping": {
                     "expo": "#/components/schemas/ExpoPushTokenCreate",
-                    "liveactivity": "#/components/schemas/LiveActivityPushTokenCreate"
+                    "liveactivity": "#/components/schemas/LiveActivityPushTokenCreate",
+                    "liveactivity_start": "#/components/schemas/LiveActivityStartTokenCreate"
                   }
                 }
               }
@@ -802,7 +806,7 @@
           "follows"
         ],
         "summary": "Update Follow",
-        "description": "Change alert preferences, or a commute's days, stations or label",
+        "description": "Change alert preferences, the Live Activity, or a commute's days,\nstations or label",
         "operationId": "updateFollow",
         "security": [
           {
@@ -1592,6 +1596,16 @@
             "type": "boolean",
             "title": "Notifyplatformchange"
           },
+          "liveActivity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LiveActivitySetup"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -1676,6 +1690,16 @@
             "type": "boolean",
             "title": "Notifyplatformchange",
             "default": true
+          },
+          "liveActivity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LiveActivitySetup"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "kind": {
             "type": "string",
@@ -2286,11 +2310,21 @@
               }
             ],
             "title": "Label"
+          },
+          "liveActivity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LiveActivitySetup"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
         "title": "FollowUpdate",
-        "description": "Partial update. Weekdays, stations and label only apply to commutes;\ntoStationId and label can be cleared with null."
+        "description": "Partial update. Weekdays, stations and label only apply to commutes;\ntoStationId, label and liveActivity can be cleared with null."
       },
       "HTTPValidationError": {
         "properties": {
@@ -2597,6 +2631,97 @@
         "title": "LiveActivityPushTokenCreate",
         "description": "The ActivityKit push token of one followed trip's iOS Live Activity. It\nreceives `update` events while the train runs and `end` once it has passed\nthe alighting station; alerts about that follow are shown on it instead of\nas a separate notification."
       },
+      "LiveActivitySetup": {
+        "properties": {
+          "badge": {
+            "type": "string",
+            "maxLength": 16,
+            "minLength": 1,
+            "title": "Badge"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "fromName": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Fromname"
+          },
+          "toName": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Toname"
+          },
+          "departureS": {
+            "type": "integer",
+            "maximum": 172800.0,
+            "minimum": 0.0,
+            "title": "Departures"
+          },
+          "arrivalS": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 172800.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arrivals"
+          },
+          "platform": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 16,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Platform"
+          }
+        },
+        "type": "object",
+        "required": [
+          "badge",
+          "title",
+          "fromName",
+          "toName",
+          "departureS"
+        ],
+        "title": "LiveActivitySetup",
+        "description": "iOS: the follow's Live Activity, started by the API with a push some\nminutes before departure (iOS 17.2+). What the activity shows until the\ntrain is live, as the app saw the train when following it."
+      },
+      "LiveActivityStartTokenCreate": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "liveactivity_start",
+            "title": "Type"
+          },
+          "token": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{16,512}$",
+            "title": "Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "token"
+        ],
+        "title": "LiveActivityStartTokenCreate",
+        "description": "The device's ActivityKit push-to-start token (iOS 17.2+). The API starts\nthe Live Activity of a follow with `liveActivity` set with it shortly\nbefore departure; the started activity's own token is then registered as\n`liveactivity`. A device has one: registering another replaces it."
+      },
       "PlatformPrediction": {
         "properties": {
           "trainNumber": {
@@ -2759,7 +2884,8 @@
             "type": "string",
             "enum": [
               "expo",
-              "liveactivity"
+              "liveactivity",
+              "liveactivity_start"
             ],
             "title": "Type"
           },
@@ -4073,6 +4199,16 @@
             "type": "boolean",
             "title": "Notifyplatformchange"
           },
+          "liveActivity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LiveActivitySetup"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -4155,6 +4291,16 @@
             "type": "boolean",
             "title": "Notifyplatformchange",
             "default": true
+          },
+          "liveActivity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LiveActivitySetup"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "kind": {
             "type": "string",
