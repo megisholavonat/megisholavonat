@@ -9,17 +9,24 @@ import { Suspense } from "react";
 import Providers from "@/app/providers";
 import ConsentBanner from "@/components/ui/ConsentBanner";
 import { routing } from "@/i18n/routing";
+import { pageMetadata } from "@/lib/og/page";
 
 const inter = Inter({
     variable: "--font-inter",
     subsets: ["latin", "latin-ext"],
 });
 
-export const metadata: Metadata = {
-    title: "Mégis hol a vonat?",
-    description:
-        "Magyar vonattérkép alkalmazás. Késési adatokkal és egyéb hasznos információkkal.",
-};
+/** Per-URL title, description and link preview (`?vehicleId=`, `?station=`). */
+export async function generateMetadata({
+    params,
+}: {
+    params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+    const { locale } = await params;
+    return pageMetadata(
+        hasLocale(routing.locales, locale) ? locale : routing.defaultLocale,
+    );
+}
 
 export const viewport: Viewport = {
     width: "device-width",

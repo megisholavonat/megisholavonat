@@ -14,6 +14,7 @@
         "./mavRoutes": "./src/mavRoutes.ts",
         "./polyline": "./src/polyline.ts",
         "./search": "./src/search.ts",
+        "./share": "./src/share.ts",
         "./stale": "./src/stale.ts",
         "./ticket": "./src/ticket.ts",
         "./time": "./src/time.ts",

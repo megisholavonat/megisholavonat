@@ -7,6 +7,7 @@ import {
 } from "@megisholavonat/api-client/react-query";
 import { getDelayLevel } from "@megisholavonat/core/delay";
 import { DELAY_REASONS } from "@megisholavonat/core/delayReasons";
+import { shareUrl, trainShareText } from "@megisholavonat/core/share";
 import { minutesSinceUpdate, staleness } from "@megisholavonat/core/stale";
 import { ticketUrl } from "@megisholavonat/core/ticket";
 import {
@@ -163,9 +164,21 @@ export function TrainSheet({
         : null;
 
     const onShare = () => {
-        const url = `${WEB_URL}/?vehicleId=${encodeURIComponent(vehicleId)}`;
+        // Same link and text as the web share button
+        const url = shareUrl(WEB_URL, locale, { vehicleId });
+        const stop = notYetDeparted ? first : next;
         const name = title
-            ? `${title.number}${title.name ? ` ${title.name}` : ""} → ${title.destination ?? ""}`
+            ? trainShareText(locale, {
+                  number: title.number,
+                  delay: Math.max(0, delay),
+                  waiting: notYetDeparted,
+                  next: stop
+                      ? {
+                            name: stop.name,
+                            time: formatSecondsAsTime(stop.expected),
+                        }
+                      : null,
+              })
             : "";
         // iOS shares the URL as a link; Android only takes text
         Share.share(
