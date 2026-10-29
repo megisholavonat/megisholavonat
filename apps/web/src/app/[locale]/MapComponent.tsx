@@ -27,6 +27,7 @@ import {
 import {
     createVehicleState,
     onPositionUpdate,
+    routeGeometry,
     setRoute,
     tick,
     type VehicleState,
@@ -585,6 +586,8 @@ export default function MapComponent({
     const nowMs = useClock();
     const mapRef = useRef<MapRef>(null);
     const trackersRef = useRef<Map<string, VehicleState>>(new Map());
+    /** The route polyline each tracker was given */
+    const routesRef = useRef<Map<string, string>>(new Map());
     /** Where the animation last drew each train: [lon, lat, bearing] */
     const shownRef = useRef<Map<string, [number, number, number]>>(new Map());
     const filteredTrainsRef = useRef<FeatureCollection | null>(null);
@@ -712,12 +715,16 @@ export default function MapComponent({
                 trackersRef.current.set(vehicleId, state);
             }
 
-            if (routePolyline) {
-                setRoute(state, {
-                    type: "Feature",
-                    properties: {},
-                    geometry: polyline.toGeoJSON(routePolyline) as LineString,
-                });
+            // A route is decoded and measured once, not on every poll
+            if (routePolyline && routesRef.current.get(vehicleId) !== routePolyline) {
+                routesRef.current.set(vehicleId, routePolyline);
+                setRoute(
+                    state,
+                    routeGeometry(
+                        (polyline.toGeoJSON(routePolyline) as LineString)
+                            .coordinates as [number, number][],
+                    ),
+                );
             }
             // API returns speed in m/s (GTFS-RT); convert to km/h for dead reckoning.
             // distanceToNextStop is already in km (computed on backend).
@@ -731,7 +738,10 @@ export default function MapComponent({
         }
         // Remove trackers for vehicles that are no longer in the feed
         for (const id of trackersRef.current.keys()) {
-            if (!activeIds.has(id)) trackersRef.current.delete(id);
+            if (!activeIds.has(id)) {
+                trackersRef.current.delete(id);
+                routesRef.current.delete(id);
+            }
         }
     }, [trains]);
 
