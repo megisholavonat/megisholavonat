@@ -16,6 +16,7 @@ import { DelayChip, PlatformBadge, Skeleton, StateBlock } from "../ui/ds";
 import { Segmented } from "../ui/Segmented";
 import { SheetHandle } from "../ui/SheetHandle";
 import { type BoardRow, boardRows } from "./board";
+import { StationTypeLabel } from "./StationType";
 
 type Kind = "departures" | "arrivals";
 
@@ -65,17 +66,18 @@ export function StationBoard({
         <ScrollView contentContainerStyle={styles.container}>
             <SheetHandle />
             <View style={styles.header}>
-                <Text
-                    style={[
-                        theme.type.title,
-                        styles.flex,
-                        { color: theme.colors.ink },
-                    ]}
-                    numberOfLines={2}
-                    accessibilityRole="header"
-                >
-                    {name}
-                </Text>
+                <View style={styles.flex}>
+                    <Text
+                        style={[theme.type.title, { color: theme.colors.ink }]}
+                        numberOfLines={2}
+                        accessibilityRole="header"
+                    >
+                        {name}
+                    </Text>
+                    {board.data ? (
+                        <StationTypeLabel station={board.data.station} />
+                    ) : null}
+                </View>
                 <CloseButton onPress={onClose} />
             </View>
             <Segmented

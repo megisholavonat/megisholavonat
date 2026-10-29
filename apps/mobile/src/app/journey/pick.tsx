@@ -14,6 +14,7 @@ import {
 import { useTranslations } from "use-intl";
 import { type Field, planner } from "../../journey/store";
 import { highlight } from "../../search/search";
+import { StationTypeLabel, stationIcon } from "../../station/StationType";
 import { useAppTheme } from "../../theme/ThemeProvider";
 import { StateBlock } from "../../ui/ds";
 import { Icon } from "../../ui/Icon";
@@ -101,7 +102,7 @@ export default function PickStationScreen() {
                                 ]}
                             >
                                 <Icon
-                                    name="station"
+                                    name={stationIcon(station)}
                                     size={22}
                                     color={theme.colors.ink2}
                                 />
@@ -129,6 +130,7 @@ export default function PickStationScreen() {
                                         ),
                                     )}
                                 </Text>
+                                <StationTypeLabel station={station} />
                             </Pressable>
                         ))}
                     </View>
