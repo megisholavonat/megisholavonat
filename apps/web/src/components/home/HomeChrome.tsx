@@ -11,9 +11,9 @@ import {
     TriangleAlert,
 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useEffect, useId, useRef, useState } from "react";
+import { AppIcon } from "@/components/ui/AppIcon";
 import { FILL_CLASS, type Level } from "@/components/ui/Delay";
 import {
     Popover,
@@ -402,16 +402,9 @@ export function LayersButton() {
 export function Wordmark() {
     const t = useTranslations("Home");
     return (
-        <div className="flex min-w-0 items-center gap-2.5">
-            <Image
-                src="/icon1.png"
-                alt=""
-                width={28}
-                height={28}
-                className="rounded-[7px]"
-                priority
-            />
-            <h1 className="truncate text-headline font-bold tracking-tight">
+        <div className="flex min-w-0 items-center gap-2">
+            <AppIcon size={26} />
+            <h1 className="truncate text-headline font-extrabold tracking-[-0.02em]">
                 {t("app_title")}
             </h1>
         </div>
