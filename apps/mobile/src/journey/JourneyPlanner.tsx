@@ -1,6 +1,11 @@
-import { planJourneysOptions } from "@megisholavonat/api-client/react-query";
+import type { Station } from "@megisholavonat/api-client";
+import {
+    getStationBoardOptions,
+    planJourneysOptions,
+} from "@megisholavonat/api-client/react-query";
+import { isAnyBudapest } from "@megisholavonat/core/planner";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
     Platform,
     Pressable,
@@ -22,12 +27,41 @@ import { TimeField } from "./TimeField";
 // Live delays and risks change by the minute
 const REFRESH_MS = 60_000;
 
+/**
+ * A station from a shared link is known by its id only: its name comes
+ * with its board.
+ */
+function useStationNameLookup(
+    station: Station | null,
+    onFound: (station: Station) => void,
+) {
+    const stub = !!station && !station.name;
+    const board = useQuery({
+        ...getStationBoardOptions({
+            path: { stationId: station?.id ?? "" },
+            query: { limit: 1 },
+        }),
+        enabled: stub,
+        staleTime: Number.POSITIVE_INFINITY,
+    });
+    const found = stub ? board.data?.station : undefined;
+    const onFoundRef = useRef(onFound);
+    onFoundRef.current = onFound;
+    useEffect(() => {
+        if (found) onFoundRef.current(found);
+    }, [found]);
+}
+
 /** Journey planner: from, to, when; journeys with their transfer risk. */
 export function JourneyPlanner({ onPick }: { onPick: (field: Field) => void }) {
     const theme = useAppTheme();
     const t = useTranslations("Journey");
     const tc = useTranslations("Common");
     const { from, to, time, arriveBy } = usePlanner();
+    const stationName = (station: Station) =>
+        isAnyBudapest(station) ? t("any_budapest") : station.name || "…";
+    useStationNameLookup(from, (station) => planner.set({ from: station }));
+    useStationNameLookup(to, (station) => planner.set({ to: station }));
     const [open, setOpen] = useState<string | null>(null);
 
     const ready = !!from && !!to && from.id !== to.id;
@@ -39,6 +73,8 @@ export function JourneyPlanner({ onPick }: { onPick: (field: Field) => void }) {
                 time: timeParam(time),
                 arriveBy,
                 limit: 6,
+                // Metro, tram and bus to and from the trains
+                cityTransit: true,
             },
         }),
         enabled: ready,
@@ -66,7 +102,7 @@ export function JourneyPlanner({ onPick }: { onPick: (field: Field) => void }) {
                     <StationRow
                         label={t("from")}
                         placeholder={t("pick_from")}
-                        name={from?.name}
+                        name={from ? stationName(from) : undefined}
                         onPress={() => onPick("from")}
                     />
                     <View
@@ -78,7 +114,7 @@ export function JourneyPlanner({ onPick }: { onPick: (field: Field) => void }) {
                     <StationRow
                         label={t("to")}
                         placeholder={t("pick_to")}
-                        name={to?.name}
+                        name={to ? stationName(to) : undefined}
                         onPress={() => onPick("to")}
                     />
                 </View>
@@ -124,6 +160,8 @@ export function JourneyPlanner({ onPick }: { onPick: (field: Field) => void }) {
                                 <ItineraryCard
                                     key={key}
                                     itinerary={itinerary}
+                                    fromId={from?.id}
+                                    toId={to?.id}
                                     expanded={open === key}
                                     onToggle={() =>
                                         setOpen(open === key ? null : key)

@@ -1,0 +1,259 @@
+{
+  "fromStation": {
+    "id": "budapest",
+    "name": "Budapest",
+    "lat": 47.497912,
+    "lon": 19.054916
+  },
+  "toStation": {
+    "id": "005501289",
+    "name": "Győr",
+    "lat": 47.681944,
+    "lon": 17.634722
+  },
+  "time": 1793340000,
+  "arriveBy": false,
+  "generatedAt": 1793301587,
+  "itineraries": [
+    {
+      "scheduledDeparture": 1793343300,
+      "expectedDeparture": 1793343300,
+      "scheduledArrival": 1793347200,
+      "expectedArrival": 1793347200,
+      "durationMinutes": 65,
+      "transferCount": 0,
+      "legs": [
+        {
+          "type": "transit",
+          "mode": "RAIL",
+          "tripId": "1:36226003",
+          "tripShortName": "60 railjet xpress",
+          "trainNumber": "60",
+          "routeShortName": "<span class=\"MNR2007\">&#481;</span>",
+          "routeLongName": "rjx 60/62/63/64/65/66",
+          "routeTextColor": "274F96",
+          "headsign": "München Hbf",
+          "serviceDate": "2026-10-30",
+          "fromStop": {
+            "id": "005501024",
+            "name": "Budapest-Kelenföld",
+            "lat": 47.464444,
+            "lon": 19.02,
+            "platform": null
+          },
+          "toStop": {
+            "id": "005501289",
+            "name": "Győr",
+            "lat": 47.681944,
+            "lon": 17.634722,
+            "platform": null
+          },
+          "scheduledDeparture": 1793343300,
+          "expectedDeparture": 1793343300,
+          "scheduledArrival": 1793347200,
+          "expectedArrival": 1793347200,
+          "delayMinutes": 0,
+          "delaySource": "otp",
+          "realtime": false,
+          "canceled": false,
+          "intermediateStops": 1,
+          "vehicleId": null
+        }
+      ],
+      "transfers": [],
+      "ticketUrl": "https://jegy.mav.hu/?from_ticketing_stop_time_id=%5B%22005501024%22%5D&to_ticketing_stop_time_id=%5B%22005501289%22%5D&boarding_time=%5B%222026-10-30T06%3A55%3A00.000Z%22%5D&lang=hu"
+    },
+    {
+      "scheduledDeparture": 1793345100,
+      "expectedDeparture": 1793345100,
+      "scheduledArrival": 1793349420,
+      "expectedArrival": 1793349420,
+      "durationMinutes": 72,
+      "transferCount": 0,
+      "legs": [
+        {
+          "type": "transit",
+          "mode": "RAIL",
+          "tripId": "1:36226697",
+          "tripShortName": "354 MURA InterCity",
+          "trainNumber": "354",
+          "routeShortName": "<span class=\"MNR2007\">&#474;</span>",
+          "routeLongName": "IC MURA",
+          "routeTextColor": "274F96",
+          "headsign": "Graz Hbf",
+          "serviceDate": "2026-10-30",
+          "fromStop": {
+            "id": "005501024",
+            "name": "Budapest-Kelenföld",
+            "lat": 47.464444,
+            "lon": 19.02,
+            "platform": null
+          },
+          "toStop": {
+            "id": "005501289",
+            "name": "Győr",
+            "lat": 47.681944,
+            "lon": 17.634722,
+            "platform": null
+          },
+          "scheduledDeparture": 1793345100,
+          "expectedDeparture": 1793345100,
+          "scheduledArrival": 1793349420,
+          "expectedArrival": 1793349420,
+          "delayMinutes": 0,
+          "delaySource": "otp",
+          "realtime": false,
+          "canceled": false,
+          "intermediateStops": 3,
+          "vehicleId": null
+        }
+      ],
+      "transfers": [],
+      "ticketUrl": "https://jegy.mav.hu/?from_ticketing_stop_time_id=%5B%22005501024%22%5D&to_ticketing_stop_time_id=%5B%22005501289%22%5D&boarding_time=%5B%222026-10-30T07%3A25%3A00.000Z%22%5D&lang=hu"
+    },
+    {
+      "scheduledDeparture": 1793346900,
+      "expectedDeparture": 1793346900,
+      "scheduledArrival": 1793350800,
+      "expectedArrival": 1793350800,
+      "durationMinutes": 65,
+      "transferCount": 0,
+      "legs": [
+        {
+          "type": "transit",
+          "mode": "RAIL",
+          "tripId": "1:36226523",
+          "tripShortName": "140 HORTOBÁGY EuroCity",
+          "trainNumber": "140",
+          "routeShortName": "<span class=\"MNR2007\">&#467;</span>",
+          "routeLongName": "EC HORTOBÁGY",
+          "routeTextColor": "274F96",
+          "headsign": "Wien Westbf",
+          "serviceDate": "2026-10-30",
+          "fromStop": {
+            "id": "005501024",
+            "name": "Budapest-Kelenföld",
+            "lat": 47.464444,
+            "lon": 19.02,
+            "platform": null
+          },
+          "toStop": {
+            "id": "005501289",
+            "name": "Győr",
+            "lat": 47.681944,
+            "lon": 17.634722,
+            "platform": null
+          },
+          "scheduledDeparture": 1793346900,
+          "expectedDeparture": 1793346900,
+          "scheduledArrival": 1793350800,
+          "expectedArrival": 1793350800,
+          "delayMinutes": 0,
+          "delaySource": "otp",
+          "realtime": false,
+          "canceled": false,
+          "intermediateStops": 1,
+          "vehicleId": null
+        }
+      ],
+      "transfers": [],
+      "ticketUrl": "https://jegy.mav.hu/?from_ticketing_stop_time_id=%5B%22005501024%22%5D&to_ticketing_stop_time_id=%5B%22005501289%22%5D&boarding_time=%5B%222026-10-30T07%3A55%3A00.000Z%22%5D&lang=hu"
+    },
+    {
+      "scheduledDeparture": 1793348700,
+      "expectedDeparture": 1793348700,
+      "scheduledArrival": 1793353020,
+      "expectedArrival": 1793353020,
+      "durationMinutes": 72,
+      "transferCount": 0,
+      "legs": [
+        {
+          "type": "transit",
+          "mode": "RAIL",
+          "tripId": "1:36225833",
+          "tripShortName": "992 SCARBANTIA InterCity",
+          "trainNumber": "992",
+          "routeShortName": "<span class=\"MNR2007\">&#474;</span>",
+          "routeLongName": "IC SCARBANTIA",
+          "routeTextColor": "274F96",
+          "headsign": "Sopron",
+          "serviceDate": "2026-10-30",
+          "fromStop": {
+            "id": "005501024",
+            "name": "Budapest-Kelenföld",
+            "lat": 47.464444,
+            "lon": 19.02,
+            "platform": null
+          },
+          "toStop": {
+            "id": "005501289",
+            "name": "Győr",
+            "lat": 47.681944,
+            "lon": 17.634722,
+            "platform": null
+          },
+          "scheduledDeparture": 1793348700,
+          "expectedDeparture": 1793348700,
+          "scheduledArrival": 1793353020,
+          "expectedArrival": 1793353020,
+          "delayMinutes": 0,
+          "delaySource": "otp",
+          "realtime": false,
+          "canceled": false,
+          "intermediateStops": 3,
+          "vehicleId": null
+        }
+      ],
+      "transfers": [],
+      "ticketUrl": "https://jegy.mav.hu/?from_ticketing_stop_time_id=%5B%22005501024%22%5D&to_ticketing_stop_time_id=%5B%22005501289%22%5D&boarding_time=%5B%222026-10-30T08%3A25%3A00.000Z%22%5D&lang=hu"
+    },
+    {
+      "scheduledDeparture": 1793350500,
+      "expectedDeparture": 1793350500,
+      "scheduledArrival": 1793354400,
+      "expectedArrival": 1793354400,
+      "durationMinutes": 65,
+      "transferCount": 0,
+      "legs": [
+        {
+          "type": "transit",
+          "mode": "RAIL",
+          "tripId": "1:36226539",
+          "tripShortName": "62 railjet xpress",
+          "trainNumber": "62",
+          "routeShortName": "<span class=\"MNR2007\">&#481;</span>",
+          "routeLongName": "rjx 60/62/63/64/65/66",
+          "routeTextColor": "274F96",
+          "headsign": "München Hbf",
+          "serviceDate": "2026-10-30",
+          "fromStop": {
+            "id": "005501024",
+            "name": "Budapest-Kelenföld",
+            "lat": 47.464444,
+            "lon": 19.02,
+            "platform": null
+          },
+          "toStop": {
+            "id": "005501289",
+            "name": "Győr",
+            "lat": 47.681944,
+            "lon": 17.634722,
+            "platform": null
+          },
+          "scheduledDeparture": 1793350500,
+          "expectedDeparture": 1793350500,
+          "scheduledArrival": 1793354400,
+          "expectedArrival": 1793354400,
+          "delayMinutes": 0,
+          "delaySource": "otp",
+          "realtime": false,
+          "canceled": false,
+          "intermediateStops": 1,
+          "vehicleId": null
+        }
+      ],
+      "transfers": [],
+      "ticketUrl": "https://jegy.mav.hu/?from_ticketing_stop_time_id=%5B%22005501024%22%5D&to_ticketing_stop_time_id=%5B%22005501289%22%5D&boarding_time=%5B%222026-10-30T08%3A55%3A00.000Z%22%5D&lang=hu"
+    }
+  ]
+}

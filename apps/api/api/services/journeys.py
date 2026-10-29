@@ -1,4 +1,11 @@
-"""Journey planning between rail stations, on top of OTP's `plan` query."""
+"""Journey planning between rail stations, on top of OTP's `plan` query.
+
+With city transit, a town's metro, trams and buses take the traveller to the
+first train, from the last one, or between two trains at different stations:
+Keleti -> Szeged by bus 8E to Zugló, Déli -> Vác by tram to Nyugati,
+Miskolc-Gömöri -> Budapest by bus 43 to Tiszai. Every journey still rides at
+least one train, and interurban coaches never replace one.
+"""
 
 import time
 from datetime import datetime
@@ -11,6 +18,7 @@ from api.core.cache import cached_model
 from api.core.graphql import query_graphql
 from api.core.queries import JOURNEYS_QUERY
 from api.schemas.journeys import (
+    CityLeg,
     Itinerary,
     JourneyLeg,
     JourneyPlan,
@@ -20,6 +28,7 @@ from api.schemas.journeys import (
     WalkLeg,
 )
 from api.schemas.stations import Station
+from api.services import budapest
 from api.services.connection_risk import HISTORY_DAYS, assess_transfers
 from api.services.insights import history_window
 from api.services.live_trips import (
@@ -34,8 +43,36 @@ from api.util.time import BUDAPEST_TZ
 from api.util.trip import train_number
 
 JOURNEYS_TTL = 60  # seconds
-# OTP spends several of its itineraries on duplicates of the same trains
+# OTP spends several of its itineraries on duplicates of the same trains, and
+# with city transit on ways of reaching them
 OVERFETCH = 2
+CITY_OVERFETCH = 3
+
+RAIL_MODES = ("RAIL", "SUBURBAN_RAILWAY", "TRAMTRAIN", "RAIL_REPLACEMENT_BUS")
+CITY_MODES = ("SUBWAY", "TRAM", "BUS", "TROLLEYBUS")
+# Upstream feeds of urban (local) transit, by feed id. Any other non-rail feed
+# is dropped with the itinerary riding it: the interurban coaches of MÁV-Volán
+# ("hkir", one feed for all its regional agencies) and the Balaton ferries
+# ("bahart"). Győr's and other towns' local buses run in "hkir" and so are
+# left out as well.
+URBAN_FEEDS = frozenset(
+    {
+        "BKK",  # Budapest: metro, tram, trolleybus, bus (and HÉV lines)
+        "debrecen",  # DKV: tram, trolleybus, bus
+        "mvkzrt",  # Miskolc (MVK): tram, bus
+        "szeged",  # Szeged (SZKT tram and trolleybus; MÁV's city buses)
+        "pecs",  # Pécs (Tüke Busz)
+        "kecskemet",  # Kecskemét
+        "kaposvar",  # Kaposvár
+        "tatabanya",  # Tatabánya (T-Busz)
+        "VBUSZ",  # Veszprém (V-Busz)
+        "szombathely",  # Szombathely (Blaguss Agora)
+        "paks",  # Paks
+    }
+)
+# City rides allowed to reach the first train, to leave the last one, and
+# between two trains at different stations (once per journey)
+MAX_CITY_HOPS = 2
 
 
 class UnknownStationError(Exception):
@@ -123,14 +160,40 @@ def _transit_leg(leg: dict[str, Any], live_index: dict[str, Any]) -> TransitLeg:
     )
 
 
+def _city_leg(leg: dict[str, Any]) -> CityLeg:
+    route = leg.get("route") or {}
+    expected_departure = leg["startTime"] // 1000
+    expected_arrival = leg["endTime"] // 1000
+    return CityLeg(
+        mode=leg["mode"],
+        line=route.get("shortName") or route.get("longName") or "",
+        routeColor=route.get("color"),
+        routeTextColor=route.get("textColor"),
+        headsign=leg.get("headsign"),
+        fromStop=_stop(leg["from"]),
+        toStop=_stop(leg["to"]),
+        scheduledDeparture=expected_departure - (leg.get("departureDelay") or 0),
+        expectedDeparture=expected_departure,
+        scheduledArrival=expected_arrival - (leg.get("arrivalDelay") or 0),
+        expectedArrival=expected_arrival,
+        realtime=bool(leg.get("realTime")),
+        intermediateStops=len(leg.get("intermediateStops") or []),
+    )
+
+
+def _feed(leg: dict[str, Any]) -> str:
+    gtfs_id = (leg.get("route") or {}).get("gtfsId") or leg["trip"]["gtfsId"]
+    return str(gtfs_id).partition(":")[0]
+
+
 def _minutes(seconds: int) -> int:
     return round(seconds / 60)
 
 
 def _transfers(legs: list[JourneyLeg], interlined: list[bool]) -> list[Transfer]:
     """
-    One transfer per pair of consecutive transit legs, including any walk
-    between them. Staying aboard a train that continues as another trip
+    One transfer per pair of consecutive trains, including any walk or city
+    ride between them. Staying aboard a train that continues as another trip
     (interlining) is not a transfer.
     """
     transfers: list[Transfer] = []
@@ -158,34 +221,86 @@ def _transfers(legs: list[JourneyLeg], interlined: list[bool]) -> list[Transfer]
     return transfers
 
 
-def _itinerary(raw: dict[str, Any], live_index: dict[str, Any]) -> Itinerary | None:
+def _city_hops_allowed(legs: list[JourneyLeg]) -> bool:
+    """
+    City rides only before the first train, after the last one, and in at
+    most one link between two trains; at most MAX_CITY_HOPS in each.
+    """
+    segments = [0]
+    for leg in legs:
+        if isinstance(leg, TransitLeg):
+            segments.append(0)
+        elif isinstance(leg, CityLeg):
+            segments[-1] += 1
+    links = segments[1:-1]
+    return max(segments) <= MAX_CITY_HOPS and sum(1 for n in links if n) <= 1
+
+
+def _in_budapest(stop: JourneyStop) -> bool:
+    return budapest.is_budapest_station(stop.id, stop.lat, stop.lon)
+
+
+def _itinerary(
+    raw: dict[str, Any],
+    live_index: dict[str, Any],
+    from_any: bool = False,
+    to_any: bool = False,
+) -> Itinerary | None:
+    """
+    The itinerary, or None unless it rides a train and keeps to the city
+    transit rules. From (to) any Budapest station, the journey starts at its
+    first train (ends at its last), which must leave from (arrive at) a
+    Budapest station.
+    """
     legs: list[JourneyLeg] = []
     interlined: list[bool] = []
     for leg in raw.get("legs") or []:
         if leg.get("trip"):
-            legs.append(_transit_leg(leg, live_index))
+            feed = _feed(leg)
+            if feed == RAIL_FEED:
+                legs.append(_transit_leg(leg, live_index))
+            elif feed in URBAN_FEEDS:
+                legs.append(_city_leg(leg))
+            else:
+                return None
         else:
             legs.append(_walk_leg(leg))
         interlined.append(bool(leg.get("interlineWithPreviousLeg")))
 
-    rides = [leg for leg in legs if isinstance(leg, TransitLeg)]
-    if not rides:
+    trains = [i for i, leg in enumerate(legs) if isinstance(leg, TransitLeg)]
+    if not trains:
         return None
-    first, last = rides[0], rides[-1]
+    first, last = legs[trains[0]], legs[trains[-1]]
+    assert isinstance(first, TransitLeg)
+    assert isinstance(last, TransitLeg)
+    start, end = 0, len(legs)
+    if from_any:
+        if not _in_budapest(first.fromStop):
+            return None
+        start = trains[0]
+    if to_any:
+        if not _in_budapest(last.toStop):
+            return None
+        end = trains[-1] + 1
+    legs, interlined = legs[start:end], interlined[start:end]
+    if not _city_hops_allowed(legs):
+        return None
+
     transfers = _transfers(legs, interlined)
     # The journey runs from the start of its first leg to the end of its last,
-    # including any walk to the first train or from the last one
-    start, end = _times(legs[0]), _times(legs[-1])
+    # including any walk or city ride to the first train or from the last one
+    begin, finish = _times(legs[0]), _times(legs[-1])
 
     return Itinerary(
-        scheduledDeparture=start[0],
-        expectedDeparture=start[1],
-        scheduledArrival=end[2],
-        expectedArrival=end[3],
-        durationMinutes=_minutes(end[2] - start[0]),
+        scheduledDeparture=begin[0],
+        expectedDeparture=begin[1],
+        scheduledArrival=finish[2],
+        expectedArrival=finish[3],
+        durationMinutes=_minutes(finish[2] - begin[0]),
         transferCount=len(transfers),
         legs=legs,
         transfers=transfers,
+        # The trains only: city rides take a local ticket or pass
         ticketUrl=ticket_url(
             first.fromStop.id, last.toStop.id, first.scheduledDeparture
         ),
@@ -208,36 +323,95 @@ def _rides(itinerary: Itinerary) -> list[TransitLeg]:
     return [leg for leg in itinerary.legs if isinstance(leg, TransitLeg)]
 
 
+def _city_hops(itinerary: Itinerary) -> int:
+    return sum(isinstance(leg, CityLeg) for leg in itinerary.legs)
+
+
+def _trains_key(itinerary: Itinerary) -> tuple[tuple[str, int], ...]:
+    """Where and when each train is left: the same trains, however boarded."""
+    return tuple(
+        (leg.toStop.id or leg.toStop.name, leg.scheduledArrival)
+        for leg in _rides(itinerary)
+    )
+
+
 def merge_duplicate_itineraries(itineraries: list[Itinerary]) -> list[Itinerary]:
     """
     OTP lists one physical train as several trips (e.g. "79 ... InterCity" and
     "79 ... gyorsvonat", or the portions "606" and "638" of a split train), and
-    returns an itinerary for every combination, sometimes twice. As on the
-    station boards, keep one per schedule, preferring trains live on our map (with
-    a live delay, then without), then running ones, then realtime data.
+    returns an itinerary for every combination, sometimes twice; with city
+    transit also one for every way of reaching the same trains (bus 8E, 133E
+    or 5 to Zugló). Itineraries are the same when their trains are left at the
+    same stations and times. As on the station boards, keep one per schedule,
+    preferring trains live on our map (with a live delay, then without), then
+    running ones, then realtime data, then the latest departure, then the
+    fewest city rides.
+
+    Then, of itineraries leaving and arriving at the same times that differ
+    only in a train in between (Szolnok -> Eger changing at Hatvan or at
+    Füzesabony onto one train listed under two numbers), keep the one with
+    the fewest changes, then city rides, then the longest shortest change.
     """
 
-    def key(itinerary: Itinerary) -> tuple[tuple[str, int, str, int], ...]:
-        return tuple(
-            (
-                leg.fromStop.id or leg.fromStop.name,
-                leg.scheduledDeparture,
-                leg.toStop.id or leg.toStop.name,
-                leg.scheduledArrival,
-            )
-            for leg in _rides(itinerary)
-        )
-
-    def rank(itinerary: Itinerary) -> tuple[int, int, bool, int]:
+    def rank(itinerary: Itinerary) -> tuple[int, int, bool, int, int, int]:
         rides = _rides(itinerary)
         return (
             sum(leg.delaySource == "gps" for leg in rides),
             sum(leg.vehicleId is not None for leg in rides),
             not any(leg.canceled for leg in rides),
             sum(leg.realtime for leg in rides),
+            itinerary.scheduledDeparture,
+            -_city_hops(itinerary),
         )
 
-    return keep_best(itineraries, key=key, rank=rank)
+    def same_times_rank(itinerary: Itinerary) -> tuple[bool, int, int, int]:
+        return (
+            not any(leg.canceled for leg in _rides(itinerary)),
+            -itinerary.transferCount,
+            -_city_hops(itinerary),
+            min((t.transferMinutes for t in itinerary.transfers), default=0),
+        )
+
+    merged = keep_best(itineraries, key=_trains_key, rank=rank)
+    return keep_best(
+        merged,
+        key=lambda i: (i.scheduledDeparture, i.scheduledArrival),
+        rank=same_times_rank,
+    )
+
+
+def drop_detours_within_budapest(
+    itineraries: list[Itinerary], from_any: bool, to_any: bool
+) -> list[Itinerary]:
+    """
+    From (to) any Budapest station, a train to another Budapest station only
+    to change onto the same trains is a detour (Déli -> Kelenföld for the
+    railjet that starts at Kelenföld). It is dropped when the rest of the
+    journey is on the list by itself.
+    """
+    if not from_any and not to_any:
+        return itineraries
+    keys = {_trains_key(i) for i in itineraries}
+
+    def detour(itinerary: Itinerary) -> bool:
+        trains = _trains_key(itinerary)
+        rides = _rides(itinerary)
+        for cut in range(1, len(rides)):
+            if (
+                from_any
+                and all(_in_budapest(leg.toStop) for leg in rides[:cut])
+                and trains[cut:] in keys
+            ):
+                return True
+            if (
+                to_any
+                and all(_in_budapest(leg.fromStop) for leg in rides[cut:])
+                and trains[:cut] in keys
+            ):
+                return True
+        return False
+
+    return [i for i in itineraries if not detour(i)]
 
 
 def select_itineraries(
@@ -265,6 +439,13 @@ def plan_time(when: datetime | None) -> datetime:
     return when.astimezone(BUDAPEST_TZ).replace(second=0, microsecond=0)
 
 
+def _place(station: Station) -> str:
+    """OTP's `fromPlace`/`toPlace`: a rail station, or Budapest's centre."""
+    if station.id == budapest.BUDAPEST_ID:
+        return f"Budapest::{station.lat},{station.lon}"
+    return f"{RAIL_FEED}:{station.id}"
+
+
 async def fetch_journeys(
     redis: Redis,
     session: AsyncSession,
@@ -273,16 +454,21 @@ async def fetch_journeys(
     when: datetime,
     arrive_by: bool,
     limit: int,
+    city_transit: bool = False,
 ) -> JourneyPlan:
+    from_any = from_station.id == budapest.BUDAPEST_ID
+    to_any = to_station.id == budapest.BUDAPEST_ID
+    modes = [*RAIL_MODES, *CITY_MODES] if city_transit else [*RAIL_MODES]
     data = await query_graphql(
         JOURNEYS_QUERY,
         {
-            "from": f"{RAIL_FEED}:{from_station.id}",
-            "to": f"{RAIL_FEED}:{to_station.id}",
+            "from": _place(from_station),
+            "to": _place(to_station),
             "date": when.strftime("%Y-%m-%d"),
             "time": when.strftime("%H:%M"),
             "arriveBy": arrive_by,
-            "n": limit * OVERFETCH,
+            "n": limit * (CITY_OVERFETCH if city_transit else OVERFETCH),
+            "modes": [{"mode": mode} for mode in [*modes, "WALK"]],
         },
     )
     raw_itineraries = (data.get("plan") or {}).get("itineraries") or []
@@ -291,11 +477,11 @@ async def fetch_journeys(
     itineraries = [
         itinerary
         for raw in raw_itineraries
-        if (itinerary := _itinerary(raw, live_index)) is not None
+        if (itinerary := _itinerary(raw, live_index, from_any, to_any)) is not None
     ]
-    itineraries = select_itineraries(
-        merge_duplicate_itineraries(itineraries), arrive_by, limit
-    )
+    itineraries = merge_duplicate_itineraries(itineraries)
+    itineraries = drop_detours_within_budapest(itineraries, from_any, to_any)
+    itineraries = select_itineraries(itineraries, arrive_by, limit)
     window = history_window(HISTORY_DAYS)
     await assess_transfers(
         redis, session, itineraries, time.time(), (window.start, window.end)
@@ -319,25 +505,43 @@ async def get_journeys(
     when: datetime | None,
     arrive_by: bool,
     limit: int,
+    city_transit: bool = False,
 ) -> JourneyPlan:
-    """Journeys between two stations given by UIC code, cached briefly."""
+    """
+    Journeys between two stations given by UIC code, or "budapest" for any
+    Budapest station, cached briefly. City transit is always on for
+    "budapest".
+    """
     if from_id == to_id:
         raise SameStationError(from_id)
 
-    stations = {s.id: s for s in await load_station_index(redis)}
-    from_station, to_station = stations.get(from_id), stations.get(to_id)
-    if from_station is None or to_station is None:
-        raise UnknownStationError(from_id if from_station is None else to_id)
+    stations = {s.id: s.to_schema() for s in await load_station_index(redis)}
+    stations[budapest.BUDAPEST_ID] = budapest.budapest_station()
+    origin, destination = stations.get(from_id), stations.get(to_id)
+    if origin is None or destination is None:
+        raise UnknownStationError(from_id if origin is None else to_id)
+    # "Budapest" to one of its own stations
+    for any_, other in ((origin, destination), (destination, origin)):
+        if any_.id == budapest.BUDAPEST_ID and other.id in budapest.STATIONS:
+            raise SameStationError(other.id)
+    city_transit = city_transit or budapest.BUDAPEST_ID in (from_id, to_id)
 
-    origin, destination = from_station.to_schema(), to_station.to_schema()
     when = plan_time(when)
-    key = f"journeys:{from_id}:{to_id}:{when.isoformat()}:{arrive_by}:{limit}"
+    mode = "city" if city_transit else "rail"
+    key = f"journeys:{from_id}:{to_id}:{when.isoformat()}:{arrive_by}:{limit}:{mode}"
     return await cached_model(
         redis,
         key,
         JourneyPlan,
         JOURNEYS_TTL,
         lambda: fetch_journeys(
-            redis, session, origin, destination, when, arrive_by, limit
+            redis,
+            session,
+            origin,
+            destination,
+            when,
+            arrive_by,
+            limit,
+            city_transit,
         ),
     )

@@ -288,10 +288,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "UIC code of the departure station",
+              "description": "UIC code of the departure station, or `budapest` for any Budapest station",
               "title": "From"
             },
-            "description": "UIC code of the departure station"
+            "description": "UIC code of the departure station, or `budapest` for any Budapest station"
           },
           {
             "name": "to",
@@ -299,10 +299,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "UIC code of the destination station",
+              "description": "UIC code of the destination station, or `budapest` for any Budapest station",
               "title": "To"
             },
-            "description": "UIC code of the destination station"
+            "description": "UIC code of the destination station, or `budapest` for any Budapest station"
           },
           {
             "name": "time",
@@ -346,6 +346,18 @@
               "default": 5,
               "title": "Limit"
             }
+          },
+          {
+            "name": "cityTransit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Also ride urban transit (metro, tram, trolleybus, city bus; never interurban coaches) to the first train, from the last one, or between two stations; always on for `budapest`",
+              "default": false,
+              "title": "Citytransit"
+            },
+            "description": "Also ride urban transit (metro, tram, trolleybus, city bus; never interurban coaches) to the first train, from the last one, or between two stations; always on for `budapest`"
           }
         ],
         "responses": {
@@ -1757,6 +1769,102 @@
         "title": "BoardEntry",
         "description": "One train on a station's departure or arrival board"
       },
+      "CityLeg": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "city",
+            "title": "Type",
+            "default": "city"
+          },
+          "mode": {
+            "type": "string",
+            "title": "Mode"
+          },
+          "line": {
+            "type": "string",
+            "title": "Line"
+          },
+          "routeColor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Routecolor"
+          },
+          "routeTextColor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Routetextcolor"
+          },
+          "headsign": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Headsign"
+          },
+          "fromStop": {
+            "$ref": "#/components/schemas/JourneyStop"
+          },
+          "toStop": {
+            "$ref": "#/components/schemas/JourneyStop"
+          },
+          "scheduledDeparture": {
+            "type": "integer",
+            "title": "Scheduleddeparture"
+          },
+          "expectedDeparture": {
+            "type": "integer",
+            "title": "Expecteddeparture"
+          },
+          "scheduledArrival": {
+            "type": "integer",
+            "title": "Scheduledarrival"
+          },
+          "expectedArrival": {
+            "type": "integer",
+            "title": "Expectedarrival"
+          },
+          "realtime": {
+            "type": "boolean",
+            "title": "Realtime"
+          },
+          "intermediateStops": {
+            "type": "integer",
+            "title": "Intermediatestops"
+          }
+        },
+        "type": "object",
+        "required": [
+          "mode",
+          "line",
+          "fromStop",
+          "toStop",
+          "scheduledDeparture",
+          "expectedDeparture",
+          "scheduledArrival",
+          "expectedArrival",
+          "realtime",
+          "intermediateStops"
+        ],
+        "title": "CityLeg",
+        "description": "A ride on urban transit (Budapest's BKK, or another town's metro, tram,\ntrolleybus or bus) to the first train, from the last one, or between two\ntrains at different stations"
+      },
       "CommuteFollow": {
         "properties": {
           "id": {
@@ -2740,11 +2848,15 @@
                 },
                 {
                   "$ref": "#/components/schemas/TransitLeg"
+                },
+                {
+                  "$ref": "#/components/schemas/CityLeg"
                 }
               ],
               "discriminator": {
                 "propertyName": "type",
                 "mapping": {
+                  "city": "#/components/schemas/CityLeg",
                   "transit": "#/components/schemas/TransitLeg",
                   "walk": "#/components/schemas/WalkLeg"
                 }

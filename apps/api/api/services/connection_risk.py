@@ -34,6 +34,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.core.logging_config import get_logger
 from api.core.redis import add_key
 from api.schemas.journeys import (
+    CityLeg,
     ConnectionRisk,
     ConnectionRiskSource,
     Itinerary,
@@ -324,10 +325,14 @@ def _changes(itineraries: Sequence[Itinerary]) -> list[_Change]:
             departing = itinerary.legs[transfer.toLeg]
             assert isinstance(arriving, TransitLeg)
             assert isinstance(departing, TransitLeg)
+            # Walks and city rides between the trains (a tram from one
+            # station to another) take from the slack
             walk_s = sum(
                 leg.arrivalTime - leg.departureTime
-                for leg in itinerary.legs[transfer.fromLeg + 1 : transfer.toLeg]
                 if isinstance(leg, WalkLeg)
+                else leg.scheduledArrival - leg.scheduledDeparture
+                for leg in itinerary.legs[transfer.fromLeg + 1 : transfer.toLeg]
+                if isinstance(leg, WalkLeg | CityLeg)
             )
             slack = (
                 departing.scheduledDeparture

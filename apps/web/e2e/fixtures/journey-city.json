@@ -1,0 +1,715 @@
+{
+  "fromStation": {
+    "id": "005510017",
+    "name": "Budapest-Keleti",
+    "lat": 47.500278,
+    "lon": 19.084167
+  },
+  "toStation": {
+    "id": "005517228",
+    "name": "Szeged",
+    "lat": 46.239722,
+    "lon": 20.143056
+  },
+  "time": 1793340000,
+  "arriveBy": false,
+  "generatedAt": 1793301587,
+  "itineraries": [
+    {
+      "scheduledDeparture": 1793341954,
+      "expectedDeparture": 1793341954,
+      "scheduledArrival": 1793351760,
+      "expectedArrival": 1793351760,
+      "durationMinutes": 163,
+      "transferCount": 0,
+      "legs": [
+        {
+          "type": "walk",
+          "fromStop": {
+            "id": "005510017",
+            "name": "Budapest-Keleti",
+            "lat": 47.500278,
+            "lon": 19.084167,
+            "platform": "9"
+          },
+          "toStop": {
+            "id": null,
+            "name": "Budapest, Keleti pályaudvar M",
+            "lat": 47.500466,
+            "lon": 19.081955,
+            "platform": null
+          },
+          "departureTime": 1793341954,
+          "arrivalTime": 1793342100,
+          "distanceMeters": 186
+        },
+        {
+          "type": "city",
+          "mode": "BUS",
+          "line": "8E",
+          "routeColor": "009EE3",
+          "routeTextColor": "FFFFFF",
+          "headsign": "Újpalota, Nyírpalota út",
+          "fromStop": {
+            "id": null,
+            "name": "Budapest, Keleti pályaudvar M",
+            "lat": 47.500466,
+            "lon": 19.081955,
+            "platform": null
+          },
+          "toStop": {
+            "id": null,
+            "name": "Budapest, Zugló vasútállomás",
+            "lat": 47.511171,
+            "lon": 19.098663,
+            "platform": null
+          },
+          "scheduledDeparture": 1793342100,
+          "expectedDeparture": 1793342100,
+          "scheduledArrival": 1793342400,
+          "expectedArrival": 1793342400,
+          "realtime": false,
+          "intermediateStops": 0
+        },
+        {
+          "type": "walk",
+          "fromStop": {
+            "id": null,
+            "name": "Budapest, Zugló vasútállomás",
+            "lat": 47.511171,
+            "lon": 19.098663,
+            "platform": null
+          },
+          "toStop": {
+            "id": "005510090",
+            "name": "Zugló",
+            "lat": 47.511389,
+            "lon": 19.101389,
+            "platform": null
+          },
+          "departureTime": 1793342400,
+          "arrivalTime": 1793342751,
+          "distanceMeters": 313
+        },
+        {
+          "type": "transit",
+          "mode": "RAIL",
+          "tripId": "1:35051958",
+          "tripShortName": "712 NAPFÉNY InterCity",
+          "trainNumber": "712",
+          "routeShortName": "<span class=\"MNR2007\">&#474;</span>",
+          "routeLongName": "IC NAPFÉNY",
+          "routeTextColor": "274F96",
+          "headsign": "Szeged",
+          "serviceDate": "2026-10-30",
+          "fromStop": {
+            "id": "005510090",
+            "name": "Zugló",
+            "lat": 47.511389,
+            "lon": 19.101389,
+            "platform": null
+          },
+          "toStop": {
+            "id": "005517228",
+            "name": "Szeged",
+            "lat": 46.239722,
+            "lon": 20.143056,
+            "platform": null
+          },
+          "scheduledDeparture": 1793343000,
+          "expectedDeparture": 1793343000,
+          "scheduledArrival": 1793351760,
+          "expectedArrival": 1793351760,
+          "delayMinutes": 0,
+          "delaySource": "otp",
+          "realtime": false,
+          "canceled": false,
+          "intermediateStops": 8,
+          "vehicleId": null
+        }
+      ],
+      "transfers": [],
+      "ticketUrl": "https://jegy.mav.hu/?from_ticketing_stop_time_id=%5B%22005510090%22%5D&to_ticketing_stop_time_id=%5B%22005517228%22%5D&boarding_time=%5B%222026-10-30T06%3A50%3A00.000Z%22%5D&lang=hu"
+    },
+    {
+      "scheduledDeparture": 1793345494,
+      "expectedDeparture": 1793345494,
+      "scheduledArrival": 1793355360,
+      "expectedArrival": 1793355360,
+      "durationMinutes": 164,
+      "transferCount": 0,
+      "legs": [
+        {
+          "type": "walk",
+          "fromStop": {
+            "id": "005510017",
+            "name": "Budapest-Keleti",
+            "lat": 47.500278,
+            "lon": 19.084167,
+            "platform": "9"
+          },
+          "toStop": {
+            "id": null,
+            "name": "Budapest, Keleti pályaudvar M",
+            "lat": 47.500466,
+            "lon": 19.081955,
+            "platform": null
+          },
+          "departureTime": 1793345494,
+          "arrivalTime": 1793345640,
+          "distanceMeters": 186
+        },
+        {
+          "type": "city",
+          "mode": "BUS",
+          "line": "133E",
+          "routeColor": "009EE3",
+          "routeTextColor": "FFFFFF",
+          "headsign": "Újpalota, Nyírpalota út",
+          "fromStop": {
+            "id": null,
+            "name": "Budapest, Keleti pályaudvar M",
+            "lat": 47.500466,
+            "lon": 19.081955,
+            "platform": null
+          },
+          "toStop": {
+            "id": null,
+            "name": "Budapest, Zugló vasútállomás",
+            "lat": 47.511171,
+            "lon": 19.098663,
+            "platform": null
+          },
+          "scheduledDeparture": 1793345640,
+          "expectedDeparture": 1793345640,
+          "scheduledArrival": 1793346000,
+          "expectedArrival": 1793346000,
+          "realtime": false,
+          "intermediateStops": 1
+        },
+        {
+          "type": "walk",
+          "fromStop": {
+            "id": null,
+            "name": "Budapest, Zugló vasútállomás",
+            "lat": 47.511171,
+            "lon": 19.098663,
+            "platform": null
+          },
+          "toStop": {
+            "id": "005510090",
+            "name": "Zugló",
+            "lat": 47.511389,
+            "lon": 19.101389,
+            "platform": null
+          },
+          "departureTime": 1793346000,
+          "arrivalTime": 1793346351,
+          "distanceMeters": 313
+        },
+        {
+          "type": "transit",
+          "mode": "RAIL",
+          "tripId": "1:35050994",
+          "tripShortName": "722 NAPFÉNY InterCity",
+          "trainNumber": "722",
+          "routeShortName": "<span class=\"MNR2007\">&#474;</span>",
+          "routeLongName": "IC NAPFÉNY",
+          "routeTextColor": "274F96",
+          "headsign": "Szeged",
+          "serviceDate": "2026-10-30",
+          "fromStop": {
+            "id": "005510090",
+            "name": "Zugló",
+            "lat": 47.511389,
+            "lon": 19.101389,
+            "platform": null
+          },
+          "toStop": {
+            "id": "005517228",
+            "name": "Szeged",
+            "lat": 46.239722,
+            "lon": 20.143056,
+            "platform": null
+          },
+          "scheduledDeparture": 1793346600,
+          "expectedDeparture": 1793346600,
+          "scheduledArrival": 1793355360,
+          "expectedArrival": 1793355360,
+          "delayMinutes": 0,
+          "delaySource": "otp",
+          "realtime": false,
+          "canceled": false,
+          "intermediateStops": 8,
+          "vehicleId": null
+        }
+      ],
+      "transfers": [],
+      "ticketUrl": "https://jegy.mav.hu/?from_ticketing_stop_time_id=%5B%22005510090%22%5D&to_ticketing_stop_time_id=%5B%22005517228%22%5D&boarding_time=%5B%222026-10-30T07%3A50%3A00.000Z%22%5D&lang=hu"
+    },
+    {
+      "scheduledDeparture": 1793349094,
+      "expectedDeparture": 1793349094,
+      "scheduledArrival": 1793358960,
+      "expectedArrival": 1793358960,
+      "durationMinutes": 164,
+      "transferCount": 0,
+      "legs": [
+        {
+          "type": "walk",
+          "fromStop": {
+            "id": "005510017",
+            "name": "Budapest-Keleti",
+            "lat": 47.500278,
+            "lon": 19.084167,
+            "platform": "9"
+          },
+          "toStop": {
+            "id": null,
+            "name": "Budapest, Keleti pályaudvar M",
+            "lat": 47.500466,
+            "lon": 19.081955,
+            "platform": null
+          },
+          "departureTime": 1793349094,
+          "arrivalTime": 1793349240,
+          "distanceMeters": 186
+        },
+        {
+          "type": "city",
+          "mode": "BUS",
+          "line": "8E",
+          "routeColor": "009EE3",
+          "routeTextColor": "FFFFFF",
+          "headsign": "Újpalota, Nyírpalota út",
+          "fromStop": {
+            "id": null,
+            "name": "Budapest, Keleti pályaudvar M",
+            "lat": 47.500466,
+            "lon": 19.081955,
+            "platform": null
+          },
+          "toStop": {
+            "id": null,
+            "name": "Budapest, Zugló vasútállomás",
+            "lat": 47.511171,
+            "lon": 19.098663,
+            "platform": null
+          },
+          "scheduledDeparture": 1793349240,
+          "expectedDeparture": 1793349240,
+          "scheduledArrival": 1793349540,
+          "expectedArrival": 1793349540,
+          "realtime": false,
+          "intermediateStops": 0
+        },
+        {
+          "type": "walk",
+          "fromStop": {
+            "id": null,
+            "name": "Budapest, Zugló vasútállomás",
+            "lat": 47.511171,
+            "lon": 19.098663,
+            "platform": null
+          },
+          "toStop": {
+            "id": "005510090",
+            "name": "Zugló",
+            "lat": 47.511389,
+            "lon": 19.101389,
+            "platform": null
+          },
+          "departureTime": 1793349540,
+          "arrivalTime": 1793349891,
+          "distanceMeters": 313
+        },
+        {
+          "type": "transit",
+          "mode": "RAIL",
+          "tripId": "1:35050999",
+          "tripShortName": "732 NAPFÉNY InterCity",
+          "trainNumber": "732",
+          "routeShortName": "<span class=\"MNR2007\">&#474;</span>",
+          "routeLongName": "IC NAPFÉNY",
+          "routeTextColor": "274F96",
+          "headsign": "Szeged",
+          "serviceDate": "2026-10-30",
+          "fromStop": {
+            "id": "005510090",
+            "name": "Zugló",
+            "lat": 47.511389,
+            "lon": 19.101389,
+            "platform": null
+          },
+          "toStop": {
+            "id": "005517228",
+            "name": "Szeged",
+            "lat": 46.239722,
+            "lon": 20.143056,
+            "platform": null
+          },
+          "scheduledDeparture": 1793350200,
+          "expectedDeparture": 1793350200,
+          "scheduledArrival": 1793358960,
+          "expectedArrival": 1793358960,
+          "delayMinutes": 0,
+          "delaySource": "otp",
+          "realtime": false,
+          "canceled": false,
+          "intermediateStops": 8,
+          "vehicleId": null
+        }
+      ],
+      "transfers": [],
+      "ticketUrl": "https://jegy.mav.hu/?from_ticketing_stop_time_id=%5B%22005510090%22%5D&to_ticketing_stop_time_id=%5B%22005517228%22%5D&boarding_time=%5B%222026-10-30T08%3A50%3A00.000Z%22%5D&lang=hu"
+    },
+    {
+      "scheduledDeparture": 1793352634,
+      "expectedDeparture": 1793352634,
+      "scheduledArrival": 1793362560,
+      "expectedArrival": 1793362560,
+      "durationMinutes": 165,
+      "transferCount": 0,
+      "legs": [
+        {
+          "type": "walk",
+          "fromStop": {
+            "id": "005510017",
+            "name": "Budapest-Keleti",
+            "lat": 47.500278,
+            "lon": 19.084167,
+            "platform": "9"
+          },
+          "toStop": {
+            "id": null,
+            "name": "Budapest, Keleti pályaudvar M",
+            "lat": 47.500466,
+            "lon": 19.081955,
+            "platform": null
+          },
+          "departureTime": 1793352634,
+          "arrivalTime": 1793352780,
+          "distanceMeters": 186
+        },
+        {
+          "type": "city",
+          "mode": "BUS",
+          "line": "5",
+          "routeColor": "009EE3",
+          "routeTextColor": "FFFFFF",
+          "headsign": "Rákospalota, Kossuth utca",
+          "fromStop": {
+            "id": null,
+            "name": "Budapest, Keleti pályaudvar M",
+            "lat": 47.500466,
+            "lon": 19.081955,
+            "platform": null
+          },
+          "toStop": {
+            "id": null,
+            "name": "Budapest, Zugló vasútállomás",
+            "lat": 47.511171,
+            "lon": 19.098663,
+            "platform": null
+          },
+          "scheduledDeparture": 1793352780,
+          "expectedDeparture": 1793352780,
+          "scheduledArrival": 1793353200,
+          "expectedArrival": 1793353200,
+          "realtime": false,
+          "intermediateStops": 3
+        },
+        {
+          "type": "walk",
+          "fromStop": {
+            "id": null,
+            "name": "Budapest, Zugló vasútállomás",
+            "lat": 47.511171,
+            "lon": 19.098663,
+            "platform": null
+          },
+          "toStop": {
+            "id": "005510090",
+            "name": "Zugló",
+            "lat": 47.511389,
+            "lon": 19.101389,
+            "platform": null
+          },
+          "departureTime": 1793353200,
+          "arrivalTime": 1793353551,
+          "distanceMeters": 313
+        },
+        {
+          "type": "transit",
+          "mode": "RAIL",
+          "tripId": "1:35051004",
+          "tripShortName": "704 NAPFÉNY InterCity",
+          "trainNumber": "704",
+          "routeShortName": "<span class=\"MNR2007\">&#474;</span>",
+          "routeLongName": "IC NAPFÉNY",
+          "routeTextColor": "274F96",
+          "headsign": "Szeged",
+          "serviceDate": "2026-10-30",
+          "fromStop": {
+            "id": "005510090",
+            "name": "Zugló",
+            "lat": 47.511389,
+            "lon": 19.101389,
+            "platform": null
+          },
+          "toStop": {
+            "id": "005517228",
+            "name": "Szeged",
+            "lat": 46.239722,
+            "lon": 20.143056,
+            "platform": null
+          },
+          "scheduledDeparture": 1793353800,
+          "expectedDeparture": 1793353800,
+          "scheduledArrival": 1793362560,
+          "expectedArrival": 1793362560,
+          "delayMinutes": 0,
+          "delaySource": "otp",
+          "realtime": false,
+          "canceled": false,
+          "intermediateStops": 8,
+          "vehicleId": null
+        }
+      ],
+      "transfers": [],
+      "ticketUrl": "https://jegy.mav.hu/?from_ticketing_stop_time_id=%5B%22005510090%22%5D&to_ticketing_stop_time_id=%5B%22005517228%22%5D&boarding_time=%5B%222026-10-30T09%3A50%3A00.000Z%22%5D&lang=hu"
+    },
+    {
+      "scheduledDeparture": 1793356174,
+      "expectedDeparture": 1793356174,
+      "scheduledArrival": 1793366160,
+      "expectedArrival": 1793366160,
+      "durationMinutes": 166,
+      "transferCount": 0,
+      "legs": [
+        {
+          "type": "walk",
+          "fromStop": {
+            "id": "005510017",
+            "name": "Budapest-Keleti",
+            "lat": 47.500278,
+            "lon": 19.084167,
+            "platform": "9"
+          },
+          "toStop": {
+            "id": null,
+            "name": "Budapest, Keleti pályaudvar M",
+            "lat": 47.500466,
+            "lon": 19.081955,
+            "platform": null
+          },
+          "departureTime": 1793356174,
+          "arrivalTime": 1793356320,
+          "distanceMeters": 186
+        },
+        {
+          "type": "city",
+          "mode": "BUS",
+          "line": "8E",
+          "routeColor": "009EE3",
+          "routeTextColor": "FFFFFF",
+          "headsign": "Újpalota, Nyírpalota út",
+          "fromStop": {
+            "id": null,
+            "name": "Budapest, Keleti pályaudvar M",
+            "lat": 47.500466,
+            "lon": 19.081955,
+            "platform": null
+          },
+          "toStop": {
+            "id": null,
+            "name": "Budapest, Zugló vasútállomás",
+            "lat": 47.511171,
+            "lon": 19.098663,
+            "platform": null
+          },
+          "scheduledDeparture": 1793356320,
+          "expectedDeparture": 1793356320,
+          "scheduledArrival": 1793356620,
+          "expectedArrival": 1793356620,
+          "realtime": false,
+          "intermediateStops": 0
+        },
+        {
+          "type": "walk",
+          "fromStop": {
+            "id": null,
+            "name": "Budapest, Zugló vasútállomás",
+            "lat": 47.511171,
+            "lon": 19.098663,
+            "platform": null
+          },
+          "toStop": {
+            "id": "005510090",
+            "name": "Zugló",
+            "lat": 47.511389,
+            "lon": 19.101389,
+            "platform": null
+          },
+          "departureTime": 1793356620,
+          "arrivalTime": 1793356971,
+          "distanceMeters": 313
+        },
+        {
+          "type": "transit",
+          "mode": "RAIL",
+          "tripId": "1:35051963",
+          "tripShortName": "714 NAPFÉNY InterCity",
+          "trainNumber": "714",
+          "routeShortName": "<span class=\"MNR2007\">&#474;</span>",
+          "routeLongName": "IC NAPFÉNY",
+          "routeTextColor": "274F96",
+          "headsign": "Szeged",
+          "serviceDate": "2026-10-30",
+          "fromStop": {
+            "id": "005510090",
+            "name": "Zugló",
+            "lat": 47.511389,
+            "lon": 19.101389,
+            "platform": null
+          },
+          "toStop": {
+            "id": "005517228",
+            "name": "Szeged",
+            "lat": 46.239722,
+            "lon": 20.143056,
+            "platform": null
+          },
+          "scheduledDeparture": 1793357400,
+          "expectedDeparture": 1793357400,
+          "scheduledArrival": 1793366160,
+          "expectedArrival": 1793366160,
+          "delayMinutes": 0,
+          "delaySource": "otp",
+          "realtime": false,
+          "canceled": false,
+          "intermediateStops": 8,
+          "vehicleId": null
+        }
+      ],
+      "transfers": [],
+      "ticketUrl": "https://jegy.mav.hu/?from_ticketing_stop_time_id=%5B%22005510090%22%5D&to_ticketing_stop_time_id=%5B%22005517228%22%5D&boarding_time=%5B%222026-10-30T10%3A50%3A00.000Z%22%5D&lang=hu"
+    },
+    {
+      "scheduledDeparture": 1793359774,
+      "expectedDeparture": 1793359774,
+      "scheduledArrival": 1793369760,
+      "expectedArrival": 1793369760,
+      "durationMinutes": 166,
+      "transferCount": 0,
+      "legs": [
+        {
+          "type": "walk",
+          "fromStop": {
+            "id": "005510017",
+            "name": "Budapest-Keleti",
+            "lat": 47.500278,
+            "lon": 19.084167,
+            "platform": "9"
+          },
+          "toStop": {
+            "id": null,
+            "name": "Budapest, Keleti pályaudvar M",
+            "lat": 47.500466,
+            "lon": 19.081955,
+            "platform": null
+          },
+          "departureTime": 1793359774,
+          "arrivalTime": 1793359920,
+          "distanceMeters": 186
+        },
+        {
+          "type": "city",
+          "mode": "BUS",
+          "line": "8E",
+          "routeColor": "009EE3",
+          "routeTextColor": "FFFFFF",
+          "headsign": "Újpalota, Nyírpalota út",
+          "fromStop": {
+            "id": null,
+            "name": "Budapest, Keleti pályaudvar M",
+            "lat": 47.500466,
+            "lon": 19.081955,
+            "platform": null
+          },
+          "toStop": {
+            "id": null,
+            "name": "Budapest, Zugló vasútállomás",
+            "lat": 47.511171,
+            "lon": 19.098663,
+            "platform": null
+          },
+          "scheduledDeparture": 1793359920,
+          "expectedDeparture": 1793359920,
+          "scheduledArrival": 1793360220,
+          "expectedArrival": 1793360220,
+          "realtime": false,
+          "intermediateStops": 0
+        },
+        {
+          "type": "walk",
+          "fromStop": {
+            "id": null,
+            "name": "Budapest, Zugló vasútállomás",
+            "lat": 47.511171,
+            "lon": 19.098663,
+            "platform": null
+          },
+          "toStop": {
+            "id": "005510090",
+            "name": "Zugló",
+            "lat": 47.511389,
+            "lon": 19.101389,
+            "platform": null
+          },
+          "departureTime": 1793360220,
+          "arrivalTime": 1793360571,
+          "distanceMeters": 313
+        },
+        {
+          "type": "transit",
+          "mode": "RAIL",
+          "tripId": "1:35051009",
+          "tripShortName": "724 NAPFÉNY InterCity",
+          "trainNumber": "724",
+          "routeShortName": "<span class=\"MNR2007\">&#474;</span>",
+          "routeLongName": "IC NAPFÉNY",
+          "routeTextColor": "274F96",
+          "headsign": "Szeged",
+          "serviceDate": "2026-10-30",
+          "fromStop": {
+            "id": "005510090",
+            "name": "Zugló",
+            "lat": 47.511389,
+            "lon": 19.101389,
+            "platform": null
+          },
+          "toStop": {
+            "id": "005517228",
+            "name": "Szeged",
+            "lat": 46.239722,
+            "lon": 20.143056,
+            "platform": null
+          },
+          "scheduledDeparture": 1793361000,
+          "expectedDeparture": 1793361000,
+          "scheduledArrival": 1793369760,
+          "expectedArrival": 1793369760,
+          "delayMinutes": 0,
+          "delaySource": "otp",
+          "realtime": false,
+          "canceled": false,
+          "intermediateStops": 8,
+          "vehicleId": null
+        }
+      ],
+      "transfers": [],
+      "ticketUrl": "https://jegy.mav.hu/?from_ticketing_stop_time_id=%5B%22005510090%22%5D&to_ticketing_stop_time_id=%5B%22005517228%22%5D&boarding_time=%5B%222026-10-30T11%3A50%3A00.000Z%22%5D&lang=hu"
+    }
+  ]
+}

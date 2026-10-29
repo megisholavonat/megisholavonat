@@ -1,0 +1,1110 @@
+{
+ "data": {
+  "plan": {
+   "itineraries": [
+    {
+     "legs": [
+      {
+       "mode": "RAIL",
+       "startTime": 1793341500000,
+       "endTime": 1793341680000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 1572.28,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Miskolc-Tiszai",
+       "from": {
+        "name": "Miskolc-Gömöri",
+        "lat": 48.106667,
+        "lon": 20.800278,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005512674"
+        }
+       },
+       "to": {
+        "name": "Miskolc-Tiszai",
+        "lat": 48.098719,
+        "lon": 20.810916,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511387"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E35700272",
+        "shortName": "<span class=\"MNR2007\">&#484;</span>",
+        "longName": "Sz 35469",
+        "color": "FEFEFE",
+        "textColor": "00A0E3"
+       },
+       "trip": {
+        "gtfsId": "1:35700272",
+        "tripShortName": "35469 személyvonat",
+        "departureStoptime": {
+         "scheduledDeparture": 22620
+        }
+       },
+       "intermediateStops": []
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793342100000,
+       "endTime": 1793350020000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 181243.58,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Budapest-Keleti",
+       "from": {
+        "name": "Miskolc-Tiszai",
+        "lat": 48.098719,
+        "lon": 20.810916,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511387"
+        }
+       },
+       "to": {
+        "name": "Budapest-Keleti",
+        "lat": 47.500278,
+        "lon": 19.084167,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510017"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E34946337",
+        "shortName": "<span class=\"MNR2007\">&#474;</span>",
+        "longName": "IC HERNÁD",
+        "color": "FEFEFE",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:34946337",
+        "tripShortName": "181 HERNÁD InterCity",
+        "departureStoptime": {
+         "scheduledDeparture": 20520
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005511312_0"
+        },
+        {
+         "gtfsId": "1:005511205_0"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "RAIL",
+       "startTime": 1793341500000,
+       "endTime": 1793341680000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 1572.28,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Miskolc-Tiszai",
+       "from": {
+        "name": "Miskolc-Gömöri",
+        "lat": 48.106667,
+        "lon": 20.800278,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005512674"
+        }
+       },
+       "to": {
+        "name": "Miskolc-Tiszai",
+        "lat": 48.098719,
+        "lon": 20.810916,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511387"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E35700272",
+        "shortName": "<span class=\"MNR2007\">&#484;</span>",
+        "longName": "Sz 35469",
+        "color": "FEFEFE",
+        "textColor": "00A0E3"
+       },
+       "trip": {
+        "gtfsId": "1:35700272",
+        "tripShortName": "35469 személyvonat",
+        "departureStoptime": {
+         "scheduledDeparture": 22620
+        }
+       },
+       "intermediateStops": []
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793342100000,
+       "endTime": 1793350020000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 181242.55,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Budapest-Keleti",
+       "from": {
+        "name": "Miskolc-Tiszai",
+        "lat": 48.098719,
+        "lon": 20.810916,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511387"
+        }
+       },
+       "to": {
+        "name": "Budapest-Keleti",
+        "lat": 47.500278,
+        "lon": 19.084167,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510017"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E35052585",
+        "shortName": "<span class=\"MNR2007\">&#474;</span>",
+        "longName": "IC HERNÁD - ZEMPLÉN",
+        "color": "FEFEFE",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:35052619",
+        "tripShortName": "507 HERNÁD - ZEMPLÉN InterCity",
+        "departureStoptime": {
+         "scheduledDeparture": 21840
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005511312_0"
+        },
+        {
+         "gtfsId": "1:005511205_0"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "RAIL",
+       "startTime": 1793341500000,
+       "endTime": 1793341680000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 1572.28,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Miskolc-Tiszai",
+       "from": {
+        "name": "Miskolc-Gömöri",
+        "lat": 48.106667,
+        "lon": 20.800278,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005512674"
+        }
+       },
+       "to": {
+        "name": "Miskolc-Tiszai",
+        "lat": 48.098719,
+        "lon": 20.810916,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511387"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E35700272",
+        "shortName": "<span class=\"MNR2007\">&#484;</span>",
+        "longName": "Sz 35469",
+        "color": "FEFEFE",
+        "textColor": "00A0E3"
+       },
+       "trip": {
+        "gtfsId": "1:35700272",
+        "tripShortName": "35469 személyvonat",
+        "departureStoptime": {
+         "scheduledDeparture": 22620
+        }
+       },
+       "intermediateStops": []
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793342100000,
+       "endTime": 1793350020000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 181242.55,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Budapest-Keleti",
+       "from": {
+        "name": "Miskolc-Tiszai",
+        "lat": 48.098719,
+        "lon": 20.810916,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511387"
+        }
+       },
+       "to": {
+        "name": "Budapest-Keleti",
+        "lat": 47.500278,
+        "lon": 19.084167,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510017"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E35052585",
+        "shortName": "<span class=\"MNR2007\">&#474;</span>",
+        "longName": "IC HERNÁD - ZEMPLÉN",
+        "color": "FEFEFE",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:35052619",
+        "tripShortName": "507 HERNÁD - ZEMPLÉN InterCity",
+        "departureStoptime": {
+         "scheduledDeparture": 21840
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005511312_0"
+        },
+        {
+         "gtfsId": "1:005511205_0"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "RAIL",
+       "startTime": 1793341500000,
+       "endTime": 1793341680000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 1572.28,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Miskolc-Tiszai",
+       "from": {
+        "name": "Miskolc-Gömöri",
+        "lat": 48.106667,
+        "lon": 20.800278,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005512674"
+        }
+       },
+       "to": {
+        "name": "Miskolc-Tiszai",
+        "lat": 48.098719,
+        "lon": 20.810916,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511387"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E35700272",
+        "shortName": "<span class=\"MNR2007\">&#484;</span>",
+        "longName": "Sz 35469",
+        "color": "FEFEFE",
+        "textColor": "00A0E3"
+       },
+       "trip": {
+        "gtfsId": "1:35700272",
+        "tripShortName": "35469 személyvonat",
+        "departureStoptime": {
+         "scheduledDeparture": 22620
+        }
+       },
+       "intermediateStops": []
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793342100000,
+       "endTime": 1793350020000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 181243.58,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Budapest-Keleti",
+       "from": {
+        "name": "Miskolc-Tiszai",
+        "lat": 48.098719,
+        "lon": 20.810916,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511387"
+        }
+       },
+       "to": {
+        "name": "Budapest-Keleti",
+        "lat": 47.500278,
+        "lon": 19.084167,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510017"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E34946337",
+        "shortName": "<span class=\"MNR2007\">&#474;</span>",
+        "longName": "IC HERNÁD",
+        "color": "FEFEFE",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:34946337",
+        "tripShortName": "181 HERNÁD InterCity",
+        "departureStoptime": {
+         "scheduledDeparture": 20520
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005511312_0"
+        },
+        {
+         "gtfsId": "1:005511205_0"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "RAIL",
+       "startTime": 1793345160000,
+       "endTime": 1793345400000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 1572.28,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Miskolc-Tiszai",
+       "from": {
+        "name": "Miskolc-Gömöri",
+        "lat": 48.106667,
+        "lon": 20.800278,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005512674"
+        }
+       },
+       "to": {
+        "name": "Miskolc-Tiszai",
+        "lat": 48.098719,
+        "lon": 20.810916,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511387"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E28519544",
+        "shortName": "<span class=\"MNR2007\">&#484;</span>",
+        "longName": "Sz 35413/35414/35416/35417/35422/35423/35424/35425/35426/35429",
+        "color": "FEFEFE",
+        "textColor": "00A0E3"
+       },
+       "trip": {
+        "gtfsId": "1:32566591",
+        "tripShortName": "35417 személyvonat",
+        "departureStoptime": {
+         "scheduledDeparture": 24000
+        }
+       },
+       "intermediateStops": []
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793345700000,
+       "endTime": 1793353620000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 181243.19,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Budapest-Keleti",
+       "from": {
+        "name": "Miskolc-Tiszai",
+        "lat": 48.098719,
+        "lon": 20.810916,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511387"
+        }
+       },
+       "to": {
+        "name": "Budapest-Keleti",
+        "lat": 47.500278,
+        "lon": 19.084167,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510017"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E35051199",
+        "shortName": "<span class=\"MNR2007\">&#474;</span>",
+        "longName": "IC TOKAJ",
+        "color": "FEFEFE",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:35051284",
+        "tripShortName": "682 TOKAJ InterCity",
+        "departureStoptime": {
+         "scheduledDeparture": 12900
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005511296_0"
+        },
+        {
+         "gtfsId": "1:005511205_0"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "RAIL",
+       "startTime": 1793347860000,
+       "endTime": 1793348040000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 1572.28,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Miskolc-Tiszai",
+       "from": {
+        "name": "Miskolc-Gömöri",
+        "lat": 48.106667,
+        "lon": 20.800278,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005512674"
+        }
+       },
+       "to": {
+        "name": "Miskolc-Tiszai",
+        "lat": 48.098719,
+        "lon": 20.810916,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511387"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E28518988",
+        "shortName": "<span class=\"MNR2007\">&#484;</span>",
+        "longName": "Sz 5410/5413/5414/5415/5416/5417/5418/5419/5421/5422/5424/5425/5433/5436/5437/5438",
+        "color": "FEFEFE",
+        "textColor": "00A0E3"
+       },
+       "trip": {
+        "gtfsId": "1:35059148",
+        "tripShortName": "5437 személyvonat",
+        "departureStoptime": {
+         "scheduledDeparture": 29340
+        }
+       },
+       "intermediateStops": []
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793349300000,
+       "endTime": 1793357220000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 181243.58,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Budapest-Keleti",
+       "from": {
+        "name": "Miskolc-Tiszai",
+        "lat": 48.098719,
+        "lon": 20.810916,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511387"
+        }
+       },
+       "to": {
+        "name": "Budapest-Keleti",
+        "lat": 47.500278,
+        "lon": 19.084167,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510017"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E34946327",
+        "shortName": "<span class=\"MNR2007\">&#474;</span>",
+        "longName": "IC HERNÁD/HERNÁD - ZEMPLÉN",
+        "color": "FEFEFE",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:34946343",
+        "tripShortName": "183 HERNÁD InterCity",
+        "departureStoptime": {
+         "scheduledDeparture": 27720
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005511312_0"
+        },
+        {
+         "gtfsId": "1:005511205_0"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "RAIL",
+       "startTime": 1793347860000,
+       "endTime": 1793348040000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 1572.28,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Miskolc-Tiszai",
+       "from": {
+        "name": "Miskolc-Gömöri",
+        "lat": 48.106667,
+        "lon": 20.800278,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005512674"
+        }
+       },
+       "to": {
+        "name": "Miskolc-Tiszai",
+        "lat": 48.098719,
+        "lon": 20.810916,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511387"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E28518988",
+        "shortName": "<span class=\"MNR2007\">&#484;</span>",
+        "longName": "Sz 5410/5413/5414/5415/5416/5417/5418/5419/5421/5422/5424/5425/5433/5436/5437/5438",
+        "color": "FEFEFE",
+        "textColor": "00A0E3"
+       },
+       "trip": {
+        "gtfsId": "1:35059148",
+        "tripShortName": "5437 személyvonat",
+        "departureStoptime": {
+         "scheduledDeparture": 29340
+        }
+       },
+       "intermediateStops": []
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793349300000,
+       "endTime": 1793357220000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 181242.55,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Budapest-Keleti",
+       "from": {
+        "name": "Miskolc-Tiszai",
+        "lat": 48.098719,
+        "lon": 20.810916,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511387"
+        }
+       },
+       "to": {
+        "name": "Budapest-Keleti",
+        "lat": 47.500278,
+        "lon": 19.084167,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510017"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E35052585",
+        "shortName": "<span class=\"MNR2007\">&#474;</span>",
+        "longName": "IC HERNÁD - ZEMPLÉN",
+        "color": "FEFEFE",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:35170097",
+        "tripShortName": "527 HERNÁD - ZEMPLÉN InterCity",
+        "departureStoptime": {
+         "scheduledDeparture": 29040
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005511312_0"
+        },
+        {
+         "gtfsId": "1:005511205_0"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "RAIL",
+       "startTime": 1793347860000,
+       "endTime": 1793348040000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 1572.28,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Miskolc-Tiszai",
+       "from": {
+        "name": "Miskolc-Gömöri",
+        "lat": 48.106667,
+        "lon": 20.800278,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005512674"
+        }
+       },
+       "to": {
+        "name": "Miskolc-Tiszai",
+        "lat": 48.098719,
+        "lon": 20.810916,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511387"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E28518988",
+        "shortName": "<span class=\"MNR2007\">&#484;</span>",
+        "longName": "Sz 5410/5413/5414/5415/5416/5417/5418/5419/5421/5422/5424/5425/5433/5436/5437/5438",
+        "color": "FEFEFE",
+        "textColor": "00A0E3"
+       },
+       "trip": {
+        "gtfsId": "1:35059148",
+        "tripShortName": "5437 személyvonat",
+        "departureStoptime": {
+         "scheduledDeparture": 29340
+        }
+       },
+       "intermediateStops": []
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793349300000,
+       "endTime": 1793357220000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 181242.55,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Budapest-Keleti",
+       "from": {
+        "name": "Miskolc-Tiszai",
+        "lat": 48.098719,
+        "lon": 20.810916,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511387"
+        }
+       },
+       "to": {
+        "name": "Budapest-Keleti",
+        "lat": 47.500278,
+        "lon": 19.084167,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510017"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E35052585",
+        "shortName": "<span class=\"MNR2007\">&#474;</span>",
+        "longName": "IC HERNÁD - ZEMPLÉN",
+        "color": "FEFEFE",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:35170097",
+        "tripShortName": "527 HERNÁD - ZEMPLÉN InterCity",
+        "departureStoptime": {
+         "scheduledDeparture": 29040
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005511312_0"
+        },
+        {
+         "gtfsId": "1:005511205_0"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "RAIL",
+       "startTime": 1793347860000,
+       "endTime": 1793348040000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 1572.28,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Miskolc-Tiszai",
+       "from": {
+        "name": "Miskolc-Gömöri",
+        "lat": 48.106667,
+        "lon": 20.800278,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005512674"
+        }
+       },
+       "to": {
+        "name": "Miskolc-Tiszai",
+        "lat": 48.098719,
+        "lon": 20.810916,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511387"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E28518988",
+        "shortName": "<span class=\"MNR2007\">&#484;</span>",
+        "longName": "Sz 5410/5413/5414/5415/5416/5417/5418/5419/5421/5422/5424/5425/5433/5436/5437/5438",
+        "color": "FEFEFE",
+        "textColor": "00A0E3"
+       },
+       "trip": {
+        "gtfsId": "1:35059148",
+        "tripShortName": "5437 személyvonat",
+        "departureStoptime": {
+         "scheduledDeparture": 29340
+        }
+       },
+       "intermediateStops": []
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793349300000,
+       "endTime": 1793357220000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 181243.58,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Budapest-Keleti",
+       "from": {
+        "name": "Miskolc-Tiszai",
+        "lat": 48.098719,
+        "lon": 20.810916,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511387"
+        }
+       },
+       "to": {
+        "name": "Budapest-Keleti",
+        "lat": 47.500278,
+        "lon": 19.084167,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510017"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E34946327",
+        "shortName": "<span class=\"MNR2007\">&#474;</span>",
+        "longName": "IC HERNÁD/HERNÁD - ZEMPLÉN",
+        "color": "FEFEFE",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:34946343",
+        "tripShortName": "183 HERNÁD InterCity",
+        "departureStoptime": {
+         "scheduledDeparture": 27720
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005511312_0"
+        },
+        {
+         "gtfsId": "1:005511205_0"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "legs": [
+      {
+       "mode": "WALK",
+       "startTime": 1793351494000,
+       "endTime": 1793351880000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 494.27,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Miskolc-Gömöri",
+        "lat": 48.106667,
+        "lon": 20.800278,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005512674"
+        }
+       },
+       "to": {
+        "name": "Miskolc, Bajcsy-Zsilinszky út",
+        "lat": 48.1035,
+        "lon": 20.7977,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "BUS",
+       "startTime": 1793351880000,
+       "endTime": 1793352060000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 1340.93,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Búza tér - Szirma - Joyson - Auchan Dél - Búza tér",
+       "from": {
+        "name": "Miskolc, Bajcsy-Zsilinszky út",
+        "lat": 48.1035,
+        "lon": 20.7977,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Miskolc, Tiszai pályaudvar",
+        "lat": 48.099,
+        "lon": 20.8087,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "route": {
+        "gtfsId": "mvkzrt:43",
+        "shortName": "43",
+        "longName": "Búza tér – Déli Ipari Park Joyson",
+        "color": "81C290",
+        "textColor": "000000"
+       },
+       "trip": {
+        "gtfsId": "mvkzrt:11010_2159_101500_B6B",
+        "tripShortName": "43",
+        "departureStoptime": {
+         "scheduledDeparture": 36900
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "mvkzrt:SP17"
+        }
+       ]
+      },
+      {
+       "mode": "WALK",
+       "startTime": 1793352060000,
+       "endTime": 1793352273000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 225.7,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": null,
+       "headsign": null,
+       "from": {
+        "name": "Miskolc, Tiszai pályaudvar",
+        "lat": 48.099,
+        "lon": 20.8087,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": null
+        }
+       },
+       "to": {
+        "name": "Miskolc-Tiszai",
+        "lat": 48.098719,
+        "lon": 20.810916,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511387"
+        }
+       },
+       "route": null,
+       "trip": null,
+       "intermediateStops": null
+      },
+      {
+       "mode": "RAIL",
+       "startTime": 1793352900000,
+       "endTime": 1793360820000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "realtimeState": null,
+       "distance": 181243.19,
+       "interlineWithPreviousLeg": false,
+       "serviceDate": "2026-10-30",
+       "headsign": "Budapest-Keleti",
+       "from": {
+        "name": "Miskolc-Tiszai",
+        "lat": 48.098719,
+        "lon": 20.810916,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005511387"
+        }
+       },
+       "to": {
+        "name": "Budapest-Keleti",
+        "lat": 47.500278,
+        "lon": 19.084167,
+        "stop": {
+         "platformCode": null,
+         "stationUicPricingCode": "005510017"
+        }
+       },
+       "route": {
+        "gtfsId": "1:E35051199",
+        "shortName": "<span class=\"MNR2007\">&#474;</span>",
+        "longName": "IC TOKAJ",
+        "color": "FEFEFE",
+        "textColor": "274F96"
+       },
+       "trip": {
+        "gtfsId": "1:35051251",
+        "tripShortName": "650 TOKAJ InterCity",
+        "departureStoptime": {
+         "scheduledDeparture": 21300
+        }
+       },
+       "intermediateStops": [
+        {
+         "gtfsId": "1:005511296_0"
+        },
+        {
+         "gtfsId": "1:005511205_0"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ }
+}

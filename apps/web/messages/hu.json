@@ -307,7 +307,18 @@
         "walk": "{m} perc séta",
         "on_map": "Mutasd a térképen",
         "empty": "Nincs találat",
-        "same_station": "Válassz két különböző állomást"
+        "same_station": "Válassz két különböző állomást",
+        "any_budapest": "Budapest (bármely állomás)",
+        "any_budapest_hint": "Arról az állomásról, ahonnan a legjobb",
+        "any_budapest_hint_to": "Arra az állomásra, ahová a legjobb",
+        "from_station": "{station} állomásról",
+        "to_station": "{station} állomásra",
+        "city_ticket": "A helyi járatokhoz külön jegy vagy bérlet kell",
+        "city_metro": "metró",
+        "city_tram": "villamos",
+        "city_trolleybus": "troli",
+        "city_bus": "busz",
+        "city_rail": "HÉV"
     },
     "Shell": {
         "train_gone": "Ez a vonat már nem közlekedik",

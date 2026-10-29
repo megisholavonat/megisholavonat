@@ -16,6 +16,7 @@
         "./i18n": "./src/i18n.ts",
         "./mapStyle": "./src/mapStyle.ts",
         "./mavRoutes": "./src/mavRoutes.ts",
+        "./planner": "./src/planner.ts",
         "./polyline": "./src/polyline.ts",
         "./search": "./src/search.ts",
         "./share": "./src/share.ts",

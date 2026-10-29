@@ -26,6 +26,17 @@ JOURNEYS = {
     (f"1:{GYOR}", f"1:{PECS}", False): "otp-journeys-gyor-pecs.json",
 }
 
+RAIL_ONLY = [
+    {"mode": mode}
+    for mode in (
+        "RAIL",
+        "SUBURBAN_RAILWAY",
+        "TRAMTRAIN",
+        "RAIL_REPLACEMENT_BUS",
+        "WALK",
+    )
+]
+
 # 2026-10-29 15:05 CET
 DEPARTURE_79 = 1793282700
 
@@ -74,6 +85,7 @@ async def test_legs_are_mapped_and_duplicates_merged(
             "time": "15:00",
             "arriveBy": False,
             "n": 10,
+            "modes": RAIL_ONLY,
         }
     ]
 
@@ -358,6 +370,7 @@ async def test_arrive_by_keeps_the_latest_arrivals(
         "time": "12:00",
         "arriveBy": True,
         "n": None,
+        "modes": RAIL_ONLY,
     }
     # The three arriving last before noon, in departure order
     itineraries = body["itineraries"]

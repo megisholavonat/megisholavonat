@@ -183,7 +183,16 @@
         "canceled": "Cancelled",
         "ticket": "Ticket",
         "empty": "No journeys at this time",
-        "error": "Can't plan a journey right now"
+        "error": "Can't plan a journey right now",
+        "any_budapest": "Budapest (any station)",
+        "from_station": "from {station}",
+        "to_station": "to {station}",
+        "city_ticket": "Local transit needs its own ticket or pass",
+        "city_metro": "metro",
+        "city_tram": "tram",
+        "city_trolleybus": "trolleybus",
+        "city_bus": "bus",
+        "city_rail": "HÉV"
     },
     "Trains": {
         "title": "Trains",
