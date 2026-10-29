@@ -12,6 +12,7 @@ import { useTranslations } from "next-intl";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
 import { Link } from "@/i18n/navigation";
+import { useTrackView } from "@/lib/analyticsEvents";
 import { trainName } from "@/lib/train";
 import { cn } from "@/lib/utils";
 import { HourChart, overallShare } from "./HourChart";
@@ -123,6 +124,7 @@ function Rankings({ days }: { days: number }) {
         "order",
         parseAsStringLiteral(ORDERS).withDefault("best"),
     );
+    useTrackView("stats_viewed", { kind: "rankings", ranking: kind, days });
     const rankings = useQuery({
         ...getRankingsOptions({
             query: { kind, order, days, limit: LIMIT },

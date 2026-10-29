@@ -1,6 +1,12 @@
 import { test as base, expect, type Page } from "@playwright/test";
 import hu from "../../messages/hu.json";
-import { mockApi, NOW, TRAINS, type TrainRole } from "./api";
+import {
+    type CapturedEvent,
+    mockApi,
+    NOW,
+    TRAINS,
+    type TrainRole,
+} from "./api";
 
 export { STATIONS, TRAINS } from "./api";
 export { expect };
@@ -15,8 +21,12 @@ type Options = {
 
 type Fixtures = {
     analytics: string[];
+    /** Events PostHog sent (decoded) */
+    events: CapturedEvent[];
     isPhone: boolean;
 };
+
+const capturedEvents = new WeakMap<Page, CapturedEvent[]>();
 
 export const test = base.extend<Options & Fixtures>({
     consent: ["denied", { option: true }],
@@ -39,11 +49,16 @@ export const test = base.extend<Options & Fixtures>({
                     { value: consent, date: NOW.toISOString() },
                 );
             }
-            const { analytics } = await mockApi(page, baseURL ?? "");
-            await use(analytics);
+            const mock = await mockApi(page, baseURL ?? "");
+            capturedEvents.set(page, mock.events);
+            await use(mock.analytics);
         },
         { auto: true },
     ],
+    events: async ({ page, analytics }, use) => {
+        void analytics;
+        await use(capturedEvents.get(page) ?? []);
+    },
     isPhone: async ({ viewport }, use) => {
         await use((viewport?.width ?? 0) < 768);
     },

@@ -8,6 +8,7 @@ import { useDisruptions } from "../disruptions/useDisruptions";
 import { useFollows } from "../follow/store";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { StateBlock } from "../ui/ds";
+import { useTrackOnOpen } from "../useAnalytics";
 
 /**
  * Line and network disruptions, the user's own trains first. A sheet over
@@ -22,6 +23,10 @@ export default function DisruptionsScreen() {
         () => sortDisruptions(disruptions, interestsOf(follows)),
         [disruptions, follows],
     );
+    useTrackOnOpen("disruptions_opened", {
+        surface: "screen",
+        count: disruptions.length,
+    });
     const radius = Platform.OS === "ios" ? theme.radii.lg : 20;
     return (
         <ScrollView

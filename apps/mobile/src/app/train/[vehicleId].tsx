@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { setSelectedTrain } from "../../map/selection";
 import { useSettings } from "../../settings/SettingsProvider";
 import { TrainSheet } from "../../train/TrainSheet";
+import { useTrainAnalytics } from "../../train/trainAnalytics";
 
 /**
  * Train sheet route, presented as a native sheet with peek, half and full
@@ -13,6 +14,7 @@ export default function TrainSheetScreen() {
     const { vehicleId } = useLocalSearchParams<{ vehicleId: string }>();
     const router = useRouter();
     const { settings, update } = useSettings();
+    useTrainAnalytics(vehicleId);
 
     useEffect(() => {
         setSelectedTrain(vehicleId);
