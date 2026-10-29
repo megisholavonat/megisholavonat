@@ -3,7 +3,7 @@
 import { formatSecondsAsTime } from "@megisholavonat/core/time";
 import { Star } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { DelayText, levelOf } from "@/components/ui/Delay";
+import { DelayChip, levelOf } from "@/components/ui/Delay";
 import { PlatformBadge } from "@/components/ui/Platform";
 import { ReasonLabel } from "@/components/ui/Reason";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
@@ -40,13 +40,8 @@ function Status({ row }: { row: CommuteRow }) {
         );
     }
     if (live && live.delay !== null) {
-        return (
-            <DelayText
-                delay={live.delay}
-                stale={live.stale}
-                className="text-[15px]"
-            />
-        );
+        // The same chip as the search, board and late rows
+        return <DelayChip delay={live.delay} stale={live.stale} />;
     }
     const day = dayLabel(row, locale, t("tomorrow"));
     const usually = row.usuallyLate
@@ -75,6 +70,7 @@ function Row({
     onOpen: (row: CommuteRow) => void;
     compact: boolean;
 }) {
+    const tTrain = useTranslations("Train");
     const { follow, live, platform } = row;
     // The cause only next to a live delay that is actually late
     const level = levelOf(live?.delay ?? 0, live?.stale);
@@ -103,6 +99,11 @@ function Row({
             <span className="flex min-w-0 flex-1 flex-col">
                 <span className="truncate text-[15px] font-semibold text-ink">
                     {follow.fromName}{" "}
+                    {/* The departure from the boarding stop, which the
+                        sheet tells by its arrival: say which it is */}
+                    <span className="text-caption font-normal text-ink-2">
+                        {tTrain("departs_at")}
+                    </span>{" "}
                     <span className="tnum">
                         {formatSecondsAsTime(follow.departureS)}
                     </span>

@@ -1278,7 +1278,8 @@ export default function MapComponent({
                       "raster-hue-rotate": 180,
                       "raster-saturation": -0.75,
                   }
-                : { "raster-opacity": 0.75 },
+                : // Softer pink and lilac in light too: no loud purple lines
+                  { "raster-opacity": 0.75, "raster-saturation": -0.4 },
         [scheme],
     );
 

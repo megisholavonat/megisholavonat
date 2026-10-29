@@ -109,7 +109,9 @@ function DayPicker({
     }, [locale]);
     return (
         <fieldset className="flex flex-col gap-2">
-            <legend className="sr-only">{t("days")}</legend>
+            <legend className="mb-2 text-caption font-semibold text-ink-2">
+                {t("days")}
+            </legend>
             <div className="flex justify-between gap-1">
                 {WEEKDAYS.map((day, i) => {
                     const on = days.includes(day);
@@ -131,7 +133,8 @@ function DayPicker({
                                 "flex size-11 cursor-pointer items-center justify-center rounded-full text-sm font-semibold transition-colors",
                                 on
                                     ? "bg-action text-on-action"
-                                    : "bg-surface-2 text-ink hover:bg-line",
+                                    : // Outlined, not greyed: off, not unavailable
+                                      "border-2 border-line bg-surface text-ink hover:border-ink-2",
                             )}
                         >
                             {t(`day_${day}`)}

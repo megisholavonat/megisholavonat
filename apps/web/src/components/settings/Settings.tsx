@@ -521,7 +521,7 @@ export function SettingsDialog({
                         </DialogPrimitive.Title>
                         <DialogPrimitive.Close
                             aria-label={t("close")}
-                            className="pressable flex size-10 cursor-pointer items-center justify-center rounded-full bg-surface text-ink hover:bg-surface-2"
+                            className="pressable relative flex size-10 cursor-pointer items-center justify-center rounded-full bg-surface text-ink hover:bg-surface-2 before:absolute before:-inset-0.5"
                         >
                             <X className="size-5" aria-hidden />
                         </DialogPrimitive.Close>

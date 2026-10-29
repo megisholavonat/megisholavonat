@@ -337,7 +337,7 @@ export function DisruptionChip({
                         type="button"
                         onClick={onClick}
                         aria-haspopup="dialog"
-                        className="pressable flex h-8 cursor-pointer items-center gap-1.5 rounded-full bg-delay-moderate-tint pr-3 pl-2.5 text-sm font-semibold text-ink"
+                        className="pressable relative flex h-8 cursor-pointer before:absolute before:-inset-y-1.5 before:inset-x-0 items-center gap-1.5 rounded-full bg-delay-moderate-tint pr-3 pl-2.5 text-sm font-semibold text-ink"
                     >
                         <TriangleAlert
                             className="size-4 text-delay-moderate"

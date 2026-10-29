@@ -98,7 +98,7 @@ function useLegendLabel() {
 
 /**
  * Delay colours. Desktop: one quiet row, "Késés" first so the steps read as
- * minutes late. Phone: just the dots; tapping opens the labelled list above
+ * minutes late. Phone: "Késés" and the dots; tapping opens the labelled list above
  * the pill.
  */
 export function Legend({ isDesktop }: { isDesktop: boolean }) {
@@ -209,6 +209,13 @@ export function Legend({ isDesktop }: { isDesktop: boolean }) {
                 aria-label={t("label")}
                 className="floating-card pressable flex h-11 cursor-pointer items-center gap-1 rounded-full px-4 dark:ring-1 dark:ring-line"
             >
+                {/* The dots say what they are: never a context-free key */}
+                <span
+                    aria-hidden
+                    className="mr-1 text-caption font-semibold text-ink-2"
+                >
+                    {t("title")}
+                </span>
                 {LEGEND.map(({ level, key }) => (
                     <Swatch key={key} level={level} />
                 ))}

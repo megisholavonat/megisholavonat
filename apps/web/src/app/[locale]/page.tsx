@@ -973,7 +973,7 @@ function MapScreen() {
                                     <DesktopSearch
                                         trains={trains}
                                         handlers={searchHandlers}
-                                        home={
+                                        home={(focusSearch) => (
                                             <div className="px-2 pb-2 empty:hidden">
                                                 <DisruptionChip
                                                     disruptions={disruptions}
@@ -989,8 +989,19 @@ function MapScreen() {
                                                     onEdit={editFollow}
                                                     compact
                                                 />
+                                                {/* The same way in as on phones */}
+                                                {follows.length === 0 &&
+                                                    feed.kind === "ok" && (
+                                                        <div className="flex flex-col px-2">
+                                                            <FollowHint
+                                                                onClick={
+                                                                    focusSearch
+                                                                }
+                                                            />
+                                                        </div>
+                                                    )}
                                             </div>
-                                        }
+                                        )}
                                     />
                                     {feed.kind !== "ok" &&
                                         feed.kind !== "stale" &&

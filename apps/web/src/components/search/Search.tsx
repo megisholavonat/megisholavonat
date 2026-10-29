@@ -6,6 +6,7 @@ import type {
     TrainFeatureProperties,
 } from "@megisholavonat/api-client";
 import { trainDisplay } from "@megisholavonat/core/display";
+import { huTrainSubject } from "@megisholavonat/core/share";
 import type {
     SortDirection,
     TrainSortOption,
@@ -22,7 +23,7 @@ import {
     TrainFront,
     X,
 } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import {
     forwardRef,
     type KeyboardEvent,
@@ -366,13 +367,24 @@ function ResultRow({
 
 function Results({ state }: { state: ReturnType<typeof useSearchState> }) {
     const t = useTranslations("Search");
+    const locale = useLocale();
     const now = new Date(useNow());
     const { query, items, active, select, results } = state;
     if (!query.trim()) return null;
     if (items.length === 0) {
+        // A train number that matches nothing is a train not running now
+        const number = query.trim();
+        const text = /^\d{1,6}$/.test(number)
+            ? t("not_running", {
+                  subject:
+                      locale === "hu"
+                          ? huTrainSubject(number)
+                          : `Train ${number}`,
+              })
+            : t("no_results");
         return (
             <p className="px-4 py-6 text-center text-ink-2">
-                {results.loading ? "…" : t("no_results")}
+                {results.loading ? "…" : text}
             </p>
         );
     }
@@ -580,32 +592,45 @@ function AllTrains({
     );
 }
 
-function useQuickStations(): Station[] {
+function useQuickStations(): { stations: Station[]; recent: boolean } {
     const recent = useRecentStations();
-    return recent.length > 0 ? recent.slice(0, 3) : DEFAULT_STATIONS;
+    return recent.length > 0
+        ? { stations: recent.slice(0, 3), recent: true }
+        : { stations: DEFAULT_STATIONS, recent: false };
 }
 
 /** Station chips under an empty desktop field. */
 function QuickChips({
     stations,
+    recent,
     onSelect,
 }: {
     stations: Station[];
+    /** The last opened stations, rather than the busiest ones */
+    recent: boolean;
     onSelect: (station: Station) => void;
 }) {
+    const t = useTranslations("Search");
+    const caption = t(recent ? "recent_stations" : "popular_stations");
     return (
-        <div className="flex flex-wrap gap-2 border-t border-line px-4 py-3">
-            {stations.map((station) => (
-                <button
-                    key={station.id}
-                    type="button"
-                    onClick={() => onSelect(station)}
-                    className="h-8 cursor-pointer rounded-full bg-surface-2 px-3 text-sm font-semibold text-ink transition-colors hover:bg-line"
-                >
-                    {station.name}
-                </button>
-            ))}
-        </div>
+        <section
+            aria-label={caption}
+            className="flex flex-col gap-2 border-t border-line px-4 py-3"
+        >
+            <h3 className="text-caption font-semibold text-ink-2">{caption}</h3>
+            <div className="flex flex-wrap gap-2">
+                {stations.map((station) => (
+                    <button
+                        key={station.id}
+                        type="button"
+                        onClick={() => onSelect(station)}
+                        className="h-8 cursor-pointer rounded-full bg-surface-2 px-3 text-sm font-semibold text-ink transition-colors hover:bg-line"
+                    >
+                        {station.name}
+                    </button>
+                ))}
+            </div>
+        </section>
     );
 }
 
@@ -624,8 +649,11 @@ export function DesktopSearch({
 }: {
     trains: TrainFeatureCollection | undefined;
     handlers: SearchHandlers;
-    /** Shown under the field while it is empty (the followed trains) */
-    home?: React.ReactNode;
+    /**
+     * Shown under the field while it is empty (the followed trains); a
+     * function gets a way to focus the field
+     */
+    home?: React.ReactNode | ((focusSearch: () => void) => React.ReactNode);
     compact?: boolean;
     /** Beside the field (compact) */
     trailing?: React.ReactNode;
@@ -739,9 +767,13 @@ export function DesktopSearch({
                     </div>
                 ) : (
                     <>
-                        {!compact && home}
+                        {!compact &&
+                            (typeof home === "function"
+                                ? home(() => inputRef.current?.focus())
+                                : home)}
                         <QuickChips
-                            stations={quick}
+                            stations={quick.stations}
+                            recent={quick.recent}
                             onSelect={(s) =>
                                 state.select({ kind: "station", station: s })
                             }
@@ -851,7 +883,7 @@ export function SheetSearchBody({
     return (
         <div className="flex flex-col pb-2">
             <section aria-label={t("stations")} className="flex flex-col">
-                {quick.map((station) => (
+                {quick.stations.map((station) => (
                     <button
                         key={station.id}
                         type="button"
