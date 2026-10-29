@@ -415,6 +415,22 @@ export function BottomSheet({
         [available, heights, onDetentChange, onDismiss, dismiss],
     );
 
+    // A mouse is not held to the header the way a finger is: one drag up
+    // leaves it at once, for the map. Its moves are followed on the window,
+    // the same gesture code as touch.
+    const mouseDrag = useRef<{
+        move: (e: PointerEvent) => void;
+        end: (e: PointerEvent) => void;
+    } | null>(null);
+    const stopMouseDrag = useCallback(() => {
+        const listeners = mouseDrag.current;
+        if (!listeners) return;
+        mouseDrag.current = null;
+        window.removeEventListener("pointermove", listeners.move);
+        window.removeEventListener("pointerup", listeners.end);
+        window.removeEventListener("pointercancel", listeners.end);
+    }, []);
+    useEffect(() => stopMouseDrag, [stopMouseDrag]);
     const onPointerDown = (e: React.PointerEvent) => {
         if (e.button !== 0 || dismissing.current) return;
         drag.current = {
@@ -426,15 +442,31 @@ export function BottomSheet({
             active: false,
             pointerId: e.pointerId,
         };
+        if (e.pointerType === "mouse") {
+            stopMouseDrag();
+            const listeners = {
+                move: (ev: PointerEvent) => onPointerMoveRef.current(ev),
+                end: (ev: PointerEvent) => {
+                    stopMouseDrag();
+                    endDragRef.current(ev);
+                },
+            };
+            mouseDrag.current = listeners;
+            window.addEventListener("pointermove", listeners.move);
+            window.addEventListener("pointerup", listeners.end);
+            window.addEventListener("pointercancel", listeners.end);
+        }
     };
-    const onPointerMove = (e: React.PointerEvent) => {
+    const onPointerMove = (e: PointerEvent | React.PointerEvent) => {
         const d = drag.current;
         if (!d || d.pointerId !== e.pointerId) return;
         const dy = e.clientY - d.startY;
         if (!d.active) {
             if (Math.abs(dy) < DRAG_SLOP) return;
             d.active = true;
-            (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+            if (e.pointerType !== "mouse") {
+                (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+            }
             // A drag from the search field should not leave the keyboard up
             if (document.activeElement instanceof HTMLElement) {
                 document.activeElement.blur();
@@ -450,13 +482,30 @@ export function BottomSheet({
         );
         setDragHeight(next);
     };
-    const endDrag = (e: React.PointerEvent) => {
+    const endDrag = (e: PointerEvent | React.PointerEvent) => {
         const d = drag.current;
+        if (d && d.pointerId !== e.pointerId) return;
         drag.current = null;
         if (!d?.active) return;
         e.preventDefault();
+        // The click a mouse sends after the drag is not a tap on the handle
+        dragged.current = true;
+        window.setTimeout(() => {
+            dragged.current = false;
+        }, 0);
         settle(d.startHeight - (e.clientY - d.startY), d.velocity);
     };
+    const dragged = useRef(false);
+    const onPointerMoveRef = useRef(onPointerMove);
+    onPointerMoveRef.current = onPointerMove;
+    const endDragRef = useRef(endDrag);
+    endDragRef.current = endDrag;
+    /** The header's own handlers: touch and pen (a mouse is on the window) */
+    const notMouse =
+        (handler: (e: React.PointerEvent) => void) =>
+        (e: React.PointerEvent) => {
+            if (e.pointerType !== "mouse") handler(e);
+        };
 
     const stepUp = () => {
         const index = available.indexOf(detent);
@@ -497,15 +546,17 @@ export function BottomSheet({
                     ref={headerRef}
                     className="relative shrink-0 touch-none select-none"
                     onPointerDown={onPointerDown}
-                    onPointerMove={onPointerMove}
-                    onPointerUp={endDrag}
-                    onPointerCancel={endDrag}
+                    onPointerMove={notMouse(onPointerMove)}
+                    onPointerUp={notMouse(endDrag)}
+                    onPointerCancel={notMouse(endDrag)}
                 >
                     <div className="flex justify-center pt-2 pb-1">
                         {available.length > 1 ? (
                             <button
                                 type="button"
-                                onClick={stepUp}
+                                onClick={() => {
+                                    if (!dragged.current) stepUp();
+                                }}
                                 className="relative flex h-5 w-14 cursor-grab items-center justify-center before:absolute before:-inset-x-2 before:-inset-y-3"
                                 aria-label={t("resize")}
                             >
