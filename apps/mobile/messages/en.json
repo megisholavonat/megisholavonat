@@ -64,7 +64,6 @@
         "stale": "No fresh data for {minutes} min",
         "not_found": "This train is no longer on the map",
         "passed": "passed",
-        "share_text": "{train} · {url}",
         "departs": "departs {time}",
         "arrived": "arrived",
         "early": "early",
@@ -185,6 +184,7 @@
         "empty": "No trains running now"
     },
     "DelayCard": {
+        "title": "Delay summary",
         "share": "Share the delay",
         "share_so_far": "Share the delay so far"
     }

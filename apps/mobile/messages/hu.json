@@ -64,7 +64,6 @@
         "stale": "{minutes} perce nincs friss adat",
         "not_found": "Ez a vonat már nem látszik a térképen",
         "passed": "elhaladt",
-        "share_text": "{train} · {url}",
         "departs": "indul {time}",
         "arrived": "megérkezett",
         "early": "korán",
@@ -185,6 +184,7 @@
         "empty": "Most nem jár vonat"
     },
     "DelayCard": {
+        "title": "Késés-összefoglaló",
         "share": "Megosztom a késést",
         "share_so_far": "Késés megosztása eddig"
     }
