@@ -3,7 +3,7 @@
 import type { Locale } from "@megisholavonat/core/i18n";
 import { huTrainSubject } from "@megisholavonat/core/share";
 import type { Metadata } from "next";
-import { OG_SIZE } from "@/lib/og/metadata";
+import { documentTitle, OG_SIZE } from "@/lib/og/metadata";
 import { type PageKind, pageAlternates } from "./paths";
 
 /** "10-es vonat", "Train 10" */
@@ -42,7 +42,7 @@ export function seoMetadata(input: SeoPageInput): Metadata {
     };
     return {
         metadataBase: new URL(input.origin),
-        title: `${input.title} | ${input.appTitle}`,
+        title: documentTitle(input.appTitle, input.title),
         description: input.description,
         alternates: { canonical: url, languages },
         openGraph: {

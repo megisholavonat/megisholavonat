@@ -19,6 +19,8 @@ import numpy as np
 
 from api.forecast import serve
 from api.services.train_service import TrainService
+from api.util.preprocess import PreviousPosition
+from api.util.route import route_from_polyline
 from api.util.time import service_day_start
 
 FIXTURE = Path(__file__).parent / "fixtures" / "dwell-346-10.json.gz"
@@ -279,3 +281,111 @@ def test_406_standing_past_the_station_after_departure_is_late() -> None:
 
     assert loc["dwellStopIndex"] is None
     assert loc["delay"] >= 9
+
+
+# 6215 of 2026-10-29 (Záhony - Debrecen), due at Nyíregyháza 12:14 - 12:37: at
+# 12:20:24 running into the station at 11 m/s, its front 14 m past the stop's
+# point (QA n-A: "-17" for one poll, 0 standing a minute later). QA logged the
+# position and speed, not the heading (here the line's bearing). The trip is
+# as the upstream `trip` query returns it.
+ENTERING_FIXTURE = Path(__file__).parent / "fixtures" / "dwell-6215-nyiregyhaza.json.gz"
+
+
+def _6215() -> dict[str, Any]:
+    with gzip.open(ENTERING_FIXTURE, "rt") as f:
+        [vehicle] = json.load(f)
+    return vehicle  # type: ignore[no-any-return]
+
+
+def _with_previous(
+    vehicle: dict[str, Any], seconds_before: int, metres_back: float, delay_s: float
+) -> dict[str, PreviousPosition]:
+    """As if the last refresh had it `metres_back` along the route, at `delay_s`."""
+    loc = _process_at_report(vehicle)
+    route = route_from_polyline(vehicle["trip"]["tripGeometry"]["points"])
+    assert route.line is not None
+    metres_per_unit = route.length_km * 1000 / route.line.length
+    trip = vehicle["trip"]
+    return {
+        f"{trip['gtfsId']}@{trip['serviceDate']}": PreviousPosition(
+            along=loc["trainPosition"] - metres_back / metres_per_unit,
+            at=vehicle["lastUpdated"] - seconds_before,
+            line_length=route.line.length,
+            delay=delay_s,
+        )
+    }
+
+
+def _process_with(
+    vehicle: dict[str, Any], previous: dict[str, PreviousPosition]
+) -> dict[str, Any]:
+    service = TrainService(None)  # type: ignore[arg-type]
+    service.reference_time = vehicle["lastUpdated"]
+    [processed] = service.process_locations([vehicle], previous)
+    return processed
+
+
+def test_6215_running_into_a_long_stop_is_not_early() -> None:
+    train = _6215()
+    index, nyiregyhaza = _stop(train, "Nyíregyháza")
+    start = service_day_start(date.fromisoformat(train["trip"]["serviceDate"]))
+    now_s = train["lastUpdated"] - int(start.timestamp())
+    assert now_s - nyiregyhaza["scheduledArrival"] == 6 * 60 + 24
+    # A minute earlier, 600 m out and about six minutes late
+    previous = _with_previous(train, 60, 600, 5.5 * 60)
+
+    loc = _process_with(train, previous)
+
+    assert train["speed"] == 11.0
+    assert loc["vehicleProgress"]["lastStopIndex"] == index
+    assert loc["dwellStopIndex"] is None
+    # Late against its arrival as on the way in, not 17 min early against
+    # its departure
+    assert loc["delay"] in (5, 6)
+
+
+def test_6215_without_a_previous_reading_is_unchanged() -> None:
+    # Nothing tells arriving from leaving early: the timetable's reading
+    loc = _process_at_report(_6215())
+
+    assert loc["delay"] == -17
+
+
+def test_leaving_a_long_stop_early_reads_early_after_one_poll() -> None:
+    train = _vehicles()["346"]
+    _, szolnok = _stop(train, "Szolnok")
+    leaving = copy.deepcopy(train)
+    start = service_day_start(date.fromisoformat(train["trip"]["serviceDate"]))
+    leaving["lastUpdated"] = (
+        int(start.timestamp()) + szolnok["scheduledDeparture"] - 10 * 60
+    )
+    leaving["speed"] = 10.0
+    # It stood there a minute ago, on time by the dwell rule
+    previous = _with_previous(leaving, 60, 0, 0)
+
+    loc = _process_with(leaving, previous)
+
+    # Not "late against its arrival" (+19): at most on time
+    assert loc["delay"] == 0
+    # Without that reading, early
+    assert _process_at_report(leaving)["delay"] < 0
+
+
+def test_early_between_stops_stays_early() -> None:
+    train = _6215()
+    _, kemecse = _stop(train, "Kemecse")
+    _, sostohegy = _stop(train, "Sóstóhegy")
+    between = copy.deepcopy(train)
+    # Halfway between Kemecse and Sóstóhegy, five minutes before Kemecse's
+    # departure: genuinely early, whatever it read before
+    between["lat"] = (kemecse["stop"]["lat"] + sostohegy["stop"]["lat"]) / 2
+    between["lon"] = (kemecse["stop"]["lon"] + sostohegy["stop"]["lon"]) / 2
+    start = service_day_start(date.fromisoformat(train["trip"]["serviceDate"]))
+    between["lastUpdated"] = (
+        int(start.timestamp()) + kemecse["scheduledDeparture"] - 5 * 60
+    )
+    previous = _with_previous(between, 60, 600, 0)
+
+    loc = _process_with(between, previous)
+
+    assert loc["delay"] <= -7

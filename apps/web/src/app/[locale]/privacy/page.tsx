@@ -5,6 +5,8 @@ import { LuArrowLeft } from "react-icons/lu";
 import PrivacyContentEn from "@/app/[locale]/privacy/PrivacyContentEn";
 import PrivacyContentHu from "@/app/[locale]/privacy/PrivacyContentHu";
 import { Link } from "@/i18n/navigation";
+import { subpageMetadata } from "@/lib/og/metadata";
+import { siteUrl } from "@/lib/og/server";
 
 /** Update together with the notice text (and CONSENT_VERSION if needed). */
 const LAST_UPDATED = new Date("2026-10-28");
@@ -18,7 +20,14 @@ export async function generateMetadata({
     const t = await getTranslations({ locale, namespace: "PrivacyPage" });
     const tHome = await getTranslations({ locale, namespace: "Home" });
     return {
-        title: `${t("title")} | ${tHome("app_title")}`,
+        ...subpageMetadata({
+            locale,
+            origin: siteUrl(),
+            appTitle: tHome("app_title"),
+            path: "/privacy",
+            title: t("title"),
+            description: t("description"),
+        }),
         alternates: {
             languages: {
                 hu: "https://megisholavonat.info/hu/privacy",

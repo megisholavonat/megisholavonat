@@ -46,7 +46,7 @@ async function notFoundMetadata(locale: Locale, kind: PageKind) {
     const t = await getTranslations({ locale, namespace: "Pages" });
     const tHome = await getTranslations({ locale, namespace: "Home" });
     return {
-        title: `${t(kind === "station" ? "station_not_found" : "train_not_found")} | ${tHome("app_title")}`,
+        title: `${t(kind === "station" ? "station_not_found" : "train_not_found")} · ${tHome("app_title")}`,
         robots: { index: false },
     } satisfies Metadata;
 }

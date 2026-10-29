@@ -13,6 +13,7 @@ import {
     type Preview,
     previewImagePath,
     previewTarget,
+    subpageMetadata,
 } from "./metadata";
 import { glyphText, stationCard, trainCard, trainShareInfo } from "./model";
 
@@ -77,13 +78,13 @@ describe("trainCard", () => {
         for (const [activity, status] of [
             ["cancelled", "cancelled"],
             ["arrived", "arrived"],
-            ["offRoute", "noData"],
+            // Fresh, but off its route: delay unknown, not "no fresh data"
+            ["offRoute", "offRoute"],
         ] as const) {
             const card = trainCard({ ...late, activity }, now);
             expect(card).toMatchObject({ status, delay: 0, next: null });
-            expect(trainShareText("hu", trainShareInfo(card))).not.toMatch(
-                /késés/,
-            );
+            const text = trainShareText("hu", trainShareInfo(card));
+            expect(text).not.toMatch(/percet késik|pontos|friss adat/);
         }
         // No position for 20 minutes
         const old = new Date((late.lastUpdated + 20 * 60) * 1000);
@@ -239,5 +240,22 @@ describe("buildMetadata", () => {
         expect(og.images).toEqual([
             expect.objectContaining({ url: "/hu/og", alt: APP.appTitle }),
         ]);
+    });
+});
+
+describe("subpageMetadata", () => {
+    it("gives the privacy page its own title, url and separator", () => {
+        const meta = subpageMetadata({
+            locale: "hu",
+            origin: ORIGIN,
+            appTitle: APP.appTitle,
+            path: "/privacy",
+            title: "Adatvédelem",
+            description: "Milyen adatot kezel az alkalmazás, és mire.",
+        });
+        expect(meta.title).toBe("Adatvédelem · Mégis hol a vonat?");
+        expect(meta.openGraph?.title).toBe("Adatvédelem");
+        expect(meta.openGraph?.url).toBe(`${ORIGIN}/hu/privacy`);
+        expect(meta.robots).toBeUndefined();
     });
 });

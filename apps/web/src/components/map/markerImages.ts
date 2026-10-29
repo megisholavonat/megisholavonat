@@ -48,8 +48,18 @@ export function arrowImageId(scheme: ColorScheme): string {
     return `${PREFIX}${scheme}-arrow`;
 }
 
-export function stationImageId(scheme: ColorScheme): string {
-    return `${PREFIX}${scheme}-station`;
+/**
+ * The selected station's sprites: `clear` (under the trains, keeps the ring
+ * legible over the railway overlay), `ring` (above clusters and plain dots)
+ * and `label` (the box behind its name).
+ */
+export type StationPart = "clear" | "ring" | "label";
+
+export function stationImageId(
+    scheme: ColorScheme,
+    part: StationPart = "ring",
+): string {
+    return `${PREFIX}${scheme}-station-${part}`;
 }
 
 export function followImageId(scheme: ColorScheme): string {
@@ -344,14 +354,18 @@ function arrow(scheme: ColorScheme) {
 const STATION_CLEAR = 15;
 /** …then fading out to here (css px) */
 const STATION_FADE = 18;
+/** The ring's radius, to the middle of its stroke */
+const STATION_RING_R = 9;
+const STATION_RING_W = 3;
 
 /**
- * Selected station: a hollow ink ring with a thin edge in the map colour.
- * The edge only keeps the ring legible over the railway overlay: wider, it
+ * Selected station, drawn in two layers. Under the trains, a thin edge in the
+ * map colour: it keeps the ring legible over the railway overlay; wider, it
  * would erase the track itself (the overlay is a raster, so its own station
- * name cannot be hidden on its own).
+ * name cannot be hidden on its own). Above the clusters and plain dots, the
+ * ring itself: a soft ink halo, a surface disc and an ink stroke.
  */
-function station(scheme: ColorScheme) {
+function station(scheme: ColorScheme, part: "clear" | "ring") {
     const size = STATION_FADE * 2;
     const canvas = document.createElement("canvas");
     canvas.width = size * PIXEL_RATIO;
@@ -360,28 +374,89 @@ function station(scheme: ColorScheme) {
     if (!ctx) return null;
     ctx.scale(PIXEL_RATIO, PIXEL_RATIO);
     const c = size / 2;
-    const clearing = ctx.createRadialGradient(c, c, 0, c, c, STATION_FADE);
-    const map = COLORS[scheme].map;
-    clearing.addColorStop(0, map);
-    clearing.addColorStop(STATION_CLEAR / STATION_FADE, map);
-    clearing.addColorStop(1, `${map}00`);
-    ctx.fillStyle = clearing;
-    ctx.fillRect(0, 0, size, size);
-    ctx.beginPath();
-    ctx.arc(c, c, 13, 0, Math.PI * 2);
-    ctx.globalAlpha = 0.2;
-    ctx.fillStyle = COLORS[scheme].ink;
-    ctx.fill();
-    ctx.globalAlpha = 1;
-    ctx.beginPath();
-    ctx.arc(c, c, 9, 0, Math.PI * 2);
-    ctx.fillStyle = COLORS[scheme].surface;
-    ctx.fill();
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = COLORS[scheme].ink;
-    ctx.stroke();
+    if (part === "clear") {
+        const clearing = ctx.createRadialGradient(c, c, 0, c, c, STATION_FADE);
+        const map = COLORS[scheme].map;
+        clearing.addColorStop(0, map);
+        clearing.addColorStop(STATION_CLEAR / STATION_FADE, map);
+        clearing.addColorStop(1, `${map}00`);
+        ctx.fillStyle = clearing;
+        ctx.fillRect(0, 0, size, size);
+    } else {
+        ctx.beginPath();
+        ctx.arc(c, c, 13, 0, Math.PI * 2);
+        ctx.globalAlpha = 0.2;
+        ctx.fillStyle = COLORS[scheme].ink;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.beginPath();
+        ctx.arc(c, c, STATION_RING_R, 0, Math.PI * 2);
+        ctx.fillStyle = COLORS[scheme].surface;
+        ctx.fill();
+        ctx.lineWidth = STATION_RING_W;
+        ctx.strokeStyle = COLORS[scheme].ink;
+        ctx.stroke();
+    }
     const data = toImage(canvas);
     return data ? { data, meta: { pixelRatio: PIXEL_RATIO } } : null;
+}
+
+/** The station name's box: its corner radius and padding (css px) */
+const LABEL_RADIUS = 6;
+const LABEL_PAD_X = 7;
+const LABEL_PAD_Y = 3;
+/** Line height of the 13 px name, as MapLibre lays it out */
+const LABEL_TEXT_H = 13 * TEXT_LINE_HEIGHT;
+
+/**
+ * The box behind the selected station's name: a surface card with a hairline
+ * edge, stretched to the name (icon-text-fit). Opaque, so the railway
+ * overlay's own, partly erased name never shows through it.
+ */
+function stationLabel(scheme: ColorScheme) {
+    const margin = 1;
+    // The text's box sits between the paddings; only the middle stretches
+    const w = LABEL_PAD_X * 2 + STRETCH * 2;
+    const h = Math.ceil(LABEL_TEXT_H + LABEL_PAD_Y * 2);
+    const canvas = document.createElement("canvas");
+    canvas.width = (w + margin * 2) * PIXEL_RATIO;
+    canvas.height = (h + margin * 2) * PIXEL_RATIO;
+    const ctx = context(canvas);
+    if (!ctx) return null;
+    ctx.scale(PIXEL_RATIO, PIXEL_RATIO);
+    ctx.beginPath();
+    ctx.roundRect(margin, margin, w, h, LABEL_RADIUS);
+    ctx.fillStyle = COLORS[scheme].surface;
+    ctx.fill();
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = COLORS[scheme].line;
+    ctx.stroke();
+    const data = toImage(canvas);
+    if (!data) return null;
+    const midX = margin + w / 2;
+    const midY = margin + h / 2;
+    const meta: Partial<StyleImageMetadata> = {
+        pixelRatio: PIXEL_RATIO,
+        stretchX: [
+            [
+                (midX - STRETCH / 2) * PIXEL_RATIO,
+                (midX + STRETCH / 2) * PIXEL_RATIO,
+            ],
+        ],
+        stretchY: [
+            [
+                (midY - STRETCH / 4) * PIXEL_RATIO,
+                (midY + STRETCH / 4) * PIXEL_RATIO,
+            ],
+        ],
+        content: [
+            (margin + LABEL_PAD_X) * PIXEL_RATIO,
+            (midY - LABEL_TEXT_H / 2) * PIXEL_RATIO,
+            (margin + w - LABEL_PAD_X) * PIXEL_RATIO,
+            (midY + LABEL_TEXT_H / 2) * PIXEL_RATIO,
+        ],
+    };
+    return { data, meta };
 }
 
 /** Followed train: a small ink disc with a star, pinned to the marker. */
@@ -423,7 +498,7 @@ function follow(scheme: ColorScheme) {
 }
 
 const ID_PATTERN =
-    /^mhav-(light|dark)-(?:(dot|pill)-(onTime|slight|moderate|severe|stale|inactive)-(train|hev|tramtrain)(-sel)?|(arrow)|(station)|(follow))$/;
+    /^mhav-(light|dark)-(?:(dot|pill)-(onTime|slight|moderate|severe|stale|inactive)-(train|hev|tramtrain)(-sel)?|(arrow)|station-(clear|ring|label)|(follow))$/;
 
 type Sprite = { data: ImageData; meta: Partial<StyleImageMetadata> };
 
@@ -467,7 +542,11 @@ export function markerImageIds(scheme: ColorScheme): string[] {
             }
         }
     }
-    ids.push(stationImageId(scheme));
+    ids.push(
+        stationImageId(scheme, "clear"),
+        stationImageId(scheme, "ring"),
+        stationImageId(scheme, "label"),
+    );
     return ids;
 }
 
@@ -526,7 +605,8 @@ function drawSprite(id: string): Sprite | null {
     if (!match) return null;
     const scheme = match[1] as ColorScheme;
     if (match[6]) return arrow(scheme);
-    if (match[7]) return station(scheme);
+    if (match[7] === "label") return stationLabel(scheme);
+    if (match[7]) return station(scheme, match[7] as "clear" | "ring");
     if (match[8]) return follow(scheme);
     const kind = match[2];
     const level = match[3] as MarkerLevel;
