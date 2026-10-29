@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108">
+  <!-- Adaptive icon foreground, 108 dp. Background: #16181C.
+       The outer transform maps the design's 108 board onto the 72 dp the
+       launcher shows; the glyph stays inside the 66 dp safe zone. -->
+  <mask id="cut" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
+    <rect width="100" height="100" fill="#FFFFFF"/>
+    <path d="M24 76V30L50 58L76 30V76" fill="none" stroke="#000000" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="76" cy="30" r="10.5" fill="#000000"/>
+  </mask>
+  <g transform="translate(18 18) scale(0.6667) translate(14 14) scale(0.8)">
+    <path d="M24 76V30L50 58L76 30V76" fill="none" stroke="#F2F3F5" stroke-width="13" stroke-linejoin="round" stroke-linecap="round" mask="url(#cut)"/>
+    <circle cx="76" cy="30" r="7.5" fill="#F2C230"/>
+  </g>
+</svg>
