@@ -8,7 +8,7 @@ import type {
     SymbolLayerSpecification,
 } from "@maplibre/maplibre-react-native";
 import { MAP_DATA_PATHS, MAP_FONTS } from "@megisholavonat/core/mapStyle";
-import { COLORS, type ColorScheme } from "@megisholavonat/core/tokens";
+import { COLORS, type ColorScheme, MARKER } from "@megisholavonat/core/tokens";
 import {
     MAP_FOCUS,
     MAP_MARKS,
@@ -91,7 +91,10 @@ export function railwayPaint(
 
 // --- train marks -----------------------------------------------------------
 
+/** Unselected trains, clustered where they pile up */
 export const VEHICLES_SOURCE = "vehicles-source";
+/** The selected and followed trains: never clustered */
+export const PINNED_SOURCE = "vehicles-pinned-source";
 export const ROUTE_SOURCE = "route-source";
 export const STOPS_SOURCE = "stops-source";
 
@@ -103,6 +106,14 @@ export const TRAIN_LAYER_IDS = {
     badge: "train-followed",
     chip: "train-chip",
 } as const;
+
+export const CLUSTER_LAYER_IDS = {
+    bubble: "train-cluster",
+    count: "train-cluster-count",
+} as const;
+
+const NOT_CLUSTER = expr(["!", ["has", "point_count"]]);
+const IS_CLUSTER = expr(["has", "point_count"]);
 
 export const ROUTE_LAYER_IDS = {
     casing: "route-casing",
@@ -216,9 +227,15 @@ function isSelected(selectedId: string | null): Expression {
 export function trainLayers({
     scheme,
     selectedId,
+    source = VEHICLES_SOURCE,
+    suffix = "",
 }: {
     scheme: ColorScheme;
     selectedId: string | null;
+    /** The source the layers read; VEHICLES_SOURCE is clustered */
+    source?: string;
+    /** Appended to the layer ids, one set per source */
+    suffix?: string;
 }): {
     text: SymbolLayerSpecification;
     marks: SymbolLayerSpecification;
@@ -228,15 +245,15 @@ export function trainLayers({
 } {
     const colors = COLORS[scheme];
     const opacity = focusOpacity(selectedId);
-    const source = VEHICLES_SOURCE;
     return {
         text: {
-            id: TRAIN_LAYER_IDS.text,
+            id: TRAIN_LAYER_IDS.text + suffix,
             type: "symbol",
             source,
             minzoom: MAP_MARKS.delayTextMinZoom,
             filter: [
                 "all",
+                NOT_CLUSTER,
                 ["!=", ["get", "text"], ""],
                 ["!", ["get", "followed"]],
                 ["!", isSelected(selectedId)],
@@ -260,9 +277,10 @@ export function trainLayers({
             },
         },
         marks: {
-            id: TRAIN_LAYER_IDS.marks,
+            id: TRAIN_LAYER_IDS.marks + suffix,
             type: "symbol",
             source,
+            filter: NOT_CLUSTER as FilterSpecification,
             layout: {
                 "icon-image": ["get", "icon"],
                 "icon-size": ICON_SIZE,
@@ -286,7 +304,7 @@ export function trainLayers({
             paint: { "icon-opacity": opacity },
         },
         ring: {
-            id: TRAIN_LAYER_IDS.ring,
+            id: TRAIN_LAYER_IDS.ring + suffix,
             type: "symbol",
             source,
             filter: isSelected(selectedId) as FilterSpecification,
@@ -299,7 +317,7 @@ export function trainLayers({
             },
         },
         badge: {
-            id: TRAIN_LAYER_IDS.badge,
+            id: TRAIN_LAYER_IDS.badge + suffix,
             type: "circle",
             source,
             filter: ["==", ["get", "followed"], true],
@@ -321,7 +339,7 @@ export function trainLayers({
             } as CircleLayerSpecification["paint"],
         },
         chip: {
-            id: TRAIN_LAYER_IDS.chip,
+            id: TRAIN_LAYER_IDS.chip + suffix,
             type: "symbol",
             source,
             filter: [
@@ -345,6 +363,68 @@ export function trainLayers({
                 "symbol-sort-key": ["get", "sort"],
             },
             paint: { "text-color": ["get", "labelColor"] },
+        },
+    };
+}
+
+/**
+ * Trains that truly pile up (a terminus, a busy junction): a neutral bubble
+ * with their count, as on the web. Two passing trains stay two marks
+ * (MAP_MARKS.clusterRadius / clusterMinPoints).
+ */
+export function clusterLayers({
+    scheme,
+    selectedId,
+}: {
+    scheme: ColorScheme;
+    selectedId: string | null;
+}): { bubble: CircleLayerSpecification; count: SymbolLayerSpecification } {
+    const colors = COLORS[scheme];
+    const opacity = selectedId ? MAP_FOCUS.othersOpacity : 1;
+    return {
+        bubble: {
+            id: CLUSTER_LAYER_IDS.bubble,
+            type: "circle",
+            source: VEHICLES_SOURCE,
+            filter: IS_CLUSTER as FilterSpecification,
+            paint: {
+                // 20 / 24 / 30 px across, as the web's bubbles
+                "circle-radius": [
+                    "step",
+                    ["get", "point_count"],
+                    10,
+                    10,
+                    12,
+                    50,
+                    15,
+                ],
+                "circle-color": colors.surface,
+                "circle-stroke-color": colors.ink2,
+                "circle-stroke-width": MARKER.outlineWidth,
+                "circle-opacity": opacity,
+                "circle-stroke-opacity": opacity,
+            },
+        },
+        count: {
+            id: CLUSTER_LAYER_IDS.count,
+            type: "symbol",
+            source: VEHICLES_SOURCE,
+            filter: IS_CLUSTER as FilterSpecification,
+            layout: {
+                "text-field": ["get", "point_count_abbreviated"],
+                "text-font": [...MAP_FONTS.bold],
+                "text-size": 12,
+                "text-allow-overlap": true,
+                // From city zoom "+N" keeps clear of it too
+                "text-ignore-placement": [
+                    "step",
+                    ["zoom"],
+                    true,
+                    MAP_MARKS.delayTextMinZoom,
+                    false,
+                ],
+            },
+            paint: { "text-color": colors.ink, "text-opacity": opacity },
         },
     };
 }

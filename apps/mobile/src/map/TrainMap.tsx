@@ -1,6 +1,8 @@
 import {
     Camera,
+    type CameraRef,
     GeoJSONSource,
+    type GeoJSONSourceRef,
     Images,
     Layer,
     type LayerProps,
@@ -22,9 +24,9 @@ import {
     stationLayers,
 } from "@megisholavonat/core/mapStyle";
 import { TOUCH_TARGET } from "@megisholavonat/core/tokens";
-import { MAP_FOCUS } from "@megisholavonat/core/tokens/map";
+import { MAP_FOCUS, MAP_MARKS } from "@megisholavonat/core/tokens/map";
 import { useQuery } from "@tanstack/react-query";
-import { type Ref, useMemo } from "react";
+import { type Ref, useCallback, useMemo, useRef } from "react";
 import { StyleSheet } from "react-native";
 import { useLocale } from "use-intl";
 import { API_URL, TILE_CACHE_URL } from "../config";
@@ -32,9 +34,11 @@ import { useAppTheme } from "../theme/ThemeProvider";
 import { useReduceMotion } from "../ui/motion";
 import {
     basemapAnchors,
+    clusterLayers,
     INITIAL_VIEW,
     MAX_BOUNDS,
     mapDataUrls,
+    PINNED_SOURCE,
     RAILWAY_ATTRIBUTION,
     ROUTE_SOURCE,
     railwayPaint,
@@ -50,6 +54,8 @@ import { useSelectedTrain } from "./selection";
 import { SPRITE_IMAGES } from "./spriteImages";
 
 const HIT = TOUCH_TARGET / 2;
+/** Trains still piled up this close in are not clustered (as on the web) */
+const CLUSTER_MAX_ZOOM = 15;
 const DATA_URLS = mapDataUrls(API_URL);
 
 // Core types its style with a newer style-spec than MapLibre RN bundles; the
@@ -113,8 +119,24 @@ export function TrainMap({
         [scheme, dim, fadeMs],
     );
     const route = useMemo(() => routeLayers(scheme), [scheme]);
+    // Unselected trains cluster where they pile up; the selected and
+    // followed ones never do (as on the web)
     const layers = useMemo(
         () => trainLayers({ scheme, selectedId }),
+        [scheme, selectedId],
+    );
+    const pinnedLayers = useMemo(
+        () =>
+            trainLayers({
+                scheme,
+                selectedId,
+                source: PINNED_SOURCE,
+                suffix: "-pinned",
+            }),
+        [scheme, selectedId],
+    );
+    const clusters = useMemo(
+        () => clusterLayers({ scheme, selectedId }),
         [scheme, selectedId],
     );
 
@@ -128,9 +150,52 @@ export function TrainMap({
     const line = useMemo(() => routeLine(shown), [shown]);
     const stops = useMemo(() => routeStops(shown), [shown]);
 
-    const markers = useMemo(
-        () => markerCollection(trains, scheme, now, new Set(followed)),
-        [trains, scheme, now, followed],
+    const markers = useMemo(() => {
+        const all = markerCollection(trains, scheme, now, new Set(followed));
+        const pinned = (p: { vehicleId: string; followed: boolean }) =>
+            p.followed || p.vehicleId === selectedId;
+        return {
+            base: {
+                ...all,
+                features: all.features.filter((f) => !pinned(f.properties)),
+            },
+            pinned: {
+                ...all,
+                features: all.features.filter((f) => pinned(f.properties)),
+            },
+        };
+    }, [trains, scheme, now, followed, selectedId]);
+
+    // Tapping a bubble zooms in until its trains come apart
+    const vehiclesRef = useRef<GeoJSONSourceRef>(null);
+    const cameraRef = useRef<CameraRef>(null);
+    const onVehiclePress = useCallback(
+        async (feature: GeoJSON.Feature | undefined) => {
+            const props = feature?.properties;
+            if (props?.cluster && feature?.geometry.type === "Point") {
+                try {
+                    const zoom =
+                        await vehiclesRef.current?.getClusterExpansionZoom(
+                            props.cluster_id as number,
+                        );
+                    if (zoom === undefined) return;
+                    cameraRef.current?.easeTo({
+                        center: feature.geometry.coordinates as [
+                            number,
+                            number,
+                        ],
+                        zoom: zoom + 0.5,
+                        duration: reduceMotion ? 0 : 500,
+                    });
+                } catch {
+                    // The cluster is gone after a feed update; ignore the tap
+                }
+                return;
+            }
+            const vehicleId = props?.vehicleId;
+            if (typeof vehicleId === "string") onTrainPress(vehicleId);
+        },
+        [onTrainPress, reduceMotion],
     );
 
     const trackUserLocation: TrackUserLocation | undefined = followUser
@@ -154,6 +219,7 @@ export function TrainMap({
             touchRotate={false}
         >
             <Camera
+                ref={cameraRef}
                 initialViewState={INITIAL_VIEW}
                 minZoom={5}
                 maxZoom={19}
@@ -210,20 +276,36 @@ export function TrainMap({
             </GeoJSONSource>
             {followUser ? <UserLocation /> : null}
             <GeoJSONSource
+                ref={vehiclesRef}
                 id={VEHICLES_SOURCE}
-                data={markers}
+                data={markers.base}
+                cluster
+                clusterRadius={MAP_MARKS.clusterRadius}
+                clusterMinPoints={MAP_MARKS.clusterMinPoints}
+                clusterMaxZoom={CLUSTER_MAX_ZOOM}
                 hitbox={{ top: HIT, right: HIT, bottom: HIT, left: HIT }}
-                onPress={(event) => {
-                    const vehicleId =
-                        event.nativeEvent.features[0]?.properties?.vehicleId;
-                    if (typeof vehicleId === "string") onTrainPress(vehicleId);
-                }}
+                onPress={(event) =>
+                    void onVehiclePress(event.nativeEvent.features[0])
+                }
             >
                 <Layer {...layers.text} afterId={route.stopLabels.id} />
-                <Layer {...layers.marks} afterId={layers.text.id} />
-                <Layer {...layers.ring} afterId={layers.marks.id} />
-                <Layer {...layers.badge} afterId={layers.ring.id} />
-                <Layer {...layers.chip} afterId={layers.badge.id} />
+                <Layer {...clusters.bubble} afterId={layers.text.id} />
+                <Layer {...clusters.count} afterId={clusters.bubble.id} />
+                <Layer {...layers.marks} afterId={clusters.count.id} />
+            </GeoJSONSource>
+            <GeoJSONSource
+                id={PINNED_SOURCE}
+                data={markers.pinned}
+                hitbox={{ top: HIT, right: HIT, bottom: HIT, left: HIT }}
+                onPress={(event) =>
+                    void onVehiclePress(event.nativeEvent.features[0])
+                }
+            >
+                <Layer {...pinnedLayers.text} afterId={layers.marks.id} />
+                <Layer {...pinnedLayers.marks} afterId={pinnedLayers.text.id} />
+                <Layer {...pinnedLayers.ring} afterId={pinnedLayers.marks.id} />
+                <Layer {...pinnedLayers.badge} afterId={pinnedLayers.ring.id} />
+                <Layer {...pinnedLayers.chip} afterId={pinnedLayers.badge.id} />
             </GeoJSONSource>
         </MapLibreMap>
     );

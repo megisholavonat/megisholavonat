@@ -3,9 +3,12 @@ import { MAP_FOCUS, MAP_MARKS } from "@megisholavonat/core/tokens/map";
 import { describe, expect, it } from "vitest";
 import {
     basemapAnchors,
+    CLUSTER_LAYER_IDS,
+    clusterLayers,
     DELAY_TEXT_OFFSET,
     focusOpacity,
     mapDataUrls,
+    PINNED_SOURCE,
     railwayTileUrl,
     trainLayers,
 } from "./mapStyle";
@@ -84,5 +87,40 @@ describe("map style", () => {
             (half + MAP_MARKS.delayTextGap) / MAP_MARKS.delayTextSize,
             3,
         );
+    });
+});
+
+describe("clusters", () => {
+    it("draws piled-up trains as a neutral bubble with a count", () => {
+        const { bubble, count } = clusterLayers({
+            scheme: "dark",
+            selectedId: null,
+        });
+        expect(bubble.id).toBe(CLUSTER_LAYER_IDS.bubble);
+        expect(bubble.filter).toEqual(["has", "point_count"]);
+        expect(JSON.stringify(bubble.paint)).not.toMatch(/sev|delay/);
+        expect(count.layout?.["text-field"]).toEqual([
+            "get",
+            "point_count_abbreviated",
+        ]);
+        // Only where trains truly pile up
+        expect(MAP_MARKS.clusterMinPoints).toBeGreaterThanOrEqual(3);
+    });
+
+    it("keeps marks and numbers off the bubbles", () => {
+        const layers = trainLayers({ scheme: "light", selectedId: null });
+        expect(JSON.stringify(layers.marks.filter)).toContain("point_count");
+        expect(JSON.stringify(layers.text.filter)).toContain("point_count");
+    });
+
+    it("gives the selected and followed trains their own layers", () => {
+        const pinned = trainLayers({
+            scheme: "light",
+            selectedId: "x",
+            source: PINNED_SOURCE,
+            suffix: "-pinned",
+        });
+        expect(pinned.marks.source).toBe(PINNED_SOURCE);
+        expect(pinned.marks.id).toBe("trains-pinned");
     });
 });
