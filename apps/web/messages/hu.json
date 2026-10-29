@@ -217,6 +217,7 @@
         "description": "Részletes statisztika egy véletlenszerű azonosítóval (PostHog, EU-s szerver). Kikapcsolva csak a napi látogatószámot mérjük, sütik és tárolt azonosító nélkül, és töröljük a böngésződből a PostHog adatait."
     },
     "PrivacyPage": {
+        "description": "Milyen adatot kezel az alkalmazás, és mire.",
         "title": "Adatvédelmi tájékoztató",
         "back_to_map": "Vissza a térképhez",
         "last_updated": "Utolsó frissítés: {date}"

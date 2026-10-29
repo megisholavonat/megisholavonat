@@ -13,6 +13,7 @@ import {
     type Preview,
     previewImagePath,
     previewTarget,
+    subpageMetadata,
 } from "./metadata";
 import { glyphText, stationCard, trainCard, trainShareInfo } from "./model";
 
@@ -239,5 +240,22 @@ describe("buildMetadata", () => {
         expect(og.images).toEqual([
             expect.objectContaining({ url: "/hu/og", alt: APP.appTitle }),
         ]);
+    });
+});
+
+describe("subpageMetadata", () => {
+    it("gives the privacy page its own title, url and separator", () => {
+        const meta = subpageMetadata({
+            locale: "hu",
+            origin: ORIGIN,
+            appTitle: APP.appTitle,
+            path: "/privacy",
+            title: "Adatvédelem",
+            description: "Milyen adatot kezel az alkalmazás, és mire.",
+        });
+        expect(meta.title).toBe("Adatvédelem · Mégis hol a vonat?");
+        expect(meta.openGraph?.title).toBe("Adatvédelem");
+        expect(meta.openGraph?.url).toBe(`${ORIGIN}/hu/privacy`);
+        expect(meta.robots).toBeUndefined();
     });
 });
