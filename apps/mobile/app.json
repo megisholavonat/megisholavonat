@@ -11,8 +11,16 @@
         "platforms": ["ios", "android"],
         "ios": {
             "bundleIdentifier": "info.megisholavonat.app",
+            "appleTeamId": "YMX8RUHNUC",
             "supportsTablet": true,
+            "entitlements": {
+                "com.apple.security.application-groups": [
+                    "group.info.megisholavonat.app"
+                ]
+            },
             "infoPlist": {
+                "NSSupportsLiveActivities": true,
+                "NSSupportsLiveActivitiesFrequentUpdates": true,
                 "ITSAppUsesNonExemptEncryption": false,
                 "NSLocationWhenInUseUsageDescription": "A helyzeted csak a térképen jelenik meg, nem küldjük el sehova.",
                 "CFBundleLocalizations": ["hu", "en"],
@@ -60,6 +68,7 @@
         },
         "plugins": [
             "expo-router",
+            "@bacons/apple-targets",
             "expo-font",
             "expo-localization",
             "@maplibre/maplibre-react-native",
