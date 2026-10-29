@@ -17,8 +17,8 @@ from redis.asyncio import Redis
 
 from api.core.redis import add_key
 from api.util.stop import station_id
-
-DAY_S = 24 * 3600
+from api.util.time import DAY_S
+from api.util.trip import train_number
 
 
 class Commute(Protocol):
@@ -46,10 +46,12 @@ class ResolvedTrip:
     delayMin: int | None
 
 
-def train_number(trip_short_name: str) -> str:
-    """'559 AGRIA InterRégió' -> '559'; OTP prefixes the number to the name."""
-    parts = trip_short_name.split()
-    return parts[0].casefold() if parts else ""
+def number_key(trip_short_name: str) -> str:
+    """
+    The train number to match a commute by, ignoring case and surrounding
+    space: '559 AGRIA InterRégió' -> '559', 'H4117 HÉV' -> 'h4117'.
+    """
+    return train_number(trip_short_name.strip()).casefold()
 
 
 def _station_index(stoptimes: list[dict[str, Any]], station: str) -> int | None:
@@ -78,14 +80,14 @@ def find_commute_trip(
         return None
     if not commute.from_station_id:
         return None
-    number = train_number(commute.trip_short_name)
+    number = number_key(commute.trip_short_name)
     if not number:
         return None
 
     best: ResolvedTrip | None = None
     for loc in locations:
         trip = loc.get("trip") or {}
-        if train_number(trip.get("tripShortName") or "") != number:
+        if number_key(trip.get("tripShortName") or "") != number:
             continue
         trip_id = trip.get("gtfsId")
         vehicle_id = loc.get("vehicleId")

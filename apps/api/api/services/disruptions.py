@@ -34,6 +34,7 @@ from api.schemas.alerts import (
 from api.services.alerts_service import get_rail_alerts
 from api.services.station_index import load_station_index
 from api.util.search import normalize_search_text
+from api.util.trip import train_number
 
 logger = get_logger(__name__)
 
@@ -159,11 +160,6 @@ _TITLES: dict[DisruptionEffect, str] = {
     "delays": "Késések",
     "other": "Forgalmi változás",
 }
-
-
-def _train_number(trip_short_name: str | None) -> str:
-    """ "9759 személyvonat" -> "9759"."""
-    return (trip_short_name or "").split(" ", 1)[0]
 
 
 def _text(alert: RailAlert) -> str:
@@ -536,9 +532,7 @@ def group_disruptions(
         if _is_line_level(group) or _is_network(group):
             continue
         numbers = {
-            _train_number(t.tripShortName)
-            for a in group.alerts
-            for t in a.affectedTrips
+            train_number(t.tripShortName) for a in group.alerts for t in a.affectedTrips
         }
         event = next((named[n] for n in numbers if n in named), None)
         if event is not None and event is not group:
