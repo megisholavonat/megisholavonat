@@ -55,7 +55,7 @@ async function create(
     locale: string,
     body: NonNullable<ReturnType<typeof createBody>>,
 ): Promise<string> {
-    const { result, replaced } = await withDevice(locale, async (auth) => {
+    const { result } = await withDevice(locale, async (auth) => {
         try {
             const { data } = await createFollow({
                 auth,
@@ -87,8 +87,8 @@ async function create(
             return match.id;
         }
     });
-    // A new device starts without follows; bring the others back
-    if (replaced) void syncFollows(locale);
+    // A replaced device lost the other follows: the next launch's sync
+    // brings them back
     return result;
 }
 
