@@ -107,6 +107,8 @@ export function TrainPanel({
                         detailed
                     />
                 )}
+                {/* In the header: the stop list scrolls to the train */}
+                {view && <TrainDisruptions view={view} />}
             </div>
             <div
                 ref={listRef}
@@ -114,7 +116,6 @@ export function TrainPanel({
             >
                 {view ? (
                     <>
-                        <TrainDisruptions view={view} />
                         <ServiceGlyphs view={view} />
                         <StopList view={view} />
                         <TrainHistoryLink
