@@ -107,6 +107,9 @@ export function TrainMap({
                     <Layer
                         id="railway"
                         type="raster"
+                        // Under the trains also when switched on later or
+                        // re-added after a theme's style reload (web BL-1)
+                        beforeId="train-halo"
                         paint={railwayPaint(scheme)}
                     />
                 </RasterSource>
