@@ -3,6 +3,7 @@ import {
     huTrainSubject,
     shareUrl,
     stationShareText,
+    trainShareStatus,
     trainShareText,
 } from "./share";
 
@@ -94,6 +95,76 @@ describe("trainShareText", () => {
                 next: null,
             }),
         ).toBe("A 10-es vonat +30 perc késésben");
+    });
+
+    it("tells no delay for a train that is not running", () => {
+        const info = { number: "10", delay: 12, waiting: false, next };
+        expect(trainShareText("hu", { ...info, status: "cancelled" })).toBe(
+            "A 10-es vonat törölve",
+        );
+        expect(trainShareText("hu", { ...info, status: "arrived" })).toBe(
+            "A 10-es vonat megérkezett",
+        );
+        expect(trainShareText("hu", { ...info, status: "noData" })).toBe(
+            "A 10-es vonatról nincs friss adat",
+        );
+        expect(trainShareText("en", { ...info, status: "arrived" })).toBe(
+            "Train 10 has arrived",
+        );
+        expect(trainShareText("en", { ...info, status: "noData" })).toBe(
+            "No fresh data on train 10",
+        );
+    });
+});
+
+describe("trainShareStatus", () => {
+    const base = {
+        level: "stale" as const,
+        outdated: false,
+        minutesSinceUpdate: 0,
+        label: "",
+        delay: null,
+    };
+
+    it("follows the train's display state", () => {
+        expect(
+            trainShareStatus({
+                ...base,
+                state: "running",
+                activity: "running",
+                level: "slight",
+                delay: 7,
+            }),
+        ).toBe("running");
+        expect(
+            trainShareStatus({
+                ...base,
+                state: "cancelled",
+                activity: "cancelled",
+            }),
+        ).toBe("cancelled");
+        expect(
+            trainShareStatus({ ...base, state: "idle", activity: "arrived" }),
+        ).toBe("arrived");
+        expect(
+            trainShareStatus({
+                ...base,
+                state: "idle",
+                activity: "beforeDeparture",
+            }),
+        ).toBe("waiting");
+        expect(
+            trainShareStatus({ ...base, state: "idle", activity: "offRoute" }),
+        ).toBe("noData");
+        expect(
+            trainShareStatus({
+                ...base,
+                state: "stale",
+                activity: "running",
+                outdated: true,
+                delay: 7,
+            }),
+        ).toBe("noData");
     });
 });
 

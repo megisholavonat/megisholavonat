@@ -4,6 +4,7 @@
  */
 
 import { getDelayLevel } from "./delay";
+import type { TrainDisplay } from "./display";
 import type { Locale } from "./i18n";
 
 export const SITE_URL = "https://megisholavonat.info";
@@ -50,38 +51,73 @@ export function huTrainSubject(number: string): string {
     return `${huVowelStart(n) ? "Az" : "A"} ${number}-${huSuffix(n)} vonat`;
 }
 
+/**
+ * What a shared train is doing. Only a running train has a delay to tell;
+ * the others say why not, as the map and the sheet do.
+ */
+export type TrainShareStatus =
+    | "running"
+    | "waiting"
+    | "cancelled"
+    | "arrived"
+    | "noData";
+
+/** The share status of a train by its `trainDisplay`. */
+export function trainShareStatus(display: TrainDisplay): TrainShareStatus {
+    switch (display.state) {
+        case "running":
+            return "running";
+        case "cancelled":
+            return "cancelled";
+        case "idle":
+            return display.activity === "beforeDeparture"
+                ? "waiting"
+                : display.activity === "arrived"
+                  ? "arrived"
+                  : "noData";
+        default:
+            return "noData";
+    }
+}
+
 export interface TrainShareInfo {
     /** Train number, "10" */
     number: string;
-    /** Minutes late now */
+    /** Minutes late now; told only while running */
     delay: number;
     /** Still at its first stop, before departure */
     waiting: boolean;
+    /** Wins over `waiting` when given */
+    status?: TrainShareStatus;
     /** Next stop and its expected time ("02:06") */
     next: { name: string; time: string } | null;
 }
 
 /** "A 10-es vonat +9 perc késésben, Debrecen 02:06" */
 export function trainShareText(locale: Locale, info: TrainShareInfo): string {
+    const state = info.status ?? (info.waiting ? "waiting" : "running");
     const onTime = getDelayLevel(info.delay) === "onTime";
     const late = Math.round(info.delay);
-    let status: string;
-    if (locale === "hu") {
-        status = info.waiting
-            ? "indulásra vár"
-            : onTime
-              ? "pontos"
-              : `+${late} perc késésben`;
-        status = `${huTrainSubject(info.number)} ${status}`;
-    } else {
-        status = info.waiting
-            ? "waiting to depart"
-            : onTime
-              ? "on time"
-              : `running ${late} min late`;
-        status = `Train ${info.number} is ${status}`;
-    }
-    return info.next
+    const subject =
+        locale === "hu" ? huTrainSubject(info.number) : `Train ${info.number}`;
+    const status =
+        locale === "hu"
+            ? {
+                  running: `${subject} ${onTime ? "pontos" : `+${late} perc késésben`}`,
+                  waiting: `${subject} indulásra vár`,
+                  cancelled: `${subject} törölve`,
+                  arrived: `${subject} megérkezett`,
+                  noData: `${subject}ról nincs friss adat`,
+              }[state]
+            : {
+                  running: `${subject} is ${onTime ? "on time" : `running ${late} min late`}`,
+                  waiting: `${subject} is waiting to depart`,
+                  cancelled: `${subject} is cancelled`,
+                  arrived: `${subject} has arrived`,
+                  noData: `No fresh data on train ${info.number}`,
+              }[state];
+    // The next stop's time carries the delay: only for a train on its way
+    return info.next && (state === "running" || state === "waiting")
         ? `${status}, ${info.next.name} ${info.next.time}`
         : status;
 }
