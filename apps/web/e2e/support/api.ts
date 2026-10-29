@@ -120,6 +120,10 @@ export async function mockApi(page: Page, baseURL: string) {
             return route.fulfill({ contentType: "text/javascript", body: "" });
         }
         analytics.push(url);
+        // Its remote config is a script: JSON there is a syntax error
+        if (new URL(url).pathname.endsWith(".js")) {
+            return route.fulfill({ contentType: "text/javascript", body: "" });
+        }
         return json(route, { status: 1 });
     });
 
