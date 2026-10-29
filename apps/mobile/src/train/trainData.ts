@@ -6,7 +6,10 @@ import type {
     StopTimeWithCounty,
     VehiclePositionWithDelay,
 } from "@megisholavonat/api-client";
-import { secondsIntoServiceDay } from "@megisholavonat/core/time";
+import {
+    formatSecondsAsTime,
+    secondsIntoServiceDay,
+} from "@megisholavonat/core/time";
 import { DISPLAY_RULES } from "@megisholavonat/core/tokens";
 import { splitTripName } from "./labels";
 
@@ -30,6 +33,12 @@ export interface StopRow {
     delay: number;
     /** A forecast beyond the next stop: shown as "≈17:44" */
     approximate: boolean;
+    /**
+     * The time ahead is our forecast (the stop's predicted delay, or the
+     * live delay carried forward), not the timetable's: told with "≈" when
+     * shared, as the web does
+     */
+    estimated: boolean;
     /** The train stands here: its time is the departure */
     standing: boolean;
     /** Announced platform */
@@ -119,12 +128,15 @@ export function stopRows(
             : st.scheduledArrival;
         let expected: number;
         let delay: number;
+        let estimated = false;
         if (state === "passed") {
             expected = useDeparture ? st.realtimeDeparture : st.realtimeArrival;
             delay = Math.round((expected - scheduled) / 60);
         } else {
-            delay = Math.max(0, Math.round(predictedDelay(st) ?? liveDelay));
+            const predicted = predictedDelay(st);
+            delay = Math.max(0, Math.round(predicted ?? liveDelay));
             expected = scheduled + delay * 60;
+            estimated = predicted !== null || delay > 0;
         }
         let secondary: StopRow["secondary"] = null;
         const dwell = st.scheduledDeparture - st.scheduledArrival;
@@ -148,11 +160,24 @@ export function stopRows(
             expected,
             delay,
             approximate: state === "upcoming",
+            estimated,
             standing: isStanding,
             platform: st.stop.platformCode ?? null,
             secondary,
         };
     });
+}
+
+/** The stop a shared train text names, with its time as in the sheet */
+export function shareStop(
+    row: StopRow | null,
+): { name: string; time: string; estimated: boolean } | null {
+    if (!row) return null;
+    return {
+        name: row.name,
+        time: formatSecondsAsTime(row.expected),
+        estimated: row.estimated,
+    };
 }
 
 /**

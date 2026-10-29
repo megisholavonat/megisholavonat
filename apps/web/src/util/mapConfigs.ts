@@ -1,10 +1,10 @@
-import { env } from "@/env/client";
-
 /**
  * Get the appropriate tile URL based on whether tile cache is configured
  */
 const getTileUrl = (cachePrefix: string, directUrl: string): string => {
-    const tileCacheUrl = env.NEXT_PUBLIC_TILE_CACHE_URL;
+    // Read directly: env/client brings zod into the map's bundle just for
+    // this. next.config still validates it at build time.
+    const tileCacheUrl = process.env.NEXT_PUBLIC_TILE_CACHE_URL;
     if (tileCacheUrl) {
         const baseUrl = tileCacheUrl.replace(/\/$/, "");
         return `${baseUrl}${cachePrefix}/{z}/{x}/{y}.png`;

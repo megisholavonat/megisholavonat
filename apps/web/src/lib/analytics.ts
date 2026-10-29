@@ -1,5 +1,5 @@
 import { getPosthogKey } from "@megisholavonat/api-client";
-import posthog, { type PostHogConfig } from "posthog-js";
+import type { PostHog, PostHogConfig } from "posthog-js";
 
 /**
  * Analytics consent.
@@ -150,8 +150,34 @@ const modeFor = (consent: ConsentStatus): Mode =>
 
 let currentMode: Mode | null = null;
 let initPromise: Promise<void> | null = null;
+/**
+ * posthog-js, set by startPosthog before anything else touches it. It is a
+ * third of the page's script, so it is fetched once the page has loaded and
+ * the main thread is idle, not ahead of the map.
+ */
+let posthog: PostHog | undefined;
+let loadPromise: Promise<PostHog> | null = null;
 
-function init(key: string) {
+function loadPosthog(): Promise<PostHog> {
+    loadPromise ??= new Promise<void>((resolve) => {
+        const idle = () => {
+            if (typeof requestIdleCallback === "function") {
+                requestIdleCallback(() => resolve(), { timeout: 3000 });
+            } else setTimeout(resolve, 1000);
+        };
+        if (document.readyState === "complete") idle();
+        else window.addEventListener("load", idle, { once: true });
+    })
+        .then(() => import("posthog-js"))
+        .then((module) => module.default)
+        .catch((error: unknown) => {
+            loadPromise = null;
+            throw error;
+        });
+    return loadPromise;
+}
+
+function init(posthog: PostHog, key: string) {
     const mode = modeFor(getConsent());
     posthog.init(key, {
         ...BASE_CONFIG,
@@ -166,7 +192,7 @@ function init(key: string) {
 }
 
 /** Switch a running PostHog instance between cookieless and persistent. */
-function switchMode(mode: Mode) {
+function switchMode(posthog: PostHog, mode: Mode) {
     if (mode === "persistent") {
         // "always" cannot be opted into, so move to "on_reject" and go through
         // an explicit opt-out: opting in from there resets PostHog and starts
@@ -188,14 +214,21 @@ async function startPosthog() {
     // Analytics are never sent from local development.
     if (process.env.NODE_ENV === "development") return;
 
-    if (!posthog.__loaded) {
+    let ph: PostHog;
+    try {
+        ph = await loadPosthog();
+    } catch {
+        return;
+    }
+    posthog = ph;
+    if (!ph.__loaded) {
         initPromise ??= (async () => {
             const { data } = await getPosthogKey();
             if (!data?.key) {
                 initPromise = null;
                 return;
             }
-            init(data.key);
+            init(ph, data.key);
         })().catch(() => {
             initPromise = null;
         });
@@ -204,13 +237,13 @@ async function startPosthog() {
 
     // The choice may have changed since PostHog was started.
     const mode = modeFor(getConsent());
-    if (posthog.__loaded && currentMode !== mode) switchMode(mode);
+    if (ph.__loaded && currentMode !== mode) switchMode(ph, mode);
 }
 
 /** Start PostHog, or switch its mode, according to the stored choice. */
 export function applyConsent(value: ConsentStatus = getConsent()) {
     if (typeof window === "undefined") return;
-    if (modeFor(value) === "cookieless" && !posthog.__loaded) {
+    if (modeFor(value) === "cookieless" && !posthog?.__loaded) {
         // Also removes data left behind by earlier versions of the site,
         // which ran PostHog with persistence without asking.
         clearPosthogStorage();

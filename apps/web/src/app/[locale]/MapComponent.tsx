@@ -27,6 +27,7 @@ import {
 import {
     createVehicleState,
     onPositionUpdate,
+    routeFromPolyline,
     setRoute,
     tick,
     type VehicleState,
@@ -35,7 +36,6 @@ import type {
     Feature,
     FeatureCollection,
     GeoJSON as GeoJsonType,
-    LineString,
     Point,
 } from "geojson";
 import {
@@ -110,6 +110,8 @@ function createTransparentBasemapIcon(): ImageData {
 
 // Interpolated train positions are pushed to the map at most this often.
 const VEHICLE_FRAME_INTERVAL_MS = 1000 / 12;
+/** Budget of one slice of route decoding, well inside a frame */
+const ROUTE_SLICE_MS = 8;
 // Skip setData unless some train moved more than this (degrees, ~0.1 m)…
 const VEHICLE_COORD_EPSILON = 1e-6;
 // …or turned more than this many degrees.
@@ -585,6 +587,8 @@ export default function MapComponent({
     const nowMs = useClock();
     const mapRef = useRef<MapRef>(null);
     const trackersRef = useRef<Map<string, VehicleState>>(new Map());
+    /** The route polyline each tracker was given */
+    const routesRef = useRef<Map<string, string>>(new Map());
     /** Where the animation last drew each train: [lon, lat, bearing] */
     const shownRef = useRef<Map<string, [number, number, number]>>(new Map());
     const filteredTrainsRef = useRef<FeatureCollection | null>(null);
@@ -692,6 +696,9 @@ export default function MapComponent({
         if (!trains) return;
 
         const activeIds = new Set<string>();
+        // New routes, decoded and measured in slices after this pass: a
+        // feed holds hundreds of long routes, too much for one task
+        const pending: (() => void)[] = [];
 
         for (const feature of trains.features) {
             const props = feature.properties as TrainFeatureProperties;
@@ -712,27 +719,53 @@ export default function MapComponent({
                 trackersRef.current.set(vehicleId, state);
             }
 
-            if (routePolyline) {
-                setRoute(state, {
-                    type: "Feature",
-                    properties: {},
-                    geometry: polyline.toGeoJSON(routePolyline) as LineString,
-                });
-            }
             // API returns speed in m/s (GTFS-RT); convert to km/h for dead reckoning.
             // distanceToNextStop is already in km (computed on backend).
-            onPositionUpdate(
-                state,
-                [lon, lat],
-                (speed ?? 0) * 3.6,
-                heading ?? 0,
-                distanceToNextStop ?? null,
-            );
+            const update = (s: VehicleState) =>
+                onPositionUpdate(
+                    s,
+                    [lon, lat],
+                    (speed ?? 0) * 3.6,
+                    heading ?? 0,
+                    distanceToNextStop ?? null,
+                );
+            update(state);
+            if (
+                routePolyline &&
+                routesRef.current.get(vehicleId) !== routePolyline
+            ) {
+                const target = state;
+                pending.push(() => {
+                    routesRef.current.set(vehicleId, routePolyline);
+                    setRoute(target, routeFromPolyline(routePolyline));
+                    // Snaps to the route and places the next stop on it
+                    update(target);
+                });
+            }
         }
         // Remove trackers for vehicles that are no longer in the feed
         for (const id of trackersRef.current.keys()) {
-            if (!activeIds.has(id)) trackersRef.current.delete(id);
+            if (!activeIds.has(id)) {
+                trackersRef.current.delete(id);
+                routesRef.current.delete(id);
+            }
         }
+
+        // Until its route is in, a train stays where the feed puts it
+        let timer: ReturnType<typeof setTimeout> | null = null;
+        let next = 0;
+        const slice = () => {
+            timer = null;
+            const until = performance.now() + ROUTE_SLICE_MS;
+            while (next < pending.length && performance.now() < until) {
+                pending[next++]();
+            }
+            if (next < pending.length) timer = setTimeout(slice, 0);
+        };
+        if (pending.length) timer = setTimeout(slice, 0);
+        return () => {
+            if (timer !== null) clearTimeout(timer);
+        };
     }, [trains]);
 
     // Keep the hovered tooltip's content in sync with fresh feed data. Its
