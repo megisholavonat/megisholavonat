@@ -25,7 +25,7 @@ export const RECOMMENDED: LabOptions = {
     theme: null,
     rail: "ours",
     labels: "ours",
-    markers: "calm",
+    markers: "simple",
     focus: true,
     onlyLate: false,
     onlyFollowed: false,
