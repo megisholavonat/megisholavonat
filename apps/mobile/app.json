@@ -1,6 +1,6 @@
 {
     "expo": {
-        "name": "Mégis hol a vonat?",
+        "name": "MHaV",
         "slug": "megisholavonat",
         "owner": "megisholavonat",
         "scheme": "megisholavonat",
@@ -13,7 +13,6 @@
             "bundleIdentifier": "info.megisholavonat.app",
             "supportsTablet": true,
             "infoPlist": {
-                "CFBundleDisplayName": "MHaV",
                 "ITSAppUsesNonExemptEncryption": false,
                 "NSLocationWhenInUseUsageDescription": "A helyzeted csak a térképen jelenik meg, nem küldjük el sehova. / Your location is only shown on the map and never sent anywhere."
             }
