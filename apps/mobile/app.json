@@ -11,6 +11,11 @@
         "platforms": ["ios", "android"],
         "ios": {
             "bundleIdentifier": "info.megisholavonat.app",
+            "icon": {
+                "light": "./assets/images/icon.png",
+                "dark": "./assets/images/icon-dark.png",
+                "tinted": "./assets/images/icon-tinted.png"
+            },
             "supportsTablet": true,
             "infoPlist": {
                 "ITSAppUsesNonExemptEncryption": false,
@@ -48,7 +53,8 @@
             "package": "info.megisholavonat.app",
             "adaptiveIcon": {
                 "foregroundImage": "./assets/images/adaptive-icon.png",
-                "backgroundColor": "#FFFFFF"
+                "monochromeImage": "./assets/images/adaptive-icon-monochrome.png",
+                "backgroundColor": "#16181C"
             },
             "predictiveBackGestureEnabled": false,
             "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"],
@@ -79,10 +85,11 @@
                 "expo-splash-screen",
                 {
                     "image": "./assets/images/splash-icon.png",
-                    "imageWidth": 160,
-                    "backgroundColor": "#FFFFFF",
+                    "imageWidth": 120,
+                    "backgroundColor": "#F4F5F7",
                     "dark": {
-                        "backgroundColor": "#0B1220"
+                        "image": "./assets/images/splash-icon-dark.png",
+                        "backgroundColor": "#111316"
                     }
                 }
             ],
