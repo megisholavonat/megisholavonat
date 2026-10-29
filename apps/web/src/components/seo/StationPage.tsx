@@ -3,7 +3,7 @@
 
 import type { BoardEntry, StationBoard } from "@megisholavonat/api-client";
 import type { Locale } from "@megisholavonat/core/i18n";
-import { isOtherStop, stationType } from "@megisholavonat/core/stationType";
+import { stationType } from "@megisholavonat/core/stationType";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import {
@@ -204,7 +204,6 @@ export async function StationPage({
     const tStats = await getTranslations({ locale, namespace: "Stats" });
     const tHome = await getTranslations({ locale, namespace: "Home" });
     const tStation = await getTranslations({ locale, namespace: "Station" });
-    const tType = await getTranslations({ locale, namespace: "StationType" });
     const tDisruptions = await getTranslations({
         locale,
         namespace: "Disruptions",
@@ -257,11 +256,6 @@ export async function StationPage({
                 current={t("station", { type: stationType(station) })}
             />
             <h1 className="text-title font-bold">{station.name}</h1>
-            {isOtherStop(station) && (
-                <p className="-mt-2 text-ink-2">
-                    {tType(stationType(station))}
-                </p>
-            )}
             <MapLink
                 href={`/${locale}?station=${encodeURIComponent(station.id)}`}
                 label={t("map_link")}
