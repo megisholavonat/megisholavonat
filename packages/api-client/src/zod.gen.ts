@@ -1094,13 +1094,6 @@ export const zJourneyPlan = z.object({
 });
 
 /**
- * Response Getredisstatus
- *
- * Successful Response
- */
-export const zGetRedisStatusResponse = z.record(z.string(), z.string());
-
-/**
  * Successful Response
  */
 export const zGetTrainsResponse = zTrainFeatureCollection;

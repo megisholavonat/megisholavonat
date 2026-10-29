@@ -21,32 +21,6 @@
         }
       }
     },
-    "/v1/redis": {
-      "get": {
-        "tags": [
-          "redis"
-        ],
-        "summary": "Get Redis Status",
-        "description": "Get Redis connection status and test operations",
-        "operationId": "getRedisStatus",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "type": "object",
-                  "title": "Response Getredisstatus"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/v1/trains": {
       "get": {
         "tags": [

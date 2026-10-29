@@ -2215,26 +2215,6 @@ export type RootResponses = {
     200: unknown;
 };
 
-export type GetRedisStatusData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/v1/redis';
-};
-
-export type GetRedisStatusResponses = {
-    /**
-     * Response Getredisstatus
-     *
-     * Successful Response
-     */
-    200: {
-        [key: string]: string;
-    };
-};
-
-export type GetRedisStatusResponse = GetRedisStatusResponses[keyof GetRedisStatusResponses];
-
 export type GetTrainsData = {
     body?: never;
     path?: never;
