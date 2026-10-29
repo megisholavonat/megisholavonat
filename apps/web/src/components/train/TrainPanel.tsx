@@ -77,7 +77,11 @@ export function TrainPanel({
                     <DelayTile delay={shown.delay} stale={shown.stale} />
                     <div className="flex min-w-0 flex-1 flex-col">
                         {next ? (
-                            <NextStopLine stop={next} stale={shown.stale} />
+                            <NextStopLine
+                                stop={next}
+                                stale={shown.stale}
+                                standingHere={view?.standingAt === next.index}
+                            />
                         ) : (
                             <span className="h-5 w-40 motion-safe:animate-pulse rounded-sm bg-surface-2" />
                         )}
