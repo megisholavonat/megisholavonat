@@ -65,23 +65,31 @@ export function useScrollToCurrentStop(
  * The full header's delay: signed minutes like the tile ("+3", "0", "−2"),
  * with the tile's small "pontos" / "korán" caption under an on-time number.
  */
-function HeaderDelay({ delay, stale }: { delay: number; stale: boolean }) {
+function HeaderDelay({
+    delay,
+    stale,
+}: {
+    /** Null for an idle or cancelled train: a grey "–", like the tile */
+    delay: number | null;
+    stale: boolean;
+}) {
     const t = useTranslations("Delay");
-    const minutes = Math.round(delay);
+    const none = delay == null;
+    const minutes = Math.round(delay ?? 0);
     const caption =
-        stale || getDelayLevel(minutes) !== "onTime"
+        none || stale || getDelayLevel(minutes) !== "onTime"
             ? null
             : minutes < 0
               ? t("early")
               : t("on_time");
-    const label = `${formatDelay(minutes)}${stale ? "?" : ""}`;
+    const label = none ? "–" : `${formatDelay(minutes)}${stale ? "?" : ""}`;
     return (
         <span
             role="img"
             aria-label={t("tile_label", { delay: label })}
             className={cn(
                 "flex shrink-0 flex-col items-end leading-none",
-                TEXT_CLASS[levelOf(minutes, stale)],
+                TEXT_CLASS[levelOf(minutes, stale || none)],
             )}
         >
             <RollingText
@@ -131,7 +139,7 @@ export function TrainSheetHeader({
                             className="flex-1 text-headline"
                         />
                         <HeaderDelay
-                            delay={view.vehicle.delay}
+                            delay={view.display.delay}
                             stale={view.stale}
                         />
                     </div>
@@ -187,7 +195,7 @@ export function TrainSheetBody({
                     {view.reason && (
                         <ReasonBanner
                             reason={view.reason}
-                            delay={view.vehicle.delay}
+                            delay={view.display.delay ?? 0}
                             detailed
                         />
                     )}
@@ -207,7 +215,7 @@ export function TrainSheetBody({
                     {view.reason && (
                         <ReasonBanner
                             reason={view.reason}
-                            delay={view.vehicle.delay}
+                            delay={view.display.delay ?? 0}
                         />
                     )}
                     <StopList view={view} upcomingOnly />

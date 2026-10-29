@@ -405,6 +405,29 @@ const SEVERITY: Record<MarkerLevel, number> = {
     severe: 3,
 };
 
+/**
+ * The open train's list entry with the delay and state of its details, which
+ * poll faster than the list, so its marker and sheet show the same.
+ */
+function withDetails(
+    props: TrainFeatureProperties,
+    details: VehiclePositionWithDelay | undefined,
+): TrainFeatureProperties {
+    if (
+        !details ||
+        details.vehicleId !== props.vehicleId ||
+        details.lastUpdated < props.lastUpdated
+    ) {
+        return props;
+    }
+    return {
+        ...props,
+        delay: details.delay,
+        lastUpdated: details.lastUpdated,
+        activity: details.activity ?? props.activity,
+    };
+}
+
 /** Marker level, shape and label, precomputed per train for the layers. */
 function enrich(
     props: TrainFeatureProperties,
@@ -447,7 +470,11 @@ function enrich(
             ),
         ),
         // Bigger delays on top; stale, then inactive trains at the bottom
-        sortKey: live ? props.delay : display.state === "stale" ? -1 : -2,
+        sortKey: live
+            ? (display.delay ?? 0)
+            : display.state === "stale"
+              ? -1
+              : -2,
     };
 }
 
@@ -567,7 +594,7 @@ export default function MapComponent({
         const nowS = nowMs / 1000;
         const features: Feature[] = [];
         for (const feature of trains?.features ?? []) {
-            const props = feature.properties;
+            const props = withDetails(feature.properties, train);
             const shown =
                 props.type === "train"
                     ? settings.showTrains
@@ -595,6 +622,7 @@ export default function MapComponent({
         return { type: "FeatureCollection", features };
     }, [
         trains,
+        train,
         nowMs,
         selectedId,
         followedIds,
@@ -610,11 +638,11 @@ export default function MapComponent({
 
     const selectedInfo = useMemo(() => {
         if (!selectedId) return null;
-        return (
-            trains?.features.find((f) => f.properties.vehicleId === selectedId)
-                ?.properties ?? null
-        );
-    }, [trains, selectedId]);
+        const props = trains?.features.find(
+            (f) => f.properties.vehicleId === selectedId,
+        )?.properties;
+        return props ? withDetails(props, train) : null;
+    }, [trains, selectedId, train]);
     const selectedLevel = useMemo(
         () =>
             selectedInfo

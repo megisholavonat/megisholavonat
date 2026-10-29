@@ -8,6 +8,7 @@ import {
     DELAY_REASON_TEXTS,
     normalizeAlertText,
 } from "@megisholavonat/core/delayReasons";
+import type { Locale } from "@megisholavonat/core/i18n";
 import { formatSecondsAsTime } from "@megisholavonat/core/time";
 import {
     formatUICCode,
@@ -15,7 +16,6 @@ import {
 } from "@megisholavonat/core/uic";
 import {
     dataAppearsFalsified,
-    isActive,
     isFarFromRoute,
 } from "@megisholavonat/core/vehicle";
 import { formatDistanceToNow } from "date-fns";
@@ -49,6 +49,7 @@ import { RouteGlyph } from "@/components/ui/RouteGlyph";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { TapTip } from "@/components/ui/TapTip";
 import { findFollow, useFollows } from "@/hooks/useFollows";
+import { trainShareData } from "@/lib/shareTrain";
 import {
     destinationOf,
     type TrainAlert,
@@ -58,7 +59,7 @@ import {
 } from "@/lib/train";
 import { cn } from "@/lib/utils";
 import { mnr2007 } from "@/util/fonts";
-import type { StopView, TrainView } from "./useTrainView";
+import { type StopView, type TrainView, useShownDelay } from "./useTrainView";
 
 export function IconButton({
     label,
@@ -211,8 +212,7 @@ export function TrainSummary({
 }) {
     const t = useTranslations("Train");
     const vehicle = view?.vehicle;
-    const delay = vehicle?.delay ?? fallback?.delay ?? 0;
-    const stale = view?.stale ?? !!fallback?.isStale;
+    const { delay, stale } = useShownDelay(view, fallback);
     const routeShortName =
         vehicle?.trip.route.shortName ?? fallback?.routeShortName ?? "";
     const tripShortName =
@@ -298,12 +298,12 @@ export function TrainActions({
     const tFollow = useTranslations("Follow");
     const followed = useIsFollowed(view);
     const [copied, setCopied] = useState(false);
+    const locale = useLocale() as Locale;
     const share = async () => {
-        const url = window.location.href;
-        const title = `${trainNumber(view.vehicle.trip.tripShortName)} → ${destinationOf(view.vehicle)}`;
+        const { title, text, url } = trainShareData(view, locale);
         try {
             if (navigator.share) {
-                await navigator.share({ title, url });
+                await navigator.share({ title, text, url });
                 return;
             }
             await navigator.clipboard.writeText(url);
@@ -592,10 +592,11 @@ export function Punctuality({
  * runs past 97 % of the segment on its own; the next report corrects it.
  */
 function useLiveFraction(view: TrainView): number {
-    const { position, vehicle, stale } = view;
+    const { position, vehicle, display } = view;
     const speed = vehicle.speed ?? 0;
+    // Only a running train is dead-reckoned: not stale, idle or cancelled
     const moving =
-        !stale &&
+        display.state === "running" &&
         speed > 0.5 &&
         position.fromIndex >= 0 &&
         position.segmentKm != null &&
@@ -1039,7 +1040,8 @@ export function VehicleDetails({ view }: { view: TrainView }) {
     const { vehicle } = view;
     const farFromRoute = isFarFromRoute(vehicle);
     const mismatch =
-        isActive(vehicle) && dataAppearsFalsified(vehicle, view.stale);
+        view.display.state === "running" &&
+        dataAppearsFalsified(vehicle, view.stale);
     const rows: [string, string][] = [
         [
             t("vehicle_type_label"),

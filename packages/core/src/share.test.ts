@@ -1,0 +1,126 @@
+import { describe, expect, it } from "vitest";
+import {
+    huTrainSubject,
+    shareUrl,
+    stationShareText,
+    trainShareText,
+} from "./share";
+
+describe("shareUrl", () => {
+    it("links a train or a station under the locale", () => {
+        expect(
+            shareUrl("https://megisholavonat.info/", "hu", {
+                vehicleId: "1:918061939438",
+            }),
+        ).toBe("https://megisholavonat.info/hu?vehicleId=1%3A918061939438");
+        expect(
+            shareUrl("http://localhost:3000", "en", { station: "005510017" }),
+        ).toBe("http://localhost:3000/en?station=005510017");
+    });
+});
+
+describe("huTrainSubject", () => {
+    it.each([
+        ["10", "A 10-es vonat"],
+        ["5", "Az 5-ös vonat"],
+        ["1", "Az 1-es vonat"],
+        ["6", "A 6-os vonat"],
+        ["8", "A 8-as vonat"],
+        ["346", "A 346-os vonat"],
+        ["2030", "A 2030-as vonat"],
+        ["7810", "A 7810-es vonat"],
+        ["5819", "Az 5819-es vonat"],
+        ["1141", "Az 1141-es vonat"],
+        ["100", "A 100-as vonat"],
+        ["2000", "A 2000-es vonat"],
+        ["55", "Az 55-ös vonat"],
+        ["15", "A 15-ös vonat"],
+        ["H8000", "A H8000 vonat"],
+    ])("%s -> %s", (number, expected) => {
+        expect(huTrainSubject(number)).toBe(expected);
+    });
+});
+
+describe("trainShareText", () => {
+    const next = { name: "Debrecen", time: "02:06" };
+
+    it("says the delay and the next stop", () => {
+        expect(
+            trainShareText("hu", {
+                number: "10",
+                delay: 9,
+                waiting: false,
+                next,
+            }),
+        ).toBe("A 10-es vonat +9 perc késésben, Debrecen 02:06");
+        expect(
+            trainShareText("en", {
+                number: "10",
+                delay: 9,
+                waiting: false,
+                next,
+            }),
+        ).toBe("Train 10 is running 9 min late, Debrecen 02:06");
+    });
+
+    it("calls small delays on time", () => {
+        expect(
+            trainShareText("hu", {
+                number: "5",
+                delay: 2,
+                waiting: false,
+                next,
+            }),
+        ).toBe("Az 5-ös vonat pontos, Debrecen 02:06");
+    });
+
+    it("tells a train waiting to depart", () => {
+        expect(
+            trainShareText("en", {
+                number: "10",
+                delay: 0,
+                waiting: true,
+                next: { name: "Budapest-Keleti", time: "22:40" },
+            }),
+        ).toBe("Train 10 is waiting to depart, Budapest-Keleti 22:40");
+    });
+
+    it("leaves out a missing next stop", () => {
+        expect(
+            trainShareText("hu", {
+                number: "10",
+                delay: 30,
+                waiting: false,
+                next: null,
+            }),
+        ).toBe("A 10-es vonat +30 perc késésben");
+    });
+});
+
+describe("stationShareText", () => {
+    it("lists the next departures", () => {
+        expect(
+            stationShareText("hu", [
+                {
+                    time: "04:00",
+                    headsign: "Miskolc-Tiszai",
+                    delay: 0,
+                    canceled: false,
+                },
+                {
+                    time: "04:10",
+                    headsign: "Szolnok",
+                    delay: 7,
+                    canceled: false,
+                },
+                { time: "04:20", headsign: "Cegléd", delay: 0, canceled: true },
+            ]),
+        ).toBe(
+            "Indulások: 04:00 Miskolc-Tiszai pontos · 04:10 Szolnok +7 · 04:20 Cegléd törölve",
+        );
+    });
+
+    it("has a fallback for an empty board", () => {
+        expect(stationShareText("en", [])).toBe("Live departures and delays");
+    });
+});

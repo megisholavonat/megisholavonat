@@ -41,7 +41,23 @@
         "stale": "{minutes} perce nincs friss adat",
         "not_found": "Ez a vonat már nem látszik a térképen",
         "passed": "elhaladt",
-        "share_text": "{train} · {url}"
+        "share_text": "{train} · {url}",
+        "departs": "indul {time}",
+        "arrived": "megérkezett",
+        "early": "korán",
+        "not_running": "áll",
+        "cancelled": "törölve",
+        "reason": "Késés oka: {reason}",
+        "position_at": "{stop} állomáson",
+        "position_after": "{stop} után",
+        "position_before": "{stop} előtt",
+        "position_a11y": "A vonat helye: {place}",
+        "arrival_short": "érk. {time}",
+        "departure_short": "ind. {time}",
+        "more_info": "További információ",
+        "valid": "Érvényes: {from} – {to}",
+        "services": "Szolgáltatások",
+        "expand": "Teljes szöveg"
     },
     "Station": {
         "departures": "Indulás",
@@ -56,7 +72,10 @@
         "stations": "Állomások",
         "trains": "Vonatok",
         "no_results": "Nincs találat",
-        "plan": "Útvonaltervezés"
+        "plan": "Útvonaltervezés",
+        "late_now": "Most késnek",
+        "all_trains": "Összes vonat",
+        "cancel": "Mégse"
     },
     "Settings": {
         "title": "Beállítások",
@@ -124,5 +143,11 @@
         "ticket": "Jegy",
         "empty": "Nincs találat erre az időre",
         "error": "Most nem sikerült útvonalat tervezni"
+    },
+    "Trains": {
+        "title": "Vonatok",
+        "sort_delay": "Késés",
+        "sort_number": "Szám",
+        "empty": "Most nem jár vonat"
     }
 }

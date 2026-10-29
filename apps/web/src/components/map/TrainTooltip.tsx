@@ -13,7 +13,7 @@ export function TrainTooltip({
 }) {
     const t = useTranslations("Map");
     const name = trainName(props.tripShortName);
-    const { state } = markerDisplay(props, Date.now() / 1000);
+    const { state, delay } = markerDisplay(props, Date.now() / 1000);
     return (
         <div className="flex items-center gap-1.5 py-0.5 text-sm font-semibold whitespace-nowrap">
             <RouteGlyph routeShortName={props.routeShortName} />
@@ -22,7 +22,7 @@ export function TrainTooltip({
             {state === "inactive" ? (
                 <span className="font-medium text-stale">{t("inactive")}</span>
             ) : (
-                <DelayText delay={props.delay} stale={state === "stale"} />
+                <DelayText delay={delay} stale={state === "stale"} />
             )}
         </div>
     );

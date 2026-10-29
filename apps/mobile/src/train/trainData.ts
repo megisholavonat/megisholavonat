@@ -1,6 +1,7 @@
 import type {
     Alert,
     DelayReason,
+    InfoService,
     PlatformPrediction,
     StopTimeWithCounty,
     VehiclePositionWithDelay,
@@ -31,7 +32,15 @@ export interface StopRow {
     approximate: boolean;
     /** Announced platform */
     platform: string | null;
+    /**
+     * The other time at a stop where the train waits: the arrival of a
+     * passed stop (shown by its departure), the departure of an upcoming one
+     */
+    secondary: { kind: "arrival" | "departure"; expected: number } | null;
 }
+
+/** A stop's wait shorter than this shows a single time. */
+const MIN_DWELL_S = 60;
 
 /** Optional per-stop forecast; not every API version sends it. */
 function predictedDelay(stoptime: StopTimeWithCounty): number | null {
@@ -44,10 +53,14 @@ function predictedDelay(stoptime: StopTimeWithCounty): number | null {
  * and the rest with the live delay carried forward (or the per-stop
  * `predictedDelay` when the API sends one).
  */
-export function stopRows(details: VehiclePositionWithDelay): StopRow[] {
+export function stopRows(
+    details: VehiclePositionWithDelay,
+    /** Carry the live delay forward; off for a train not under way */
+    carryDelay = true,
+): StopRow[] {
     const stoptimes = details.trip.stoptimes;
     const next = details.vehicleProgress.nextStopIndex ?? 0;
-    const liveDelay = Math.max(0, Math.round(details.delay));
+    const liveDelay = carryDelay ? Math.max(0, Math.round(details.delay)) : 0;
 
     return stoptimes.map((st, index) => {
         const isFirst = index === 0;
@@ -69,6 +82,17 @@ export function stopRows(details: VehiclePositionWithDelay): StopRow[] {
             delay = Math.max(0, Math.round(predictedDelay(st) ?? liveDelay));
             expected = scheduled + delay * 60;
         }
+        let secondary: StopRow["secondary"] = null;
+        const dwell = st.scheduledDeparture - st.scheduledArrival;
+        if (!isFirst && !isLast && dwell >= MIN_DWELL_S) {
+            secondary =
+                state === "passed"
+                    ? { kind: "arrival", expected: st.realtimeArrival }
+                    : {
+                          kind: "departure",
+                          expected: st.scheduledDeparture + delay * 60,
+                      };
+        }
         return {
             key: `${index}-${st.stop.gtfsId ?? st.stop.name}`,
             name: st.stop.name,
@@ -81,6 +105,7 @@ export function stopRows(details: VehiclePositionWithDelay): StopRow[] {
             delay,
             approximate: state === "upcoming",
             platform: st.stop.platformCode ?? null,
+            secondary,
         };
     });
 }
@@ -157,4 +182,44 @@ export function mainAlert(
         reason: alert.reason ?? null,
         text: alert.alertDescriptionText.trim(),
     };
+}
+
+/** Alerts with a known delay reason first, each text once. */
+export function sortedAlerts(alerts: readonly Alert[]): Alert[] {
+    const seen = new Set<string>();
+    return [...alerts]
+        .sort((a, b) => Number(!!b.reason) - Number(!!a.reason))
+        .filter((a) => {
+            const key = a.alertDescriptionText.trim();
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
+}
+
+/**
+ * Services (bike, buffet, ...) for the whole trip, and those valid only on
+ * part of it, by stop index.
+ */
+export function serviceGroups(
+    services: readonly InfoService[],
+    stopCount: number,
+): { whole: InfoService[]; byStop: InfoService[][] } {
+    const shown = services.filter((s) => s.displayable !== false);
+    const isWhole = (s: InfoService) =>
+        s.fromStopIndex <= 0 && s.tillStopIndex >= stopCount - 1;
+    const partial = shown.filter((s) => !isWhole(s));
+    return {
+        whole: shown.filter(isWhole),
+        byStop: Array.from({ length: stopCount }, (_, index) =>
+            partial.filter(
+                (s) => index >= s.fromStopIndex && index <= s.tillStopIndex,
+            ),
+        ),
+    };
+}
+
+/** The MNR2007 font glyph of a service. */
+export function serviceGlyph(service: InfoService): string {
+    return String.fromCharCode(Number(service.fontCode));
 }

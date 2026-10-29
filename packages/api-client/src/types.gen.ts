@@ -934,6 +934,10 @@ export type StopTimeWithCounty = {
      * Realtimedeparture
      */
     realtimeDeparture: number;
+    /**
+     * Realtimestate
+     */
+    realtimeState?: string | null;
     stop: StopWithCounty;
 };
 
@@ -1097,6 +1101,10 @@ export type TrainFeatureProperties = {
      * Isstale
      */
     isStale?: boolean;
+    /**
+     * Activity
+     */
+    activity?: 'running' | 'beforeDeparture' | 'arrived' | 'offRoute' | 'cancelled' | null;
     reason?: DelayReason | null;
 };
 
@@ -1582,6 +1590,10 @@ export type VehiclePositionWithDelay = {
      */
     processedStops: Array<ProcessedStop>;
     vehicleProgress: VehicleProgress;
+    /**
+     * Activity
+     */
+    activity?: 'running' | 'beforeDeparture' | 'arrived' | 'offRoute' | 'cancelled' | null;
 };
 
 /**

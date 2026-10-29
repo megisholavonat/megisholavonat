@@ -1,6 +1,6 @@
 import type { TrainFeatureCollection } from "@megisholavonat/api-client";
 import { describe, expect, it } from "vitest";
-import { highlight, searchTrains } from "./search";
+import { browseTrains, highlight, lateTrains, searchTrains } from "./search";
 
 describe("highlight", () => {
     it("bolds an accent-insensitive match", () => {
@@ -58,5 +58,67 @@ describe("searchTrains", () => {
 
     it("needs a query", () => {
         expect(searchTrains(feed, " ", now)).toEqual([]);
+    });
+});
+
+describe("browseTrains and lateTrains", () => {
+    const now = new Date("2026-08-14T08:00:00Z");
+    const nowS = now.getTime() / 1000;
+    const train = (
+        vehicleId: string,
+        delay: number,
+        extra: { ago?: number; isStale?: boolean } = {},
+    ) => ({
+        type: "Feature" as const,
+        geometry: { type: "Point", coordinates: [19, 47] },
+        properties: {
+            type: "train" as const,
+            vehicleId,
+            lat: 47,
+            lon: 19,
+            tripShortName: vehicleId,
+            routeShortName: "",
+            routeTextColor: "",
+            delay,
+            lastUpdated: nowS - (extra.ago ?? 0),
+            isStale: extra.isStale,
+        },
+    });
+    const feed = {
+        timestamp: now.toISOString(),
+        features: [
+            train("10", 3),
+            train("20", 45),
+            train("30", 109, { isStale: true }),
+            train("40", 12),
+            train("50", 80, { ago: 600 }),
+            train("60", 9, { ago: 3600 }),
+        ],
+    } as TrainFeatureCollection;
+    const ids = (list: { vehicleId: string }[]) => list.map((t) => t.vehicleId);
+
+    it("sorts live trains by delay, idle and old ones last", () => {
+        expect(ids(browseTrains(feed, "delay", now))).toEqual([
+            "20",
+            "40",
+            "10",
+            "30",
+            "50",
+        ]);
+    });
+
+    it("sorts by number", () => {
+        expect(ids(browseTrains(feed, "number", now))).toEqual([
+            "10",
+            "20",
+            "30",
+            "40",
+            "50",
+        ]);
+    });
+
+    it("lists only trains running late", () => {
+        expect(ids(lateTrains(feed, now))).toEqual(["20", "40"]);
+        expect(ids(lateTrains(feed, now, 1))).toEqual(["20"]);
     });
 });

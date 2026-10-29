@@ -41,7 +41,23 @@
         "stale": "No fresh data for {minutes} min",
         "not_found": "This train is no longer on the map",
         "passed": "passed",
-        "share_text": "{train} · {url}"
+        "share_text": "{train} · {url}",
+        "departs": "departs {time}",
+        "arrived": "arrived",
+        "early": "early",
+        "not_running": "standing",
+        "cancelled": "cancelled",
+        "reason": "Delayed by: {reason}",
+        "position_at": "at {stop}",
+        "position_after": "past {stop}",
+        "position_before": "approaching {stop}",
+        "position_a11y": "Train position: {place}",
+        "arrival_short": "arr {time}",
+        "departure_short": "dep {time}",
+        "more_info": "More information",
+        "valid": "Valid {from} – {to}",
+        "services": "On board",
+        "expand": "Full text"
     },
     "Station": {
         "departures": "Departures",
@@ -56,7 +72,10 @@
         "stations": "Stations",
         "trains": "Trains",
         "no_results": "No results",
-        "plan": "Plan a journey"
+        "plan": "Plan a journey",
+        "late_now": "Running late",
+        "all_trains": "All trains",
+        "cancel": "Cancel"
     },
     "Settings": {
         "title": "Settings",
@@ -124,5 +143,11 @@
         "ticket": "Ticket",
         "empty": "No journeys at this time",
         "error": "Can't plan a journey right now"
+    },
+    "Trains": {
+        "title": "Trains",
+        "sort_delay": "Delay",
+        "sort_number": "Number",
+        "empty": "No trains running now"
     }
 }

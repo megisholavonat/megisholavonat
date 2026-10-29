@@ -13,6 +13,7 @@ from api.util.time import BUDAPEST_TZ
 from api.util.vehicle import (
     STALE_GREY_AFTER_S,
     STALE_HIDE_AFTER_S,
+    activity,
     is_active,
     is_far_from_route,
     is_stale,
@@ -211,3 +212,51 @@ async def test_replay_judges_against_snapshot_time(
     assert all(isinstance(p["lastUpdated"], int) for p in props.values())
     assert all(p["lastUpdated"] > 0 for p in props.values())
     assert sum(p["isStale"] for p in props.values()) == 1
+
+
+def test_activity_names_why_a_train_is_not_running() -> None:
+    assert activity(vehicle(), NOW) == "running"
+    waiting = vehicle(lon=19.005, departs=EIGHT_AM + 300)
+    assert activity(waiting, NOW) == "beforeDeparture"
+    assert activity(vehicle(lon=19.495), NOW) == "arrived"
+    assert activity(vehicle(lat=47.03), NOW) == "offRoute"
+
+
+def test_train_still_pulling_into_its_terminus_is_running() -> None:
+    # ~380 m out at 40 km/h: arriving in half a minute, but not there yet
+    pulling_in = {**vehicle(lon=19.495), "speed": 40 / 3.6}
+    assert activity(pulling_in, NOW) == "running"
+    standing = {**vehicle(lon=19.495), "speed": 0.0}
+    assert activity(standing, NOW) == "arrived"
+
+
+def test_cancelled_when_every_stop_ahead_is_cancelled() -> None:
+    v = vehicle()
+    v["vehicleProgress"] = {"nextStopIndex": 1}
+    v["trip"]["stoptimes"][1]["realtimeState"] = "CANCELED"
+    assert activity(v, NOW) == "cancelled"
+    # A cancelled stop already behind the train does not count
+    v["trip"]["stoptimes"][1]["realtimeState"] = "UPDATED"
+    v["trip"]["stoptimes"][0]["realtimeState"] = "CANCELED"
+    assert activity(v, NOW) == "running"
+
+
+async def test_feed_and_details_carry_the_same_state(
+    client: httpx.AsyncClient,
+    redis: fakeredis.FakeAsyncRedis,
+) -> None:
+    await TrainService(redis).refresh_data()
+
+    features = (await client.get("/v1/trains")).json()["features"]
+    assert features
+    activities = set()
+    for feature in features:
+        props = feature["properties"]
+        details = (await client.get(f"/v1/trains/{props['vehicleId']}")).json()
+        assert details["activity"] == props["activity"]
+        assert details["delay"] == props["delay"]
+        assert details["lastUpdated"] == props["lastUpdated"]
+        if props["activity"] != "running":
+            assert props["isStale"]
+        activities.add(props["activity"])
+    assert "running" in activities
