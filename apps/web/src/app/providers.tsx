@@ -4,6 +4,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import type * as React from "react";
 import { getQueryClient } from "@/clients/query";
+import { AnalyticsRoot } from "@/components/AnalyticsRoot";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
 import { rememberLanding } from "@/lib/landing";
 
@@ -17,6 +18,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         <QueryClientProvider client={queryClient}>
             <ThemeProvider>
                 <NuqsAdapter>{children}</NuqsAdapter>
+                <AnalyticsRoot />
                 {process.env.NODE_ENV === "development" && (
                     <ReactQueryDevtools buttonPosition="bottom-left" />
                 )}

@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
 import { Link } from "@/i18n/navigation";
+import { useTrackView } from "@/lib/analyticsEvents";
 import { trainName } from "@/lib/train";
 import {
     Card,
@@ -78,6 +79,7 @@ function StationRow({
 export function TrainHistoryPage({ number }: { number: string }) {
     const t = useTranslations("Stats");
     const days = useDays();
+    useTrackView("stats_viewed", { kind: "train", train_number: number, days });
     const history = useQuery({
         ...getTrainHistoryOptions({
             path: { trainNumber: number },

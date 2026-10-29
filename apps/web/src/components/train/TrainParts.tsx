@@ -50,6 +50,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { TapTip } from "@/components/ui/TapTip";
 import { findFollow, useFollows } from "@/hooks/useFollows";
 import { useNow } from "@/hooks/useNow";
+import { track } from "@/lib/analytics";
 import { trainShareData } from "@/lib/shareTrain";
 import {
     arrivalIsEstimate,
@@ -369,16 +370,22 @@ export function TrainActions({
     const locale = useLocale() as Locale;
     const share = async () => {
         const { title, text, url } = trainShareData(view, locale);
+        const method = "share" in navigator ? "native" : "copy";
+        const sent = (completed: boolean) =>
+            track("share_clicked", { target: "train", method, completed });
         try {
             if (navigator.share) {
                 await navigator.share({ title, text, url });
+                sent(true);
                 return;
             }
             await navigator.clipboard.writeText(url);
+            sent(true);
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
         } catch {
             // Share sheet dismissed
+            sent(false);
         }
     };
     return (
