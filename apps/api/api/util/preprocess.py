@@ -221,7 +221,14 @@ def _monotonic_stop_alongs(
         k = step_back[k]
         chosen.append(k)
     chosen.reverse()
-    return [opts[k].along for opts, k in zip(options, chosen, strict=True)]
+    # Where line.project finds the same pass, keep its exact point
+    line = LineString(coords)
+    alongs = []
+    for stop, opts, k in zip(stops, options, chosen, strict=True):
+        projected = line.project(Point(stop["coords"]))
+        same = abs(projected - opts[k].along) <= ORDER_SLACK
+        alongs.append(projected if same else opts[k].along)
+    return alongs
 
 
 def snap_stops(
