@@ -6,6 +6,14 @@ import { useRouter } from "expo-router";
 import { useMemo, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+    CommuteCard,
+    type CommuteItem,
+    FollowPrompt,
+} from "../follow/CommuteCard";
+import { useFollowedVehicleIds, useLiveFollows } from "../follow/live";
+import { upcoming } from "../follow/model";
+import { useFollows } from "../follow/store";
 import { feedState } from "../map/feedState";
 import { ConsentCard, FeedStateCard, StaleBanner } from "../map/HomeCards";
 import { MapChrome } from "../map/MapChrome";
@@ -43,8 +51,26 @@ export default function MapScreen() {
     );
     const state = feedState(trains, isError, visible);
 
+    // My commute: the next run of every follow, live once on the map
+    const follows = useFollows();
+    const runs = useMemo(() => upcoming(follows, now), [follows, now]);
+    const live = useLiveFollows(runs, trains);
+    const followed = useFollowedVehicleIds(live);
+    const commute: CommuteItem[] = runs.map((r) => ({
+        ...r,
+        live: live.get(r.follow.id),
+    }));
+
     const openTrain = (vehicleId: string) =>
         router.push({ pathname: "/train/[vehicleId]", params: { vehicleId } });
+    const openCommute = (item: CommuteItem) => {
+        if (item.live) openTrain(item.live.vehicleId);
+        else
+            router.push({
+                pathname: "/follow",
+                params: { id: item.follow.id },
+            });
+    };
 
     const locate = async () => {
         if (following) {
@@ -60,6 +86,7 @@ export default function MapScreen() {
                 trains={trains}
                 now={now}
                 onTrainPress={openTrain}
+                followed={followed}
                 showRailways={settings.railwayLayer}
                 followUser={following}
                 onFollowUserChange={setFollowing}
@@ -81,7 +108,10 @@ export default function MapScreen() {
                             })
                         }
                     />
+                ) : follows.length === 0 ? (
+                    <FollowPrompt onPress={() => router.push("/search")} />
                 ) : null}
+                <CommuteCard items={commute} onOpen={openCommute} />
             </MapChrome>
             {state.kind === "ok" && state.staleMinutes !== null ? (
                 <View

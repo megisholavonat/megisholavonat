@@ -60,12 +60,16 @@ function radius(extra = 0): Expression {
     ] as Expression;
 }
 
-/** Others fade while a train is selected. */
+/** Others fade while a train is selected; followed trains never do. */
 function selectionOpacity(selectedId: string | null): Expression {
     return selectedId
         ? ([
               "case",
-              ["==", ["get", "vehicleId"], selectedId],
+              [
+                  "any",
+                  ["==", ["get", "vehicleId"], selectedId],
+                  ["get", "followed"],
+              ],
               1,
               MARKER.selected.othersOpacity,
           ] as Expression)
@@ -115,6 +119,36 @@ export function selectedRingPaint(
         "circle-stroke-color": ink,
         "circle-stroke-width": ringWidth,
     };
+}
+
+export const FOLLOWED_FILTER: CircleLayerSpecification["filter"] = [
+    "==",
+    ["get", "followed"],
+    true,
+];
+
+/**
+ * Followed trains: a small ink badge on the marker's upper right, always
+ * shown (design: "követett: tinta csillag"). A circle, as the map's glyph
+ * font has no star.
+ */
+export function followedBadgePaint(
+    ink: string,
+    surface: string,
+): CircleLayerSpecification["paint"] {
+    return {
+        "circle-radius": 4.5,
+        "circle-color": ink,
+        "circle-stroke-color": surface,
+        "circle-stroke-width": 1.5,
+        "circle-translate": [
+            "step",
+            ["zoom"],
+            ["literal", [5, -5]],
+            LABEL_MIN_ZOOM,
+            ["literal", [9, -9]],
+        ],
+    } as CircleLayerSpecification["paint"];
 }
 
 export const MARKER_LAYOUT: CircleLayerSpecification["layout"] = {
