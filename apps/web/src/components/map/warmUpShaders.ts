@@ -1,13 +1,23 @@
 import type { LayerSpecification, Map as MaplibreMap } from "maplibre-gl";
 
 const SOURCE = "mhav-warmup";
+/** At a constant 0 these skip drawing, so nothing compiles yet */
+const OPACITY = [
+    "line-opacity",
+    "circle-opacity",
+    "circle-stroke-opacity",
+    "icon-opacity",
+    "text-opacity",
+] as const;
 
 /**
  * WebGL compiles a layer type's shaders the first time it draws. Selecting a
  * train adds the route line, stop circles and stop names at once, and their
  * compiles (100+ ms on slow phones) landed inside the sheet's animation.
- * This draws the same layers once, nearly transparent, in idle time, then
- * removes them. Returns a cancel.
+ * This draws the same layers, nearly transparent, in idle time, then
+ * removes them. They go in at once, at opacity 0 (parsed, not drawn), and
+ * are shown one per idle period: drawing all of them in one frame was a
+ * long task of its own on first load. Returns a cancel.
  */
 export function warmUpShaders(
     map: MaplibreMap,
@@ -15,19 +25,76 @@ export function warmUpShaders(
 ): () => void {
     let done = false;
     let handle: number | null = null;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let onRender: (() => void) | null = null;
+    const pending = [...layers];
+    const added: string[] = [];
+
     const cleanup = () => {
         done = true;
+        if (onRender) map.off("render", onRender);
+        if (timer !== null) clearTimeout(timer);
         try {
-            for (const layer of layers) {
-                if (map.getLayer(layer.id)) map.removeLayer(layer.id);
+            for (const id of added) {
+                if (map.getLayer(id)) map.removeLayer(id);
             }
             if (map.getSource(SOURCE)) map.removeSource(SOURCE);
         } catch {
             /* The map or its style is gone */
         }
     };
-    const run = () => {
-        handle = null;
+    const idle = (fn: () => void) => {
+        handle =
+            typeof requestIdleCallback === "function"
+                ? requestIdleCallback(
+                      () => {
+                          handle = null;
+                          fn();
+                      },
+                      { timeout: 3000 },
+                  )
+                : (setTimeout(() => {
+                      handle = null;
+                      fn();
+                  }, 500) as unknown as number);
+    };
+    /** Runs fn after the next frame is drawn */
+    const afterDraw = (fn: () => void) => {
+        onRender = () => {
+            if (onRender) map.off("render", onRender);
+            onRender = null;
+            if (!done) idle(fn);
+        };
+        map.on("render", onRender);
+        map.triggerRepaint();
+    };
+
+    const opacities = (layer: LayerSpecification) => {
+        const paint = ("paint" in layer ? layer.paint : undefined) ?? {};
+        return OPACITY.filter((key) => key in paint).map(
+            (key) => [key, (paint as Record<string, number>)[key]] as const,
+        );
+    };
+
+    const next = () => {
+        if (done) return;
+        const layer = pending.shift();
+        if (!layer) {
+            cleanup();
+            return;
+        }
+        try {
+            for (const [key, value] of opacities(layer)) {
+                map.setPaintProperty(layer.id, key, value);
+            }
+        } catch {
+            cleanup();
+            return;
+        }
+        afterDraw(next);
+    };
+
+    const start = () => {
         if (done) return;
         try {
             const { lng, lat } = map.getCenter();
@@ -65,39 +132,43 @@ export function warmUpShaders(
                     ],
                 },
             });
-            for (const layer of layers) map.addLayer(layer);
+            for (const layer of layers) {
+                const hidden = Object.fromEntries(
+                    opacities(layer).map(([key]) => [key, 0]),
+                );
+                map.addLayer({
+                    ...layer,
+                    paint: {
+                        ...("paint" in layer ? layer.paint : {}),
+                        ...hidden,
+                    },
+                } as LayerSpecification);
+                added.push(layer.id);
+            }
         } catch {
             cleanup();
             return;
         }
-        // Drawn once the source's tile is parsed; then they can go
-        let loaded = false;
-        const onRender = () => {
-            if (done) return;
-            if (!loaded) {
-                try {
-                    loaded = map.isSourceLoaded(SOURCE);
-                } catch {
-                    loaded = true;
-                }
-                // The frame after the tile is in draws the layers
-                if (loaded) map.triggerRepaint();
-                return;
+        // Layers draw once the source's tile is parsed
+        onRender = () => {
+            let loaded = true;
+            try {
+                loaded = map.isSourceLoaded(SOURCE);
+            } catch {
+                /* Treat as loaded: the next step bails out if it is gone */
             }
-            map.off("render", onRender);
-            cleanup();
+            if (!loaded) return;
+            if (onRender) map.off("render", onRender);
+            onRender = null;
+            if (!done) idle(next);
         };
         map.on("render", onRender);
+        map.triggerRepaint();
         // Never leave them behind
-        setTimeout(() => {
-            map.off("render", onRender);
-            cleanup();
-        }, 5000);
+        timer = setTimeout(cleanup, 10_000);
     };
-    handle =
-        typeof requestIdleCallback === "function"
-            ? requestIdleCallback(run, { timeout: 3000 })
-            : (setTimeout(run, 500) as unknown as number);
+
+    idle(start);
     return () => {
         if (handle !== null) {
             if (typeof cancelIdleCallback === "function") {

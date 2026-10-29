@@ -26,10 +26,7 @@ import {
 } from "react";
 import { MapProvider, useMap } from "react-map-gl/maplibre";
 import { CommuteList, FollowHint } from "@/components/commute/CommuteList";
-import {
-    FollowEditor,
-    type FollowTarget,
-} from "@/components/commute/FollowEditor";
+import type { FollowTarget } from "@/components/commute/FollowEditor";
 import {
     followedVehicleIds,
     useCommute,
@@ -51,12 +48,9 @@ import {
     Wordmark,
 } from "@/components/home/HomeChrome";
 import {
-    JourneyPanel,
     PlannerButton,
-    PlannerSheetBody,
-    PlannerSheetHeader,
     usePlannerState,
-} from "@/components/journey/JourneyPlanner";
+} from "@/components/journey/PlannerButton";
 import {
     DesktopSearch,
     SheetSearchBody,
@@ -64,7 +58,6 @@ import {
     useSearchState,
 } from "@/components/search/Search";
 import { rememberStation } from "@/components/search/useSearch";
-import { SettingsDialog } from "@/components/settings/Settings";
 import {
     BottomSheet,
     type Detent,
@@ -95,6 +88,65 @@ const DynamicMap = dynamic(() => import("./MapComponent"), {
     loading: () => <div className="h-full w-full bg-map" />,
 });
 
+// Behind a tap, so out of the first load: the planner, the settings (with
+// their markdown changelog) and the follow editor. Fetched in idle time
+// once the map is up (see usePrefetch), so they still open at once.
+const loadPlanner = () => import("@/components/journey/JourneyPlanner");
+const loadSettings = () => import("@/components/settings/Settings");
+const loadFollowEditor = () => import("@/components/commute/FollowEditor");
+/** Starts the planner's download as a finger or pointer reaches its button */
+const prefetchPlanner = () => {
+    void loadPlanner().catch(() => {});
+};
+const JourneyPanel = dynamic(() => loadPlanner().then((m) => m.JourneyPanel));
+const PlannerSheetBody = dynamic(() =>
+    loadPlanner().then((m) => m.PlannerSheetBody),
+);
+const PlannerSheetHeader = dynamic(() =>
+    loadPlanner().then((m) => m.PlannerSheetHeader),
+);
+const SettingsDialog = dynamic(() =>
+    loadSettings().then((m) => m.SettingsDialog),
+);
+const FollowEditor = dynamic(() =>
+    loadFollowEditor().then((m) => m.FollowEditor),
+);
+
+/** Loads the deferred parts one per idle period, a while after first load */
+function usePrefetch(ready: boolean) {
+    useEffect(() => {
+        if (!ready) return;
+        const queue = [loadPlanner, loadSettings, loadFollowEditor];
+        const hasIdle = typeof requestIdleCallback === "function";
+        let handle: number | ReturnType<typeof setTimeout> | null = null;
+        let cancelled = false;
+        const next = () => {
+            handle = null;
+            const load = queue.shift();
+            if (!load || cancelled) return;
+            void load()
+                .catch(() => {})
+                .then(() => {
+                    if (!cancelled) schedule();
+                });
+        };
+        const schedule = () => {
+            handle = hasIdle
+                ? requestIdleCallback(next, { timeout: 4000 })
+                : setTimeout(next, 200);
+        };
+        // Leave the first seconds to the map and the feed
+        const start = setTimeout(schedule, PREFETCH_DELAY_MS);
+        return () => {
+            cancelled = true;
+            clearTimeout(start);
+            if (handle === null) return;
+            if (hasIdle) cancelIdleCallback(handle as number);
+            else clearTimeout(handle as ReturnType<typeof setTimeout>);
+        };
+    }, [ready]);
+}
+
 /** Desktop panels: width plus the 16 px gutters either side */
 const GUTTER = 16;
 const TRAIN_PANEL = 400;
@@ -105,6 +157,7 @@ const PLANNER_PANEL = 440;
 const SEARCH_MAP_SHARE = 0.18;
 
 const WIDE_QUERY = "(min-width: 1024px)";
+const PREFETCH_DELAY_MS = 4000;
 
 /** Wide desktop: the station board gets its roomy table layout. */
 function useIsWide(): boolean {
@@ -388,6 +441,7 @@ function MapScreen() {
         refetchInterval: POLL_INTERVAL_MS,
     });
     const trains = trainsQuery.data;
+    usePrefetch(!!trains);
     const feed = feedState(trains, trainsQuery.isError, trainsQuery.isPending);
 
     const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -405,6 +459,11 @@ function MapScreen() {
     const disruptions = useDisruptions();
     const [flyTarget, setFlyTarget] = useState<FlyTarget | null>(null);
     const [followTarget, setFollowTarget] = useState<FollowTarget | null>(null);
+    // Mounted from their first use on, so they can animate closed
+    const [settingsUsed, setSettingsUsed] = useState(false);
+    if (settingsOpen && !settingsUsed) setSettingsUsed(true);
+    const [followUsed, setFollowUsed] = useState(false);
+    if (followTarget && !followUsed) setFollowUsed(true);
     const [peekHeight, setPeekHeight] = useState(140);
     const searchInputRef = useRef<HTMLInputElement>(null);
     const follows = useFollows();
@@ -757,7 +816,12 @@ function MapScreen() {
                 onOpen={() => setSearchOpen(true)}
                 onCancel={cancelSearch}
                 inputRef={searchInputRef}
-                trailing={<PlannerButton onClick={openPlanner} />}
+                trailing={
+                    <PlannerButton
+                        onClick={openPlanner}
+                        onIntent={prefetchPlanner}
+                    />
+                }
             />
             {!searchOpen && (
                 <DisruptionChip
@@ -937,6 +1001,9 @@ function MapScreen() {
                                                 {desktopPanel !== "planner" && (
                                                     <PlannerButton
                                                         onClick={openPlanner}
+                                                        onIntent={
+                                                            prefetchPlanner
+                                                        }
                                                         className="hidden size-9 bg-transparent hover:bg-surface-2 lg:flex"
                                                     />
                                                 )}
@@ -961,6 +1028,7 @@ function MapScreen() {
                                         </div>
                                         <PlannerButton
                                             onClick={openPlanner}
+                                            onIntent={prefetchPlanner}
                                             className="size-9 bg-transparent hover:bg-surface-2"
                                         />
                                         <SettingsButton
@@ -1151,16 +1219,20 @@ function MapScreen() {
                 trains={trains}
                 insets={insets}
             />
-            <FollowEditor
-                target={followTarget}
-                onClose={() => setFollowTarget(null)}
-                isDesktop={isDesktop}
-            />
-            <SettingsDialog
-                open={settingsOpen}
-                onOpenChange={setSettingsOpen}
-                isDesktop={isDesktop}
-            />
+            {followUsed && (
+                <FollowEditor
+                    target={followTarget}
+                    onClose={() => setFollowTarget(null)}
+                    isDesktop={isDesktop}
+                />
+            )}
+            {settingsUsed && (
+                <SettingsDialog
+                    open={settingsOpen}
+                    onOpenChange={setSettingsOpen}
+                    isDesktop={isDesktop}
+                />
+            )}
         </main>
     );
 }

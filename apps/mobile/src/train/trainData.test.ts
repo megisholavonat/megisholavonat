@@ -1,4 +1,5 @@
 import type { VehiclePositionWithDelay } from "@megisholavonat/api-client";
+import { trainShareText } from "@megisholavonat/core/share";
 import { describe, expect, it } from "vitest";
 import {
     beforeDeparture,
@@ -7,6 +8,7 @@ import {
     predictedPlatform,
     serviceGlyph,
     serviceGroups,
+    shareStop,
     sortedAlerts,
     stopRows,
     trainStop,
@@ -152,6 +154,56 @@ describe("stopRows", () => {
             expected: 17 * H + 60 + 4 * 60,
             secondary: { kind: "arrival", expected: 17 * H + 23 * 60 },
         });
+    });
+});
+
+describe("shareStop", () => {
+    it("marks a forecast time ahead as estimated", () => {
+        const rows = stopRows(vehicle(2, 23));
+        // Passed stops have actual times; the live delay carried ahead is ours
+        expect(rows.map((r) => r.estimated)).toEqual([
+            false,
+            false,
+            true,
+            true,
+        ]);
+        expect(shareStop(rows[2] ?? null)).toEqual({
+            name: "C",
+            time: "18:23",
+            estimated: true,
+        });
+        expect(shareStop(null)).toBeNull();
+    });
+
+    it("tells the timetable's time plainly when there is no delay", () => {
+        const waiting = stopRows(
+            { ...vehicle(1, 0), activity: "beforeDeparture" },
+            false,
+        );
+        expect(shareStop(waiting[0] ?? null)?.estimated).toBe(false);
+        const onTime = stopRows(vehicle(2, 0));
+        expect(onTime[2]?.estimated).toBe(false);
+        // A per-stop forecast is one even at zero
+        const predicted = stopRows(
+            vehicle(1, 0, [
+                st("A", 16 * H, 16 * H),
+                st("B", 17 * H, 17 * H, { predictedDelay: 0 }),
+            ]),
+        );
+        expect(predicted[1]?.estimated).toBe(true);
+    });
+
+    it("puts the ≈ into the shared text, as the web does", () => {
+        const [, , c] = stopRows(vehicle(2, 23));
+        expect(
+            trainShareText("hu", {
+                number: "10",
+                delay: 23,
+                waiting: false,
+                status: "running",
+                next: shareStop(c ?? null),
+            }),
+        ).toBe("A 10-es vonat 23 percet késik, C ≈18:23");
     });
 });
 

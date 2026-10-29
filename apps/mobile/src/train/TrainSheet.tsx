@@ -56,6 +56,7 @@ import {
     predictedPlatform,
     type StopRow,
     serviceGroups,
+    shareStop,
     sortedAlerts,
     stopRows,
     trainStop,
@@ -209,12 +210,7 @@ export function TrainSheet({
                   delay: Math.max(0, display?.delay ?? 0),
                   waiting: notYetDeparted,
                   status: status ?? undefined,
-                  next: stop
-                      ? {
-                            name: stop.name,
-                            time: formatSecondsAsTime(stop.expected),
-                        }
-                      : null,
+                  next: shareStop(stop),
               })
             : "";
         // iOS shares the URL as a link; Android only takes text
