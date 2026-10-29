@@ -14,7 +14,7 @@ export interface Settings {
     theme: ThemePreference;
     /** Android Material You colours; off by default (design system rule) */
     dynamicColor: boolean;
-    /** OpenRailwayMap overlay */
+    /** OpenRailwayMap raster overlay ("Detailed railway map"), opt-in */
     railwayLayer: boolean;
     analytics: AnalyticsConsent;
     /** App launches so far, this one included */
@@ -27,7 +27,7 @@ export const DEFAULT_SETTINGS: Settings = {
     language: null,
     theme: "system",
     dynamicColor: DISPLAY_RULES.androidDynamicColorDefault,
-    railwayLayer: true,
+    railwayLayer: false,
     analytics: "unknown",
     launchCount: 0,
     openedTrain: false,

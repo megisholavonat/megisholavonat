@@ -109,13 +109,13 @@
         "theme_dark": "Dark",
         "dynamic_color": "Dynamic colours",
         "map": "Map",
-        "railways": "Railway lines",
+        "detailed_railway_map": "Detailed railway map",
         "analytics": "Anonymous statistics",
         "privacy": "Privacy",
         "map_data": "Map data",
         "map_data_value": "© OpenStreetMap",
         "railway_data_value": "© OpenRailwayMap",
-        "railway_data": "Railway layer",
+        "railway_data": "Detailed railway map",
         "source": "GitHub"
     },
     "Follow": {

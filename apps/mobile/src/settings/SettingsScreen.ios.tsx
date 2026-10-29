@@ -91,7 +91,7 @@ export function SettingsScreen() {
                 </Section>
                 <Section title={s.t("map")}>
                     <Toggle
-                        label={s.t("railways")}
+                        label={s.t("detailed_railway_map")}
                         isOn={s.settings.railwayLayer}
                         onIsOnChange={s.setRailwayLayer}
                     />

@@ -109,13 +109,13 @@
         "theme_dark": "Sötét",
         "dynamic_color": "Dinamikus színek",
         "map": "Térkép",
-        "railways": "Vasútvonalak",
+        "detailed_railway_map": "Részletes vasúti térkép",
         "analytics": "Névtelen statisztika",
         "privacy": "Adatvédelem",
         "map_data": "Térképadatok",
         "map_data_value": "© OpenStreetMap",
         "railway_data_value": "© OpenRailwayMap",
-        "railway_data": "Vasúti réteg",
+        "railway_data": "Részletes vasúti térkép",
         "source": "GitHub"
     },
     "Follow": {

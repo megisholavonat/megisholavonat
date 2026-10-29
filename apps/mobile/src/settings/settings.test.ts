@@ -6,12 +6,19 @@ describe("parseSettings", () => {
         expect(parseSettings(null).dynamicColor).toBe(false);
     });
 
+    it("leaves the detailed railway map off by default", () => {
+        expect(parseSettings(null).railwayLayer).toBe(false);
+        expect(
+            parseSettings(JSON.stringify({ railwayLayer: true })).railwayLayer,
+        ).toBe(true);
+    });
+
     it("keeps valid stored values", () => {
         const stored = {
             language: "en",
             theme: "dark",
             dynamicColor: true,
-            railwayLayer: false,
+            railwayLayer: true,
             analytics: "granted",
             launchCount: 3,
             openedTrain: true,

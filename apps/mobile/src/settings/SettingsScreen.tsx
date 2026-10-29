@@ -93,7 +93,7 @@ export function SettingsScreen() {
                             />
                         }
                     >
-                        {s.t("railways")}
+                        {s.t("detailed_railway_map")}
                     </ListItem>
                 </FieldGroup.Section>
                 <FieldGroup.Section>
