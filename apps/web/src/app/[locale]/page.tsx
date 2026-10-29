@@ -625,11 +625,11 @@ function MapScreen() {
                 insets={insets}
             />
 
-            {feed.kind === "stale" && (
-                <div className="pointer-events-none absolute inset-x-0 top-[calc(env(safe-area-inset-top)+12px)] z-20 flex justify-center">
-                    <StaleBanner minutes={feed.minutes} />
-                </div>
-            )}
+            <div className="pointer-events-none absolute inset-x-0 top-[calc(env(safe-area-inset-top)+12px)] z-20 flex justify-center">
+                <StaleBanner
+                    minutes={feed.kind === "stale" ? feed.minutes : null}
+                />
+            </div>
 
             {isDesktop ? (
                 <>
@@ -808,6 +808,10 @@ function MapScreen() {
                             sheetMode === "home" ? searchGap : FULL_TOP_GAP
                         }
                         bodyScroll={sheetMode !== "planner"}
+                        modal={
+                            sheetMode === "planner" ||
+                            (sheetMode === "home" && searchOpen)
+                        }
                         header={sheet.header}
                     >
                         {sheet.body}

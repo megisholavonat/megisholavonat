@@ -81,7 +81,7 @@ export function PlannerButton({
             aria-label={t("open")}
             title={t("open")}
             className={cn(
-                "flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-full bg-surface-2 text-ink transition-colors hover:bg-line",
+                "flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-full bg-surface-2 text-ink pressable transition-colors hover:bg-line",
                 className,
             )}
         >

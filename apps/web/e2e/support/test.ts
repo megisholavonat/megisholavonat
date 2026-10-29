@@ -68,7 +68,7 @@ export async function openHome(page: Page, query = "") {
 
 /** The train sheet (phone) or panel (desktop) */
 export const trainRegion = (page: Page) =>
-    page.getByRole("region", { name: t.Train.sheet_label });
+    page.getByRole("region", { name: t.Train.sheet_label, exact: true });
 
 /** The station board sheet or panel */
 export const boardRegion = (page: Page, station: string) =>

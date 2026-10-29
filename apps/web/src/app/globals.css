@@ -130,6 +130,37 @@
     }
 }
 
+/* Press feedback: buttons sink a little while pressed (100 ms ease-out).
+   Map buttons get it too, so every floating control answers the tap. */
+@utility pressable {
+    transition-property:
+        color, background-color, border-color, box-shadow, scale;
+    transition-duration: 150ms, 150ms, 150ms, 150ms, 100ms;
+    transition-timing-function: var(--mhav-ease-standard, ease-out);
+    &:active:not(:disabled) {
+        scale: 0.95;
+    }
+}
+.map-button {
+    transition-property: color, background-color, box-shadow, scale;
+    transition-duration: 150ms, 150ms, 150ms, 100ms;
+    transition-timing-function: var(--mhav-ease-standard, ease-out);
+}
+.map-button:active:not(:disabled) {
+    scale: 0.95;
+}
+@media (prefers-reduced-motion: reduce) {
+    .pressable:active:not(:disabled),
+    .map-button:active:not(:disabled) {
+        scale: none;
+    }
+    /* Chrome that follows the sheet (legend, controls, consent card) jumps
+       with it instead of sliding */
+    .ease-sheet {
+        transition-duration: 0s;
+    }
+}
+
 @utility floating-card {
     @apply bg-surface;
     box-shadow:
@@ -151,22 +182,34 @@
     border-top-color: var(--mhav-surface);
 }
 
-/* Map attribution: compact on phones, a quiet row on desktop */
-.maplibregl-ctrl-attrib {
-    font-family: var(--font-sans);
+/* Map attribution: "© OpenStreetMap" on phones, a quiet row on desktop.
+   ink-2 on a 88 % surface stays ≥4.5:1 over either basemap. */
+.map-attribution {
     font-size: 11px;
-}
-.dark .maplibregl-ctrl-attrib {
-    background: rgb(23 25 29 / 0.8);
+    font-weight: 500;
     color: var(--mhav-ink-2);
+    background: color-mix(in srgb, var(--mhav-surface) 88%, transparent);
 }
-.dark .maplibregl-ctrl-attrib a {
-    color: var(--mhav-ink-2);
+.dark .map-attribution {
+    box-shadow: 0 0 0 1px var(--mhav-line);
 }
-.dark .maplibregl-ctrl-attrib.maplibregl-compact-show,
-.dark .maplibregl-ctrl-attrib.maplibregl-compact {
-    background: var(--mhav-surface);
+
+/* Dark floating buttons: the dark surface is about the map's colour, so lift
+   them one step and give them an edge */
+.dark .map-button {
+    background: color-mix(in srgb, var(--mhav-surface-2) 94%, transparent);
+    box-shadow:
+        0 0 0 1px var(--mhav-line),
+        0 2px 8px rgb(0 0 0 / 0.45);
 }
-.dark .maplibregl-ctrl-attrib-button {
-    filter: invert(1);
+.dark .map-button:hover {
+    background: var(--mhav-line);
+}
+
+/* Trains sharing a spot: the list a cluster opens */
+.cluster-list .maplibregl-popup-content {
+    padding: 4px;
+}
+.cluster-list .maplibregl-popup-tip {
+    border-top-color: var(--mhav-surface);
 }

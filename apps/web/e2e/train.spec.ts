@@ -153,3 +153,20 @@ test("follow and unfollow survive a reload", async ({ page, isPhone }) => {
         ).toBeVisible();
     }
 });
+
+test("closing the train returns to the map", async ({ page, isPhone }) => {
+    const detents = isPhone
+        ? (["peek", "half", "full"] as const)
+        : (["half"] as const);
+    for (const detent of detents) {
+        const region = await openTrain(page, "delayed", detent);
+        await region
+            .getByRole("button", {
+                name: isPhone ? t.Sheet.close : t.Train.back,
+                exact: true,
+            })
+            .click();
+        await expect(trainRegion(page)).toHaveCount(0);
+        await expect(page).not.toHaveURL(/vehicleId=/);
+    }
+});

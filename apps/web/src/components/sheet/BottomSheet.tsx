@@ -134,6 +134,7 @@ export function BottomSheet({
     onPeekHeight,
     fullTopGap = FULL_TOP_GAP,
     bodyScroll = true,
+    modal = false,
     label,
 }: {
     header: ReactNode;
@@ -151,6 +152,8 @@ export function BottomSheet({
     fullTopGap?: number;
     /** False when the content scrolls itself */
     bodyScroll?: boolean;
+    /** Search and the planner take over the sheet like a dialog */
+    modal?: boolean;
     label: string;
 }) {
     const t = useTranslations("Sheet");
@@ -227,14 +230,9 @@ export function BottomSheet({
             `${Math.round(inset)}px`,
         );
     }, [height, heights.half]);
-    // Floating cards (the consent prompt) step aside for a full sheet
-    useEffect(() => {
-        document.documentElement.dataset.sheet = detent;
-    }, [detent]);
     useEffect(
         () => () => {
             document.documentElement.style.removeProperty("--mhav-sheet-inset");
-            delete document.documentElement.dataset.sheet;
         },
         [],
     );
@@ -348,9 +346,12 @@ export function BottomSheet({
     const fade = reducedMotion ? { duration: 0 } : FADE_TRANSITION;
 
     return (
+        // biome-ignore lint/a11y/useAriaPropsSupportedByRole: the role is dialog whenever aria-modal is set
         <section
             ref={scope}
             aria-label={label}
+            role={modal ? "dialog" : undefined}
+            aria-modal={modal || undefined}
             className={cn(
                 "fixed inset-x-0 z-30 flex flex-col overflow-hidden rounded-t-sheet bg-surface",
                 "shadow-[0_-1px_3px_rgb(20_22_26/0.08),0_-8px_24px_rgb(20_22_26/0.08)]",
