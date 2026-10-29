@@ -27,6 +27,7 @@ import { ReasonLabel } from "@/components/ui/Reason";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
 import { useNow } from "@/hooks/useNow";
 import { usePredictedPlatforms } from "@/hooks/usePredictedPlatforms";
+import { boardRowOpened } from "@/lib/analyticsEvents";
 import { rowTime } from "@/lib/board";
 import { trainNumber, usuallyLate } from "@/lib/train";
 import { cn } from "@/lib/utils";
@@ -378,7 +379,7 @@ function BoardList({
     }
     return (
         <ul className="flex flex-col">
-            {rows.map(({ entry, shown }) => (
+            {rows.map(({ entry, shown }, i) => (
                 <BoardRow
                     key={`${entry.tripId}-${entry.serviceDate}`}
                     entry={entry}
@@ -389,7 +390,10 @@ function BoardList({
                     shown={shown}
                     usually={usually.get(trainNumber(entry.tripShortName))}
                     now={now}
-                    onSelectTrain={onSelectTrain}
+                    onSelectTrain={(id) => {
+                        boardRowOpened(kind, i);
+                        onSelectTrain(id);
+                    }}
                     wide={wide}
                 />
             ))}

@@ -18,6 +18,7 @@ import { SettingsProvider } from "../settings/SettingsProvider";
 import { AppThemeProvider, useAppTheme } from "../theme/ThemeProvider";
 import { MNR2007_FONT } from "../train/RouteIcon";
 import { liquidGlass } from "../ui/platform";
+import { useAnalytics } from "../useAnalytics";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -71,6 +72,7 @@ function AppStack() {
     const t = useTranslations();
     const locale = useLocale();
     useNotificationRouting();
+    useAnalytics();
 
     // Brings the API in step with the follows on this device, once a launch
     useEffect(() => {

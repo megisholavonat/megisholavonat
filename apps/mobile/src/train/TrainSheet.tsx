@@ -29,6 +29,7 @@ import {
     View,
 } from "react-native";
 import { useLocale, useTranslations } from "use-intl";
+import { track } from "../analytics";
 import { WEB_URL } from "../config";
 import { TrainDisruptions } from "../disruptions/DisruptionViews";
 import { findFollowFor } from "../follow/model";
@@ -218,7 +219,15 @@ export function TrainSheet({
             Platform.OS === "ios"
                 ? { message: name, url }
                 : { message: t("share_text", { train: name, url }) },
-        );
+        )
+            .then(({ action }) =>
+                track("share_clicked", {
+                    target: "train",
+                    method: "native",
+                    completed: action === Share.sharedAction,
+                }),
+            )
+            .catch(() => undefined);
     };
     const following = details
         ? findFollowFor(follows, details) !== null
