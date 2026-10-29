@@ -1,5 +1,3 @@
-export { stationName, trainTitle } from "@/lib/stats/lookup";
-
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { OG_SIZE } from "@/lib/og/metadata";
@@ -41,6 +39,14 @@ export async function statsMetadata({
         title: `${ogTitle} | ${appTitle}`,
         description: text,
         ...(missing ? { robots: { index: false } } : {}),
+        alternates: {
+            canonical: `${origin}/${locale}${path}`,
+            languages: {
+                hu: `${origin}/hu${path}`,
+                en: `${origin}/en${path}`,
+                "x-default": `${origin}/hu${path}`,
+            },
+        },
         openGraph: {
             type: "website",
             siteName: appTitle,

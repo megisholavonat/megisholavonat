@@ -5,13 +5,15 @@ import {
     getRankingsOptions,
     getTimeOfDayPunctualityOptions,
 } from "@megisholavonat/api-client/react-query";
+import type { Locale } from "@megisholavonat/core/i18n";
 import { getMavRouteName } from "@megisholavonat/core/mavRoutes";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronRight } from "lucide-react";
-import { useTranslations } from "next-intl";
+import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { RouteGlyph } from "@/components/ui/RouteGlyph";
-import { Link } from "@/i18n/navigation";
+import { stationHref, trainPath } from "@/lib/seo/paths";
 import { trainName } from "@/lib/train";
 import { cn } from "@/lib/utils";
 import { HourChart, overallShare } from "./HourChart";
@@ -28,7 +30,6 @@ import {
     StatsHeader,
     TenBar,
     useDays,
-    withDays,
 } from "./StatsParts";
 
 const HOUR = 60 * 60 * 1000;
@@ -38,26 +39,31 @@ type RankingKind = (typeof KINDS)[number];
 type RankingOrder = (typeof ORDERS)[number];
 const LIMIT = 20;
 
-function entryHref(kind: RankingKind, entry: RankingEntry): string | null {
-    if (kind === "trains") return `/stats/train/${entry.id}`;
-    if (kind === "stations") return `/stats/station/${entry.id}`;
+function entryHref(
+    locale: Locale,
+    kind: RankingKind,
+    entry: RankingEntry,
+): string | null {
+    if (kind === "trains") return trainPath(locale, entry.id);
+    if (kind === "stations") {
+        return stationHref(locale, { id: entry.id, name: entry.name ?? "" });
+    }
     return null;
 }
 
 function RankingRow({
     kind,
     entry,
-    days,
 }: {
     kind: RankingKind;
     entry: RankingEntry;
-    days: number;
 }) {
+    const locale = useLocale() as Locale;
     const late = lateLevel(entry.medianDelayMin);
     const label = kind === "trains" ? entry.id : (entry.name ?? entry.id);
     // "247 CITADELLA InterCity" -> "CITADELLA"
     const sub = kind === "trains" && entry.name ? trainName(entry.name) : null;
-    const href = entryHref(kind, entry);
+    const href = entryHref(locale, kind, entry);
     // A line's glyph already reads its name; MÁV's data sometimes pairs a
     // line with another line's glyph, then only the name is shown
     const glyph =
@@ -101,7 +107,7 @@ function RankingRow({
         <li className="border-b border-line last:border-b-0">
             {href ? (
                 <Link
-                    href={withDays(href, days)}
+                    href={href}
                     className={cn(className, "hover:bg-surface-2/60")}
                 >
                     {content}
@@ -157,12 +163,7 @@ function Rankings({ days }: { days: number }) {
             ) : entries && entries.length > 0 ? (
                 <ol className="-mt-2 flex flex-col">
                     {entries.map((entry) => (
-                        <RankingRow
-                            key={entry.id}
-                            kind={kind}
-                            entry={entry}
-                            days={days}
-                        />
+                        <RankingRow key={entry.id} kind={kind} entry={entry} />
                     ))}
                 </ol>
             ) : (
