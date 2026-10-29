@@ -178,6 +178,7 @@ function BoardRow({
     wide: boolean;
 }) {
     const t = useTranslations("Station");
+    const tDisruptions = useTranslations("Disruptions");
     const number = trainNumber(entry.tripShortName);
     const place = entry.headsign
         ? kind === "arrivals"
@@ -207,12 +208,15 @@ function BoardRow({
     ) : shown ? (
         <DelayChip delay={shown.delay} stale={shown.stale} />
     ) : null;
-    const note =
-        reason && level ? (
-            <ReasonLabel code={reason} level={level} />
-        ) : usuallyText ? (
-            <span className="truncate text-delay-slight">{usuallyText}</span>
-        ) : null;
+    const note = entry.disruption ? (
+        <span className="truncate font-semibold text-delay-severe">
+            {tDisruptions(`effect_${entry.disruption}`)}
+        </span>
+    ) : reason && level ? (
+        <ReasonLabel code={reason} level={level} />
+    ) : usuallyText ? (
+        <span className="truncate text-delay-slight">{usuallyText}</span>
+    ) : null;
     const content = (
         <>
             <div

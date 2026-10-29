@@ -220,7 +220,7 @@ export function DelayTile({
                     className={cn(
                         "tnum font-extrabold tracking-tight",
                         size === "lg"
-                            ? "text-[32px] leading-none"
+                            ? "text-delay-xl leading-none"
                             : "text-title leading-none",
                     )}
                 />

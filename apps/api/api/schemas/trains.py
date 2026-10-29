@@ -137,6 +137,9 @@ class VehiclePositionWithDelay(BaseModel):
     vehicleProgress: VehicleProgress
     # None for details cached before the field existed
     activity: TrainActivity | None = None
+    # Index of the stop the train is standing at (not its final stop), if
+    # any; its delay there is never negative
+    dwellStopIndex: int | None = None
 
 
 class APIResponse(BaseModel):

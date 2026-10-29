@@ -122,6 +122,8 @@ STATION_BOARD_QUERY = """
           }
           alerts {
             alertDescriptionText
+            effectiveStartDate
+            effectiveEndDate
           }
           departureStoptime {
             scheduledDeparture

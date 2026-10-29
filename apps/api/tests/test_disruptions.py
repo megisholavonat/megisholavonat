@@ -15,8 +15,10 @@ from api.services.disruptions import (
     find_segment,
     group_disruptions,
     severity_of,
+    train_disruption,
+    trains_of,
 )
-from tests.upstream import graphql_route, otp_responder
+from tests.upstream import graphql_route, load_fixture, otp_responder
 
 FIXTURE = "otp-alerts-disruptions.json"
 # Moment the fixture was captured: 2026-10-29 03:55 in Budapest
@@ -114,8 +116,14 @@ async def test_train_follow_ups_join_the_station_notice(
 
     veresegyhaz = next(d for d in disruptions if d["id"] == VERESEGYHAZ_NOTICE)
     assert veresegyhaz["cause"] == "accident"
-    # "Veresegyháztól pótlóbusszal utazhatnak", for two trains
-    assert len(veresegyhaz["alertIds"]) == 3
+    # "Veresegyháztól pótlóbusszal utazhatnak", for two trains, and the
+    # own notice of the train the accident hit, named "(2551)" in the text
+    assert len(veresegyhaz["alertIds"]) == 4
+    assert {t["tripShortName"].split()[0] for t in veresegyhaz["trips"]} == {
+        "2510",
+        "2551",
+        "2598",
+    }
     assert [line["name"] for line in veresegyhaz["lines"]] == ["S71"]
     assert len(disruptions) == 3
 
@@ -252,3 +260,95 @@ def test_route_notice_names_its_lines() -> None:
     assert works.title == "Módosult menetrend Szob és Vác között"
     assert [line.name for line in works.lines] == ["S70", None]
     assert works.url == "https://www.mavcsoport.hu/mavinform/szob"
+
+
+# --- Tapolca, 2026-10-29: a bus replaces 9759 and 9772 ---
+
+TAPOLCA_NOTICE = "QWxlcnQ6MToxMjAyOA"
+# 9759 leaves Tapolca at 4:41
+DEPARTURE_9759 = 1793244060
+
+
+def _tapolca() -> list[RailAlert]:
+    return [
+        RailAlert.model_validate(a) for a in load_fixture("rail-alerts-tapolca.json")
+    ]
+
+
+def test_tapolca_title_is_built_from_effect_and_stretch() -> None:
+    [bus] = group_disruptions(_tapolca())
+
+    assert bus.id == TAPOLCA_NOTICE
+    # Not the description cut off mid-sentence
+    assert bus.title == "Pótlóbusz Tapolca és Balatonfüred között"
+    assert bus.segment is not None
+    assert (bus.segment.fromId, bus.segment.toId) == ("005504598", "005504416")
+
+
+def test_tapolca_lists_the_replaced_trains() -> None:
+    [bus] = group_disruptions(_tapolca())
+
+    # The trains' own notices join the event naming them "(9759)", "(9772)"
+    assert sorted(t.tripShortName or "" for t in bus.trips) == [
+        "9759 személyvonat",
+        "9772 személyvonat",
+    ]
+    assert len(bus.alertIds) == 3
+    # ... with their line glyph, but not their whole-day validity
+    assert len(bus.lines) == 1
+    assert (bus.start, bus.end) == (1793244060, 1793257680)
+
+
+def test_board_marks_the_replaced_train() -> None:
+    trains = trains_of(group_disruptions(_tapolca()))
+
+    assert trains.of("1:35700565", "9759", DEPARTURE_9759) == "replacement_bus"
+    # By its number alone, as named in the text
+    assert trains.of("1:other", "9772", DEPARTURE_9759 + 3600) == "replacement_bus"
+    # Other trains, and the same train another day, are not
+    assert trains.of("1:other", "9761", DEPARTURE_9759) is None
+    assert trains.of("1:35700565", "9759", DEPARTURE_9759 + 86400) is None
+
+
+@pytest.mark.parametrize(
+    ("text", "disruption"),
+    [
+        (
+            "Pótlóbusz közlekedik, mely várhatóan 20 perces késéssel indul.",
+            "replacement_bus",
+        ),
+        ("Gödöllőtől pótlóbusszal utazhatnak.", "replacement_bus"),
+        ("Nem közlekedik.", "no_service"),
+        ("Kerékpárszállítás nem lehetséges.", None),
+        ("Vonat műszaki hibája miatti késés", None),
+        ("Várhatóan 40 perc késéssel indul.", None),
+    ],
+)
+def test_train_disruption(text: str, disruption: str | None) -> None:
+    assert train_disruption(text) == disruption
+
+
+def test_from_to_segment_needs_known_stations() -> None:
+    ids = {"tapolca": "005504598", "balatonfured": "005504416"}
+
+    segment = find_segment(
+        "A Tapolcáról 4:41-kor Balatonfüredre induló vonat helyett busz jár.", ids
+    )
+    unknown = find_segment("A Sehonnanról Seholsemre induló vonat.", ids)
+
+    assert segment is not None
+    # The display name drops the case ending and the lengthened vowel
+    assert (segment.fromName, segment.toName) == ("Tapolca", "Balatonfüred")
+    assert unknown is None
+
+
+def test_long_first_sentence_is_never_cut() -> None:
+    text = (
+        "Járműhiba miatt a reggeli órákban a hegyi szakaszon közlekedő "
+        "személyvonatok helyett a vasúttársaság pótlóbuszokat közlekedtet, "
+        "részletek az állomásokon."
+    )
+
+    [bus] = group_disruptions([_alert(text, stations=["Valahol", "Máshol"])])
+
+    assert bus.title == "Pótlóbusz"

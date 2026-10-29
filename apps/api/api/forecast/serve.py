@@ -46,6 +46,9 @@ MODEL_CHECK_INTERVAL_S = 10 * 60
 class _Row:
     loc: int  # index into the locations list
     stop_index: int
+    # Lowest delay (seconds) the train can have there: it cannot pass the stop
+    # before now, nor run ahead of its timetable while standing at a stop
+    floor_s: float
 
 
 @lru_cache(maxsize=8192)
@@ -116,6 +119,9 @@ def build_examples(
         product = float(product_code(short))
         hour = float((now_s // 3600) % 24)
         day = _daytype(trip["serviceDate"])
+        # Standing at a stop it leaves on time at the earliest, and the run
+        # from there takes at least its scheduled time
+        dwelling = loc.get("dwellStopIndex") is not None
         for j in range(last_idx + 1, final + 1):
             st = stoptimes[j]
             sched = st.get("scheduledArrival" if j == final else "scheduledDeparture")
@@ -139,7 +145,8 @@ def build_examples(
             cols["is_terminus"].append(float(j == final))
             short_keys.append(short_key)
             station_keys.append(_hash(station))
-            rows.append(_Row(n, j))
+            floor = float(now_s - sched)
+            rows.append(_Row(n, j, max(floor, 0.0) if dwelling else floor))
     ex = Examples(
         cols={k: np.asarray(v, dtype=np.float64) for k, v in cols.items()},
         short_key=np.asarray(short_keys, dtype=np.uint64),
@@ -163,7 +170,7 @@ def annotate_locations(
         pred, _ = model.predict(ex)
     by_loc: dict[int, dict[int, int]] = {}
     for row, p in zip(rows, pred.tolist(), strict=True):
-        by_loc.setdefault(row.loc, {})[row.stop_index] = round(p / 60)
+        by_loc.setdefault(row.loc, {})[row.stop_index] = round(max(p, row.floor_s) / 60)
     annotated = 0
     for n, predictions in by_loc.items():
         for stop in locations[n].get("processedStops") or []:
