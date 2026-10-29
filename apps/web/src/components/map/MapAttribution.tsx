@@ -1,8 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Fragment, useEffect, useRef, useState } from "react";
-import { cn } from "@/lib/utils";
+import { Fragment } from "react";
 
 const OSM = {
     name: "© OpenStreetMap",
@@ -26,69 +25,24 @@ function credits(showRailway: boolean) {
     ];
 }
 
-function CreditLinks({ showRailway }: { showRailway: boolean }) {
-    return credits(showRailway).map((credit, i) => (
-        <Fragment key={credit.href}>
-            {i > 0 && <span aria-hidden> · </span>}
-            <a
-                href={credit.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-ink hover:underline"
-            >
-                {credit.name}
-            </a>
-        </Fragment>
-    ));
-}
-
-/**
- * "© OpenStreetMap" that opens the full credits: on phones above the sheet,
- * on desktop when a side panel leaves little room for the full row.
- */
-function CompactAttribution({
-    showRailway,
-    className,
-}: {
-    showRailway: boolean;
-    className?: string;
-}) {
-    const t = useTranslations("Map");
-    const [open, setOpen] = useState(false);
-    const ref = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        if (!open) return;
-        const close = (e: PointerEvent) => {
-            if (!ref.current?.contains(e.target as Node)) setOpen(false);
-        };
-        document.addEventListener("pointerdown", close);
-        return () => document.removeEventListener("pointerdown", close);
-    }, [open]);
-
+function Credit({ name, href }: { name: string; href: string }) {
     return (
-        <div ref={ref} className={cn("map-attribution", className)}>
-            {open ? (
-                <p className="max-w-[min(20rem,calc(100vw-2rem))] px-2 py-1 leading-4">
-                    <CreditLinks showRailway={showRailway} />
-                </p>
-            ) : (
-                <button
-                    type="button"
-                    className="cursor-pointer px-2 py-0.5 leading-4"
-                    aria-label={`${t("map_data")}: ${OSM.name}`}
-                    onClick={() => setOpen(true)}
-                >
-                    {OSM.name}
-                </button>
-            )}
-        </div>
+        <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-ink hover:underline"
+        >
+            {name}
+        </a>
     );
 }
 
 /**
- * Map credits (the basemap's own control is off): "© OpenStreetMap" just
- * above the sheet on phones, a full row in the bottom-right corner on desktop.
+ * Map credits (the basemap's own control is off), per the design and the
+ * OSMF attribution guidelines: "© OpenStreetMap" just above the sheet on
+ * phones (the full list is in Settings), a full row in the bottom-right
+ * corner on desktop, shortened when a side panel leaves too little room.
  */
 export function MapAttribution({
     isDesktop,
@@ -100,12 +54,17 @@ export function MapAttribution({
     /** Width covered by a side panel on desktop */
     insetLeft: number;
 }) {
+    const t = useTranslations("Map");
     if (!isDesktop) {
         return (
-            <CompactAttribution
-                showRailway={showRailway}
-                className="absolute right-4 bottom-[calc(var(--mhav-sheet-inset,0px)+0.5rem)] z-10 rounded-sm transition-[bottom] duration-300 ease-sheet"
-            />
+            // biome-ignore lint/a11y/useSemanticElements: a labelled group of links
+            <div
+                role="group"
+                aria-label={t("map_data")}
+                className="map-attribution absolute right-4 bottom-[calc(var(--mhav-sheet-inset,0px)+0.5rem)] z-10 rounded-sm px-2 py-0.5 leading-4 transition-[bottom] duration-300 ease-sheet"
+            >
+                <Credit {...OSM} />
+            </div>
         );
     }
     return (
@@ -113,13 +72,24 @@ export function MapAttribution({
             className="@container pointer-events-none absolute right-0 bottom-0 z-10 flex justify-end"
             style={{ left: insetLeft }}
         >
-            <p className="map-attribution pointer-events-auto hidden rounded-tl-sm px-2 py-0.5 leading-4 @[34rem]:block">
-                <CreditLinks showRailway={showRailway} />
-            </p>
-            <CompactAttribution
-                showRailway={showRailway}
-                className="pointer-events-auto mr-4 mb-1 rounded-sm @[34rem]:hidden"
-            />
+            {/* biome-ignore lint/a11y/useSemanticElements: a labelled group of links */}
+            <div
+                role="group"
+                aria-label={t("map_data")}
+                className="map-attribution pointer-events-auto rounded-tl-sm px-2 py-0.5 leading-4"
+            >
+                <span className="hidden @[34rem]:inline">
+                    {credits(showRailway).map((credit, i) => (
+                        <Fragment key={credit.href}>
+                            {i > 0 && <span aria-hidden> · </span>}
+                            <Credit {...credit} />
+                        </Fragment>
+                    ))}
+                </span>
+                <span className="@[34rem]:hidden">
+                    <Credit {...OSM} />
+                </span>
+            </div>
         </div>
     );
 }

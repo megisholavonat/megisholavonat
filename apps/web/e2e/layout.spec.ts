@@ -130,7 +130,6 @@ test("idle: controls, search and sheet do not overlap", async ({
 });
 
 test("D34: the map attribution stays visible", async ({ page, isPhone }) => {
-    knownGap("D34: the attribution sits under the peek sheet", isPhone);
     await openHome(page);
     await expectNoOverlap(page, {
         ...controls(page, isPhone),
