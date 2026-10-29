@@ -2,9 +2,8 @@ import { getRunSummaryOptions } from "@megisholavonat/api-client/react-query";
 import {
     type DelaySummary,
     delaySummary,
-    delaySummaryUrl,
-    type RunStops,
 } from "@megisholavonat/core/delaySummary";
+import { delaySummaryUrl, type RunStops } from "@megisholavonat/core/links";
 import { useQuery } from "@tanstack/react-query";
 import { Platform, Pressable, StyleSheet, Text } from "react-native";
 import { useLocale, useTranslations } from "use-intl";

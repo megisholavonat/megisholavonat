@@ -8,21 +8,6 @@ import { getDelayLevel, roundMinutes } from "./delay";
 import type { TrainDisplay } from "./display";
 import type { Locale } from "./i18n";
 
-export const SITE_URL = "https://megisholavonat.info";
-
-/** Link that opens a train or a station on the map. */
-export function shareUrl(
-    origin: string,
-    locale: Locale,
-    target: { vehicleId: string } | { station: string },
-): string {
-    const [key, value] =
-        "vehicleId" in target
-            ? ["vehicleId", target.vehicleId]
-            : ["station", target.station];
-    return `${origin.replace(/\/$/, "")}/${locale}?${key}=${encodeURIComponent(value)}`;
-}
-
 /** Hungarian "-s" suffix by the last pronounced number word ("10-es"). */
 const ONES = ["", "es", "es", "as", "es", "ös", "os", "es", "as", "es"];
 const TENS = ["", "es", "as", "as", "es", "es", "as", "es", "as", "es"];

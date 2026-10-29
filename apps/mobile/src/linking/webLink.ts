@@ -1,3 +1,10 @@
+import {
+    isMapPath,
+    mapTarget,
+    PLANNER_PARAMS,
+    plannerLink,
+    plannerSearch,
+} from "@megisholavonat/core/links";
 import { WEB_URL } from "../config";
 
 /**
@@ -22,19 +29,19 @@ export function webLinkPath(url: string): string {
         return url;
     }
     // Only the map page takes these; the locale is the app's own setting
-    if (!/^\/((hu|en)\/?)?$/.test(parsed.pathname)) return "/";
-    const vehicleId = parsed.searchParams.get("vehicleId");
-    if (vehicleId) return `/train/${encodeURIComponent(vehicleId)}`;
-    const station = parsed.searchParams.get("station");
-    if (station) return `/station/${encodeURIComponent(station)}`;
+    if (!isMapPath(parsed.pathname)) return "/";
+    // Read as the website reads them (core links)
+    const target = mapTarget(parsed.searchParams);
+    if (target && "vehicleId" in target) {
+        return `/train/${encodeURIComponent(target.vehicleId)}`;
+    }
+    if (target) return `/station/${encodeURIComponent(target.station)}`;
     // A planned journey (`?from=005510017&to=budapest&time=…&arriveBy=1`)
-    const journey = new URLSearchParams();
-    for (const name of ["from", "to", "time", "arriveBy"]) {
-        const value = parsed.searchParams.get(name);
-        if (value) journey.set(name, value);
-    }
-    if (journey.has("from") || journey.has("to")) {
-        return `/journey?${journey.toString()}`;
-    }
-    return "/";
+    const journey = plannerLink(parsed.searchParams);
+    if (!journey) return "/";
+    const search = plannerSearch(journey);
+    const query = PLANNER_PARAMS.flatMap((name) =>
+        search[name] ? [`${name}=${encodeURIComponent(search[name])}`] : [],
+    ).join("&");
+    return `/journey?${query}`;
 }

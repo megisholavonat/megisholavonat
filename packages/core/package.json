@@ -14,6 +14,7 @@
         "./delayReasons": "./src/delayReasons.ts",
         "./delaySummary": "./src/delaySummary.ts",
         "./i18n": "./src/i18n.ts",
+        "./links": "./src/links.ts",
         "./mapStyle": "./src/mapStyle.ts",
         "./mavRoutes": "./src/mavRoutes.ts",
         "./planner": "./src/planner.ts",

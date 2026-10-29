@@ -3,9 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
     clockTime,
     delaySummary,
-    delaySummaryPath,
     delaySummarySentence,
-    delaySummaryUrl,
     huDayOn,
     isRunDate,
     isStationId,
@@ -54,27 +52,7 @@ function run(
     };
 }
 
-describe("delaySummaryPath", () => {
-    it("keeps valid stops only", () => {
-        expect(
-            delaySummaryPath("hu", "2614", "2026-10-29", {
-                from: SZOLNOK,
-                to: "x<y",
-            }),
-        ).toBe(`/hu/kesesek/2614/2026-10-29?from=${SZOLNOK}`);
-        expect(delaySummaryPath("en", "H8000", "2026-10-29")).toBe(
-            "/en/kesesek/H8000/2026-10-29",
-        );
-        expect(
-            delaySummaryUrl(
-                "https://megisholavonat.info/",
-                "hu",
-                "10",
-                "2026-10-28",
-            ),
-        ).toBe("https://megisholavonat.info/hu/kesesek/10/2026-10-28");
-    });
-
+describe("link parts", () => {
     it("validates link parts", () => {
         expect(isTrainNumber("H8000")).toBe(true);
         expect(isTrainNumber("26 14")).toBe(false);

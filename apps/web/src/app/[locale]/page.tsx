@@ -10,6 +10,7 @@ import {
     getTrainsOptions,
 } from "@megisholavonat/api-client/react-query";
 import { POLL_INTERVAL_MS } from "@megisholavonat/core/constants";
+import { mapParams, PLANNER_PARAMS } from "@megisholavonat/core/links";
 import { useQuery } from "@tanstack/react-query";
 import { Info } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
@@ -48,7 +49,6 @@ import {
     Wordmark,
 } from "@/components/home/HomeChrome";
 import {
-    PLANNER_PARAMS,
     PlannerButton,
     plannerFromParams,
     plannerParams,
@@ -178,10 +178,6 @@ function useIsWide(): boolean {
     );
 }
 
-function readParam(name: string): string | null {
-    return new URLSearchParams(window.location.search).get(name);
-}
-
 /**
  * A layer over the map that has its own history entry. The train and the
  * station live in the URL (shareable); the others only in the entry's
@@ -213,8 +209,7 @@ function navEntry(): Partial<NavEntry> {
 
 function currentNav(): Nav {
     return {
-        vehicleId: readParam("vehicleId"),
-        station: readParam("station"),
+        ...mapParams(new URLSearchParams(window.location.search)),
         overlay: navEntry().overlay ?? null,
     };
 }

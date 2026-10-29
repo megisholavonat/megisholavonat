@@ -1,4 +1,4 @@
-import { shareUrl } from "@megisholavonat/core/share";
+import { shareUrl } from "@megisholavonat/core/links";
 import { describe, expect, it } from "vitest";
 import { appleAppSiteAssociation, assetLinks } from "./appLinks";
 

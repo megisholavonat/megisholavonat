@@ -1,3 +1,5 @@
+import { SITE_URL } from "@megisholavonat/core/links";
+
 // EXPO_PUBLIC_* variables are inlined at bundle time. Release builds get them
 // from eas.json; local dev reads apps/mobile/.env (see .env.example).
 
@@ -6,7 +8,7 @@ export const API_URL =
     process.env.EXPO_PUBLIC_API_URL ?? "https://megisholavonat.info/api";
 
 /** The website, for share links and the privacy notice. */
-export const WEB_URL = "https://megisholavonat.info";
+export const WEB_URL = SITE_URL;
 
 export const SOURCE_URL = "https://github.com/megisholavonat/megisholavonat";
 

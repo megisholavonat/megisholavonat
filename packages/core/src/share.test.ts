@@ -1,25 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
     huTrainSubject,
-    shareUrl,
     stationShareText,
     stationShareTitle,
     trainShareStatus,
     trainShareText,
 } from "./share";
-
-describe("shareUrl", () => {
-    it("links a train or a station under the locale", () => {
-        expect(
-            shareUrl("https://megisholavonat.info/", "hu", {
-                vehicleId: "1:918061939438",
-            }),
-        ).toBe("https://megisholavonat.info/hu?vehicleId=1%3A918061939438");
-        expect(
-            shareUrl("http://localhost:3000", "en", { station: "005510017" }),
-        ).toBe("http://localhost:3000/en?station=005510017");
-    });
-});
 
 describe("huTrainSubject", () => {
     it.each([

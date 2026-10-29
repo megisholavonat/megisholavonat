@@ -15,7 +15,7 @@ import {
     delayTile,
     staleNote,
 } from "@megisholavonat/core/display";
-import { shareUrl } from "@megisholavonat/core/share";
+import { shareUrl } from "@megisholavonat/core/links";
 import { ticketUrl } from "@megisholavonat/core/ticket";
 import { formatSecondsAsTime } from "@megisholavonat/core/time";
 import { useQuery, useQueryClient } from "@tanstack/react-query";

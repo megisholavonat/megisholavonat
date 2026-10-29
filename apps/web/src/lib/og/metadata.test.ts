@@ -12,7 +12,6 @@ import {
     buildMetadata,
     type Preview,
     previewImagePath,
-    previewTarget,
     subpageMetadata,
 } from "./metadata";
 import { glyphText, stationCard, trainCard, trainShareInfo } from "./model";
@@ -29,22 +28,6 @@ function at(vehicle: { lastUpdated: number }): Date {
 }
 
 const asVehicle = (v: unknown) => v as VehiclePositionWithDelay;
-
-describe("previewTarget", () => {
-    it("reads the selection from the query", () => {
-        expect(previewTarget("?vehicleId=1%3A915504313395")).toEqual({
-            vehicleId: "1:915504313395",
-        });
-        expect(previewTarget("station=005513748")).toEqual({
-            station: "005513748",
-        });
-        expect(previewTarget("?station=1&vehicleId=2")).toEqual({
-            vehicleId: "2",
-        });
-        expect(previewTarget("")).toBeNull();
-        expect(previewTarget("?vehicleId=")).toBeNull();
-    });
-});
 
 describe("trainCard", () => {
     it("summarises a delayed train", () => {

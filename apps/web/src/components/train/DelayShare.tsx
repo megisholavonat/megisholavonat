@@ -4,12 +4,11 @@ import { getRunSummaryOptions } from "@megisholavonat/api-client/react-query";
 import {
     type DelaySummary,
     delaySummary,
-    delaySummaryUrl,
-    type RunStops,
     recentRun,
     runDate,
 } from "@megisholavonat/core/delaySummary";
 import type { Locale } from "@megisholavonat/core/i18n";
+import { delaySummaryUrl, type RunStops } from "@megisholavonat/core/links";
 import { useQuery } from "@tanstack/react-query";
 import { Check, Share } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
@@ -131,7 +130,7 @@ export function DelayShareButton({
             type="button"
             onClick={onClick}
             className={cn(
-                "pressable flex min-h-11 cursor-pointer items-center gap-2 rounded-md bg-surface-2 px-3 text-left text-[15px] font-semibold text-ink hover:bg-line",
+                "pressable flex min-h-11 cursor-pointer items-center gap-2 rounded-md bg-surface-2 px-3 text-left text-subhead font-semibold text-ink hover:bg-line",
                 className,
             )}
         >
