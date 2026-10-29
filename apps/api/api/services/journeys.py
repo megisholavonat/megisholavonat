@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Any
 
 from redis.asyncio import Redis
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.core.cache import cached_model
 from api.core.graphql import query_graphql
@@ -19,6 +20,8 @@ from api.schemas.journeys import (
     WalkLeg,
 )
 from api.schemas.stations import Station
+from api.services.connection_risk import HISTORY_DAYS, assess_transfers
+from api.services.insights import history_window
 from api.services.live_trips import load_live_trip_index, match_live_trip
 from api.services.station_board import keep_best, train_number
 from api.services.station_index import RAIL_FEED, load_station_index
@@ -263,6 +266,7 @@ def plan_time(when: datetime | None) -> datetime:
 
 async def fetch_journeys(
     redis: Redis,
+    session: AsyncSession,
     from_station: Station,
     to_station: Station,
     when: datetime,
@@ -291,6 +295,10 @@ async def fetch_journeys(
     itineraries = select_itineraries(
         merge_duplicate_itineraries(itineraries), arrive_by, limit
     )
+    window = history_window(HISTORY_DAYS)
+    await assess_transfers(
+        redis, session, itineraries, time.time(), (window.start, window.end)
+    )
 
     return JourneyPlan(
         fromStation=from_station,
@@ -304,6 +312,7 @@ async def fetch_journeys(
 
 async def get_journeys(
     redis: Redis,
+    session: AsyncSession,
     from_id: str,
     to_id: str,
     when: datetime | None,
@@ -327,5 +336,7 @@ async def get_journeys(
         key,
         JourneyPlan,
         JOURNEYS_TTL,
-        lambda: fetch_journeys(redis, origin, destination, when, arrive_by, limit),
+        lambda: fetch_journeys(
+            redis, session, origin, destination, when, arrive_by, limit
+        ),
     )

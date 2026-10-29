@@ -5,6 +5,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query
 
+from api.core.db import SessionDep
 from api.core.redis import RedisDep
 from api.routers.errors import UPSTREAM_ERROR_RESPONSE
 from api.schemas.journeys import JourneyPlan
@@ -28,6 +29,7 @@ router = APIRouter(
 )
 async def plan_journeys(
     redis: RedisDep,
+    session: SessionDep,
     from_: Annotated[
         str, Query(alias="from", description="UIC code of the departure station")
     ],
@@ -41,9 +43,12 @@ async def plan_journeys(
     ] = False,
     limit: Annotated[int, Query(ge=1, le=10)] = 5,
 ) -> JourneyPlan:
-    """Itineraries between two rail stations, with live delays and ticket links"""
+    """
+    Itineraries between two rail stations, with live delays, the risk of
+    missing each transfer and ticket links
+    """
     try:
-        return await get_journeys(redis, from_, to, time, arriveBy, limit)
+        return await get_journeys(redis, session, from_, to, time, arriveBy, limit)
     except SameStationError as e:
         raise HTTPException(
             status_code=422, detail="Departure and destination are the same"
