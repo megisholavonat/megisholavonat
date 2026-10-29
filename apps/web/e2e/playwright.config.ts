@@ -2,6 +2,8 @@ import { defineConfig } from "@playwright/test";
 
 const PORT = Number(process.env.E2E_PORT ?? 3210);
 const baseURL = `http://127.0.0.1:${PORT}`;
+const API_PORT = Number(process.env.E2E_API_PORT ?? PORT + 1);
+const apiURL = `http://127.0.0.1:${API_PORT}`;
 
 export default defineConfig({
     testDir: ".",
@@ -47,13 +49,24 @@ export default defineConfig({
             use: { viewport: { width: 1440, height: 900 } },
         },
     ],
-    webServer: {
-        // Serves the production build: run `next build` first (turbo's e2e
-        // task does)
-        command: `pnpm exec next start -p ${PORT} -H 127.0.0.1`,
-        url: baseURL,
-        reuseExistingServer: !process.env.CI,
-        timeout: 60_000,
-        cwd: "..",
-    },
+    webServer: [
+        {
+            // The API the server-rendered pages read, from the fixtures
+            command: `node support/fixture-api.mjs ${API_PORT}`,
+            url: `${apiURL}/`,
+            reuseExistingServer: !process.env.CI,
+            timeout: 10_000,
+            cwd: ".",
+        },
+        {
+            // Serves the production build: run `next build` first (turbo's
+            // e2e task does)
+            command: `pnpm exec next start -p ${PORT} -H 127.0.0.1`,
+            url: baseURL,
+            reuseExistingServer: !process.env.CI,
+            timeout: 60_000,
+            cwd: "..",
+            env: { API_URL: apiURL },
+        },
+    ],
 });
