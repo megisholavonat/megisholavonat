@@ -1,5 +1,11 @@
 [
   {
+    "id": "005501024",
+    "name": "Budapest-Kelenföld",
+    "lat": 47.46,
+    "lon": 19.02
+  },
+  {
     "id": "005513748",
     "name": "Szolnok",
     "lat": 47.179167,

@@ -88,5 +88,19 @@
       "confidence": 1,
       "n": 1
     }
+  ],
+  "typicalDelays": [
+    {
+      "trainNumber": "3329",
+      "n": 20,
+      "medianDelayMin": 6.0,
+      "insufficientData": false
+    },
+    {
+      "trainNumber": "3339",
+      "n": 3,
+      "medianDelayMin": 9.0,
+      "insufficientData": true
+    }
   ]
 }
