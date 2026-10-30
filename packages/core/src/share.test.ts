@@ -84,7 +84,7 @@ describe("trainShareText", () => {
         ).toBe("Train 650 is 15 min late, Szolnok ≈06:07");
     });
 
-    it("calls small delays on time", () => {
+    it("tells small delays in minutes too", () => {
         expect(
             trainShareText("hu", {
                 number: "5",
@@ -92,7 +92,7 @@ describe("trainShareText", () => {
                 waiting: false,
                 next,
             }),
-        ).toBe("Az 5-ös vonat pontos, Debrecen 02:06");
+        ).toBe("Az 5-ös vonat 2 percet késik, Debrecen 02:06");
     });
 
     it("tells a train waiting to depart", () => {
@@ -236,7 +236,7 @@ describe("stationShareText", () => {
                 },
             ]),
         ).toBe(
-            "Indulások: 04:00 Miskolc-Tiszai pontos · 04:10 Szolnok +7 · 04:20 Cegléd törölve · 04:30 Vác",
+            "Indulások: 04:00 Miskolc-Tiszai 0 · 04:10 Szolnok +7 · 04:20 Cegléd törölve · 04:30 Vác",
         );
     });
 

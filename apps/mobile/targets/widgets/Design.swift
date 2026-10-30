@@ -74,7 +74,6 @@ enum Copy {
         Locale.preferredLanguages.first?.hasPrefix("hu") ?? true
     }
 
-    static var onTime: String { hungarian ? "pontos" : "on time" }
     static var tomorrow: String { hungarian ? "holnap" : "tomorrow" }
     static var follow: String { hungarian ? "Kövess egy vonatot" : "Follow a train" }
     static var delayLabel: String { hungarian ? "Késés" : "Delay" }
@@ -89,7 +88,7 @@ enum Copy {
     }
 }
 
-/// "+23" on its delay colour; "pontos" in blue; grey when stale or unknown.
+/// "+23" on its delay colour; "+2" or "0" in blue; grey when stale or unknown.
 struct DelayPill: View {
     var minutes: Int?
     var dark: Bool
@@ -120,12 +119,12 @@ struct DelayPill: View {
 
     private var text: String {
         guard let minutes else { return "?" }
-        return minutes > 0 ? "+\(minutes)" : Copy.onTime
+        return minutes > 0 ? "+\(minutes)" : minutes < 0 ? "−\(-minutes)" : "0"
     }
 
     private var accessibility: String {
         guard let minutes else { return Copy.delayLabel + " ?" }
-        return minutes > 0 ? Copy.minutesLate(minutes) : Copy.onTime
+        return Copy.minutesLate(max(minutes, 0))
     }
 }
 

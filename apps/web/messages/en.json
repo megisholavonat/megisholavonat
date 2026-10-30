@@ -148,7 +148,7 @@
     },
     "Legend": {
         "label": "Delay legend",
-        "on_time": "on time",
+        "on_time": "0-5",
         "slight": "6+",
         "moderate": "15+",
         "severe": "60+",

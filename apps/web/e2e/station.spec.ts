@@ -53,6 +53,6 @@ test("P1: a board row on time shows no delay reason", async ({ page }) => {
     const board = await openBoard(page);
     const row = board.getByRole("button").filter({ hasText: "6009" });
     await expect(row).toBeVisible();
-    await expect(row).toContainText(t.Delay.on_time);
+    await expect(row).not.toContainText(t.Delay.on_time);
     await expect(row).not.toContainText("Műszaki hiba");
 });

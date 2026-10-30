@@ -320,11 +320,9 @@ export function TrainSheet({
                             ? t("stale", { minutes: note.minutes })
                             : t("stale_last", {
                                   minutes: note.minutes,
-                                  delay: note.onTime
-                                      ? tc("on_time")
-                                      : t("delay_minutes", {
-                                            delay: note.delay,
-                                        }),
+                                  delay: t("delay_minutes", {
+                                      delay: note.delay,
+                                  }),
                               })}
                     </Text>
                 </View>
@@ -418,8 +416,8 @@ function summaryTime(
 }
 
 /**
- * The big delay: always a number ("+2" with "pontos" under it when on
- * time, "−1" when early, "+23?" for old data), rolling to each new value;
+ * The big delay: always a number ("+2" on time, with no caption under
+ * it, "−1" when early, "+23?" for old data), rolling to each new value;
  * "–" with what the train is doing when it isn't under way.
  */
 function DelayTile({
@@ -438,8 +436,6 @@ function DelayTile({
             : theme.delay[tile.level].text;
     const caption = (() => {
         switch (tile.caption?.kind) {
-            case "on_time":
-                return tc("on_time");
             case "early":
                 return t("early");
             case "departs":

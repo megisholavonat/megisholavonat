@@ -41,7 +41,7 @@ export interface CommuteItem {
 }
 
 /**
- * "Újpest 17:24 · 2 · pontos": the next run of a follow (design board 1,
+ * "Újpest 17:24 · 2 · +2": the next run of a follow (design board 1,
  * the peek of home). Platform "6?" when only predicted; the delay reason,
  * or "usually late" before departure, in plain words below.
  */

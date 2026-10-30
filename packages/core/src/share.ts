@@ -4,7 +4,7 @@
  * the preview carries what the train or station is doing.
  */
 
-import { getDelayLevel, roundMinutes } from "./delay";
+import { roundMinutes, signedDelay } from "./delay";
 import type { TrainDisplay } from "./display";
 import type { Locale } from "./i18n";
 
@@ -105,14 +105,13 @@ export interface TrainShareInfo {
 /** "A 10-es vonat 9 percet késik, Debrecen ≈02:06": a train link's description */
 export function trainShareText(locale: Locale, info: TrainShareInfo): string {
     const state = info.status ?? (info.waiting ? "waiting" : "running");
-    const onTime = getDelayLevel(info.delay) === "onTime";
     const late = roundMinutes(info.delay);
     const subject =
         locale === "hu" ? huTrainSubject(info.number) : `Train ${info.number}`;
     const status =
         locale === "hu"
             ? {
-                  running: `${subject} ${onTime ? "pontos" : `${late} percet késik`}`,
+                  running: `${subject} ${late > 0 ? `${late} percet késik` : "nem késik"}`,
                   waiting: `${subject} indulásra vár`,
                   cancelled: `${subject} törölve`,
                   arrived: `${subject} megérkezett`,
@@ -120,7 +119,7 @@ export function trainShareText(locale: Locale, info: TrainShareInfo): string {
                   noData: `${subject}ról nincs friss adat`,
               }[state]
             : {
-                  running: `${subject} is ${onTime ? "on time" : `${late} min late`}`,
+                  running: `${subject} ${late > 0 ? `is ${late} min late` : "is not late"}`,
                   waiting: `${subject} is waiting to depart`,
                   cancelled: `${subject} is cancelled`,
                   arrived: `${subject} has arrived`,
@@ -142,13 +141,13 @@ export interface DepartureShareInfo {
     headsign: string;
     /**
      * Minutes late; null when there is no live delay to tell (a train still
-     * waiting to leave on time is not "on time" yet, as on the board)
+     * waiting to leave has no delay yet, as on the board)
      */
     delay: number | null;
     canceled: boolean;
 }
 
-/** "04:00 Miskolc-Tiszai pontos", "04:10 Szolnok" before it is live */
+/** "04:00 Miskolc-Tiszai +2", "04:10 Szolnok" before it is live */
 export function departureText(
     locale: Locale,
     departure: DepartureShareInfo,
@@ -159,11 +158,7 @@ export function departureText(
         ? locale === "hu"
             ? "törölve"
             : "cancelled"
-        : getDelayLevel(departure.delay ?? 0) === "onTime"
-          ? locale === "hu"
-              ? "pontos"
-              : "on time"
-          : `+${roundMinutes(departure.delay ?? 0)}`;
+        : signedDelay(departure.delay ?? 0);
     return `${plain} ${status}`;
 }
 
@@ -175,7 +170,7 @@ export function stationShareTitle(locale: Locale, name: string): string {
     return `${name} – ${locale === "hu" ? "indulások élőben" : "live departures"}`;
 }
 
-/** "Indulások: 04:00 Miskolc-Tiszai pontos · 04:10 Szolnok +3" */
+/** "Indulások: 04:00 Miskolc-Tiszai +2 · 04:10 Szolnok +7" */
 export function stationShareText(
     locale: Locale,
     departures: DepartureShareInfo[],
