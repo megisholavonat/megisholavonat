@@ -1,6 +1,6 @@
 "use client";
 
-import type { DelayLevel } from "@megisholavonat/core/delay";
+import { type DelayLevel, signedDelay } from "@megisholavonat/core/delay";
 import {
     type DelayTileModel,
     delayLabel,
@@ -104,9 +104,9 @@ export function RollingText({
 }
 
 /**
- * Delay as coloured text (core `delayLabel`): "pontos" up to +5, "+7"
- * after. A stale delay is its last number with a "?", never a confident
- * "pontos"; without a delay (an idle or cancelled train) it is a grey "–".
+ * Delay as coloured text (core `delayLabel`): always the minutes ("+2",
+ * "0", "+7"), blue up to +5. A stale delay is its last number with a "?";
+ * without a delay (an idle or cancelled train) it is a grey "–".
  */
 export function DelayText({
     delay,
@@ -117,7 +117,6 @@ export function DelayText({
     stale?: boolean;
     className?: string;
 }) {
-    const t = useTranslations("Delay");
     const shown = delayLabel(delay, stale);
     const classes = cn("tnum font-bold", TEXT_CLASS[shown.level], className);
     if (shown.minutes == null) {
@@ -126,14 +125,14 @@ export function DelayText({
     return (
         <span className={classes}>
             <RollingText
-                value={shown.text ?? t("on_time")}
-                order={shown.text == null ? 0 : shown.minutes}
+                value={shown.text ?? signedDelay(shown.minutes)}
+                order={shown.minutes}
             />
         </span>
     );
 }
 
-/** Tinted chip for lists and boards: "pontos", "+6", "+74", "+23?", "–". */
+/** Tinted chip for lists and boards: "+2", "+6", "+74", "+23?", "–". */
 export function DelayChip({
     delay,
     stale = false,
@@ -167,21 +166,19 @@ export function tileOf(delay: number | null, stale: boolean): DelayTileModel {
     });
 }
 
-/** The tile's "pontos" / "korán" caption (the web shows no idle captions). */
+/**
+ * The tile's "korán" caption; an on-time number goes without one (the
+ * colour says it), and the web shows no idle captions.
+ */
 export function useTileCaption(): (tile: DelayTileModel) => string | null {
     const t = useTranslations("Delay");
-    return (tile) =>
-        tile.caption?.kind === "on_time"
-            ? t("on_time")
-            : tile.caption?.kind === "early"
-              ? t("early")
-              : null;
+    return (tile) => (tile.caption?.kind === "early" ? t("early") : null);
 }
 
 /**
  * The big delay tile of the train sheet (core `delayTile`). It always shows
- * the minutes ("+23", "0", "−2"); within the on-time band (up to +5) a small
- * "pontos" (or "korán") caption says what the number means. Stale data
+ * the minutes ("+23", "0", "−2"); an early train gets a small "korán"
+ * caption under it. Stale data
  * reads "+23?" on a dashed tile. Tap for how the delay is computed.
  */
 export function DelayTile({
@@ -251,9 +248,7 @@ export function StaleNote({
                 ? t("stale_age", { minutes: note.minutes })
                 : t("stale_last", {
                       minutes: note.minutes,
-                      delay: note.onTime
-                          ? t("on_time")
-                          : t("minutes", { delay: note.delay }),
+                      delay: t("minutes", { delay: note.delay }),
                   })}
         </span>
     );

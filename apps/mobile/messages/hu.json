@@ -29,7 +29,7 @@
         "label": "Késés jelmagyarázat",
         "title": "Késés",
         "minutes": "perc",
-        "on_time": "pontos",
+        "on_time": "0-5 perc",
         "from": "{minutes}+ perc",
         "stale": "régi adat",
         "inactive": "nincs élő késés"

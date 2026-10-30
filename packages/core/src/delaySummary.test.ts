@@ -218,7 +218,7 @@ describe("copy", () => {
         ).toBe("A 7:15-ös Szolnok → Budapest-Nyugati ma 23 percet késett");
         expect(
             delaySummarySentence("hu", delaySummary(run([1, 4, 3])), NOW),
-        ).toBe("A 7:15-ös Szolnok → Budapest-Nyugati ma pontosan érkezett");
+        ).toBe("A 7:15-ös Szolnok → Budapest-Nyugati ma 3 percet késett");
         expect(
             delaySummarySentence(
                 "hu",
@@ -237,7 +237,7 @@ describe("copy", () => {
         expect(
             delaySummarySentence("hu", delaySummary(run([3, 2, null])), NOW),
         ).toBe(
-            "A 7:15-ös Szolnok → Budapest-Nyugati ma pontos volt, utolsó mérés: Cegléd",
+            "A 7:15-ös Szolnok → Budapest-Nyugati ma 2 percet késett, utolsó mérés: Cegléd",
         );
         expect(
             delaySummarySentence("en", delaySummary(run([3, 12, null])), NOW),
@@ -272,7 +272,7 @@ describe("copy", () => {
                 delaySummary(run([1, 4, 2], { serviceDate: "2026-10-28" })),
                 NOW,
             ),
-        ).toBe("The 7:15 Szolnok → Budapest-Nyugati was on time yesterday");
+        ).toBe("The 7:15 Szolnok → Budapest-Nyugati was 2 min late yesterday");
         expect(
             delaySummarySentence(
                 "en",

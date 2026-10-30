@@ -112,10 +112,7 @@ function Swatch({ level }: { level: LegendLevel }) {
 function useLegendLabel() {
     const t = useTranslations("Legend");
     return (level: LegendLevel, key: string, withUnit: boolean) =>
-        withUnit &&
-        level !== "onTime" &&
-        level !== "stale" &&
-        level !== "inactive"
+        withUnit && level !== "stale" && level !== "inactive"
             ? `${t(key)} ${t("minutes")}`
             : level === "stale"
               ? `${STALE_SAMPLE} ${t(key)}`

@@ -1,4 +1,8 @@
-import { type DelayLevel, getDelayLevel } from "@megisholavonat/core/delay";
+import {
+    type DelayLevel,
+    getDelayLevel,
+    signedDelay,
+} from "@megisholavonat/core/delay";
 import { delayLabel } from "@megisholavonat/core/display";
 import type { ReactNode } from "react";
 import {
@@ -45,7 +49,8 @@ export function levelTint(
 
 /**
  * The delay chip of lists and boards, the same as the web's (core
- * `delayLabel`): "pontos" up to +5, "+7" after; old data keeps its last
+ * `delayLabel`): always the minutes ("+2", "0", "+7"), blue up to +5; old
+ * data keeps its last
  * delay with a "?" ("+23?") on a dashed grey chip; no delay is a grey "–".
  */
 export function DelayChip({
@@ -62,7 +67,7 @@ export function DelayChip({
     const theme = useAppTheme();
     const t = useTranslations("Common");
     const shown = delayLabel(delay, stale);
-    const label = shown.text ?? t("on_time");
+    const label = shown.text ?? signedDelay(shown.minutes ?? 0);
     const style: ViewStyle = {
         backgroundColor: levelTint(theme, shown.level),
         ...(shown.stale
@@ -78,7 +83,7 @@ export function DelayChip({
             style={[styles.chip, small && styles.chipSmall, style]}
             accessible
             accessibilityLabel={
-                shown.minutes != null && shown.minutes > 0 && shown.text
+                shown.minutes != null && shown.minutes > 0
                     ? t(shown.stale ? "delay_stale_a11y" : "delay_a11y", {
                           delay: shown.minutes,
                       })

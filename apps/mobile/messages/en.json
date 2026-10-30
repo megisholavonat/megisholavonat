@@ -29,7 +29,7 @@
         "label": "Delay legend",
         "title": "Delay",
         "minutes": "min",
-        "on_time": "on time",
+        "on_time": "0-5 min",
         "from": "{minutes}+ min",
         "stale": "old data",
         "inactive": "no live delay"

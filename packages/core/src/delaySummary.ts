@@ -331,7 +331,7 @@ function huTimeSubject(seconds: number): string {
 
 /**
  * "A 7:15-ös Szolnok → Budapest-Nyugati ma 23 percet késett". Minutes as a
- * number; "pontos" only up to five minutes.
+ * number, on time or not; "nem késett" only without a minute of delay.
  */
 export function delaySummarySentence(
     locale: Locale,
@@ -342,6 +342,8 @@ export function delaySummarySentence(
     const day = runDay(locale, card.date, now);
     const departure = card.from.scheduled;
     const n = card.delay ?? 0;
+    // On time still tells its minutes ("2 percet késett"), as the sheet does
+    const outcome = card.outcome === "onTime" && n > 0 ? "late" : card.outcome;
     if (locale === "hu") {
         const subject =
             departure != null
@@ -351,17 +353,17 @@ export function delaySummarySentence(
         const at = card.measuredAt
             ? `, utolsó mérés: ${card.measuredAt.name}`
             : "";
-        switch (card.outcome) {
+        switch (outcome) {
             case "late":
                 return card.soFar
                     ? `${subject} eddig ${n} percet késett${at}`
                     : `${subject} ${day} ${n} percet késett${at}`;
             case "onTime":
                 return card.soFar
-                    ? `${subject} eddig pontos${at}`
+                    ? `${subject} eddig nem késett${at}`
                     : card.measuredAt
-                      ? `${subject} ${day} pontos volt${at}`
-                      : `${subject} ${day} pontosan érkezett`;
+                      ? `${subject} ${day} nem késett${at}`
+                      : `${subject} ${day} késés nélkül érkezett`;
             case "cancelled":
                 return `${subject} ${day} elmaradt`;
             default:
@@ -375,15 +377,15 @@ export function delaySummarySentence(
     const at = card.measuredAt
         ? `, last measured at ${card.measuredAt.name}`
         : "";
-    switch (card.outcome) {
+    switch (outcome) {
         case "late":
             return card.soFar
                 ? `${subject} has been ${n} min late so far${at}`
                 : `${subject} was ${n} min late ${day}${at}`;
         case "onTime":
             return card.soFar
-                ? `${subject} has been on time so far${at}`
-                : `${subject} was on time ${day}${at}`;
+                ? `${subject} has not been late so far${at}`
+                : `${subject} was not late ${day}${at}`;
         case "cancelled":
             return `${subject} was cancelled ${day}`;
         default:

@@ -22,7 +22,6 @@ const TEXT = {
         app: "Mégis hol a vonat?",
         tagline: "Vonatok és késések élőben, térképen",
         minutesLate: "perc késés",
-        onTime: "pontos",
         waiting: "indulásra vár",
         noData: "nincs friss adat",
         offRoute: "nincs élő késés",
@@ -44,7 +43,6 @@ const TEXT = {
         app: "Mégis hol a vonat?",
         tagline: "Hungarian trains and delays, live on a map",
         minutesLate: "min late",
-        onTime: "on time",
         waiting: "waiting to depart",
         noData: "no fresh data",
         offRoute: "no live delay",
@@ -378,7 +376,7 @@ export function trainImage(card: TrainCard, locale: Locale) {
     const color = running ? SCALE[card.level].text : C.ink2;
     const background = running ? tint(card.level) : C.surface2;
     const caption = {
-        running: card.level === "onTime" ? t.onTime : t.minutesLate,
+        running: t.minutesLate,
         waiting: t.waiting,
         cancelled: t.canceled,
         arrived: t.arrived,
@@ -695,9 +693,9 @@ export function stationImage(card: StationCard, locale: Locale) {
                                 >
                                     {d.canceled || !d.level
                                         ? t.canceled
-                                        : d.level === "onTime"
-                                          ? t.onTime
-                                          : `+${d.delay}`}
+                                        : (d.delay ?? 0) > 0
+                                          ? `+${d.delay}`
+                                          : "0"}
                                 </div>
                             ) : (
                                 // Not live yet: the plain time, as on the board

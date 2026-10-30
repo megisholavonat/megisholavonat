@@ -71,7 +71,7 @@ export function useScrollToCurrentStop(
 
 /**
  * The full header's delay: signed minutes like the tile ("+3", "0", "−2"),
- * with the tile's small "pontos" / "korán" caption under an on-time number.
+ * with the tile's small "korán" caption under an early number.
  */
 function HeaderDelay({
     delay,

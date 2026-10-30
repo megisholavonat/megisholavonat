@@ -197,7 +197,7 @@ describe("buildMetadata", () => {
         expect(meta.title).toBe(`Szolnok · ${APP.appTitle}`);
         expect(og.locale).toBe("en_GB");
         expect(meta.description).toMatch(
-            /^Departures: \d\d:\d\d Budapest-Nyugati on time · \d\d:\d\d Hatvan cancelled · /,
+            /^Departures: \d\d:\d\d Budapest-Nyugati [+−]?\d+ · \d\d:\d\d Hatvan cancelled · /,
         );
         expect(og.url).toBe(`${ORIGIN}/en?station=005513748`);
     });
@@ -222,7 +222,7 @@ describe("buildMetadata", () => {
             now,
         });
         expect(meta.description).toMatch(
-            /^Indulások: \d\d:\d\d Budapest-Nyugati · \d\d:\d\d Hatvan törölve · \d\d:\d\d Budapest-Nyugati · .* Budapest-Nyugati pontos · /,
+            /^Indulások: \d\d:\d\d Budapest-Nyugati · \d\d:\d\d Hatvan törölve · \d\d:\d\d Budapest-Nyugati · .* Budapest-Nyugati \+4 · /,
         );
     });
 

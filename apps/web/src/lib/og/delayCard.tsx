@@ -19,7 +19,6 @@ const SCALE = DELAY_SCALE.light;
 export const CARD_TEXT = {
     hu: {
         minutesLate: "perc késés",
-        onTime: "pontos",
         cancelled: "elmaradt",
         unknown: "nincs mérés",
         soFar: "eddig",
@@ -30,7 +29,6 @@ export const CARD_TEXT = {
     },
     en: {
         minutesLate: "min late",
-        onTime: "on time",
         cancelled: "cancelled",
         unknown: "not measured",
         soFar: "so far",
@@ -59,9 +57,9 @@ export function cardDelay(card: DelaySummary, locale: Locale) {
         case "late":
         case "onTime":
             return {
-                // Minutes as a number, "pontos" under a small one, as the sheet
+                // Minutes as a number, as the sheet
                 big: card.delay ? `+${card.delay}` : "0",
-                caption: `${card.outcome === "late" ? t.minutesLate : t.onTime}${card.soFar ? ` · ${t.soFar}` : ""}`,
+                caption: `${t.minutesLate}${card.soFar ? ` · ${t.soFar}` : ""}`,
                 color: SCALE[card.level].text,
                 background: tint(card.level),
             };
